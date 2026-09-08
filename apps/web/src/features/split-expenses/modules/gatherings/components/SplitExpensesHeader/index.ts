@@ -1,0 +1,1 @@
+export { SplitExpensesHeader } from './SplitExpensesHeader';
