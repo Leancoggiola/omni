@@ -1,5 +1,7 @@
 export const SPLIT_FRIEND_NAME_MAX = 120;
-export const SPLIT_FRIEND_ALIAS_MAX = 80;
+export const SPLIT_FRIEND_ALIAS_MIN = 6;
+export const SPLIT_FRIEND_ALIAS_MAX = 20;
+export const SPLIT_FRIEND_ALIAS_PATTERN = /^[a-zA-Z0-9._-]+$/;
 export const GATHERING_NAME_MAX = 120;
 export const GATHERING_EXPENSE_DESCRIPTION_MAX = 200;
 export const SUGGEST_FRIENDS_DEFAULT_LIMIT = 10;

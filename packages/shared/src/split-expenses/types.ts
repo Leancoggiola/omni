@@ -59,3 +59,28 @@ export interface GatheringSummary {
   participantCount: number;
   totalAmount: number;
 }
+
+// ── Client form state ─────────────────────────────────────────
+
+/** Client form state for adding a saved friend. */
+export interface FriendFormValues {
+  name: string;
+  alias: string;
+}
+
+/** A gathering participant while the "new gathering" form is being filled. */
+export interface GatheringParticipantDraft {
+  /** Local-only identifier used as a React key. */
+  key: string;
+  /** Set when the participant maps to a saved friend. */
+  friendId: string | null;
+  displayName: string;
+}
+
+/** Client form state for creating a gathering. */
+export interface NewGatheringFormValues {
+  name: string;
+  /** ISO date string (YYYY-MM-DD). */
+  date: string;
+  participants: GatheringParticipantDraft[];
+}
