@@ -71,6 +71,24 @@ describe('validate middleware', () => {
     expect(req.query).toEqual({ page: 3 });
   });
 
+  it('should persist coerced query values across accesses (Express 5 re-parsing getter)', () => {
+    const querySchema = z.object({ page: z.coerce.number().min(1), limit: z.coerce.number().min(1) });
+    const req = mockReq();
+    Object.defineProperty(req, 'query', {
+      configurable: true,
+      enumerable: true,
+      get: () => ({ page: '3', limit: '50' }),
+    });
+    const next = vi.fn();
+
+    validate(querySchema, 'query')(req, mockRes(), next);
+
+    expect(next).toHaveBeenCalledWith();
+    // Access req.query again, as a downstream route handler would.
+    expect(req.query).toEqual({ page: 3, limit: 50 });
+    expect(typeof (req.query as unknown as { limit: unknown }).limit).toBe('number');
+  });
+
   it('should validate params when target is params', () => {
     const paramsSchema = z.object({ id: z.string().min(1) });
     const req = mockReq({

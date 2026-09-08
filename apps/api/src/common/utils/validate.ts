@@ -9,6 +9,16 @@ function assignParsed(req: Request, target: ValidationTarget, parsed: unknown) {
     return;
   }
 
+  if (target === 'query') {
+    Object.defineProperty(req, 'query', {
+      value: parsed,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+    return;
+  }
+
   const container = req[target] as Record<string, unknown>;
   for (const key of Object.keys(container)) {
     delete container[key];
