@@ -47,6 +47,8 @@ jobs:
   lint:
     name: Lint
     needs: [install]
+    # De noche nada de esto puede cambiar de resultado: no hay commits nuevos.
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -79,6 +81,8 @@ jobs:
 
       - run: pnpm --filter web check-api-paths
 
+      - run: pnpm format:check
+
   audit:
     name: Security Audit
     needs: [install]
@@ -102,36 +106,10 @@ jobs:
       # dependency, not shipped to production. Remove --ignore once fixed.
       - run: pnpm audit --audit-level=high --ignore CVE-2025-71330 --ignore CVE-2025-71329
 
-  format:
-    name: Format Check
-    needs: [install]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - uses: actions/cache/restore@v4
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - run: pnpm format:check
-
   check-types:
     name: Type Check
     needs: [install]
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -165,6 +143,7 @@ jobs:
   test:
     name: Test
     needs: [install]
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
@@ -289,7 +268,8 @@ jobs:
 
   build:
     name: Build
-    needs: [lint, check-types, test, audit, format]
+    needs: [lint, check-types, test, audit]
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -318,10 +298,6 @@ jobs:
           key: turbo-${{ runner.os }}-build-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-build-
 
+      # Sirve como chequeo de compilación. No se suben artifacts: Render construye su propia
+      # imagen desde el Dockerfile y Vercel compila la web por su cuenta.
       - run: pnpm turbo build
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: apps/*/dist/
-          retention-days: 7

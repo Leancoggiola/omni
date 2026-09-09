@@ -50,8 +50,6 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
       await mkdir(AUTH_DIR, { recursive: true });
       const path = new URL(`worker-${workerInfo.workerIndex}.json`, AUTH_DIR);
       await writeFile(path, JSON.stringify(await storageStateFor(workerUser)));
-      // fileURLToPath y no pathname: en Linux pathname arranca con "/" y recortarlo
-      // deja una ruta relativa que Playwright no encuentra.
       await use(fileURLToPath(path));
     },
     { scope: 'worker' },
