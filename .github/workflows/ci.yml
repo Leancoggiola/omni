@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  # Solo main: los merges a develop entran por PR, que ya corre este mismo pipeline.
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main, develop]
   # Nightly, para detectar E2E flaky y dependencias con CVEs nuevos.
@@ -34,9 +35,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - run: pnpm install --frozen-lockfile
-
-      - uses: actions/cache/save@v4
+      # Restaura y guarda con la misma acción: con cache/save fallaba cuando la key ya existía.
+      - uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -44,10 +44,11 @@ jobs:
             packages/*/node_modules
           key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
+      - run: pnpm install --frozen-lockfile
+
   lint:
     name: Lint
     needs: [install]
-    # De noche nada de esto puede cambiar de resultado: no hay commits nuevos.
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -298,6 +299,4 @@ jobs:
           key: turbo-${{ runner.os }}-build-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-build-
 
-      # Sirve como chequeo de compilación. No se suben artifacts: Render construye su propia
-      # imagen desde el Dockerfile y Vercel compila la web por su cuenta.
       - run: pnpm turbo build
