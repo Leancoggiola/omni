@@ -3,6 +3,7 @@ import { Alert, Button, Divider, Group, Modal, Stack, Text, TextInput } from '@m
 import { schemaResolver, useForm } from '@mantine/form';
 
 import { getErrorMessage, notifySuccess } from '@/shared/ui';
+import { EmptyState, ErrorState, LoadingState } from '@/shared/ui';
 
 import { useSplitExpensesMutations } from '../../../_shared';
 import { useSplitFriends } from '../../hooks';
@@ -12,6 +13,7 @@ import { FriendRow } from './FriendRow';
 import type { FriendFormValues } from '../../utils/friendForm';
 
 import { SPLIT_FRIEND_ALIAS_MAX, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
+import { UsersThreeIcon } from '@phosphor-icons/react';
 
 interface FriendsModalProps {
   opened: boolean;
@@ -22,7 +24,7 @@ export const FriendsModal: FC<FriendsModalProps> = ({ opened, onClose }) => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { items: friends } = useSplitFriends();
+  const { items: friends, isLoading, error } = useSplitFriends();
   const { createFriend, updateFriend, deleteFriend } = useSplitExpensesMutations();
 
   const form = useForm<FriendFormValues>({
@@ -57,10 +59,12 @@ export const FriendsModal: FC<FriendsModalProps> = ({ opened, onClose }) => {
   return (
     <Modal opened={opened} onClose={onClose} title="Amigos guardados" centered>
       <Stack gap="md">
-        {friends.length === 0 ? (
-          <Text c="dimmed" ta="center" py="sm">
-            Sin amigos guardados
-          </Text>
+        {error ? (
+          <ErrorState message="No se pudieron cargar los amigos" />
+        ) : isLoading ? (
+          <LoadingState size="sm" py="md" />
+        ) : friends.length === 0 ? (
+          <EmptyState icon={<UsersThreeIcon />} title="Sin amigos guardados" />
         ) : (
           <Stack gap="xs">
             {friends.map(friend => (

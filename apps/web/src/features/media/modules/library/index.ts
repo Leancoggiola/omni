@@ -1,9 +1,2 @@
-export {
-  AddMediaModal,
-  MediaCard,
-  MediaEmptyState,
-  MediaListToolbar,
-  MediaPageHeader,
-  MyMediaList,
-} from './components';
+export { AddMediaModal, MediaCard, MediaListToolbar, MediaPageHeader, MyMediaList } from './components';
 export { useMyMediaList } from './hooks';

@@ -1,1 +1,0 @@
-export { MediaEmptyState } from './MediaEmptyState';

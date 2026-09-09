@@ -1,15 +1,19 @@
 import { FC, useMemo } from 'react';
-import { Center, Loader, SimpleGrid, Stack } from '@mantine/core';
+import { Button, SimpleGrid, Stack } from '@mantine/core';
+
+import { EmptyState, ErrorState, LoadingState } from '@/shared/ui';
 
 import { MediaCard } from '../MediaCard';
-import { MediaEmptyState } from '../MediaEmptyState';
 import { MediaListItem } from '../MediaListItem';
 
 import type { MediaItem, MediaStatus } from '../../../_shared/types';
 
+import { FilmSlateIcon, PlusIcon } from '@phosphor-icons/react';
+
 interface MyMediaListProps {
   items: MediaItem[] | undefined;
   isLoading: boolean;
+  error?: unknown;
   searchText: string;
   displayMode: string;
   onAdd: () => void;
@@ -20,6 +24,7 @@ interface MyMediaListProps {
 export const MyMediaList: FC<MyMediaListProps> = ({
   items,
   isLoading,
+  error,
   searchText,
   displayMode,
   onAdd,
@@ -33,20 +38,30 @@ export const MyMediaList: FC<MyMediaListProps> = ({
     return items.filter(item => item.title.toLowerCase().includes(q));
   }, [items, searchText]);
 
+  if (error) {
+    return <ErrorState message="No se pudo cargar tu lista" />;
+  }
+
   if (isLoading) {
-    return (
-      <Center py="xl">
-        <Loader />
-      </Center>
-    );
+    return <LoadingState />;
   }
 
   if (!items || items.length === 0) {
-    return <MediaEmptyState message="Tu lista está vacía" onAdd={onAdd} />;
+    return (
+      <EmptyState
+        icon={<FilmSlateIcon />}
+        title="Tu lista está vacía"
+        action={
+          <Button variant="light" leftSection={<PlusIcon size="1rem" />} onClick={onAdd}>
+            Agregar
+          </Button>
+        }
+      />
+    );
   }
 
   if (filteredItems.length === 0) {
-    return <MediaEmptyState message="No hay resultados" />;
+    return <EmptyState icon={<FilmSlateIcon />} title="No hay resultados" />;
   }
 
   return (

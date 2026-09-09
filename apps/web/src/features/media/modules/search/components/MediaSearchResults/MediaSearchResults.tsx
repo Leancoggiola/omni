@@ -1,13 +1,14 @@
 import { FC } from 'react';
-import { Badge, Button, Card, Center, Group, Image, Loader, Menu, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Badge, Button, Card, Group, Image, Menu, SimpleGrid, Stack, Text } from '@mantine/core';
 
-import { openImageLightbox } from '@/shared/ui';
+import { EmptyState, LoadingState, openImageLightbox } from '@/shared/ui';
 
 import { getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from '../../../_shared/utils/tmdb';
 
 import type { MediaStatus, MediaType, TmdbMediaResult } from '../../../_shared/types';
 
 import { MEDIA_STATUS_LABELS, MEDIA_TYPE_LABELS, TMDB_POSTER_W500 } from '@omni/shared/media';
+import { MagnifyingGlassIcon } from '@phosphor-icons/react';
 
 interface MediaSearchResultsProps {
   results: TmdbMediaResult[];
@@ -18,19 +19,11 @@ interface MediaSearchResultsProps {
 
 export const MediaSearchResults: FC<MediaSearchResultsProps> = ({ results, isLoading, existingTmdbIds, onAdd }) => {
   if (isLoading) {
-    return (
-      <Center py="xl">
-        <Loader />
-      </Center>
-    );
+    return <LoadingState />;
   }
 
   if (results.length === 0) {
-    return (
-      <Text c="dimmed" ta="center" py="xl">
-        No se encontraron resultados
-      </Text>
-    );
+    return <EmptyState icon={<MagnifyingGlassIcon />} title="No se encontraron resultados" />;
   }
 
   return (

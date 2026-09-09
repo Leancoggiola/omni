@@ -16,7 +16,7 @@ export const SplitExpensesPage: FC = () => {
   const [friendsOpened, setFriendsOpened] = useState(false);
   const [newGatheringOpened, setNewGatheringOpened] = useState(false);
 
-  const { items, isLoading } = useGatherings();
+  const { items, isLoading, error } = useGatherings();
   const { createGathering } = useSplitExpensesMutations();
 
   const handleCreateGathering = async (payload: CreateGatheringPayload) => {
@@ -30,7 +30,12 @@ export const SplitExpensesPage: FC = () => {
         onNewGathering={() => setNewGatheringOpened(true)}
       />
 
-      <GatheringList items={items} isLoading={isLoading} onNewGathering={() => setNewGatheringOpened(true)} />
+      <GatheringList
+        items={items}
+        isLoading={isLoading}
+        error={error}
+        onNewGathering={() => setNewGatheringOpened(true)}
+      />
 
       <NewGatheringModal
         opened={newGatheringOpened}

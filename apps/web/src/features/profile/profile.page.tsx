@@ -1,7 +1,8 @@
 import { FC, useCallback } from 'react';
-import { Loader, Stack, Text, Title } from '@mantine/core';
+import { Stack, Text, Title } from '@mantine/core';
 
 import { useAuth } from '@/core/auth';
+import { ErrorState, LoadingState } from '@/shared/ui';
 
 import {
   DeleteAccountButton,
@@ -14,7 +15,7 @@ import {
 } from './modules';
 
 export const ProfilePage: FC = () => {
-  const { profile, isLoading, isMutating, updateProfile, updatePreferences } = useProfile();
+  const { profile, isLoading, isMutating, error, updateProfile, updatePreferences } = useProfile();
   const { changePassword, deleteAccount } = useAccountActions();
   const { logout } = useAuth();
 
@@ -54,7 +55,11 @@ export const ProfilePage: FC = () => {
   );
 
   if (isLoading) {
-    return <Loader />;
+    return <LoadingState />;
+  }
+
+  if (error) {
+    return <ErrorState message="No se pudo cargar tu perfil" />;
   }
 
   if (!profile) {

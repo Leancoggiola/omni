@@ -7,7 +7,6 @@ import {
   Collapse,
   Divider,
   Group,
-  Loader,
   Menu,
   Paper,
   Stack,
@@ -15,7 +14,7 @@ import {
   ThemeIcon,
 } from '@mantine/core';
 
-import { confirm, getErrorMessage, notifyError, notifySuccess } from '@/shared/ui';
+import { confirm, ErrorState, getErrorMessage, LoadingState, notifyError, notifySuccess } from '@/shared/ui';
 
 import { useSplitExpensesMutations } from '../../../_shared';
 import { useGathering } from '../../hooks';
@@ -49,7 +48,7 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
   const [expanded, setExpanded] = useState(!summary.isSettled);
   const [settleLoading, setSettleLoading] = useState(false);
 
-  const { gathering, isLoading } = useGathering(expanded ? summary.id : null);
+  const { gathering, isLoading, error } = useGathering(expanded ? summary.id : null);
   const { addGatheringExpense, deleteGatheringExpense, toggleGatheringSettled, deleteGathering } =
     useSplitExpensesMutations();
 
@@ -143,10 +142,12 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
       </Group>
 
       <Collapse expanded={expanded}>
-        {isLoading && !gathering ? (
-          <Group justify="center" py="xl">
-            <Loader size="sm" />
-          </Group>
+        {error ? (
+          <Stack mt="md">
+            <ErrorState message="No se pudo cargar la juntada" />
+          </Stack>
+        ) : isLoading && !gathering ? (
+          <LoadingState size="sm" />
         ) : gathering ? (
           <Stack gap="md" mt="md">
             <Divider />
