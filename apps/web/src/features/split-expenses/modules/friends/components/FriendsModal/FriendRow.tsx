@@ -1,12 +1,13 @@
 import { FC, useState } from 'react';
-import { ActionIcon, Group, Stack, Text, TextInput } from '@mantine/core';
+import { ActionIcon, Group, Stack, Text } from '@mantine/core';
 
 import { confirm, getErrorMessage, notifyError, notifySuccess } from '@/shared/ui';
 
+import { FriendRowEditor } from './FriendRowEditor';
+
 import type { SplitFriend, UpdateSplitFriendPayload } from '@omni/shared/split-expenses';
 
-import { friendFormSchema, SPLIT_FRIEND_ALIAS_MAX, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
-import { CheckIcon, PencilSimpleIcon, TrashIcon, XIcon } from '@phosphor-icons/react';
+import { PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
 
 interface FriendRowProps {
   friend: SplitFriend;
@@ -16,42 +17,11 @@ interface FriendRowProps {
 
 export const FriendRow: FC<FriendRowProps> = ({ friend, onUpdate, onDelete }) => {
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(friend.name);
-  const [alias, setAlias] = useState(friend.alias ?? '');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const startEditing = () => {
-    setName(friend.name);
-    setAlias(friend.alias ?? '');
-    setError(null);
-    setEditing(true);
-  };
-
-  const handleSave = async () => {
-    const trimmedName = name.trim();
-    const trimmedAlias = alias.trim();
-
-    const result = friendFormSchema.safeParse({ name: trimmedName, alias: trimmedAlias });
-    if (!result.success) {
-      setError(result.error.issues[0]?.message ?? 'Datos inválidos');
-      return;
-    }
-    setError(null);
-
-    setLoading(true);
-    try {
-      await onUpdate(friend.id, { name: trimmedName, alias: trimmedAlias });
-      notifySuccess('Amigo actualizado');
-      setEditing(false);
-    } catch (err) {
-      notifyError(getErrorMessage(err, 'No se pudo actualizar el amigo'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
+    if (deleting) return;
+
     const confirmed = await confirm({
       title: 'Eliminar amigo',
       description: `¿Seguro que querés eliminar a "${friend.name}"?`,
@@ -60,55 +30,20 @@ export const FriendRow: FC<FriendRowProps> = ({ friend, onUpdate, onDelete }) =>
     });
     if (!confirmed) return;
 
-    setLoading(true);
+    setDeleting(true);
     try {
       await onDelete(friend.id);
       notifySuccess('Amigo eliminado');
     } catch (err) {
       notifyError(getErrorMessage(err, 'No se pudo eliminar el amigo'));
-      setLoading(false);
+    } finally {
+      setDeleting(false);
     }
   };
 
   if (editing) {
     return (
-      <Stack gap={4}>
-        <Group gap="xs" align="flex-start" wrap="nowrap">
-          <TextInput
-            aria-label="Nombre"
-            value={name}
-            maxLength={SPLIT_FRIEND_NAME_MAX}
-            onChange={event => setName(event.currentTarget.value)}
-            style={{ flex: 1 }}
-          />
-          <TextInput
-            aria-label="Alias"
-            placeholder="Alias"
-            value={alias}
-            maxLength={SPLIT_FRIEND_ALIAS_MAX}
-            onChange={event => setAlias(event.currentTarget.value)}
-            style={{ flex: 1 }}
-          />
-          <ActionIcon
-            variant="light"
-            color="green"
-            aria-label="Guardar"
-            loading={loading}
-            disabled={!name.trim() || !alias.trim()}
-            onClick={handleSave}
-          >
-            <CheckIcon size="1rem" />
-          </ActionIcon>
-          <ActionIcon variant="subtle" color="gray" aria-label="Cancelar" onClick={() => setEditing(false)}>
-            <XIcon size="1rem" />
-          </ActionIcon>
-        </Group>
-        {error && (
-          <Text size="xs" c="red">
-            {error}
-          </Text>
-        )}
-      </Stack>
+      <FriendRowEditor key={friend.updatedAt} friend={friend} onUpdate={onUpdate} onDone={() => setEditing(false)} />
     );
   }
 
@@ -125,10 +60,10 @@ export const FriendRow: FC<FriendRowProps> = ({ friend, onUpdate, onDelete }) =>
         )}
       </Stack>
       <Group gap="3xs" wrap="nowrap">
-        <ActionIcon variant="subtle" color="gray" aria-label="Editar" onClick={startEditing}>
+        <ActionIcon variant="subtle" color="gray" aria-label="Editar" onClick={() => setEditing(true)}>
           <PencilSimpleIcon size="1rem" />
         </ActionIcon>
-        <ActionIcon variant="subtle" color="red" aria-label="Eliminar" loading={loading} onClick={handleDelete}>
+        <ActionIcon variant="subtle" color="red" aria-label="Eliminar" loading={deleting} onClick={handleDelete}>
           <TrashIcon size="1rem" />
         </ActionIcon>
       </Group>

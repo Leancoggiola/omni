@@ -23,7 +23,7 @@ export const AddExpenseForm: FC<AddExpenseFormProps> = ({ participants, onAdd })
   const canSubmit = participantId != null && Number.isFinite(numericAmount) && numericAmount > 0;
 
   const handleSubmit = async () => {
-    if (!canSubmit || participantId == null) return;
+    if (!canSubmit || loading || participantId == null) return;
 
     setLoading(true);
     try {

@@ -1,18 +1,5 @@
 import { FC, useState } from 'react';
-import {
-  ActionIcon,
-  Badge,
-  Button,
-  Card,
-  Collapse,
-  Divider,
-  Group,
-  Menu,
-  Paper,
-  Stack,
-  Text,
-  ThemeIcon,
-} from '@mantine/core';
+import { ActionIcon, Badge, Button, Card, Collapse, Divider, Group, Menu, Stack, Text, ThemeIcon } from '@mantine/core';
 
 import { confirm, ErrorState, getErrorMessage, LoadingState, notifyError, notifySuccess } from '@/shared/ui';
 
@@ -20,33 +7,30 @@ import { useSplitExpensesMutations } from '../../../_shared';
 import { useGathering } from '../../hooks';
 import { AddExpenseForm } from '../AddExpenseForm';
 import { MoneyAmount } from '../MoneyAmount';
+import { GatheringExpenses } from './GatheringExpenses';
+import { GatheringParticipants } from './GatheringParticipants';
+import { GatheringSection } from './GatheringSection';
+import { GatheringSettlements } from './GatheringSettlements';
 
 import type { GatheringSummary } from '@omni/shared/split-expenses';
 
 import {
-  ArrowRightIcon,
   CaretDownIcon,
   CaretUpIcon,
   CheckCircleIcon,
   DotsThreeVerticalIcon,
   TrashIcon,
   UsersThreeIcon,
-  XIcon,
 } from '@phosphor-icons/react';
 
 interface GatheringCardProps {
   summary: GatheringSummary;
 }
 
-const SectionLabel: FC<{ children: string }> = ({ children }) => (
-  <Text size="xs" fw={700} c="dimmed" tt="uppercase">
-    {children}
-  </Text>
-);
-
 export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
   const [expanded, setExpanded] = useState(!summary.isSettled);
   const [settleLoading, setSettleLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { gathering, isLoading, error } = useGathering(expanded ? summary.id : null);
   const { addGatheringExpense, deleteGatheringExpense, toggleGatheringSettled, deleteGathering } =
@@ -79,6 +63,8 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
   };
 
   const handleDelete = async () => {
+    if (deleting) return;
+
     const confirmed = await confirm({
       title: 'Eliminar juntada',
       description: `¿Seguro que querés eliminar "${summary.name}"? Esta acción no se puede deshacer.`,
@@ -87,11 +73,14 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
     });
     if (!confirmed) return;
 
+    setDeleting(true);
     try {
       await deleteGathering(summary.id);
       notifySuccess('Juntada eliminada');
     } catch (err) {
       notifyError(getErrorMessage(err, 'No se pudo eliminar la juntada'));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -125,7 +114,7 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item color="red" leftSection={<TrashIcon size="1rem" />} onClick={handleDelete}>
+              <Menu.Item color="red" disabled={deleting} leftSection={<TrashIcon size="1rem" />} onClick={handleDelete}>
                 Eliminar juntada
               </Menu.Item>
             </Menu.Dropdown>
@@ -152,99 +141,23 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
           <Stack gap="md" mt="md">
             <Divider />
 
-            <Stack gap="xs">
-              <SectionLabel>Participantes</SectionLabel>
-              <Group gap="xs">
-                {gathering.participants.map(participant => (
-                  <Badge key={participant.id} variant="light" color="brand" size="lg" radius="sm">
-                    <Text span fw={600} size="sm">
-                      {participant.displayName}
-                    </Text>{' '}
-                    <Text span c="dimmed" size="sm">
-                      <MoneyAmount value={participant.totalPaid} />
-                    </Text>
-                  </Badge>
-                ))}
-              </Group>
-              <Text size="sm" c="dimmed">
-                Parte equitativa: <MoneyAmount value={gathering.fairShare} /> c/u
-              </Text>
-            </Stack>
+            <GatheringParticipants participants={gathering.participants} fairShare={gathering.fairShare} />
 
             {!isSettled && (
-              <Stack gap="xs">
-                <SectionLabel>Agregar gasto</SectionLabel>
-                <AddExpenseForm participants={gathering.participants} onAdd={handleAddExpense} />
-              </Stack>
+              <GatheringSection label="Agregar gasto">
+                <AddExpenseForm
+                  key={gathering.participants.map(participant => participant.id).join('|')}
+                  participants={gathering.participants}
+                  onAdd={handleAddExpense}
+                />
+              </GatheringSection>
             )}
 
             {gathering.expenses.length > 0 && (
-              <Stack gap="xs">
-                <SectionLabel>Gastos registrados</SectionLabel>
-                <Stack gap="3xs">
-                  {gathering.expenses.map(expense => (
-                    <Paper key={expense.id} p="sm" radius="sm" bg="var(--mantine-color-body)">
-                      <Group justify="space-between" wrap="nowrap">
-                        <Group gap="xs" wrap="nowrap">
-                          <Text size="sm" fw={600}>
-                            {expense.participantName}
-                          </Text>
-                          <Text size="sm" fw={700}>
-                            <MoneyAmount value={expense.amount} />
-                          </Text>
-                          {expense.description && (
-                            <Text size="sm" c="dimmed">
-                              — {expense.description}
-                            </Text>
-                          )}
-                        </Group>
-                        {!isSettled && (
-                          <ActionIcon
-                            variant="subtle"
-                            color="gray"
-                            aria-label="Eliminar gasto"
-                            onClick={() => handleDeleteExpense(expense.id)}
-                          >
-                            <XIcon size="1rem" />
-                          </ActionIcon>
-                        )}
-                      </Group>
-                    </Paper>
-                  ))}
-                </Stack>
-              </Stack>
+              <GatheringExpenses expenses={gathering.expenses} canDelete={!isSettled} onDelete={handleDeleteExpense} />
             )}
 
-            {gathering.settlements.length > 0 && (
-              <Stack gap="xs">
-                <SectionLabel>¿Quién le debe a quién?</SectionLabel>
-                <Stack gap="3xs">
-                  {gathering.settlements.map(settlement => (
-                    <Paper
-                      key={`${settlement.fromParticipantId}-${settlement.toParticipantId}`}
-                      p="sm"
-                      radius="sm"
-                      bg="var(--mantine-color-brand-light)"
-                    >
-                      <Group justify="space-between" wrap="nowrap">
-                        <Group gap="xs" align="center" wrap="nowrap">
-                          <Text size="sm" fw={600}>
-                            {settlement.fromName}
-                          </Text>
-                          <ArrowRightIcon size="1rem" />
-                          <Text size="sm" fw={600}>
-                            {settlement.toName}
-                          </Text>
-                        </Group>
-                        <Text size="sm" fw={700}>
-                          <MoneyAmount value={settlement.amount} />
-                        </Text>
-                      </Group>
-                    </Paper>
-                  ))}
-                </Stack>
-              </Stack>
-            )}
+            {gathering.settlements.length > 0 && <GatheringSettlements settlements={gathering.settlements} />}
 
             <Button
               variant={isSettled ? 'default' : 'filled'}
