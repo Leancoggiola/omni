@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
 
-const ENV_TEST_PATH = new URL('../../../.env.test', import.meta.url);
+const DISPOSABLE_SUFFIXES = ['_test', '_e2e'];
 
 /**
  * Rechaza cualquier cosa que no sea una base local y descartable.
@@ -24,17 +24,17 @@ export function assertTestDatabaseUrl(rawUrl: string | undefined): string {
 
   const database = parsed.pathname.replace(/^\//, '');
   const isLocal = LOCAL_HOSTNAMES.has(parsed.hostname);
-  const isTestDatabase = database.endsWith('_test');
+  const isDisposable = DISPOSABLE_SUFFIXES.some(suffix => database.endsWith(suffix));
 
-  if (!isLocal || !isTestDatabase) {
+  if (!isLocal || !isDisposable) {
     throw new Error(
       [
         'Refusing to run against a non-test database.',
         `  host:     ${parsed.hostname} ${isLocal ? '(ok)' : '(must be localhost or 127.0.0.1)'}`,
-        `  database: ${database} ${isTestDatabase ? '(ok)' : '(must end in _test)'}`,
+        `  database: ${database} ${isDisposable ? '(ok)' : '(must end in _test or _e2e)'}`,
         '',
         'Start the disposable container and retry:',
-        '  docker compose up -d db-test',
+        '  docker compose up -d db-test db-e2e',
       ].join('\n')
     );
   }
@@ -43,10 +43,10 @@ export function assertTestDatabaseUrl(rawUrl: string | undefined): string {
 }
 
 /**
- * Carga `.env.test` por encima de lo que ya haya en el entorno y valida el resultado.
+ * Carga el archivo de entorno indicado por encima de lo que ya haya en el proceso y lo valida.
  * Tiene que correr antes de que algo importe `common/db/prisma`, que lee DATABASE_URL al importarse.
  */
-export function loadTestEnv(): string {
-  dotenv.config({ path: ENV_TEST_PATH, override: true, quiet: true });
+export function loadTestEnv(fileName = '.env.test'): string {
+  dotenv.config({ path: new URL(`../../../${fileName}`, import.meta.url), override: true, quiet: true });
   return assertTestDatabaseUrl(process.env.DATABASE_URL);
 }

@@ -4,7 +4,7 @@ const config = {
     'scope-enum': [
       2,
       'always',
-      ['api', 'web', 'mobile', 'shared', 'eslint-config', 'ts-config', 'deps', 'release', 'ci'],
+      ['api', 'web', 'mobile', 'e2e', 'shared', 'eslint-config', 'ts-config', 'deps', 'release', 'ci'],
     ],
     'scope-empty': [0],
     'subject-case': [2, 'never', ['start-case', 'pascal-case', 'upper-case']],

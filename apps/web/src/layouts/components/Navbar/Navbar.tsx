@@ -103,7 +103,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
             </Stack>
             <Group ml="auto" gap="2xs" wrap="nowrap">
               <ColorSchemeToggle />
-              <ActionIcon variant="subtle" size="lg" onClick={handleLogout}>
+              <ActionIcon variant="subtle" size="lg" aria-label="Cerrar sesión" onClick={handleLogout}>
                 <SignOutIcon size="1rem" />
               </ActionIcon>
             </Group>
