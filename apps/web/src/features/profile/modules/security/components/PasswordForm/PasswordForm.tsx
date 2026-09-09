@@ -78,9 +78,15 @@ export const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
             {error}
           </Alert>
         )}
-        <PasswordInput label="Nueva contraseña" key={form.key('newPassword')} {...form.getInputProps('newPassword')} />
+        <PasswordInput
+          label="Nueva contraseña"
+          visibilityToggleFocusable
+          key={form.key('newPassword')}
+          {...form.getInputProps('newPassword')}
+        />
         <PasswordInput
           label="Confirmar contraseña"
+          visibilityToggleFocusable
           key={form.key('confirmPassword')}
           {...form.getInputProps('confirmPassword')}
           success={successMessage ?? undefined}

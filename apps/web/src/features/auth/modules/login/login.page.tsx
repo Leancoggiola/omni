@@ -53,7 +53,12 @@ export const LoginPage: FC = () => {
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           <TextInput label="Usuario" key={form.key('username')} {...form.getInputProps('username')} />
-          <PasswordInput label="Contraseña" key={form.key('password')} {...form.getInputProps('password')} />
+          <PasswordInput
+            label="Contraseña"
+            visibilityToggleFocusable
+            key={form.key('password')}
+            {...form.getInputProps('password')}
+          />
           <Button size="lg" type="submit" loading={loading}>
             Ingresar
           </Button>
