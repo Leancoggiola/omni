@@ -13,7 +13,7 @@
 | [mobile/](./mobile/)                   | Tooling, features y prompts mobile  |
 | [api/](./api/)                         | Prisma, tests de rutas              |
 | [ops/](./ops/)                         | Deploy y releases                   |
-| [tooling/](./tooling/)                 | CodeGraph, Playwright               |
+| [tooling/](./tooling/)                 | CodeGraph, Playwright, E2E          |
 
 ### Getting started
 
@@ -45,10 +45,10 @@
 
 ### API
 
-| Doc                                        | Contenido                           |
-| ------------------------------------------ | ----------------------------------- |
-| [prisma.md](./api/prisma.md)               | Migraciones Prisma                  |
-| [route-testing.md](./api/route-testing.md) | Tests HTTP de endpoints (Supertest) |
+| Doc                                        | Contenido                         |
+| ------------------------------------------ | --------------------------------- |
+| [prisma.md](./api/prisma.md)               | Migraciones Prisma                |
+| [route-testing.md](./api/route-testing.md) | Tests de integración de endpoints |
 
 ### Ops
 
@@ -63,5 +63,6 @@
 | ---------------------------------------- | -------------------------------- |
 | [codegraph.md](./tooling/codegraph.md)   | CodeGraph MCP                    |
 | [playwright.md](./tooling/playwright.md) | Playwright MCP (salidas limpias) |
+| [e2e.md](./tooling/e2e.md)               | Suite E2E de la web (Playwright) |
 
 Convenciones: [AGENTS.md](../AGENTS.md) · [web/tooling.md](./web/tooling.md) · [mobile/tooling.md](./mobile/tooling.md).

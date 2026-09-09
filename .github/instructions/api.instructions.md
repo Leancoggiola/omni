@@ -56,9 +56,17 @@ Orden: `packages/shared` → routes/service → clientes (`SWR_KEYS` + hooks). S
 
 ## Tests
 
-- Rutas: `src/__tests__/routes/<feature>.routes.test.ts` (Supertest + mock del service). Ver `docs/api/route-testing.md`.
+- Integración: `src/__tests__/integration/<feature>.integration.test.ts` (Supertest + PostgreSQL real, JWT real, sin mockear el service). Ver `docs/api/route-testing.md`.
 - Unitarios: schemas, utils y reglas puras en `src/__tests__/`.
+- Solo se mockea lo que sale a internet, como `tmdb.service`.
 
 ```bash
-pnpm --filter api test
+docker compose up -d db-test
+pnpm --filter api db:test:reset
+pnpm --filter api test        # unit + integración
+pnpm --filter api test:unit   # solo unit, sin Docker
 ```
+
+## Rate limiting
+
+Usar `createRateLimiter` de `common/utils`, no `express-rate-limit` directo: permite apagar los límites fuera de producción con `RATE_LIMIT_DISABLED`, que es lo que necesita la suite E2E (los límites son por IP).
