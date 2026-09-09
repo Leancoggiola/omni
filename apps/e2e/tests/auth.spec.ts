@@ -6,7 +6,7 @@ test.describe('sesión ya iniciada', () => {
     await page.goto('/');
 
     await expect(page).toHaveURL('/');
-    await expect(page.getByText(workerUser.name)).toBeVisible();
+    await expect(page.getByRole('navigation').getByText(workerUser.name)).toBeVisible();
   });
 });
 
@@ -36,7 +36,7 @@ test.describe('sin sesión', () => {
     await login.login(workerUser.username, workerUser.password);
 
     await expect(page).toHaveURL('/');
-    await expect(page.getByText(workerUser.name)).toBeVisible();
+    await expect(page.getByRole('navigation').getByText(workerUser.name)).toBeVisible();
   });
 
   test('vuelve a la ruta pedida después de iniciar sesión', async ({ page, workerUser }) => {
