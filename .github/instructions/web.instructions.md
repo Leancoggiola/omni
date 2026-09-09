@@ -137,6 +137,17 @@ Un único `LightboxProvider` montado en `main.tsx`; no importar `@mantine/lightb
 
 Separar por **responsabilidad**. Si un componente mezcla orquestación de datos con varias secciones de render, extraer subcomponentes presentacionales (ver `GatheringCard/`, `AddMediaModal/`).
 
+## Nombres accesibles
+
+Todo control sin texto visible necesita `aria-label`: `ActionIcon` de solo ícono, `Select` sin `label`, indicadores de carga.
+
+```tsx
+<ActionIcon aria-label={`Eliminar ${item.title}`}>…</ActionIcon>
+<Select aria-label={`Estado de ${item.title}`} … />
+```
+
+Cuando el control se repite por fila, incluir el nombre del ítem: sin eso no se puede distinguir uno de otro. Además de ser un requisito de accesibilidad, es lo que hace que los E2E puedan seleccionarlo sin recurrir a clases CSS.
+
 ## Style props en rem
 
 Dimensiones en style props de Mantine y `style={{ }}` inline van en **`rem`** (base 16px), no números ni px.
