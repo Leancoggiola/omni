@@ -1,5 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 
 import { createUserViaAdmin, storageStateFor, type NewUser } from '../support/adminApi';
 import { WORKER_PASSWORD, workerUsername } from '../support/env';
@@ -49,7 +50,9 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
       await mkdir(AUTH_DIR, { recursive: true });
       const path = new URL(`worker-${workerInfo.workerIndex}.json`, AUTH_DIR);
       await writeFile(path, JSON.stringify(await storageStateFor(workerUser)));
-      await use(path.pathname.slice(1));
+      // fileURLToPath y no pathname: en Linux pathname arranca con "/" y recortarlo
+      // deja una ruta relativa que Playwright no encuentra.
+      await use(fileURLToPath(path));
     },
     { scope: 'worker' },
   ],
