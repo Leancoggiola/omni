@@ -8,7 +8,7 @@ export default defineConfig({
           name: 'unit',
           globals: true,
           environment: 'node',
-          setupFiles: ['src/test/setupEnv.ts', 'src/test/setupAuthMocks.ts'],
+          setupFiles: ['src/test/setupEnv.ts'],
           include: ['src/**/*.{test,spec}.ts'],
           exclude: [...defaultExclude, 'src/**/__tests__/integration/**'],
         },

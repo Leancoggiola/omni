@@ -12,7 +12,7 @@ import { errorHandler } from '../../common/utils';
 /**
  * Mirrors the middleware stack of main.ts, minus helmet, CORS, the rate limiter and
  * request logging — none of them affect behaviour under test and the limiter breaks it.
- * Unlike createTestApp, passport runs for real: auth is exercised, not mocked.
+ * Passport runs for real here: auth is exercised, not mocked.
  */
 export function createIntegrationApp() {
   const app = express();

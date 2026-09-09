@@ -107,8 +107,18 @@ Setup: [docs/tooling/codegraph.md](docs/tooling/codegraph.md).
 ```bash
 pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test
 pnpm --filter mobile check-types && pnpm --filter mobile lint
-pnpm --filter api test   # si tocaste API
 ```
+
+Si tocaste API, los tests de integración necesitan la base efímera levantada:
+
+```bash
+docker compose up -d db-test
+pnpm --filter api db:test:reset
+pnpm --filter api test          # unit + integration
+pnpm --filter api test:unit     # solo unit, sin Docker
+```
+
+Detalle en [docs/api/route-testing.md](docs/api/route-testing.md).
 
 ---
 

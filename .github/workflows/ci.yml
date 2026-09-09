@@ -164,6 +164,21 @@ jobs:
     needs: [install]
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      # Integration tests run against this. Port matches apps/api/.env.test.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: omni_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -189,6 +204,8 @@ jobs:
           path: .turbo
           key: turbo-${{ runner.os }}-test-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-test-
+
+      - run: pnpm --filter api db:test:reset
 
       - run: pnpm turbo test:coverage
 
