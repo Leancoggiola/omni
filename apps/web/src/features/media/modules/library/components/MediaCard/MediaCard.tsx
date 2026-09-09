@@ -2,6 +2,8 @@ import { memo, useEffect, useState } from 'react';
 import { ActionIcon, AspectRatio, Badge, Box, Card, Center, Image, Select, Stack, Text } from '@mantine/core';
 import { useHover } from '@mantine/hooks';
 
+import { openImageLightbox } from '@/shared/ui';
+
 import type { MediaItem, MediaStatus } from '../../../_shared/types';
 
 import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS, TMDB_POSTER_W500 } from '@omni/shared/media';
@@ -36,7 +38,13 @@ export const MediaCard = memo(function MediaCard({ item, onStatusChange, onDelet
       <Card.Section pos="relative">
         <AspectRatio ratio={POSTER_RATIO}>
           {showPoster ? (
-            <Image src={posterUrl!} alt={item.title} onError={() => setPosterFailed(true)} />
+            <Image
+              src={posterUrl!}
+              alt={item.title}
+              onError={() => setPosterFailed(true)}
+              onClick={() => openImageLightbox({ src: posterUrl!, alt: item.title })}
+              style={{ cursor: 'zoom-in' }}
+            />
           ) : (
             <Center h="100%" bg="brand.5" c="dimmed">
               <FilmSlateIcon size="6rem" color="white" aria-hidden />

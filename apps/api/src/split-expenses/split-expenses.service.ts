@@ -220,16 +220,21 @@ export async function getGathering(userId: string, gatheringId: string) {
 }
 
 export async function createGathering(userId: string, dto: CreateGatheringPayload) {
-  const participantsData: { displayName: string; friendId: string | null }[] = [];
+  const friendIds = dto.participants.filter((p): p is { friendId: string } => 'friendId' in p).map(p => p.friendId);
 
-  for (const participant of dto.participants) {
+  const friends = friendIds.length
+    ? await prisma.splitFriend.findMany({ where: { id: { in: friendIds }, userId } })
+    : [];
+  const friendById = new Map(friends.map(friend => [friend.id, friend]));
+
+  const participantsData = dto.participants.map(participant => {
     if ('friendId' in participant) {
-      const friend = await getOwnedFriend(userId, participant.friendId);
-      participantsData.push({ displayName: friend.name, friendId: friend.id });
-    } else {
-      participantsData.push({ displayName: participant.name.trim(), friendId: null });
+      const friend = friendById.get(participant.friendId);
+      if (!friend) throw { status: 404, message: 'Amigo no encontrado' };
+      return { displayName: friend.name, friendId: friend.id };
     }
-  }
+    return { displayName: participant.name.trim(), friendId: null };
+  });
 
   const names = participantsData.map(p => p.displayName.toLowerCase());
   if (new Set(names).size !== names.length) {

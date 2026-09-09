@@ -64,9 +64,9 @@ describe('split-expenses routes', () => {
     const res = await request(app)
       .post('/api/split-expenses/friends')
       .set('Authorization', AUTH_HEADER)
-      .send({ name: 'Ana' });
+      .send({ name: 'Ana', alias: 'ana123' });
     expect(res.status).toBe(201);
-    expect(mockedSplit.createFriend).toHaveBeenCalledWith(TEST_USER.userId, { name: 'Ana' });
+    expect(mockedSplit.createFriend).toHaveBeenCalledWith(TEST_USER.userId, { name: 'Ana', alias: 'ana123' });
   });
 
   it('DELETE /friends/:id returns 204', async () => {

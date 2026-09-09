@@ -30,7 +30,7 @@ export const MediaPage: FC = () => {
     [statusFilter, typeFilter]
   );
 
-  const { data: listData, allItems, isLoading: listLoading } = useMyMediaList(filters);
+  const { data: listData, allItems, isLoading: listLoading, error: listError } = useMyMediaList(filters);
   const { addToList, updateStatus, removeFromList } = useMediaMutations();
 
   const existingTmdbIds = useMemo(() => {
@@ -94,6 +94,7 @@ export const MediaPage: FC = () => {
       <MyMediaList
         items={listData}
         isLoading={listLoading}
+        error={listError}
         searchText={searchText}
         displayMode={displayMode}
         onAdd={() => setAddOpened(true)}

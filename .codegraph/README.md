@@ -8,4 +8,4 @@ pnpm codegraph:status
 pnpm codegraph:sync    # si hace falta
 ```
 
-MCP: `.cursor/mcp.json` · Guía: [docs/tooling/codegraph.md](../docs/tooling/codegraph.md)
+MCP: `.vscode/mcp.json` · Guía: [docs/tooling/codegraph.md](../docs/tooling/codegraph.md)

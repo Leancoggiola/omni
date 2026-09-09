@@ -149,5 +149,5 @@ pnpm --filter api test:coverage
 ## Referencias
 
 - Ejemplos: `apps/api/src/__tests__/routes/`
-- Skill agente: `.cursor/skills/api-structure/SKILL.md`
-- Reglas glob: `.cursor/rules/api-conventions.mdc`
+- Skill agente: `.github/skills/api-structure/SKILL.md`
+- Convenciones por glob: `.github/instructions/api.instructions.md`

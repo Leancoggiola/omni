@@ -64,4 +64,4 @@ Patrón existente en `auth.routes.ts`, `media.routes.ts`, `users.routes.ts` — 
 
 - `docs/architecture.md` — paralelo Web ↔ API
 - `docs/api/route-testing.md` — tests HTTP de rutas (Supertest)
-- `.cursor/rules/api-conventions.mdc`
+- `.github/instructions/api.instructions.md`

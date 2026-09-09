@@ -1,11 +1,14 @@
 import { FC } from 'react';
-import { Badge, Button, Card, Center, Group, Image, Loader, Menu, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Badge, Button, Card, Group, Image, Menu, SimpleGrid, Stack, Text } from '@mantine/core';
+
+import { EmptyState, LoadingState, openImageLightbox } from '@/shared/ui';
 
 import { getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from '../../../_shared/utils/tmdb';
 
 import type { MediaStatus, MediaType, TmdbMediaResult } from '../../../_shared/types';
 
 import { MEDIA_STATUS_LABELS, MEDIA_TYPE_LABELS, TMDB_POSTER_W500 } from '@omni/shared/media';
+import { MagnifyingGlassIcon } from '@phosphor-icons/react';
 
 interface MediaSearchResultsProps {
   results: TmdbMediaResult[];
@@ -16,19 +19,11 @@ interface MediaSearchResultsProps {
 
 export const MediaSearchResults: FC<MediaSearchResultsProps> = ({ results, isLoading, existingTmdbIds, onAdd }) => {
   if (isLoading) {
-    return (
-      <Center py="xl">
-        <Loader />
-      </Center>
-    );
+    return <LoadingState />;
   }
 
   if (results.length === 0) {
-    return (
-      <Text c="dimmed" ta="center" py="xl">
-        No se encontraron resultados
-      </Text>
-    );
+    return <EmptyState icon={<MagnifyingGlassIcon />} title="No se encontraron resultados" />;
   }
 
   return (
@@ -38,15 +33,18 @@ export const MediaSearchResults: FC<MediaSearchResultsProps> = ({ results, isLoa
         const title = getTmdbResultTitle(item);
         const key = getTmdbResultKey(item);
         const alreadyAdded = existingTmdbIds.has(key);
+        const posterUrl = item.poster_path ? `${TMDB_POSTER_W500}${item.poster_path}` : undefined;
 
         return (
           <Card key={key} shadow="sm" padding="sm" radius="md" withBorder>
             <Card.Section>
               <Image
-                src={item.poster_path ? `${TMDB_POSTER_W500}${item.poster_path}` : undefined}
+                src={posterUrl}
                 h="13.75rem"
                 alt={title}
                 fallbackSrc="https://placehold.co/300x450?text=Sin+imagen"
+                onClick={posterUrl ? () => openImageLightbox({ src: posterUrl, alt: title }) : undefined}
+                style={posterUrl ? { cursor: 'zoom-in' } : undefined}
               />
             </Card.Section>
 

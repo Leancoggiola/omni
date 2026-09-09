@@ -1,10 +1,11 @@
 import { homeNavItem } from '@/features/home';
 import { mediaNavItem } from '@/features/media';
 import { profileNavItem } from '@/features/profile';
+import { splitExpensesNavItem } from '@/features/split-expenses';
 
 import type { NavItemConfig } from '@/layouts/navConfig';
 
-import { BarbellIcon, DesktopIcon, GearIcon, PackageIcon, UsersThreeIcon, WalletIcon } from '@phosphor-icons/react';
+import { BarbellIcon, DesktopIcon, GearIcon, PackageIcon, WalletIcon } from '@phosphor-icons/react';
 
 const iconSize = '1.25rem';
 
@@ -14,7 +15,6 @@ const PLACEHOLDER_NAV_ITEMS: NavItemConfig[] = [
   { label: 'Gastos', disabled: true, icon: <WalletIcon size={iconSize} /> },
   { label: 'PC Control', disabled: true, icon: <DesktopIcon size={iconSize} /> },
   { label: 'Alacena', disabled: true, icon: <PackageIcon size={iconSize} /> },
-  { label: 'Dividir gastos', disabled: true, icon: <UsersThreeIcon size={iconSize} /> },
 ];
 
 export const MAIN_NAV_ORDER = [
@@ -36,7 +36,7 @@ const NAV_BY_KEY: Record<(typeof MAIN_NAV_ORDER)[number], NavItemConfig | undefi
   expenses: PLACEHOLDER_NAV_ITEMS[1],
   'pc-control': PLACEHOLDER_NAV_ITEMS[2],
   pantry: PLACEHOLDER_NAV_ITEMS[3],
-  'split-expenses': PLACEHOLDER_NAV_ITEMS[4],
+  'split-expenses': splitExpensesNavItem,
 };
 
 export const MAIN_NAV_ITEMS: NavItemConfig[] = MAIN_NAV_ORDER.map(key => NAV_BY_KEY[key]).filter(
