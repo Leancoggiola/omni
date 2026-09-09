@@ -109,3 +109,111 @@ export async function createGatheringExpense(
     },
   });
 }
+
+export interface CreateGymPlanOptions {
+  name?: string | null;
+  status?: 'ACTIVE' | 'ARCHIVED';
+}
+
+export async function createGymPlan(userId: string, options: CreateGymPlanOptions = {}) {
+  const id = nextId('plan');
+  return prisma.gymPlan.create({
+    data: {
+      id,
+      userId,
+      name: options.name === undefined ? `Plan ${id}` : options.name,
+      status: options.status ?? 'ACTIVE',
+      archivedAt: options.status === 'ARCHIVED' ? new Date('2026-02-01T00:00:00.000Z') : null,
+    },
+  });
+}
+
+export interface CreateGymExerciseOptions {
+  dayLabel?: string;
+  name?: string;
+  sets?: number | null;
+  reps?: string;
+  currentWeightKg?: number | null;
+}
+
+export async function createGymExercise(planId: string, options: CreateGymExerciseOptions = {}) {
+  const label = options.dayLabel ?? 'Lunes';
+  const day =
+    (await prisma.gymPlanDay.findFirst({ where: { planId, label } })) ??
+    (await prisma.gymPlanDay.create({ data: { id: nextId('day'), planId, label } }));
+
+  return prisma.gymExercise.create({
+    data: {
+      id: nextId('exercise'),
+      dayId: day.id,
+      name: options.name ?? 'Sentadilla',
+      sets: options.sets ?? 4,
+      reps: options.reps ?? '6',
+      currentWeightKg: options.currentWeightKg ?? null,
+    },
+  });
+}
+
+export type PantryCategoryValue =
+  | 'DAIRY'
+  | 'MEAT'
+  | 'FRUIT'
+  | 'VEGETABLE'
+  | 'GRAINS'
+  | 'BEVERAGES'
+  | 'SNACKS'
+  | 'CONDIMENTS'
+  | 'FROZEN'
+  | 'CLEANING';
+
+export interface CreatePantryProductOptions {
+  name?: string;
+  category?: PantryCategoryValue;
+  unit?: 'UNITS' | 'PACKAGES';
+  quantity?: number;
+  minQuantity?: number | null;
+  expiresAt?: Date | null;
+}
+
+export async function createPantryProduct(userId: string, options: CreatePantryProductOptions = {}) {
+  const id = nextId('product');
+  const name = options.name ?? `Producto ${id}`;
+  return prisma.pantryProduct.create({
+    data: {
+      id,
+      userId,
+      name,
+      nameNormalized: name.trim().toLowerCase(),
+      category: options.category ?? 'GRAINS',
+      unit: options.unit ?? 'UNITS',
+      quantity: options.quantity ?? 5,
+      minQuantity: options.minQuantity ?? null,
+      expiresAt: options.expiresAt ?? null,
+    },
+  });
+}
+
+export interface CreateShoppingListItemOptions {
+  name?: string;
+  pantryProductId?: string | null;
+  source?: 'AUTO' | 'MANUAL';
+  quantityToBuy?: number;
+  unit?: 'UNITS' | 'PACKAGES';
+  checked?: boolean;
+}
+
+export async function createShoppingListItem(userId: string, options: CreateShoppingListItemOptions = {}) {
+  const id = nextId('item');
+  return prisma.pantryShoppingListItem.create({
+    data: {
+      id,
+      userId,
+      name: options.name ?? `Item ${id}`,
+      pantryProductId: options.pantryProductId ?? null,
+      source: options.source ?? 'MANUAL',
+      quantityToBuy: options.quantityToBuy ?? 1,
+      unit: options.unit ?? 'UNITS',
+      checked: options.checked ?? false,
+    },
+  });
+}
