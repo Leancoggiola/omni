@@ -45,6 +45,12 @@ export function toJwtUser(user: { id: string; username: string; role: string }):
   return { userId: user.id, username: user.username, role: user.role };
 }
 
+export async function createUserPreferences(userId: string, options: { notifications?: boolean } = {}) {
+  return prisma.userPreferences.create({
+    data: { id: nextId('prefs'), userId, notifications: options.notifications ?? true },
+  });
+}
+
 export interface CreateFriendOptions {
   name?: string;
   alias?: string | null;
@@ -214,6 +220,62 @@ export async function createShoppingListItem(userId: string, options: CreateShop
       quantityToBuy: options.quantityToBuy ?? 1,
       unit: options.unit ?? 'UNITS',
       checked: options.checked ?? false,
+    },
+  });
+}
+
+export type ExpenseCategoryValue =
+  | 'FOOD'
+  | 'TRANSPORT'
+  | 'ENTERTAINMENT'
+  | 'HEALTH'
+  | 'EDUCATION'
+  | 'HOME'
+  | 'SERVICES'
+  | 'OTHER';
+
+export interface CreatePersonalExpenseOptions {
+  concept?: string;
+  amount?: number;
+  category?: ExpenseCategoryValue;
+  date?: Date;
+  notes?: string | null;
+}
+
+export async function createPersonalExpense(userId: string, options: CreatePersonalExpenseOptions = {}) {
+  const id = nextId('expense');
+  return prisma.personalExpense.create({
+    data: {
+      id,
+      userId,
+      concept: options.concept ?? `Gasto ${id}`,
+      amount: options.amount ?? 1000,
+      category: options.category ?? 'FOOD',
+      date: options.date ?? new Date('2026-08-02T00:00:00.000Z'),
+      notes: options.notes ?? null,
+    },
+  });
+}
+
+export interface CreateExpenseReminderOptions {
+  title?: string;
+  dueDate?: Date;
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+  recurrence?: 'ONCE' | 'MONTHLY';
+  status?: 'PENDING' | 'COMPLETED';
+}
+
+export async function createExpenseReminder(userId: string, options: CreateExpenseReminderOptions = {}) {
+  const id = nextId('reminder');
+  return prisma.expenseReminder.create({
+    data: {
+      id,
+      userId,
+      title: options.title ?? `Recordatorio ${id}`,
+      dueDate: options.dueDate ?? new Date('2026-08-05T00:00:00.000Z'),
+      priority: options.priority ?? 'MEDIUM',
+      recurrence: options.recurrence ?? 'MONTHLY',
+      status: options.status ?? 'PENDING',
     },
   });
 }
