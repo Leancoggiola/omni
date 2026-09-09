@@ -229,8 +229,8 @@ describe('expenses routes (integration)', () => {
     });
   });
 
-  // completeReminder is the only service that opens its own prisma.$transaction, so it also
-  // covers the nested-transaction shim the test override installs.
+  // completeReminder es el único service que abre su propio prisma.$transaction, así que
+  // también cubre el shim de transacción anidada que instala el override de test.
   describe('completing a reminder', () => {
     it('creates the linked expense and completes a one-off reminder', async () => {
       const reminder = await createExpenseReminder(user.id, {

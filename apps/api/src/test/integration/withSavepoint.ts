@@ -3,11 +3,11 @@ import { getPrismaOverride } from '../../common/db/prisma';
 let counter = 0;
 
 /**
- * Runs `fn` inside a savepoint and always rolls back to it.
+ * Ejecuta `fn` dentro de un savepoint y siempre revierte hasta él.
  *
- * Postgres aborts the whole transaction on a database-level error (a unique constraint
- * violation, for example), which would poison every later query in the test. Wrap the
- * request that triggers the error. Anything `fn` wrote is discarded.
+ * Postgres aborta la transacción entera ante un error de base de datos (por ejemplo, una
+ * violación de constraint), lo que envenenaría toda query posterior del test. Envolvé la
+ * request que provoca el error. Todo lo que `fn` haya escrito se descarta.
  */
 export async function withSavepoint<T>(fn: () => Promise<T>): Promise<T> {
   const tx = getPrismaOverride();

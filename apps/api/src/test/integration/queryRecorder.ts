@@ -1,7 +1,7 @@
 import type { PrismaTransactionClient } from '../../common/db/prisma';
 
 export interface RecordedCall {
-  /** Delegate name as used on the client, e.g. `gathering`. */
+  /** Nombre del delegate tal como se usa en el cliente, por ejemplo `gathering`. */
   model: string;
   operation: string;
   args: Record<string, unknown> | undefined;
@@ -32,8 +32,8 @@ function isModelDelegate(prop: string | symbol, value: unknown): prop is string 
 }
 
 /**
- * Wraps a transaction client so every model call is recorded before running.
- * Lets a test assert what actually reached Prisma, not just what the response looked like.
+ * Envuelve un cliente transaccional para registrar cada llamada a un modelo antes de ejecutarla.
+ * Permite assertear qué llegó realmente a Prisma, no solo cómo se vio la respuesta.
  */
 export function recordingProxy(tx: PrismaTransactionClient): PrismaTransactionClient {
   return new Proxy(tx, {

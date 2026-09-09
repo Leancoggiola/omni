@@ -128,7 +128,7 @@ describe('notifications routes (integration)', () => {
         .set('Authorization', auth)
         .send({ platform: 'WEB', token: 'web-token-1' });
 
-      // The duplicate hits a unique constraint, which aborts the surrounding transaction.
+      // El duplicado choca contra un unique constraint, que aborta la transacción que lo envuelve.
       const res = await withSavepoint(() =>
         request(app)
           .post('/api/notifications/devices')

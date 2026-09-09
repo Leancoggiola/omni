@@ -279,8 +279,8 @@ describe('split-expenses routes (integration)', () => {
     });
   });
 
-  // Regression: Express 5 re-parses req.query from a getter, so validate() has to redefine the
-  // property. Without that, Zod's coercion is discarded and Prisma receives take: "2".
+  // Regresión: Express 5 reparsea req.query desde un getter, así que validate() tiene que
+  // redefinir la propiedad. Sin eso, la coerción de Zod se descarta y Prisma recibe take: "2".
   describe('query coercion reaches Prisma', () => {
     it('GET /gatherings?page=1&limit=2 sends numeric take and skip', async () => {
       await createGathering(user.id, { name: 'Uno' });
@@ -342,7 +342,7 @@ describe('split-expenses routes (integration)', () => {
         })
       ).rejects.toThrow();
 
-      // The transaction is still usable, which is the whole point of the savepoint.
+      // La transacción sigue usable, que es justamente el punto del savepoint.
       expect(await prisma.splitFriend.count({ where: { userId: user.id } })).toBe(1);
     });
   });

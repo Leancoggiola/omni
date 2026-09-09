@@ -3,7 +3,7 @@ import { hash } from 'bcrypt';
 import { prisma } from '../../common/db';
 import type { TestJwtUser } from './auth';
 
-/** Cheapest cost bcrypt accepts. Hashing at the production cost dominates the suite runtime. */
+/** El costo más bajo que acepta bcrypt. Hashear al costo de producción domina el tiempo de la suite. */
 const TEST_BCRYPT_ROUNDS = 4;
 
 export const TEST_PASSWORD = 'test-password-123';

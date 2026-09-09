@@ -20,7 +20,7 @@ export default defineConfig({
           environment: 'node',
           setupFiles: ['src/test/integration/setupIntegrationEnv.ts', 'src/test/integration/setupIntegrationDb.ts'],
           include: ['src/**/__tests__/integration/**/*.test.ts'],
-          // The prisma override that scopes each test to a transaction is module state.
+          // El override de prisma que acota cada test a una transacción es estado de módulo.
           fileParallelism: false,
           pool: 'forks',
           maxWorkers: 1,

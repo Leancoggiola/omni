@@ -1,4 +1,4 @@
 import { loadTestEnv } from './testDatabaseUrl';
 
-// Runs before any test file imports common/db/prisma, which reads DATABASE_URL at import time.
+// Corre antes de que cualquier test importe common/db/prisma, que lee DATABASE_URL al importarse.
 loadTestEnv();

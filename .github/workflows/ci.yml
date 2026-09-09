@@ -165,7 +165,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
-      # Integration tests run against this. Port matches apps/api/.env.test.
+      # Contra esto corren los tests de integración. El puerto coincide con apps/api/.env.test.
       postgres:
         image: postgres:17-alpine
         env:

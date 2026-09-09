@@ -27,7 +27,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Integration tests only. Data lives in tmpfs and is wiped when the container stops.
+  # Solo para tests de integración. Los datos viven en tmpfs y se borran al parar el contenedor.
   db-test:
     image: postgres:17-alpine
     ports:

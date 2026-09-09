@@ -10,9 +10,9 @@ import router from '../../router';
 import { errorHandler } from '../../common/utils';
 
 /**
- * Mirrors the middleware stack of main.ts, minus helmet, CORS, the rate limiter and
- * request logging — none of them affect behaviour under test and the limiter breaks it.
- * Passport runs for real here: auth is exercised, not mocked.
+ * Replica el stack de middleware de main.ts, sin helmet, CORS, rate limiter ni logging:
+ * ninguno afecta el comportamiento bajo test y el limiter directamente lo rompe.
+ * Acá passport corre de verdad: la autenticación se ejercita, no se mockea.
  */
 export function createIntegrationApp() {
   const app = express();

@@ -5,7 +5,7 @@ const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
 });
 
-/** Real client. Integration tests use it directly to open the transaction they later roll back. */
+/** Cliente real. Los tests de integración lo usan directo para abrir la transacción que después revierten. */
 export const basePrisma = new PrismaClient({ adapter });
 
 export type PrismaTransactionClient = Omit<
@@ -30,7 +30,7 @@ export function getPrismaOverride(): PrismaTransactionClient | null {
   return override;
 }
 
-// Prisma strips $transaction from the interactive client, so nested calls run on the same tx.
+// Prisma saca $transaction del cliente interactivo, así las llamadas anidadas corren sobre la misma tx.
 function flattenTransaction(tx: PrismaTransactionClient) {
   return (arg: unknown) =>
     typeof arg === 'function'
@@ -44,8 +44,8 @@ function resolve(target: PrismaClient | PrismaTransactionClient, prop: string | 
 }
 
 /**
- * Delegates to the active test transaction when one is set, otherwise to the real client.
- * Lets integration tests roll back every write without any service taking an injected client.
+ * Delega en la transacción de test activa si hay una, y si no en el cliente real.
+ * Permite que los tests de integración reviertan toda escritura sin que ningún service reciba un cliente inyectado.
  */
 export const prisma = new Proxy({} as PrismaClient, {
   get(_target, prop) {

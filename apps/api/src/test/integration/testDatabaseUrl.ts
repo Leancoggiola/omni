@@ -5,10 +5,10 @@ const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
 const ENV_TEST_PATH = new URL('../../../.env.test', import.meta.url);
 
 /**
- * Refuses anything that is not a local, disposable database.
+ * Rechaza cualquier cosa que no sea una base local y descartable.
  *
- * `prisma.config.ts` resolves `DIRECT_URL ?? DATABASE_URL` after loading `.env`, so a
- * `migrate reset` run with the dev environment in scope would drop the real Supabase data.
+ * `prisma.config.ts` resuelve `DIRECT_URL ?? DATABASE_URL` después de cargar `.env`, así que
+ * un `migrate reset` con el entorno de dev en scope borraría los datos reales de Supabase.
  */
 export function assertTestDatabaseUrl(rawUrl: string | undefined): string {
   if (!rawUrl) {
@@ -43,8 +43,8 @@ export function assertTestDatabaseUrl(rawUrl: string | undefined): string {
 }
 
 /**
- * Loads `.env.test` over whatever is already in the environment and validates the result.
- * Must run before anything imports `common/db/prisma`, which reads DATABASE_URL at import time.
+ * Carga `.env.test` por encima de lo que ya haya en el entorno y valida el resultado.
+ * Tiene que correr antes de que algo importe `common/db/prisma`, que lee DATABASE_URL al importarse.
  */
 export function loadTestEnv(): string {
   dotenv.config({ path: ENV_TEST_PATH, override: true, quiet: true });
