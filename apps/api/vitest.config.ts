@@ -1,11 +1,35 @@
-import { defineConfig } from 'vitest/config';
+import { defaultExclude, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    globals: true,
-    environment: 'node',
-    setupFiles: ['src/test/setupEnv.ts', 'src/test/setupAuthMocks.ts'],
-    include: ['src/**/*.{test,spec}.ts'],
+    projects: [
+      {
+        test: {
+          name: 'unit',
+          globals: true,
+          environment: 'node',
+          setupFiles: ['src/test/setupEnv.ts', 'src/test/setupAuthMocks.ts'],
+          include: ['src/**/*.{test,spec}.ts'],
+          exclude: [...defaultExclude, 'src/**/__tests__/integration/**'],
+        },
+      },
+      {
+        test: {
+          name: 'integration',
+          globals: true,
+          environment: 'node',
+          setupFiles: ['src/test/integration/setupIntegrationEnv.ts', 'src/test/integration/setupIntegrationDb.ts'],
+          include: ['src/**/__tests__/integration/**/*.test.ts'],
+          // The prisma override that scopes each test to a transaction is module state.
+          fileParallelism: false,
+          pool: 'forks',
+          maxWorkers: 1,
+          minWorkers: 1,
+          testTimeout: 20_000,
+          hookTimeout: 30_000,
+        },
+      },
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
