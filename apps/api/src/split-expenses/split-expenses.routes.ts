@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import type { NextFunction, Request, Response } from 'express';
-import rateLimit from 'express-rate-limit';
 import {
   addGatheringExpenseSchema,
   createGatheringSchema,
@@ -13,10 +12,10 @@ import {
   type SuggestSplitFriendsParams,
 } from '@omni/shared/split-expenses';
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
-import { validate } from '../common/utils';
+import { createRateLimiter, validate } from '../common/utils';
 import * as splitService from './split-expenses.service';
 
-const suggestLimiter = rateLimit({
+const suggestLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 60,
   message: {

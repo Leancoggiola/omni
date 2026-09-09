@@ -13,6 +13,7 @@ Monorepo de **media tracking** (películas/series vía TMDB). Clientes: **web** 
 | `apps/api/`             | REST — `auth`, `media`, `users`, `admin`       |
 | `apps/web/`             | SPA — `auth`, `home`, `media`, `profile`       |
 | `apps/mobile/`          | Expo Android — paridad con web                 |
+| `apps/e2e/`             | Suite E2E de la web (Playwright)               |
 | `packages/shared/`      | Zod + tipos (`@omni/shared`)                   |
 | `docs/`                 | Índice en `docs/README.md`                     |
 | `.github/instructions/` | Convenciones por glob (`web`, `mobile`, `api`) |
@@ -56,6 +57,7 @@ Flujo: `develop` → branch `feat/#N-…` / `fix/#N-…` → PR a `develop` → 
 | `apps/web/**`    | `.github/instructions/web.instructions.md`    |
 | `apps/mobile/**` | `.github/instructions/mobile.instructions.md` |
 | `apps/api/**`    | `.github/instructions/api.instructions.md`    |
+| `apps/e2e/**`    | `.github/instructions/e2e.instructions.md`    |
 
 Detalle: [docs/web/tooling.md](docs/web/tooling.md) · [docs/mobile/tooling.md](docs/mobile/tooling.md).
 
@@ -99,6 +101,8 @@ Setup: [docs/tooling/codegraph.md](docs/tooling/codegraph.md).
 | [docs/web/tooling.md](docs/web/tooling.md) / [mobile/tooling.md](docs/mobile/tooling.md)                 | Rules/skills           |
 | [docs/web/new-feature.md](docs/web/new-feature.md) / [mobile/new-feature.md](docs/mobile/new-feature.md) | Checklists             |
 | [docs/product/project-management.md](docs/product/project-management.md)                                 | Omni Roadmap / issues  |
+| [docs/api/route-testing.md](docs/api/route-testing.md)                                                   | Integración de API     |
+| [docs/tooling/e2e.md](docs/tooling/e2e.md)                                                               | Suite E2E de la web    |
 
 ---
 
@@ -107,8 +111,27 @@ Setup: [docs/tooling/codegraph.md](docs/tooling/codegraph.md).
 ```bash
 pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test
 pnpm --filter mobile check-types && pnpm --filter mobile lint
-pnpm --filter api test   # si tocaste API
 ```
+
+Si tocaste API, los tests de integración necesitan la base efímera levantada:
+
+```bash
+docker compose up -d db-test
+pnpm --filter api db:test:reset
+pnpm --filter api test          # unit + integration
+pnpm --filter api test:unit     # solo unit, sin Docker
+```
+
+Detalle en [docs/api/route-testing.md](docs/api/route-testing.md).
+
+Si tocaste web o API y querés correr los flujos de punta a punta:
+
+```bash
+docker compose up -d db-e2e
+pnpm --filter e2e test:e2e
+```
+
+Detalle en [docs/tooling/e2e.md](docs/tooling/e2e.md).
 
 ---
 

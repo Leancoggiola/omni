@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import type { NextFunction, Request, Response } from 'express';
-import rateLimit from 'express-rate-limit';
 import {
   addShoppingListItemSchema,
   completeShoppingListItemSchema,
@@ -12,10 +11,10 @@ import {
   type SuggestPantryProductsParams,
 } from '@omni/shared/pantry';
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
-import { validate } from '../common/utils';
+import { createRateLimiter, validate } from '../common/utils';
 import * as pantryService from './pantry.service';
 
-const suggestLimiter = rateLimit({
+const suggestLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 60,
   message: {

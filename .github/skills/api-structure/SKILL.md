@@ -10,7 +10,7 @@ description: Folder structure and conventions for apps/api (Express features, Pr
 ```
 apps/api/src/
   common/db/          prisma singleton
-  common/utils/       validate, logger, error-handler
+  common/utils/       validate, logger, error-handler, rate-limit
   <feature>/
     <feature>.routes.ts
     <feature>.service.ts
@@ -26,15 +26,24 @@ Features actuales: `auth`, `media`, `users`, `admin`, `gym`, `pantry`, `expenses
 1. Crear `src/<feature>/<feature>.routes.ts` y `<feature>.service.ts`
 2. `router.use('/<feature>', featureRoutes)` en `router.ts`
 3. Schemas en `packages/shared/src/<domain>/` si el contrato es compartido con web
-4. Tests de rutas en `src/__tests__/routes/<feature>.routes.test.ts` (ver `docs/api/route-testing.md`)
+4. Tests de integración en `src/__tests__/integration/<feature>.integration.test.ts` (ver `docs/api/route-testing.md`)
 5. Tests unitarios en `src/__tests__/` si hay lógica en utils o schemas críticos
 
 ## Tests (resumen)
 
-| Capa       | Archivo                             | Mock service | BD  |
-| ---------- | ----------------------------------- | ------------ | --- |
-| Rutas HTTP | `__tests__/routes/*.routes.test.ts` | Sí           | No  |
-| Unitarios  | `__tests__/*.test.ts`               | No           | No  |
+| Capa        | Archivo                                       | Mock service | BD  |
+| ----------- | --------------------------------------------- | ------------ | --- |
+| Integración | `__tests__/integration/*.integration.test.ts` | No           | Sí  |
+| Unitarios   | `__tests__/*.test.ts`                         | No           | No  |
+
+Solo se mockea lo que sale a internet (por ejemplo `tmdb.service`). Cada test corre dentro de una
+transacción que se revierte, contra el contenedor `db-test`.
+
+```bash
+docker compose up -d db-test
+pnpm --filter api db:test:reset
+pnpm --filter api test
+```
 
 Patrón completo: [docs/api/route-testing.md](../../docs/api/route-testing.md).
 
@@ -58,10 +67,11 @@ Migraciones desde `apps/api/`: `pnpm db:migrate`. Ver `docs/api/prisma.md`.
 
 ## Rate limiting
 
-Patrón existente en `auth.routes.ts`, `media.routes.ts`, `users.routes.ts` — reutilizar para endpoints sensibles.
+Usar `createRateLimiter` de `common/utils`, no `express-rate-limit` directo: permite apagar los límites fuera de producción con `RATE_LIMIT_DISABLED`, que es lo que necesita la suite E2E (los límites son por IP). Patrón existente en `auth.routes.ts`, `media.routes.ts`, `users.routes.ts`.
 
 ## Docs
 
 - `docs/architecture.md` — paralelo Web ↔ API
-- `docs/api/route-testing.md` — tests HTTP de rutas (Supertest)
+- `docs/api/route-testing.md` — tests de integración contra PostgreSQL real
+- `docs/tooling/e2e.md` — suite E2E de la web
 - `.github/instructions/api.instructions.md`

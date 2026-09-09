@@ -12,6 +12,7 @@ Closes #
 - [ ] web
 - [ ] mobile
 - [ ] shared
+- [ ] e2e
 - [ ] infra / docs
 
 ## Checklist
@@ -28,8 +29,14 @@ pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web che
 # mobile
 pnpm --filter mobile check-types && pnpm --filter mobile lint
 
-# api (si aplica)
+# api (si aplica) — los tests de integración necesitan la base efímera
+docker compose up -d db-test
+pnpm --filter api db:test:reset
 pnpm --filter api test
+
+# e2e (si toca web o api)
+docker compose up -d db-e2e
+pnpm --filter e2e test:e2e
 ```
 
 ## Notas / capturas

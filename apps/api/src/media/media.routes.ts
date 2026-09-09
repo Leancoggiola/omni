@@ -1,13 +1,12 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
-import rateLimit from 'express-rate-limit';
 import type { MediaType } from '@omni/shared/media';
 import { searchMediaSchema, addMediaItemSchema, updateMediaItemSchema, filterMediaSchema } from '@omni/shared/media';
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
-import { validate } from '../common/utils';
+import { createRateLimiter, validate } from '../common/utils';
 import * as mediaService from './media.service';
 
-const searchLimiter = rateLimit({
+const searchLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 50,
   message: {

@@ -1,0 +1,12 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src", "tests", "playwright.config.ts"],
+  "exclude": ["node_modules"]
+}

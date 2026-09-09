@@ -5,16 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/main.ts",
+    "dev:e2e": "tsx --env-file=.env.e2e src/main.ts",
     "build": "prisma generate && tsup",
     "start": "node dist/main.js",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
+    "db:test:reset": "tsx src/test/integration/resetTestDb.ts",
+    "db:e2e:reset": "tsx src/test/integration/resetTestDb.ts .env.e2e --seed",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\""
   },
   "dependencies": {

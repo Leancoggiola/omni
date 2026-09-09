@@ -1,10 +1,14 @@
 name: CI
 
 on:
+  # Solo main: los merges a develop entran por PR, que ya corre este mismo pipeline.
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main, develop]
+  # Nightly, para detectar E2E flaky y dependencias con CVEs nuevos.
+  schedule:
+    - cron: '0 6 * * *'
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -31,9 +35,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - run: pnpm install --frozen-lockfile
-
-      - uses: actions/cache/save@v4
+      # Restaura y guarda con la misma acción: con cache/save fallaba cuando la key ya existía.
+      - uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -41,9 +44,12 @@ jobs:
             packages/*/node_modules
           key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
+      - run: pnpm install --frozen-lockfile
+
   lint:
     name: Lint
     needs: [install]
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -76,6 +82,8 @@ jobs:
 
       - run: pnpm --filter web check-api-paths
 
+      - run: pnpm format:check
+
   audit:
     name: Security Audit
     needs: [install]
@@ -99,36 +107,10 @@ jobs:
       # dependency, not shipped to production. Remove --ignore once fixed.
       - run: pnpm audit --audit-level=high --ignore CVE-2025-71330 --ignore CVE-2025-71329
 
-  format:
-    name: Format Check
-    needs: [install]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - uses: actions/cache/restore@v4
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - run: pnpm format:check
-
   check-types:
     name: Type Check
     needs: [install]
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -162,8 +144,24 @@ jobs:
   test:
     name: Test
     needs: [install]
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      # Contra esto corren los tests de integración. El puerto coincide con apps/api/.env.test.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: omni_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -190,6 +188,8 @@ jobs:
           key: turbo-${{ runner.os }}-test-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-test-
 
+      - run: pnpm --filter api db:test:reset
+
       - run: pnpm turbo test:coverage
 
       - uses: actions/upload-artifact@v4
@@ -199,9 +199,78 @@ jobs:
           path: apps/*/coverage/
           retention-days: 7
 
+  e2e:
+    name: E2E
+    needs: [install]
+    # Solo en PR y en el nightly: levantar api + web es demasiado lento para cada push.
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule'
+    # Informativo hasta comprobar que la suite es estable en varias corridas.
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      # Puerto y nombre de base tomados de apps/api/.env.e2e.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: omni_e2e
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - id: playwright-version
+        run: echo "version=$(node -p "require('./apps/e2e/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+
+      - run: pnpm --filter e2e exec playwright install --with-deps chromium
+
+      # El servidor de la API arranca con tsx, así que necesita el cliente de Prisma generado.
+      - run: pnpm --filter api db:generate
+
+      - run: pnpm --filter e2e test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            apps/e2e/playwright-report/
+            apps/e2e/test-results/
+          retention-days: 7
+
   build:
     name: Build
-    needs: [lint, check-types, test, audit, format]
+    needs: [lint, check-types, test, audit]
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -231,9 +300,3 @@ jobs:
           restore-keys: turbo-${{ runner.os }}-build-
 
       - run: pnpm turbo build
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: apps/*/dist/
-          retention-days: 7

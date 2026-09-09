@@ -36,13 +36,19 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusChange,
         </Group>
         <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }} justify="flex-end">
           <Select
+            aria-label={`Estado de ${item.title}`}
             data={STATUS_SELECT_DATA}
             value={item.status}
             onChange={val => val && onStatusChange(item.id, val as MediaStatus)}
             size="sm"
             mod={item.status}
           />
-          <ActionIcon variant="subtle" color="destructive" onClick={() => void onDelete(item)}>
+          <ActionIcon
+            variant="subtle"
+            color="destructive"
+            aria-label={`Eliminar ${item.title}`}
+            onClick={() => void onDelete(item)}
+          >
             <TrashIcon size="1rem" />
           </ActionIcon>
         </Group>

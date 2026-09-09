@@ -61,6 +61,7 @@ export const MediaCard = memo(function MediaCard({ item, onStatusChange, onDelet
             right="1.5rem"
             variant="filled"
             color="destructive"
+            aria-label={`Eliminar ${item.title}`}
             onClick={() => void onDelete(item)}
           >
             <TrashIcon size="1rem" />
@@ -75,6 +76,7 @@ export const MediaCard = memo(function MediaCard({ item, onStatusChange, onDelet
 
         <Box mt="auto">
           <Select
+            aria-label={`Estado de ${item.title}`}
             data={STATUS_SELECT_DATA}
             value={item.status}
             onChange={val => val && onStatusChange(item.id, val as MediaStatus)}

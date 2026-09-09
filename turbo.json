@@ -30,6 +30,9 @@
       "dependsOn": ["transit", "db:generate"],
       "outputs": ["coverage/**"]
     },
+    "test:e2e": {
+      "cache": false
+    },
     "dev": {
       "cache": false,
       "persistent": true

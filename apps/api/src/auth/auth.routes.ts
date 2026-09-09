@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
-import rateLimit from 'express-rate-limit';
 import * as authService from './auth.service';
-import { validate } from '../common/utils';
+import { createRateLimiter, validate } from '../common/utils';
 import { loginSchema, refreshTokenBodySchema } from '@omni/shared/auth';
 import { authenticateLocal, authenticateJwt, authenticateJwtRefresh } from './middleware/auth.middleware';
 
-const authLimiter = rateLimit({
+const authLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: {
@@ -15,7 +14,7 @@ const authLimiter = rateLimit({
   },
 });
 
-const refreshLimiter = rateLimit({
+const refreshLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: {

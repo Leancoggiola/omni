@@ -5,14 +5,13 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import pinoHttp from 'pino-http';
-import rateLimit from 'express-rate-limit';
 
 import './auth/strategies/jwt.strategy';
 import './auth/strategies/jwt-refresh.strategy';
 import './auth/strategies/local.strategy';
 
 import router from './router';
-import { errorHandler, logger } from './common/utils';
+import { createRateLimiter, errorHandler, logger } from './common/utils';
 import { checkDatabaseConnection, prisma } from './common/db';
 
 async function bootstrap() {
@@ -41,7 +40,7 @@ async function bootstrap() {
 
   // Global rate limiter: 100 requests per 15 minutes per IP
   app.use(
-    rateLimit({
+    createRateLimiter({
       windowMs: 15 * 60 * 1000,
       max: 100,
       standardHeaders: true,
