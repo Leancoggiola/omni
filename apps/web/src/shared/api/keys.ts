@@ -3,6 +3,7 @@ export const SWR_KEYS = {
     profile: '/api/auth/profile',
     login: '/api/auth/login',
     logout: '/api/auth/logout',
+    refresh: '/api/auth/refresh',
   },
   users: {
     profile: '/api/users/profile',

@@ -1,14 +1,21 @@
 import { ApiError } from './fetcher';
+import { ensureRefreshed, notifyAuthFailure, shouldSkipRefresh } from './refreshSession';
 
 type HttpMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-async function request<T = unknown>(url: string, method: HttpMethod, body?: unknown): Promise<T> {
+async function request<T = unknown>(url: string, method: HttpMethod, body?: unknown, retried = false): Promise<T> {
   const res = await fetch(url, {
     method,
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: body != null ? JSON.stringify(body) : undefined,
   });
+
+  if (res.status === 401 && !retried && !shouldSkipRefresh(url)) {
+    const ok = await ensureRefreshed();
+    if (ok) return request<T>(url, method, body, true);
+    notifyAuthFailure();
+  }
 
   if (!res.ok) {
     const info = await res.json().catch(() => ({}));
