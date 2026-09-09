@@ -24,6 +24,10 @@ export const config = {
     refreshMaxAge: parseInt(process.env.COOKIE_REFRESH_MAX_AGE ?? '604800', 10) * 1000,
   },
 
+  rateLimit: {
+    disabled: process.env.RATE_LIMIT_DISABLED === 'true' && process.env.NODE_ENV !== 'production',
+  },
+
   tmdb: {
     apiKey: required('TMDB_API_KEY'),
     baseUrl: process.env.TMDB_BASE_URL ?? 'https://api.themoviedb.org/3',

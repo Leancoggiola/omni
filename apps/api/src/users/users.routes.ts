@@ -1,13 +1,12 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
-import rateLimit from 'express-rate-limit';
 import { updateProfileSchema, changePasswordSchema, updatePreferencesSchema } from '@omni/shared/users';
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
-import { validate } from '../common/utils';
+import { createRateLimiter, validate } from '../common/utils';
 import * as usersService from './users.service';
 import * as statsService from './stats.service';
 
-const passwordLimiter = rateLimit({
+const passwordLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 5,
   message: {

@@ -9,6 +9,6 @@ interface LoadingStateProps {
 
 export const LoadingState: FC<LoadingStateProps> = ({ size = 'md', py = 'xl' }) => (
   <Center py={py}>
-    <Loader size={size} />
+    <Loader size={size} role="status" aria-label="Cargando" />
   </Center>
 );
