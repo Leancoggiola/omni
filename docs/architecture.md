@@ -20,8 +20,8 @@ omni/
     typescript-config/
   docs/         ← Esta carpeta
   AGENTS.md       ← Índice para agentes de IA
-  .cursor/rules/  ← Convenciones automáticas (web, mobile, api, project-agents)
-  .cursor/skills/ ← Skills del proyecto (web, mobile, API, shared)
+  .github/instructions/ ← Convenciones automáticas por glob (web, mobile, api)
+  .github/skills/ ← Skills del proyecto (web, mobile, API, shared)
   .agents/skills/ ← Skills de terceros (Mantine, Supabase; npx skills)
   .codegraph/     ← Índice CodeGraph (local, no commitear *.db)
 ```

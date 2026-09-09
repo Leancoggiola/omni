@@ -7,7 +7,7 @@ Plantillas listas para copiar y pegar al implementar un feature en `apps/web`. E
 - [new-feature.md](./new-feature.md) — checklist operativo
 - [tooling.md](./tooling.md) — scripts y testing
 - Cursor rules: `web-structure`, `web-api-paths`, `web-swr-hooks`, `web-forms-feedback`, `web-style-props`
-- Skills: `.cursor/skills/web-structure/`, `.cursor/skills/swr-hooks/`
+- Skills: `.github/skills/web-structure/`, `.github/skills/swr-hooks/`
 
 **Antes de pegar un prompt:** reemplazá los placeholders `{{...}}`.
 
@@ -187,7 +187,7 @@ En `apps/web`, agregá el hook `use{{HookName}}` en:
 
 Requisitos:
 - Keys solo desde `SWR_KEYS` + `buildQueryString` para query params
-- Seguir `.cursor/skills/swr-hooks/SKILL.md` (useSWR vs useSWRImmutable vs useSWRMutation)
+- Seguir `.github/skills/swr-hooks/SKILL.md` (useSWR vs useSWRImmutable vs useSWRMutation)
 - Exportar en barrels `index.ts`
 - No hardcodear `/api/`
 - Patrón de referencia: `useMyMediaList` o `useMediaMutations` según read/write

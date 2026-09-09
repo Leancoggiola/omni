@@ -8,18 +8,18 @@ Monorepo de **media tracking** (películas/series vía TMDB). Clientes: **web** 
 
 ## Mapa del repositorio
 
-| Ruta               | Rol                                                    |
-| ------------------ | ------------------------------------------------------ |
-| `apps/api/`        | REST — `auth`, `media`, `users`, `admin`               |
-| `apps/web/`        | SPA — `auth`, `home`, `media`, `profile`               |
-| `apps/mobile/`     | Expo Android — paridad con web                         |
-| `packages/shared/` | Zod + tipos (`@omni/shared`)                           |
-| `docs/`            | Índice en `docs/README.md`                             |
-| `.cursor/rules/`   | Laws por glob (`web-*`, `mobile-*`, `api-conventions`) |
-| `.cursor/skills/`  | Skills proyecto — fuente (Cursor)                      |
-| `.github/skills/`  | Skills proyecto — espejo idéntico para VS Code Copilot |
-| `.agents/skills/`  | Skills terceros (Mantine, Supabase)                    |
-| `.cursor/mcp.json` | MCP CodeGraph                                          |
+| Ruta                    | Rol                                            |
+| ----------------------- | ---------------------------------------------- |
+| `apps/api/`             | REST — `auth`, `media`, `users`, `admin`       |
+| `apps/web/`             | SPA — `auth`, `home`, `media`, `profile`       |
+| `apps/mobile/`          | Expo Android — paridad con web                 |
+| `packages/shared/`      | Zod + tipos (`@omni/shared`)                   |
+| `docs/`                 | Índice en `docs/README.md`                     |
+| `.github/instructions/` | Convenciones por glob (`web`, `mobile`, `api`) |
+| `.github/skills/`       | Skills del proyecto                            |
+| `.github/prompts/`      | Prompts reutilizables (ej. code review)        |
+| `.agents/skills/`       | Skills de terceros (Mantine, Supabase)         |
+| `.vscode/mcp.json`      | MCP (CodeGraph, Supabase)                      |
 
 > `@/shared` (alias del cliente) ≠ `@omni/shared` (paquete monorepo).
 
@@ -38,7 +38,7 @@ Flujo: `develop` → branch `feat/#N-…` / `fix/#N-…` → PR a `develop` → 
 
 ## Reglas de oro
 
-0. **Skills de proyecto duplicadas** — `.cursor/skills/<name>/SKILL.md` (Cursor) y `.github/skills/<name>/SKILL.md` (VS Code) deben ser idénticas. Al editar una, actualizar la otra en el mismo cambio.
+0. **Estados de UI compartidos** — web: `LoadingState` / `EmptyState` / `ErrorState` de `@/shared/ui`. El `error` de SWR se renderiza siempre; nunca se muestra como estado vacío.
 1. **Un feature no importa otro** del mismo cliente — UI compartida en `shared/ui` (web) o componentes locales (mobile).
 2. **URLs HTTP centralizadas** — web: `SWR_KEYS`; mobile: `API_KEYS`. Nunca literales `/api/` en features.
 3. **Contrato compartido** — `packages/shared`; API `validate()`; clientes mismos Zod/tipos.
@@ -49,13 +49,13 @@ Flujo: `develop` → branch `feat/#N-…` / `fix/#N-…` → PR a `develop` → 
 
 ---
 
-## Cursor rules (automáticas)
+## Instructions automáticas
 
-| Glob             | Rules                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------ |
-| `apps/web/**`    | `web-structure`, `web-api-paths`, `web-swr-hooks`, `web-forms-feedback`, `web-style-props` |
-| `apps/mobile/**` | `mobile-structure`, `mobile-api-paths`, `mobile-auth`                                      |
-| `apps/api/**`    | `api-conventions`                                                                          |
+| Glob             | Archivo                                       |
+| ---------------- | --------------------------------------------- |
+| `apps/web/**`    | `.github/instructions/web.instructions.md`    |
+| `apps/mobile/**` | `.github/instructions/mobile.instructions.md` |
+| `apps/api/**`    | `.github/instructions/api.instructions.md`    |
 
 Detalle: [docs/web/tooling.md](docs/web/tooling.md) · [docs/mobile/tooling.md](docs/mobile/tooling.md).
 
@@ -115,7 +115,7 @@ pnpm --filter api test   # si tocaste API
 ## Jerarquía
 
 1. Este `AGENTS.md`
-2. `.cursor/rules/`
+2. `.github/instructions/`
 3. `docs/architecture.md`
-4. `.cursor/skills/` / `.agents/skills/`
+4. `.github/skills/` / `.agents/skills/`
 5. CodeGraph

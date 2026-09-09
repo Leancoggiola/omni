@@ -48,6 +48,6 @@ For every issue found, provide a structured breakdown using this template:
 
 ### Reglas del proyecto (Omni)
 
-- Respetar `AGENTS.md`, `.cursor/rules/` y las skills de `.github/skills/` (`web-structure`, `swr-hooks`, `shared-contracts`).
+- Respetar `AGENTS.md`, `.github/instructions/` y las skills de `.github/skills/` (`web-structure`, `swr-hooks`, `shared-contracts`).
 - No asumir: si falta contexto o hay más de un enfoque válido, preguntar antes de aplicar cambios.
 - Centralizar: los fixes deben seguir el mismo patrón que el resto de los módulos (`media`, `profile`, `home`). No introducir enfoques distintos por módulo.

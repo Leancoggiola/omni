@@ -1,20 +1,16 @@
-# Mobile — tooling (rules, skills)
+# Mobile — tooling (instructions, skills)
 
 **Índice agentes:** [AGENTS.md](../../AGENTS.md).
 
 **Plantillas:** [agent-prompts.md](./agent-prompts.md)
 
-## Cursor rules (`apps/mobile`)
+## Instructions (`apps/mobile`)
 
-| Rule                                                             | Rol                      |
-| ---------------------------------------------------------------- | ------------------------ |
-| [mobile-structure.mdc](../../.cursor/rules/mobile-structure.mdc) | Capas, features, Tamagui |
-| [mobile-api-paths.mdc](../../.cursor/rules/mobile-api-paths.mdc) | Solo `API_KEYS`          |
-| [mobile-auth.mdc](../../.cursor/rules/mobile-auth.mdc)           | Bearer + SecureStore     |
+[mobile.instructions.md](../../.github/instructions/mobile.instructions.md) se aplica automáticamente bajo `apps/mobile/**`. Cubre capas y features (Tamagui), `API_KEYS` y auth Bearer + SecureStore.
 
 ## Skills del proyecto
 
-Viven en `.cursor/skills/` (Cursor) con espejo idéntico en `.github/skills/` (VS Code Copilot). Al editar una skill, actualizar las dos.
+Viven en `.github/skills/` (fuente única, leída por VS Code Copilot).
 | Skill | Cuándo |
 | ------------------- | ------------------------------------- |
 | `mobile-structure` | Carpetas / features mobile |

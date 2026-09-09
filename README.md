@@ -30,7 +30,7 @@ packages/
   shared/    → @omni/shared
 docs/        → Guías (ver docs/README.md)
 AGENTS.md
-.cursor/     → rules + skills del proyecto
+.github/     → instructions + skills + prompts del proyecto
 .agents/     → skills de terceros
 ```
 

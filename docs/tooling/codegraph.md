@@ -13,7 +13,7 @@ pnpm install
 pnpm codegraph:init
 ```
 
-En **Cursor → Settings → MCP**, activá el servidor **codegraph** del proyecto (`.cursor/mcp.json`). Reiniciá Cursor si no aparece.
+En **VS Code**, el servidor **codegraph** está declarado en `.vscode/mcp.json`. Si no aparece, recargá la ventana.
 
 ---
 

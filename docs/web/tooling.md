@@ -1,26 +1,28 @@
-# Web — tooling (rules, skills, scripts)
+# Web — tooling (instructions, skills, scripts)
 
 **Índice agentes:** [AGENTS.md](../../AGENTS.md).
 
 **Plantillas de prompt:** [agent-prompts.md](./agent-prompts.md)
 
-## Cursor rules (`apps/web`)
+## Instructions (`apps/web`)
 
-Se aplican al editar bajo `apps/web/**` (salvo `alwaysApply`).
+[web.instructions.md](../../.github/instructions/web.instructions.md) se aplica automáticamente al editar bajo `apps/web/**` (`applyTo`). Cubre:
 
-| Rule                                                                 | Rol                                      |
-| -------------------------------------------------------------------- | ---------------------------------------- |
-| [web-structure.mdc](../../.cursor/rules/web-structure.mdc)           | Capas, `features/`, imports, scaffolding |
-| [web-api-paths.mdc](../../.cursor/rules/web-api-paths.mdc)           | Solo `SWR_KEYS`; sin `/api/` inline      |
-| [web-swr-hooks.mdc](../../.cursor/rules/web-swr-hooks.mdc)           | Resumen SWR; detalle en skill            |
-| [web-forms-feedback.mdc](../../.cursor/rules/web-forms-feedback.mdc) | `useForm`, Alert, `notifySuccess`        |
-| [web-style-props.mdc](../../.cursor/rules/web-style-props.mdc)       | Dimensiones en `rem`, token `none`       |
+| Sección               | Rol                                               |
+| --------------------- | ------------------------------------------------- |
+| Estructura            | Capas, `features/`, imports, scaffolding          |
+| API paths             | Solo `SWR_KEYS`; sin `/api/` inline               |
+| SWR                   | Resumen de decisión; detalle en skill `swr-hooks` |
+| Estados de UI         | `LoadingState` / `EmptyState` / `ErrorState`      |
+| Formularios           | `useForm`, reset por desmontaje del modal         |
+| Estado derivado       | Remount con `key`                                 |
+| Acciones destructivas | Guard de doble-submit + `confirm()`               |
+| Feedback              | Alert inline vs `notifySuccess` / `notifyError`   |
+| Style props           | Dimensiones en `rem`, token `none`                |
 
-También: [project-agents.mdc](../../.cursor/rules/project-agents.mdc) (`alwaysApply`).
+## Skills del proyecto (`.github/skills/`)
 
-## Skills del proyecto (`.cursor/skills/`, espejo en `.github/skills/`)
-
-Mismo contenido en ambas carpetas: `.cursor/skills/` lo lee Cursor, `.github/skills/` lo lee VS Code Copilot. Al editar una skill, actualizar las dos.
+Fuente única, leída por VS Code Copilot.
 
 | Skill              | Cuándo usarla                              |
 | ------------------ | ------------------------------------------ |
@@ -31,7 +33,7 @@ Mismo contenido en ambas carpetas: `.cursor/skills/` lo lee Cursor, `.github/ski
 
 ## Mantine (web)
 
-- Paquetes `@mantine/*` en **9.4.1** (`apps/web`).
+- Paquetes `@mantine/*` en **9.6.0** (`apps/web`), incluido `@mantine/lightbox`.
 - `MantineProvider` usa `deduplicateInlineStyles` (React 19; no cubre `SimpleGrid`/`Grid`).
 - Defaults de inputs vía `Input.extend` en `theme/components.tsx`.
 - Skills oficiales (`mantine-form`, `mantine-combobox`, `mantine-custom-components`): actualizar solo con CLI (`npx skills add mantinedev/skills …`). No editar `.agents/skills/mantine-*` a mano.
@@ -39,7 +41,7 @@ Mismo contenido en ambas carpetas: `.cursor/skills/` lo lee Cursor, `.github/ski
 
 ## Skills de terceros (`.agents/skills/`)
 
-Instalados con `npx skills add`. No mover a `.cursor/skills/` (el CLI reinstala en `.agents/`).
+Instalados con `npx skills add`. No mover a `.github/skills/` (el CLI reinstala en `.agents/`).
 
 | Skill                              | Cuándo usarla                   |
 | ---------------------------------- | ------------------------------- |
