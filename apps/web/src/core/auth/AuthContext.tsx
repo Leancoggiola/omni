@@ -1,7 +1,8 @@
-import { createContext, FC, PropsWithChildren, useCallback, useContext, useMemo } from 'react';
+import { createContext, FC, PropsWithChildren, useCallback, useContext, useEffect, useMemo } from 'react';
+import { useSWRConfig } from 'swr';
 import useSWRImmutable from 'swr/immutable';
 
-import { api, ApiError, SWR_KEYS } from '@/shared/api';
+import { api, ApiError, clearOnAuthFailure, setOnAuthFailure, SWR_KEYS } from '@/shared/api';
 
 import type { SessionUser } from '@omni/shared/auth';
 import type { ProfileResponse } from '@omni/shared/auth';
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const { data, isLoading, error, mutate } = useSWRImmutable<ProfileResponse>(SWR_KEYS.auth.profile);
+  const { mutate: globalMutate } = useSWRConfig();
 
   const user = data?.user ?? null;
   const isAuthenticated = !!data?.user;
@@ -37,6 +39,13 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     await api.post(SWR_KEYS.auth.logout);
     await mutate(undefined, { revalidate: false });
   }, [mutate]);
+
+  useEffect(() => {
+    setOnAuthFailure(() => {
+      globalMutate(() => true, undefined, { revalidate: false });
+    });
+    return () => clearOnAuthFailure();
+  }, [globalMutate]);
 
   const value = useMemo(
     () => ({ user, isAuthenticated, isLoading, error, login, logout }),
