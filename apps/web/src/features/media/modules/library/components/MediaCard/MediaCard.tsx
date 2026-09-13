@@ -46,12 +46,12 @@ export const MediaCard = memo(function MediaCard({ item, onStatusChange, onDelet
               style={{ cursor: 'zoom-in' }}
             />
           ) : (
-            <Center h="100%" bg="brand.5" c="dimmed">
+            <Center h="100%" bg="terracotta.5" c="dimmed">
               <FilmSlateIcon size="6rem" color="white" aria-hidden />
             </Center>
           )}
         </AspectRatio>
-        <Badge pos="absolute" top="1.75rem" left="1.5rem" size="sm" variant="light" color="gray">
+        <Badge pos="absolute" top="1.75rem" left="1.5rem" size="sm" variant="filled" color="terracotta">
           {MEDIA_TYPE_LABELS[item.mediaType]}
         </Badge>
         {hovered && (

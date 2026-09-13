@@ -39,7 +39,7 @@ export const ProfilePhotoSection: FC<ProfilePhotoSectionProps> = ({ name, avatar
         <Stack gap="2xs">
           <FileButton accept={ACCEPTED_AVATAR_TYPES} onChange={handleFileChange}>
             {props => (
-              <UnstyledButton {...props} c="brand.6" fz="sm" fw={500}>
+              <UnstyledButton {...props} c="var(--mantine-color-text-primary)" fz="sm" fw={500}>
                 <Group gap="xs" wrap="nowrap">
                   <CameraIcon size="1rem" aria-hidden />
                   Cambiar foto

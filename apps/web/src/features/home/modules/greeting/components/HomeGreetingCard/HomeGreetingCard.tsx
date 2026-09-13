@@ -17,13 +17,13 @@ export const HomeGreetingCard: FC = () => {
     <Paper>
       <Group wrap="nowrap" justify="space-between" align="center">
         <Stack gap="2xs">
-          <Text c="brand.5" fz="sm">
+          <Text c="dimmed" fz="sm">
             {greeting}
           </Text>
           {isLoading ? (
             <Skeleton height={28} width={160} />
           ) : (
-            <Text c="brand.7" fz="1.5rem" fw={600}>
+            <Text c="var(--mantine-color-text-primary)" fz="1.5rem" fw={600}>
               {user?.name}
             </Text>
           )}
@@ -31,9 +31,9 @@ export const HomeGreetingCard: FC = () => {
         <ActionIcon
           size="3rem"
           radius="full"
-          color="brand"
+          color="terracotta"
           variant="gradient"
-          gradient={GRADIENTS.brand}
+          gradient={GRADIENTS.terracotta}
           tabIndex={-1}
           style={{ pointerEvents: 'none', boxShadow: 'var(--mantine-shadow-brand)' }}
         >

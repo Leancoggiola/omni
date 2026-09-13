@@ -15,7 +15,7 @@ export const GatheringParticipants: FC<GatheringParticipantsProps> = ({ particip
   <GatheringSection label="Participantes">
     <Group gap="xs">
       {participants.map(participant => (
-        <Badge key={participant.id} variant="light" color="brand" size="lg" radius="sm">
+        <Badge key={participant.id} variant="light" color="terracotta" size="lg" radius="sm">
           <Text span fw={600} size="sm">
             {participant.displayName}
           </Text>{' '}
