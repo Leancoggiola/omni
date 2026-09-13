@@ -1,8 +1,8 @@
 import { FC, useCallback } from 'react';
-import { Stack, Text, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 
 import { useAuth } from '@/core/auth';
-import { ErrorState, LoadingState } from '@/shared/ui';
+import { ErrorState, LoadingState, PageHeader } from '@/shared/ui';
 
 import {
   DeleteAccountButton,
@@ -13,6 +13,8 @@ import {
   useAccountActions,
   useProfile,
 } from './modules';
+
+import { UserIcon } from '@phosphor-icons/react';
 
 export const ProfilePage: FC = () => {
   const { profile, isLoading, isMutating, error, updateProfile, updatePreferences } = useProfile();
@@ -68,10 +70,11 @@ export const ProfilePage: FC = () => {
 
   return (
     <Stack gap="xl">
-      <Stack gap="2xs">
-        <Title order={2}>Mi Perfil</Title>
-        <Text c="dimmed">Gestiona tu información personal y preferencias</Text>
-      </Stack>
+      <PageHeader
+        icon={<UserIcon size="1.5rem" />}
+        title="Mi Perfil"
+        subtitle="Gestiona tu información personal y preferencias"
+      />
 
       <ProfilePhotoSection name={profile.name} avatarUrl={profile.avatarUrl} />
 
