@@ -11,7 +11,7 @@
     "android": {
       "package": "com.omni.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E8C9A2",
+        "backgroundColor": "#E4BC9E",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -29,7 +29,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#FFF4E2"
+          "backgroundColor": "#FBF1E9"
         }
       ]
     ],
