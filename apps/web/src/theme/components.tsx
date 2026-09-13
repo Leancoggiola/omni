@@ -11,8 +11,8 @@ export const ComponentsOverride = {
     classNames: componentOverrides.actionIcon,
   }),
   AppShell: AppShell.extend({
+    classNames: componentOverrides.appShell,
     styles: {
-      navbar: { backgroundColor: surfaceBg },
       header: { backgroundColor: surfaceBg },
     },
   }),

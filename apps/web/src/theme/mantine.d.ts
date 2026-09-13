@@ -2,7 +2,16 @@ import type { GRADIENTS } from './gradients';
 import type { DefaultMantineColor, DefaultMantineSize } from '@mantine/core';
 
 type AppSpacing = 'none' | '3xs' | '2xs' | '4xl' | DefaultMantineSize;
-type AppColors = 'brand' | 'success' | 'info' | 'warning' | 'error' | 'destructive' | DefaultMantineColor;
+type AppColors =
+  | 'brand'
+  | 'terracotta'
+  | 'sage'
+  | 'success'
+  | 'info'
+  | 'warning'
+  | 'error'
+  | 'destructive'
+  | DefaultMantineColor;
 
 declare module '@mantine/core' {
   export interface MantineThemeOther {
