@@ -1,5 +1,7 @@
 export {
   BRAND,
+  CANVAS,
+  SURFACE,
   DARK,
   GRAY,
   BLUE,
@@ -10,6 +12,8 @@ export {
   LIME,
   YELLOW,
   PINK,
+  TERRACOTTA,
+  SAGE,
   SEMANTIC,
   semanticLight,
   semanticDark,
