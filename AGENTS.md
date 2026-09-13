@@ -43,10 +43,11 @@ Flujo: `develop` → branch `feat/#N-…` / `fix/#N-…` → PR a `develop` → 
 1. **Un feature no importa otro** del mismo cliente — UI compartida en `shared/ui` (web) o componentes locales (mobile).
 2. **URLs HTTP centralizadas** — web: `SWR_KEYS`; mobile: `API_KEYS`. Nunca literales `/api/` en features.
 3. **Contrato compartido** — `packages/shared`; API `validate()`; clientes mismos Zod/tipos.
-4. **Orden full-stack** — `shared` → `api` → hooks + UI del cliente (web y/o mobile).
-5. **Auth** — web: cookies; mobile: Bearer + SecureStore. Mismos endpoints; login/refresh también devuelven tokens en el body.
-6. **Referencias** — web: `home` / `media` / `profile`; mobile: mismas features bajo `apps/mobile/src/features/`.
-7. **Exploración transversal** — CodeGraph MCP antes de leer muchos archivos.
+4. **Color y tokens** — todo nace en `packages/shared/src/theme/tokens.ts`. Nunca hex sueltos ni `color="green"`/`"blue"` de Mantine: usar los alias semánticos. Ver [docs/design-system.md](docs/design-system.md).
+5. **Orden full-stack** — `shared` → `api` → hooks + UI del cliente (web y/o mobile).
+6. **Auth** — web: cookies; mobile: Bearer + SecureStore. Mismos endpoints; login/refresh también devuelven tokens en el body.
+7. **Referencias** — web: `home` / `media` / `profile`; mobile: mismas features bajo `apps/mobile/src/features/`.
+8. **Exploración transversal** — CodeGraph MCP antes de leer muchos archivos.
 
 ---
 
@@ -94,15 +95,16 @@ Setup: [docs/tooling/codegraph.md](docs/tooling/codegraph.md).
 
 ## Documentación
 
-| Doc                                                                                                      | Uso                    |
-| -------------------------------------------------------------------------------------------------------- | ---------------------- |
-| [docs/README.md](docs/README.md)                                                                         | Índice por carpetas    |
-| [docs/architecture.md](docs/architecture.md)                                                             | Estructura + auth dual |
-| [docs/web/tooling.md](docs/web/tooling.md) / [mobile/tooling.md](docs/mobile/tooling.md)                 | Rules/skills           |
-| [docs/web/new-feature.md](docs/web/new-feature.md) / [mobile/new-feature.md](docs/mobile/new-feature.md) | Checklists             |
-| [docs/product/project-management.md](docs/product/project-management.md)                                 | Omni Roadmap / issues  |
-| [docs/api/route-testing.md](docs/api/route-testing.md)                                                   | Integración de API     |
-| [docs/tooling/e2e.md](docs/tooling/e2e.md)                                                               | Suite E2E de la web    |
+| Doc                                                                                                      | Uso                     |
+| -------------------------------------------------------------------------------------------------------- | ----------------------- |
+| [docs/README.md](docs/README.md)                                                                         | Índice por carpetas     |
+| [docs/architecture.md](docs/architecture.md)                                                             | Estructura + auth dual  |
+| [docs/design-system.md](docs/design-system.md)                                                           | Paleta, tokens, paridad |
+| [docs/web/tooling.md](docs/web/tooling.md) / [mobile/tooling.md](docs/mobile/tooling.md)                 | Rules/skills            |
+| [docs/web/new-feature.md](docs/web/new-feature.md) / [mobile/new-feature.md](docs/mobile/new-feature.md) | Checklists              |
+| [docs/product/project-management.md](docs/product/project-management.md)                                 | Omni Roadmap / issues   |
+| [docs/api/route-testing.md](docs/api/route-testing.md)                                                   | Integración de API      |
+| [docs/tooling/e2e.md](docs/tooling/e2e.md)                                                               | Suite E2E de la web     |
 
 ---
 
