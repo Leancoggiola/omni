@@ -27,6 +27,10 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     color3: s.secondary,
     destructive: s.destructive,
     success: s.success,
+    warning: s.warning,
+    info: s.info,
+    accent: s.accent,
+    accentSurface: s.accentSurface,
     primary: s.primary,
     dimmed: s.dimmed,
   } as Theme;
