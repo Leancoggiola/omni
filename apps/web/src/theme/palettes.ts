@@ -1,6 +1,20 @@
 import { colorsTuple, type MantineColorsTuple } from '@mantine/core';
 
-import { BLUE, BRAND, DARK, GRAY, GREEN, INDIGO, LIME, ORANGE, PINK, RED, YELLOW } from '@omni/shared/theme';
+import {
+  BLUE,
+  BRAND,
+  DARK,
+  GRAY,
+  GREEN,
+  INDIGO,
+  LIME,
+  ORANGE,
+  PINK,
+  RED,
+  SAGE,
+  TERRACOTTA,
+  YELLOW,
+} from '@omni/shared/theme';
 
 type ColorScale10 = {
   readonly 0: string;
@@ -38,9 +52,11 @@ export const COLOR_PALETTE = {
   lime: toTuple(LIME),
   yellow: toTuple(YELLOW),
   pink: toTuple(PINK),
+  terracotta: toTuple(TERRACOTTA),
+  sage: toTuple(SAGE),
 
   // Aliases (single-shade virtual palettes)
-  success: colorsTuple(GREEN[5]),
+  success: colorsTuple(SAGE[6]),
   info: colorsTuple(BLUE[6]),
   warning: colorsTuple(ORANGE[8]),
   error: colorsTuple(RED[7]),

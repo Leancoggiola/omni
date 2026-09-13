@@ -1,6 +1,18 @@
 import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ActionIcon, AppShell, Burger, Divider, Group, NavLink, Paper, ScrollArea, Stack, Text } from '@mantine/core';
+import {
+  ActionIcon,
+  AppShell,
+  Burger,
+  Divider,
+  Group,
+  NavLink,
+  Paper,
+  ScrollArea,
+  Stack,
+  Text,
+  ThemeIcon,
+} from '@mantine/core';
 
 import { ADMIN_NAV_ITEMS, MAIN_NAV_ITEMS } from '@/app/navigation/nav-registry';
 import { useAuth } from '@/core/auth';
@@ -44,13 +56,18 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
 
   const renderNavItem = (item: NavItemConfig) => {
     const isDisabled = item.disabled || !item.path;
+    const active = !isDisabled && item.path ? isActive(item.path) : false;
 
     return (
       <NavLink
         key={item.label}
         label={item.label}
-        leftSection={item.icon}
-        active={!isDisabled && item.path ? isActive(item.path) : false}
+        leftSection={
+          <ThemeIcon variant={active ? 'white' : 'light'} color="terracotta" size="md" radius="md">
+            {item.icon}
+          </ThemeIcon>
+        }
+        active={active}
         disabled={isDisabled}
         onClick={isDisabled || !item.path ? undefined : () => handleNavigate(item.path!)}
       />
@@ -63,10 +80,10 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
         <Group>
           <LogoAvatar size="lg" />
           <Stack gap="none">
-            <Text c="brand.7" size="lg" fw={600}>
+            <Text size="lg" fw={600}>
               Omni
             </Text>
-            <Text c="brand.5" size="xs">
+            <Text c="dimmed" size="xs">
               Hub personal
             </Text>
           </Stack>
@@ -79,7 +96,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
           {MAIN_NAV_ITEMS.map(renderNavItem)}
           {user?.role === 'ADMIN' && (
             <>
-              <Text size="xs" tt="uppercase" c="brand.5" fw={600} mt="sm" mb="2xs" px="sm">
+              <Text size="xs" tt="uppercase" c="dimmed" fw={600} mt="sm" mb="2xs" px="sm">
                 Admin
               </Text>
               {ADMIN_NAV_ITEMS.map(renderNavItem)}
@@ -90,14 +107,14 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
       <Divider />
 
       <AppShell.Section mt="md">
-        <Paper p="sm" bg="brand.0">
+        <Paper p="sm" bg="var(--mantine-color-surfaces-hover)">
           <Group gap="sm" wrap="nowrap">
             <UserAvatar name={user?.name ?? ''} src={user?.avatarUrl} />
             <Stack gap="none">
-              <Text size="sm" fw={600} c="brand.7">
+              <Text size="sm" fw={600}>
                 {user?.name ?? '—'}
               </Text>
-              <Text size="xs" c="brand.5">
+              <Text size="xs" c="dimmed">
                 {user?.email ?? '—'}
               </Text>
             </Stack>

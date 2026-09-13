@@ -1,0 +1,52 @@
+.root {
+  position: relative;
+  overflow: hidden;
+  padding: var(--mantine-spacing-md);
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--mantine-color-surfaces-card);
+  box-shadow: var(--mantine-shadow-md);
+
+  /* Colored corner wash — the "-light" tokens are pale solids in light mode and
+     translucent overlays in dark mode, so the same gradient adapts to both. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(135deg, var(--notif-wash) 0%, transparent 65%);
+  }
+
+  &[data-variant='success'] {
+    --notif-accent: var(--mantine-color-icons-success);
+    --notif-wash: var(--mantine-color-surfaces-success-light);
+  }
+  &[data-variant='error'] {
+    --notif-accent: var(--mantine-color-icons-error);
+    --notif-wash: var(--mantine-color-surfaces-error-light);
+  }
+  &[data-variant='warning'] {
+    --notif-accent: var(--mantine-color-icons-warning);
+    --notif-wash: var(--mantine-color-surfaces-warning-light);
+  }
+  &[data-variant='info'] {
+    --notif-accent: var(--mantine-color-icons-info);
+    --notif-wash: var(--mantine-color-surfaces-info-light);
+  }
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--mantine-radius-full);
+  color: var(--notif-accent);
+  background: color-mix(in srgb, var(--notif-accent) 16%, var(--mantine-color-surfaces-card));
+}

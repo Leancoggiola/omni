@@ -6,13 +6,13 @@ Es un **Just-in-Time Package** — exporta TypeScript directo sin paso de build.
 
 ## Exports
 
-| Path                 | Contenido                                                                                       |
-| -------------------- | ----------------------------------------------------------------------------------------------- |
-| `@omni/shared`       | Re-export de todo                                                                               |
-| `@omni/shared/auth`  | `loginSchema`, `registerSchema` + tipos `LoginPayload`, `RegisterPayload`                       |
-| `@omni/shared/media` | Schemas de media (add, update, search, filter) + tipos (`MediaItem`, etc.) + constantes         |
-| `@omni/shared/theme` | `BRAND`, `SEMANTIC`, `GRAY`, `SUCCESS`, `DESTRUCTIVE` — fuente única de color para web y mobile |
-| `@omni/shared/users` | Profile / preferences schemas                                                                   |
+| Path                 | Contenido                                                                                                                                                                                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@omni/shared`       | Re-export de todo                                                                                                                                                                                   |
+| `@omni/shared/auth`  | `loginSchema`, `registerSchema` + tipos `LoginPayload`, `RegisterPayload`                                                                                                                           |
+| `@omni/shared/media` | Schemas de media (add, update, search, filter) + tipos (`MediaItem`, etc.) + constantes                                                                                                             |
+| `@omni/shared/theme` | Escalas (`BRAND`, `TERRACOTTA`, `SAGE`, `CANVAS`, `SURFACE`, …), tokens semánticos y `SEMANTIC` — fuente única de color para web y mobile. Ver [docs/design-system.md](../../docs/design-system.md) |
+| `@omni/shared/users` | Profile / preferences schemas                                                                                                                                                                       |
 
 ## Uso
 

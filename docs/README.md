@@ -7,6 +7,7 @@
 | Carpeta / doc                          | Contenido                           |
 | -------------------------------------- | ----------------------------------- |
 | [architecture.md](./architecture.md)   | Monorepo, API/Web/Mobile, auth dual |
+| [design-system.md](./design-system.md) | Paleta, tokens y paridad web/mobile |
 | [getting-started/](./getting-started/) | Setup local                         |
 | [product/](./product/)                 | Project management / Roadmap        |
 | [web/](./web/)                         | Tooling, features y prompts web     |

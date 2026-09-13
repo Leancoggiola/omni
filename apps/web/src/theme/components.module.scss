@@ -5,18 +5,37 @@
   }
 }
 
+.appshell_navbar {
+  background-color: var(--mantine-color-default);
+  /* A warm wash needs far more opacity to read over the near-white light surface
+     than it does over the dark one, so each scheme sets its own mix. */
+  background-image:
+    radial-gradient(150% 60% at 0% 0%, var(--navbar-glow-top) 0%, transparent 62%),
+    radial-gradient(130% 55% at 0% 100%, var(--navbar-glow-bottom) 0%, transparent 68%);
+}
+
+:root[data-mantine-color-scheme='light'] .appshell_navbar {
+  --navbar-glow-top: color-mix(in srgb, var(--mantine-color-terracotta-4) 42%, transparent);
+  --navbar-glow-bottom: color-mix(in srgb, var(--mantine-color-brand-3) 40%, transparent);
+}
+
+:root[data-mantine-color-scheme='dark'] .appshell_navbar {
+  --navbar-glow-top: color-mix(in srgb, var(--mantine-color-terracotta-6) 24%, transparent);
+  --navbar-glow-bottom: color-mix(in srgb, var(--mantine-color-brand-6) 18%, transparent);
+}
+
 .combobox_root {
   &[data-to_watch] input {
     background: var(--mantine-color-surfaces-dimmed-subtle);
     border-color: var(--mantine-color-border-dimmed);
   }
   &[data-watching] input {
-    background: var(--mantine-color-surfaces-success-light);
-    border-color: var(--mantine-color-border-success);
+    background: var(--mantine-color-surfaces-accent-light);
+    border-color: var(--mantine-color-border-accent);
   }
   &[data-watched] input {
-    background: var(--mantine-color-surfaces-info-light);
-    border-color: var(--mantine-color-border-info);
+    background: var(--mantine-color-surfaces-success-light);
+    border-color: var(--mantine-color-border-success);
   }
 }
 
@@ -31,7 +50,7 @@
   }
 
   &:hover:where(:not([data-combobox-disabled])) {
-    background-color: var(--mantine-color-brand-0);
+    background-color: var(--mantine-color-surfaces-hover);
   }
 }
 
@@ -52,7 +71,7 @@
     background-image: linear-gradient(to right, var(--mantine-color-brand-5), var(--mantine-color-brand-7));
   }
   &:hover {
-    background-color: var(--mantine-color-brand-2);
+    background-color: var(--mantine-color-surfaces-hover);
   }
   /* NavLink root styles */
 }
@@ -64,7 +83,7 @@
 
 .tabs_tab {
   &[data-active] {
-    background: var(--mantine-color-white);
+    background: var(--mantine-color-default);
     font-weight: 700;
   }
 }

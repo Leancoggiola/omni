@@ -17,14 +17,17 @@ export const Header: FC<HeaderProps> = ({ opened, onToggle }) => {
   const { user } = useAuth();
 
   return (
-    <AppShell.Header hiddenFrom="md" px="md" py="sm" style={{ borderBottom: '1px solid var(--mantine-color-brand-4)' }}>
+    <AppShell.Header
+      hiddenFrom="md"
+      px="md"
+      py="sm"
+      style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
+    >
       <Group align="center" justify="space-between">
         <Burger opened={opened} onClick={onToggle} size="md" />
         <Group gap="xs">
           <LogoAvatar size={32} />
-          <Text c="brand.7" fw={600}>
-            Omni
-          </Text>
+          <Text fw={600}>Omni</Text>
         </Group>
         <Group>
           <ColorSchemeToggle />

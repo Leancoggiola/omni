@@ -95,7 +95,7 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
             <Group gap="xs" align="center">
               <Text fw={600}>{summary.name}</Text>
               {summary.isSettled && (
-                <Badge color="green" variant="light" size="sm">
+                <Badge color="success" variant="light" size="sm">
                   Saldado
                 </Badge>
               )}
@@ -161,7 +161,7 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
 
             <Button
               variant={isSettled ? 'default' : 'filled'}
-              color="green"
+              color="success"
               leftSection={<CheckCircleIcon size="1.1rem" />}
               loading={settleLoading}
               onClick={handleToggleSettled}

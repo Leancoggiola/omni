@@ -66,7 +66,7 @@ export const FriendRowEditor: FC<FriendRowEditorProps> = ({ friend, onUpdate, on
         />
         <ActionIcon
           variant="light"
-          color="green"
+          color="success"
           aria-label="Guardar"
           loading={loading}
           disabled={!name.trim() || !alias.trim()}

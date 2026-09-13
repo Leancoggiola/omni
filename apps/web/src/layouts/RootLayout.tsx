@@ -28,7 +28,7 @@ export const RootLayout: FC = () => {
 
       <AppShell.Main>
         <Container>
-          <Overlay hiddenFrom="md" hidden={!opened} color="#000" backgroundOpacity={0.69} blur={2} zIndex={100} />
+          <Overlay hiddenFrom="md" hidden={!opened} backgroundOpacity={0.69} blur={2} zIndex={100} />
           <Outlet />
         </Container>
       </AppShell.Main>

@@ -4,6 +4,9 @@ export const componentOverrides = {
   actionIcon: {
     root: styles.action_icon_root,
   },
+  appShell: {
+    navbar: styles.appshell_navbar,
+  },
   combobox: {
     root: styles.combobox_root,
     option: styles.combobox_option,
