@@ -10,7 +10,7 @@ Monorepo de **media tracking** (películas/series vía TMDB). Clientes: **web** 
 
 | Ruta                    | Rol                                            |
 | ----------------------- | ---------------------------------------------- |
-| `apps/api/`             | REST — `auth`, `media`, `users`, `admin`       |
+| `apps/api/`             | REST — 10 features en `src/*`, ver `router.ts` |
 | `apps/web/`             | SPA — `auth`, `home`, `media`, `profile`       |
 | `apps/mobile/`          | Expo Android — paridad con web                 |
 | `apps/e2e/`             | Suite E2E de la web (Playwright)               |
@@ -20,7 +20,7 @@ Monorepo de **media tracking** (películas/series vía TMDB). Clientes: **web** 
 | `.github/skills/`       | Skills del proyecto                            |
 | `.github/prompts/`      | Prompts reutilizables (ej. code review)        |
 | `.agents/skills/`       | Skills de terceros (Mantine, Supabase)         |
-| `.vscode/mcp.json`      | MCP (CodeGraph, Supabase)                      |
+| `.vscode/mcp.json`      | MCP (Supabase, CodeGraph, Mantine)             |
 
 > `@/shared` (alias del cliente) ≠ `@omni/shared` (paquete monorepo).
 
@@ -47,7 +47,7 @@ Flujo: `develop` → branch `feat/#N-…` / `fix/#N-…` → PR a `develop` → 
 5. **Orden full-stack** — `shared` → `api` → hooks + UI del cliente (web y/o mobile).
 6. **Auth** — web: cookies; mobile: Bearer + SecureStore. Mismos endpoints; login/refresh también devuelven tokens en el body.
 7. **Referencias** — web: `home` / `media` / `profile`; mobile: mismas features bajo `apps/mobile/src/features/`.
-8. **Exploración transversal** — CodeGraph MCP antes de leer muchos archivos.
+8. **Exploración transversal** — flujo o impacto cruzando `api`/`shared`/`web`/`mobile`: `codegraph_explore` (una sola llamada), nunca `sync` manual. Referencias de un símbolo TS → usages nativo.
 
 ---
 
@@ -66,28 +66,23 @@ Detalle: [docs/web/tooling.md](docs/web/tooling.md) · [docs/mobile/tooling.md](
 
 ## Skills
 
-| Tarea            | Skill                                          |
-| ---------------- | ---------------------------------------------- |
-| Features web     | `web-structure`                                |
-| Hooks SWR web    | `swr-hooks`                                    |
-| Features mobile  | `mobile-structure`                             |
-| Hooks SWR mobile | `mobile-data-hooks`                            |
-| API              | `api-structure`                                |
-| Shared           | `shared-contracts`                             |
-| Forms Mantine    | `mantine-form`                                 |
-| Supabase         | `supabase`, `supabase-postgres-best-practices` |
+| Tarea           | Skill                                          |
+| --------------- | ---------------------------------------------- |
+| Features web    | `web-structure`                                |
+| Hooks SWR web   | `swr-hooks`                                    |
+| Features mobile | `mobile-feature`                               |
+| API             | `api-structure`                                |
+| Shared          | `shared-contracts`                             |
+| Forms Mantine   | `mantine-form`                                 |
+| Supabase        | `supabase`, `supabase-postgres-best-practices` |
 
-Web usa **Mantine 9.4.1** con `deduplicateInlineStyles`. Skills `mantinedev/skills` se actualizan con CLI, no a mano. React Compiler: no activado ([#29](https://github.com/Leancoggiola/omni/issues/29)).
+Web usa **Mantine 9.6.1** con `deduplicateInlineStyles`. Skills `mantinedev/skills` se actualizan con CLI, no a mano. React Compiler: no activado ([#29](https://github.com/Leancoggiola/omni/issues/29)).
 
 ---
 
 ## CodeGraph
 
-| Cuándo            | Tool                                    |
-| ----------------- | --------------------------------------- |
-| Callers / impacto | `codegraph_callers`, `codegraph_impact` |
-| Flujo             | `codegraph_context`                     |
-| Buscar símbolo    | `codegraph_search`                      |
+El MCP expone una sola tool, `codegraph_explore`: una llamada devuelve símbolos, call paths y blast radius para flujos que cruzan apps. Para referencias de un símbolo TS dentro de un mismo archivo/proyecto, preferir usages nativo — es más preciso que el grafo. Nunca correr `sync` manual (auto-sync por file watcher).
 
 Setup: [docs/tooling/codegraph.md](docs/tooling/codegraph.md).
 
@@ -95,16 +90,17 @@ Setup: [docs/tooling/codegraph.md](docs/tooling/codegraph.md).
 
 ## Documentación
 
-| Doc                                                                                                      | Uso                     |
-| -------------------------------------------------------------------------------------------------------- | ----------------------- |
-| [docs/README.md](docs/README.md)                                                                         | Índice por carpetas     |
-| [docs/architecture.md](docs/architecture.md)                                                             | Estructura + auth dual  |
-| [docs/design-system.md](docs/design-system.md)                                                           | Paleta, tokens, paridad |
-| [docs/web/tooling.md](docs/web/tooling.md) / [mobile/tooling.md](docs/mobile/tooling.md)                 | Rules/skills            |
-| [docs/web/new-feature.md](docs/web/new-feature.md) / [mobile/new-feature.md](docs/mobile/new-feature.md) | Checklists              |
-| [docs/product/project-management.md](docs/product/project-management.md)                                 | Omni Roadmap / issues   |
-| [docs/api/route-testing.md](docs/api/route-testing.md)                                                   | Integración de API      |
-| [docs/tooling/e2e.md](docs/tooling/e2e.md)                                                               | Suite E2E de la web     |
+| Doc                                                                                                      | Uso                         |
+| -------------------------------------------------------------------------------------------------------- | --------------------------- |
+| [docs/README.md](docs/README.md)                                                                         | Índice por carpetas         |
+| [docs/architecture.md](docs/architecture.md)                                                             | Estructura + auth dual      |
+| [docs/tooling/ai-architecture.md](docs/tooling/ai-architecture.md)                                       | Agents, MCP, RTK, CodeGraph |
+| [docs/design-system.md](docs/design-system.md)                                                           | Paleta, tokens, paridad     |
+| [docs/web/tooling.md](docs/web/tooling.md) / [mobile/tooling.md](docs/mobile/tooling.md)                 | Rules/skills                |
+| [docs/web/new-feature.md](docs/web/new-feature.md) / [mobile/new-feature.md](docs/mobile/new-feature.md) | Checklists                  |
+| [docs/product/project-management.md](docs/product/project-management.md)                                 | Omni Roadmap / issues       |
+| [docs/api/route-testing.md](docs/api/route-testing.md)                                                   | Integración de API          |
+| [docs/tooling/e2e.md](docs/tooling/e2e.md)                                                               | Suite E2E de la web         |
 
 ---
 

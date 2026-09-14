@@ -8,7 +8,7 @@ Checklist para agregar un dominio de producto (ej. Gimnasio, Gastos).
 pnpm web:new-feature gym --path /gym --register-route --register-nav
 ```
 
-Ver [tooling.md](./tooling.md). Prompts: [agent-prompts.md](./agent-prompts.md).
+Ver [tooling.md](./tooling.md).
 
 ## 2. Estructura mínima
 

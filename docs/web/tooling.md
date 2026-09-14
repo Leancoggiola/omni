@@ -2,38 +2,13 @@
 
 **Índice agentes:** [AGENTS.md](../../AGENTS.md).
 
-**Plantillas de prompt:** [agent-prompts.md](./agent-prompts.md)
-
-## Instructions (`apps/web`)
-
-[web.instructions.md](../../.github/instructions/web.instructions.md) se aplica automáticamente al editar bajo `apps/web/**` (`applyTo`). Cubre:
-
-| Sección               | Rol                                               |
-| --------------------- | ------------------------------------------------- |
-| Estructura            | Capas, `features/`, imports, scaffolding          |
-| API paths             | Solo `SWR_KEYS`; sin `/api/` inline               |
-| SWR                   | Resumen de decisión; detalle en skill `swr-hooks` |
-| Estados de UI         | `LoadingState` / `EmptyState` / `ErrorState`      |
-| Formularios           | `useForm`, reset por desmontaje del modal         |
-| Estado derivado       | Remount con `key`                                 |
-| Acciones destructivas | Guard de doble-submit + `confirm()`               |
-| Feedback              | Alert inline vs `notifySuccess` / `notifyError`   |
-| Style props           | Dimensiones en `rem`, token `none`                |
-
-## Skills del proyecto (`.github/skills/`)
-
-Fuente única, leída por VS Code Copilot.
-
-| Skill              | Cuándo usarla                              |
-| ------------------ | ------------------------------------------ |
-| `web-structure`    | Carpetas/features/modules en web           |
-| `swr-hooks`        | Hooks bajo `features/*/hooks/`, `SWR_KEYS` |
-| `api-structure`    | Rutas, services, Prisma en `apps/api`      |
-| `shared-contracts` | Schemas/tipos en `packages/shared`         |
+Instructions y skills propias de `apps/web` ya están indexadas en AGENTS.md; no se repiten acá.
+Ver [web.instructions.md](../../.github/instructions/web.instructions.md) (aplica automáticamente
+bajo `apps/web/**`).
 
 ## Mantine (web)
 
-- Paquetes `@mantine/*` en **9.6.0** (`apps/web`), incluido `@mantine/lightbox`.
+- Paquetes `@mantine/*` en **9.6.1** (`apps/web`), incluido `@mantine/lightbox`.
 - `MantineProvider` usa `deduplicateInlineStyles` (React 19; no cubre `SimpleGrid`/`Grid`).
 - Defaults de inputs vía `Input.extend` en `theme/components.tsx`.
 - Skills oficiales (`mantine-form`, `mantine-combobox`, `mantine-custom-components`): actualizar solo con CLI (`npx skills add mantinedev/skills …`). No editar `.agents/skills/mantine-*` a mano.

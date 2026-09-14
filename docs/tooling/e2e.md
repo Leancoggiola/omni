@@ -2,8 +2,6 @@
 
 Suite end-to-end de **apps/web** contra la API y una base de datos reales. Vive en `apps/e2e`.
 
-> No confundir con [playwright.md](./playwright.md), que documenta el **MCP** de Playwright que usan los agentes para inspeccionar la app a mano. Son cosas distintas.
-
 ## Qué cubre cada nivel
 
 | Nivel              | Dónde                                 | Qué valida                                            |

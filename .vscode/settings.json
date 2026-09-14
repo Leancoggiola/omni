@@ -15,6 +15,15 @@
     "**/dist": true,
     "**/.turbo": true,
     "**/coverage": true,
-    "**/apps/api/src/generated": true
-  }
+    "**/apps/api/src/generated": true,
+    "**/pnpm-lock.yaml": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/.turbo/**": true,
+    "**/coverage/**": true,
+    "**/.codegraph/**": true
+  },
+  "chat.mcp.autostart": true
 }

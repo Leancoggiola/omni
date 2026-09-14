@@ -1,6 +1,6 @@
 # CodeGraph
 
-[Indexa el monorepo](https://github.com/codegraph-ai/CodeGraph) en SQLite local y expone un **MCP** para consultar símbolos, callers y contexto sin encadenar `grep`/`read`.
+[Indexa el monorepo](https://github.com/colbymchenry/codegraph) en SQLite local y expone un **MCP con una sola tool**, `codegraph_explore`, para consultar símbolos, callers y flujos sin encadenar `grep`/`read`.
 
 Complementa [AGENTS.md](../../AGENTS.md) y [architecture.md](../architecture.md). No define requisitos de producto.
 
@@ -15,47 +15,37 @@ pnpm codegraph:init
 
 En **VS Code**, el servidor **codegraph** está declarado en `.vscode/mcp.json`. Si no aparece, recargá la ventana.
 
+Auto-sync está activo por defecto (file watcher nativo, debounce de 2s): **no hace falta re-indexar a mano**. Si igual sospechás que el índice quedó desactualizado, `pnpm codegraph:status` lo confirma.
+
 ---
 
 ## Comandos
 
-| Comando                 | Uso                            |
-| ----------------------- | ------------------------------ |
-| `pnpm codegraph:init`   | Crear `.codegraph/` e indexar  |
-| `pnpm codegraph:status` | Ver si el índice está al día   |
-| `pnpm codegraph:sync`   | Re-indexar tras muchos cambios |
+| Comando                 | Uso                           |
+| ----------------------- | ----------------------------- |
+| `pnpm codegraph:init`   | Crear `.codegraph/` e indexar |
+| `pnpm codegraph:status` | Ver si el índice está al día  |
 
-CLI directa (sin chat):
+CLI directa (sin MCP, sin chat):
 
 ```bash
 npx @colbymchenry/codegraph query "useMediaMutations"
 npx @colbymchenry/codegraph callers "addToList"
-npx @colbymchenry/codegraph context "flujo JWT refresh"
+npx @colbymchenry/codegraph explore "flujo JWT refresh"
 ```
 
 ---
 
-## Cuándo pedirlo al agente
+## Cuándo usarlo
 
-```markdown
-Antes de refactorizar media.service.ts, usá CodeGraph:
+El MCP expone **una sola tool: `codegraph_explore`** (las demás — `node`, `search`, `callers`, `callees`, `impact`, `files`, `status` — existen pero quedan ocultas del catálogo a propósito).
 
-- callers de addToList
-- impacto del cambio
-  Después proponé el plan siguiendo AGENTS.md.
-```
-
-| Situación         | Tool MCP                                |
-| ----------------- | --------------------------------------- |
-| Impacto / rename  | `codegraph_impact`, `codegraph_callers` |
-| Flujo desconocido | `codegraph_context`                     |
-| Buscar símbolo    | `codegraph_search`                      |
-
-| No usar CodeGraph para                             |
-| -------------------------------------------------- |
-| Convención de carpetas → `architecture.md`         |
-| Cómo escribir hooks → rule `web-swr-hooks` + skill |
-| String literal puntual → `grep`                    |
+| Situación                                              | Herramienta                            |
+| ------------------------------------------------------ | -------------------------------------- |
+| Flujo o impacto cruzando `api`/`shared`/`web`/`mobile` | `codegraph_explore` (una sola llamada) |
+| Referencias de un símbolo TS en el mismo proyecto      | usages nativo — más preciso            |
+| String literal puntual                                 | búsqueda de texto nativa               |
+| Convención de carpetas                                 | `architecture.md`                      |
 
 ---
 

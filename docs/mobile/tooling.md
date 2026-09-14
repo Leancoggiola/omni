@@ -2,21 +2,11 @@
 
 **Índice agentes:** [AGENTS.md](../../AGENTS.md).
 
-**Plantillas:** [agent-prompts.md](./agent-prompts.md)
-
 ## Instructions (`apps/mobile`)
 
 [mobile.instructions.md](../../.github/instructions/mobile.instructions.md) se aplica automáticamente bajo `apps/mobile/**`. Cubre capas y features (Tamagui), `API_KEYS` y auth Bearer + SecureStore.
 
-## Skills del proyecto
-
-Viven en `.github/skills/` (fuente única, leída por VS Code Copilot).
-| Skill | Cuándo |
-| ------------------- | ------------------------------------- |
-| `mobile-structure` | Carpetas / features mobile |
-| `mobile-data-hooks` | Hooks SWR + Bearer |
-| `shared-contracts` | Schemas `@omni/shared` (web + mobile) |
-| `api-structure` | Cambios en API |
+Skills del proyecto ya indexadas en [AGENTS.md](../../AGENTS.md); no se repiten acá.
 
 ## Scripts
 

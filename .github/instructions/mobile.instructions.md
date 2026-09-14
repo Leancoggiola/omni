@@ -5,7 +5,7 @@ applyTo: 'apps/mobile/**'
 
 # Mobile — convenciones
 
-Referencias completas: skills `mobile-structure`, `mobile-data-hooks` (`.github/skills/`).
+Referencias completas: skill `mobile-feature` (`.github/skills/`).
 
 ## Estructura
 

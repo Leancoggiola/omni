@@ -14,7 +14,6 @@
     "web:new-test": "node apps/web/scripts/new-test.mjs",
     "codegraph:init": "npx @colbymchenry/codegraph init",
     "codegraph:status": "npx @colbymchenry/codegraph status",
-    "codegraph:sync": "npx @colbymchenry/codegraph sync",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",

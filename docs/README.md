@@ -30,26 +30,24 @@
 
 ### Web
 
-| Doc                                        | Contenido                   |
-| ------------------------------------------ | --------------------------- |
-| [tooling.md](./web/tooling.md)             | Rules/skills/scripts web    |
-| [new-feature.md](./web/new-feature.md)     | Checklist feature web       |
-| [agent-prompts.md](./web/agent-prompts.md) | Plantillas de prompt Cursor |
+| Doc                                    | Contenido                |
+| -------------------------------------- | ------------------------ |
+| [tooling.md](./web/tooling.md)         | Rules/skills/scripts web |
+| [new-feature.md](./web/new-feature.md) | Checklist feature web    |
 
 ### Mobile
 
-| Doc                                           | Contenido                   |
-| --------------------------------------------- | --------------------------- |
-| [tooling.md](./mobile/tooling.md)             | Rules/skills/scripts mobile |
-| [new-feature.md](./mobile/new-feature.md)     | Checklist feature mobile    |
-| [agent-prompts.md](./mobile/agent-prompts.md) | Plantillas de prompt Cursor |
+| Doc                                       | Contenido                   |
+| ----------------------------------------- | --------------------------- |
+| [tooling.md](./mobile/tooling.md)         | Rules/skills/scripts mobile |
+| [new-feature.md](./mobile/new-feature.md) | Checklist feature mobile    |
 
 ### API
 
 | Doc                                        | Contenido                         |
-| ------------------------------------------ | --------------------------------- |
+| ------------------------------------------ | --------------------------------- | --- | -------------------------------------------------------------- | ------------------------------------------- |
 | [prisma.md](./api/prisma.md)               | Migraciones Prisma                |
-| [route-testing.md](./api/route-testing.md) | Tests de integración de endpoints |
+| [route-testing.md](./api/route-testing.md) | Tests de integración de endpoints |     | [lifestyle-notifications.md](./api/lifestyle-notifications.md) | Notificaciones (digest, push, Raspberry Pi) |
 
 ### Ops
 
@@ -60,10 +58,10 @@
 
 ### Tooling
 
-| Doc                                      | Contenido                        |
-| ---------------------------------------- | -------------------------------- |
-| [codegraph.md](./tooling/codegraph.md)   | CodeGraph MCP                    |
-| [playwright.md](./tooling/playwright.md) | Playwright MCP (salidas limpias) |
-| [e2e.md](./tooling/e2e.md)               | Suite E2E de la web (Playwright) |
+| Doc                                                | Contenido                           |
+| -------------------------------------------------- | ----------------------------------- |
+| [ai-architecture.md](./tooling/ai-architecture.md) | Agents, MCP, RTK, CodeGraph, tokens |
+| [codegraph.md](./tooling/codegraph.md)             | CodeGraph MCP                       |
+| [e2e.md](./tooling/e2e.md)                         | Suite E2E de la web (Playwright)    |
 
 Convenciones: [AGENTS.md](../AGENTS.md) · [web/tooling.md](./web/tooling.md) · [mobile/tooling.md](./mobile/tooling.md).
