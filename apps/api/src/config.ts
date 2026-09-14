@@ -32,4 +32,10 @@ export const config = {
     apiKey: required('TMDB_API_KEY'),
     baseUrl: process.env.TMDB_BASE_URL ?? 'https://api.themoviedb.org/3',
   },
+
+  wikipedia: {
+    baseUrl: process.env.WIKIPEDIA_BASE_URL ?? 'https://es.wikipedia.org/api/rest_v1',
+    // La política de uso de Wikimedia exige identificar al cliente con un contacto.
+    userAgent: process.env.WIKIPEDIA_USER_AGENT ?? 'Omni/1.0 (https://github.com/Leancoggiola/omni)',
+  },
 } as const;
