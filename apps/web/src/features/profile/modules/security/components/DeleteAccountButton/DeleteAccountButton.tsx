@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Button } from '@mantine/core';
+import { Button, Group, Paper, Stack, Text } from '@mantine/core';
 
 import { confirm } from '@/shared/ui';
 
@@ -29,8 +29,18 @@ export const DeleteAccountButton: FC<DeleteAccountButtonProps> = ({ onDelete }) 
   };
 
   return (
-    <Button color="destructive" variant="outline" loading={loading} onClick={handleClick}>
-      Eliminar cuenta
-    </Button>
+    <Paper>
+      <Group justify="space-between" align="center" wrap="wrap" gap="md">
+        <Stack gap={2}>
+          <Text fw={600}>¿Eliminar tu cuenta?</Text>
+          <Text c="dimmed" size="sm">
+            Se borran todos tus datos de forma permanente. Esta acción no se puede deshacer.
+          </Text>
+        </Stack>
+        <Button color="destructive" loading={loading} onClick={handleClick}>
+          Eliminar cuenta
+        </Button>
+      </Group>
+    </Paper>
   );
 };

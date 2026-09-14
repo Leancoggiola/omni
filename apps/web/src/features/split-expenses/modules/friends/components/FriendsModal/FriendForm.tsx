@@ -58,7 +58,7 @@ export const FriendForm: FC<FriendFormProps> = ({ onCreate }) => {
         <TextInput placeholder="Alias" required maxLength={SPLIT_FRIEND_ALIAS_MAX} {...form.getInputProps('alias')} />
 
         <Group justify="flex-end">
-          <Button type="submit" fullWidth loading={loading}>
+          <Button type="submit" loading={loading} disabled={!form.isDirty()}>
             Guardar amigo
           </Button>
         </Group>

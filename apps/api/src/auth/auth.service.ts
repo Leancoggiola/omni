@@ -36,7 +36,13 @@ export async function login(
   res: Response
 ): Promise<AuthTokensResponse> {
   const tokens = await issueTokens({ sub: user.id, username: user.username, role: user.role }, res);
-  return { user: toSessionUser(user), ...tokens };
+
+  const fullUser = await usersService.findById(user.id);
+  if (!fullUser) {
+    throw { status: 401, message: 'Usuario no encontrado' };
+  }
+
+  return { user: toSessionUser(fullUser), ...tokens };
 }
 
 // ─── Refresh ───────────────────────────────────────────────

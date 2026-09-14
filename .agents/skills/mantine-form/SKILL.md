@@ -92,6 +92,8 @@ validateInputOnBlur: true,          // validate on blur instead
 
 In uncontrolled mode, use `form.key('fieldPath')` as the React `key` prop when you need to force a re-render of an input.
 
+**"No re-renders" only applies to `values`.** `isDirty()`, `isTouched()`, `errors` and `submitting` are tracked in separate reactive state and DO trigger a re-render in both modes — verified empirically (Omni repo) with `disabled={!form.isDirty()}` on a `mode: 'uncontrolled'` form: the button correctly flips from disabled to enabled as soon as a field changes. Safe to gate a submit button on `form.isDirty()` regardless of mode.
+
 ## References
 
 - **[`references/api.md`](references/api.md)** — Full API: `useForm` options, complete return value, `useField`, `createFormContext`, `createFormActions`, all built-in validators, key types

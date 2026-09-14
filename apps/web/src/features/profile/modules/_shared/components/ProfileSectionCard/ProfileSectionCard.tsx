@@ -6,10 +6,12 @@ interface ProfileSectionCardProps {
   title: string;
   subtitle: string;
   children: ReactNode;
+  /** Set when this card sits inside another Paper (same bg) so the boundary stays visible. */
+  nested?: boolean;
 }
 
-export const ProfileSectionCard: FC<ProfileSectionCardProps> = ({ title, subtitle, children }) => (
-  <Paper shadow="sm">
+export const ProfileSectionCard: FC<ProfileSectionCardProps> = ({ title, subtitle, children, nested }) => (
+  <Paper shadow={nested ? 'none' : 'sm'} withBorder={nested}>
     <Stack gap="lg">
       <Stack gap="2xs">
         <Title order={4} fw={600}>

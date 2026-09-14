@@ -2,6 +2,8 @@ import { Outlet } from 'react-router-dom';
 import { AppShell, Container, Overlay } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 
+import { useSyncColorScheme } from '@/core';
+
 import { Header, Navbar } from './components';
 
 import type { FC } from 'react';
@@ -9,6 +11,8 @@ import type { FC } from 'react';
 export const RootLayout: FC = () => {
   const [opened, { toggle, close }] = useDisclosure();
   const isDesktop = useMediaQuery('(min-width: 62em)');
+
+  useSyncColorScheme();
 
   return (
     <AppShell

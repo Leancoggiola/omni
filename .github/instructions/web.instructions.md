@@ -114,6 +114,55 @@ const handleDelete = async () => {
 };
 ```
 
+## Botones de acción (forms, modales, confirm)
+
+Grupos de acciones de un form o modal van **alineados a la derecha**, nunca full-width ni sueltos como hijo directo de un `Stack` (se estiran por el `align-items: stretch` del flex).
+
+```tsx
+// ✅ único botón
+<Group justify="flex-end">
+  <Button type="submit">Guardar</Button>
+</Group>
+
+// ✅ par confirmar/cancelar — cancelar primero (outline), confirmar al final (filled)
+<Group justify="flex-end" gap="sm">
+  <Button variant="outline" onClick={onCancel}>Cancelar</Button>
+  <Button type="submit">Guardar</Button>
+</Group>
+```
+
+- **Confirmar** = `variant` por defecto (filled). **Cancelar** = `variant="outline"`.
+- Acciones destructivas standalone (ej. "Eliminar cuenta") **siguen siendo filled** con `color="destructive"` — no `outline`: si el usuario llegó al botón, ya pasó por la confirmación de `confirm()`.
+- No usar `fullWidth` en estos botones: contradice el alineado a la derecha.
+- Un form con varias `ProfileSectionCard`/`Paper` pero **una sola acción de guardado** no mete ese botón dentro de ninguna sección: envolver TODO el form (secciones + acción) en un `Paper` externo, separado por `Divider` antes del `Group` final. Ver `ProfileSettingsForm` — y la regla de bordes en anidamiento de Paper, más abajo.
+- **El botón de confirmar arranca deshabilitado y se habilita recén cuando `form.isDirty()` es `true`.** Nunca queda "siempre activo" — evita submits vacíos y comunica que no hay nada para guardar todavía.
+
+  ```tsx
+  <Button type="submit" disabled={!form.isDirty()}>
+    Guardar
+  </Button>
+  ```
+
+  Funciona igual en `mode: 'controlled'` y `'uncontrolled'` — detalle en la skill `mantine-form`. No aplica a `onCancel`/`onClose` ni a acciones destructivas standalone.
+
+- Referencias: `ConfirmProvider`, `AddMediaForm`, `NewGatheringForm`, `FriendForm`, `ProfileSettingsForm`, `PasswordForm`, `DeleteAccountButton`, `LoginPage`.
+
+## Paper anidado
+
+Un `Paper` apoyado directo sobre el canvas de la página **no** lleva borde (el `shadow="sm"` ya alcanza para separarlo del fondo). Un `Paper` anidado dentro de otro `Paper` **sí** necesita `withBorder`: comparten el mismo `surfaceBg`, así que sin borde el límite entre ambos no es perceptible — problema de accesibilidad (contraste no textual), no solo estético.
+
+```tsx
+// ✅ Paper contra el canvas — sin borde
+<Paper>...</Paper>
+
+// ✅ Paper dentro de otro Paper — con borde
+<Paper>
+  <Paper withBorder>...</Paper>
+</Paper>
+```
+
+Referencia: `ProfileSectionCard` acepta este caso vía su prop de borde cuando se usa dentro del `Paper` externo de `ProfileSettingsForm`.
+
 ## Feedback
 
 | Situación                          | Patrón                                             |

@@ -114,10 +114,10 @@ export const AddMediaForm: FC<AddMediaFormProps> = ({ loading, existingTmdbIds, 
         )}
 
         <Group justify="flex-end" gap="sm" mt="sm">
-          <Button variant="default" type="button" onClick={onCancel} disabled={loading}>
+          <Button variant="outline" type="button" onClick={onCancel} disabled={loading}>
             Cancelar
           </Button>
-          <Button type="submit" loading={loading}>
+          <Button type="submit" loading={loading} disabled={!form.isDirty()}>
             Guardar
           </Button>
         </Group>

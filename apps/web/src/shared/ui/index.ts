@@ -5,6 +5,7 @@ export { ErrorState } from './ErrorState';
 export type { ImageLightboxOptions } from './lightbox';
 export { LightboxProvider, openImageLightbox } from './lightbox';
 export { LoadingState } from './LoadingState';
+export { LogoAvatar } from './LogoAvatar';
 export { getErrorMessage, notifyError, notifySuccess } from './notify';
 export { PageHeader } from './PageHeader';
 export { UserAvatar } from './UserAvatar';

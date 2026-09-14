@@ -32,10 +32,11 @@ export async function findByEmail(email: string): Promise<User | null> {
   return prisma.user.findUnique({ where: { email } });
 }
 
-export async function findById(id: string): Promise<Omit<User, 'password'> | null> {
+export async function findById(id: string) {
   return prisma.user.findUnique({
     where: { id },
     omit: { password: true },
+    include: { preferences: true },
   });
 }
 

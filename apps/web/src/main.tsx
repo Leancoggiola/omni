@@ -21,7 +21,12 @@ import '@mantine/notifications/styles.layer.css';
 
 createRoot(document.getElementById('app')!).render(
   <StrictMode>
-    <MantineProvider theme={THEME} cssVariablesResolver={cssVariablesResolver} deduplicateInlineStyles>
+    <MantineProvider
+      theme={THEME}
+      cssVariablesResolver={cssVariablesResolver}
+      defaultColorScheme="auto"
+      deduplicateInlineStyles
+    >
       <DatesProvider settings={{ locale: 'es', firstDayOfWeek: 1 }}>
         <Notifications layout="stacked" />
         <LightboxProvider />

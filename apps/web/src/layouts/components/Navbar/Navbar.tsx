@@ -16,10 +16,9 @@ import {
 
 import { ADMIN_NAV_ITEMS, MAIN_NAV_ITEMS } from '@/app/navigation/nav-registry';
 import { useAuth } from '@/core/auth';
-import { UserAvatar } from '@/shared/ui';
+import { LogoAvatar, UserAvatar } from '@/shared/ui';
 
 import { ColorSchemeToggle } from '../ColorSchemeToggle';
-import { LogoAvatar } from '../LogoAvatar';
 
 import type { NavItemConfig } from '@/layouts/navConfig';
 import type { FC } from 'react';
@@ -63,7 +62,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
         key={item.label}
         label={item.label}
         leftSection={
-          <ThemeIcon variant={active ? 'white' : 'light'} color="terracotta" size="md" radius="md">
+          <ThemeIcon variant={active ? 'white' : 'filled'} color="brand" size="lg" radius="md">
             {item.icon}
           </ThemeIcon>
         }

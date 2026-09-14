@@ -59,7 +59,7 @@ export const LoginPage: FC = () => {
             key={form.key('password')}
             {...form.getInputProps('password')}
           />
-          <Button size="lg" type="submit" loading={loading}>
+          <Button size="lg" type="submit" loading={loading} disabled={!form.isDirty()}>
             Ingresar
           </Button>
         </Stack>

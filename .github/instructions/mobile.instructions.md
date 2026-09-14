@@ -42,6 +42,15 @@ Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/a
 - Logout: POST con body `{ refreshToken }` + clear SecureStore.
 - Web usa cookies; no mezclar estrategias en el mismo client.
 
+## Botones de acción
+
+A diferencia de web (alineados a la derecha), en mobile van **centrados y full-width**, apilados verticalmente cuando hay más de uno — así se maximiza el área de toque. `YStack` ya estira los hijos a lo ancho por defecto (`alignItems: stretch`); no hay que forzar nada extra.
+
+- Un solo botón (guardar, actualizar) → `Button` full-width tal cual.
+- Confirmar + cancelar (cuando se arme un diálogo propio, no el `Alert.alert` nativo): **confirmar arriba** (filled), **cancelar abajo** (`variant="outlined"`).
+- Acciones destructivas standalone (ej. "Eliminar cuenta") siguen siendo filled (`theme="red"`), igual que en web.
+- Hoy las confirmaciones (`ProfileScreen`, `MediaScreen`) usan `Alert.alert` nativo — no se puede re-estilar, esta regla aplica cuando se construya un diálogo propio en Tamagui.
+
 ## Verificación
 
 ```bash

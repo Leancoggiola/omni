@@ -1,0 +1,1 @@
+export { useSyncColorScheme } from './useSyncColorScheme';

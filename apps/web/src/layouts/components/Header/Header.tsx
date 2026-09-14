@@ -1,10 +1,9 @@
 import { AppShell, Burger, Group, Text } from '@mantine/core';
 
 import { useAuth } from '@/core/auth';
-import { UserAvatar } from '@/shared/ui';
+import { LogoAvatar, UserAvatar } from '@/shared/ui';
 
 import { ColorSchemeToggle } from '../ColorSchemeToggle';
-import { LogoAvatar } from '../LogoAvatar';
 
 import type { FC } from 'react';
 

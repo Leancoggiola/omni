@@ -16,7 +16,7 @@
 
 :root[data-mantine-color-scheme='light'] .appshell_navbar {
   --navbar-glow-top: color-mix(in srgb, var(--mantine-color-terracotta-4) 42%, transparent);
-  --navbar-glow-bottom: color-mix(in srgb, var(--mantine-color-brand-3) 40%, transparent);
+  --navbar-glow-bottom: color-mix(in srgb, var(--mantine-color-brand-3) 60%, transparent);
 }
 
 :root[data-mantine-color-scheme='dark'] .appshell_navbar {

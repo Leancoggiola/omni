@@ -32,7 +32,7 @@ export const ConfirmProvider: FC<{ children: ReactNode }> = ({ children }) => {
           {request?.description}
         </Text>
         <Group justify="flex-end" gap="sm">
-          <Button variant="default" onClick={() => close(false)}>
+          <Button variant="outline" onClick={() => close(false)}>
             {request?.cancelLabel}
           </Button>
           <Button color="destructive" onClick={() => close(true)}>

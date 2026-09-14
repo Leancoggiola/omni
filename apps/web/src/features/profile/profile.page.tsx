@@ -84,9 +84,7 @@ export const ProfilePage: FC = () => {
         <PasswordForm onSubmit={handleChangePassword} />
       </ProfileSectionCard>
 
-      <ProfileSectionCard title="Zona de peligro" subtitle="Acciones irreversibles sobre tu cuenta">
-        <DeleteAccountButton onDelete={handleDeleteAccount} />
-      </ProfileSectionCard>
+      <DeleteAccountButton onDelete={handleDeleteAccount} />
     </Stack>
   );
 };
