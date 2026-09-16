@@ -71,6 +71,11 @@ instructions) → **skills y docs** (pull-based, solo pesan si se leen).
 | `mcp-compressor` | NO INSTALADO       | Con 3 servidores (2 ya minimalistas) no se justifica una capa de proxy extra                    |
 | `mcp-lazy-proxy` | DESCARTADO         | v0.2.0, 6 meses sin publicar, sin soporte HTTP/SSE                                              |
 
+Las definiciones de tools MCP viajan en **cada request** mientras el servidor esté prendido,
+aunque no se invoquen — es el costo fijo más caro de la lista, más que cualquier regla de uso
+de `codegraph_explore`. `supabase` y `mantine` valen la pena apagarlos (Extensions → MCP Servers)
+fuera de sesiones de SQL/RLS/migraciones o de `apps/web` con Mantine, respectivamente.
+
 ---
 
 ## CodeGraph
