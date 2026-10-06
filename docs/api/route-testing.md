@@ -122,5 +122,4 @@ La base es real; solo se mockea lo que sale a internet. `media` hace `vi.mock('.
 ## Referencias
 
 - Ejemplos: `apps/api/src/__tests__/integration/`
-- Skill agente: `.github/skills/api-structure/SKILL.md`
-- Convenciones por glob: `.github/instructions/api.instructions.md`
+- Convenciones de la API: [apps/api/CLAUDE.md](../../apps/api/CLAUDE.md)

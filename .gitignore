@@ -52,7 +52,9 @@ apps/api/src/generated/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-!.vscode/mcp.json
+
+# Claude Code — overrides personales
+.claude/settings.local.json
 
 # Debug
 logs
@@ -67,9 +69,6 @@ pnpm-debug.log*
 *.pem
 
 postman-collection.json
-
-# Playwright MCP — caché/logs si se corre ad hoc (el MCP ya no está configurado en mcp.json)
-.playwright-mcp/
 
 # CodeGraph — índice local (commitear solo README + .gitignore aquí)
 .codegraph/*

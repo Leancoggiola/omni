@@ -63,4 +63,4 @@ Paths HTTP solo en `src/shared/api/keys.ts` (`API_KEYS`).
 
 ## Tooling agentes
 
-Ver [docs/mobile/tooling.md](../../docs/mobile/tooling.md) y [AGENTS.md](../../AGENTS.md).
+Ver [docs/mobile/tooling.md](../../docs/mobile/tooling.md) y [CLAUDE.md](../../CLAUDE.md).

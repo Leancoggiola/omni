@@ -1,12 +1,6 @@
-# Mobile — tooling (instructions, skills)
+# Mobile — tooling (scripts)
 
-**Índice agentes:** [AGENTS.md](../../AGENTS.md).
-
-## Instructions (`apps/mobile`)
-
-[mobile.instructions.md](../../.github/instructions/mobile.instructions.md) se aplica automáticamente bajo `apps/mobile/**`. Cubre capas y features (Tamagui), `API_KEYS` y auth Bearer + SecureStore.
-
-Skills del proyecto ya indexadas en [AGENTS.md](../../AGENTS.md); no se repiten acá.
+Convenciones de `apps/mobile`: [apps/mobile/CLAUDE.md](../../apps/mobile/CLAUDE.md) (Claude Code lo carga al trabajar en esa carpeta). Índice general: [CLAUDE.md](../../CLAUDE.md).
 
 ## Scripts
 

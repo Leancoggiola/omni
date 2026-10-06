@@ -24,6 +24,5 @@
     "**/.turbo/**": true,
     "**/coverage/**": true,
     "**/.codegraph/**": true
-  },
-  "chat.mcp.autostart": true
+  }
 }

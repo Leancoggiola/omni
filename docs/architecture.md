@@ -2,7 +2,7 @@
 
 Monorepo con **pnpm workspaces** y **Turborepo**. Ambas apps siguen la misma convención de estructura de carpetas para facilitar el onboarding.
 
-**Agentes:** [AGENTS.md](../AGENTS.md) · [web/tooling.md](./web/tooling.md) · [tooling/codegraph.md](./tooling/codegraph.md).
+**Agentes:** [CLAUDE.md](../CLAUDE.md) · [web/tooling.md](./web/tooling.md).
 
 ---
 
@@ -19,10 +19,9 @@ omni/
     eslint-config/
     typescript-config/
   docs/         ← Esta carpeta
-  AGENTS.md       ← Índice para agentes de IA
-  .github/instructions/ ← Convenciones automáticas por glob (web, mobile, api)
-  .github/skills/ ← Skills del proyecto (web, mobile, API, shared)
-  .agents/skills/ ← Skills de terceros (Mantine, Supabase; npx skills)
+  CLAUDE.md       ← Contexto raíz para Claude Code (+ un CLAUDE.md por app)
+  .claude/        ← Subagents, commands, skills (propias y de terceros), hooks, permisos
+  .mcp.json       ← MCP del proyecto (Supabase, CodeGraph, Mantine)
   .codegraph/     ← Índice CodeGraph (local, no commitear *.db)
 ```
 

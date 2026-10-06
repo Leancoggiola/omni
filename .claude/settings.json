@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledMcpjsonServers": ["supabase", "codegraph", "mantine"],
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --filter * check-types)",
+      "Bash(pnpm --filter * lint)",
+      "Bash(pnpm --filter * test)",
+      "Bash(pnpm --filter * test:unit)",
+      "Bash(pnpm --filter web check-api-paths)",
+      "Bash(pnpm --filter api db:test:reset)",
+      "Bash(pnpm --filter e2e test:e2e)",
+      "Bash(pnpm format:check)",
+      "Bash(pnpm codegraph:status)",
+      "Bash(docker compose up -d db-test)",
+      "Bash(docker compose up -d db-e2e)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(rtk pnpm --filter * check-types)",
+      "Bash(rtk pnpm --filter * lint)",
+      "Bash(rtk pnpm --filter * test)",
+      "Bash(rtk pnpm --filter * test:unit)",
+      "Bash(rtk pnpm --filter web check-api-paths)",
+      "Bash(rtk pnpm --filter api db:test:reset)",
+      "Bash(rtk pnpm --filter e2e test:e2e)",
+      "Bash(rtk pnpm format:check)",
+      "Bash(rtk docker compose up -d db-test)",
+      "Bash(rtk docker compose up -d db-e2e)",
+      "Bash(rtk git status:*)",
+      "Bash(rtk git diff:*)",
+      "Bash(rtk git log:*)",
+      "Bash(rtk git show:*)",
+      "mcp__codegraph__codegraph_explore"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

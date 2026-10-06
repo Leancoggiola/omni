@@ -4,7 +4,7 @@
     "esbenp.prettier-vscode",
     "Prisma.prisma",
     "eamodio.gitlens",
-    "GitHub.copilot",
+    "anthropic.claude-code",
     "mikestead.dotenv"
   ]
 }

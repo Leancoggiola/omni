@@ -1,22 +1,22 @@
-# Web — tooling (instructions, skills, scripts)
+# Web — tooling (scripts, Mantine)
 
-**Índice agentes:** [AGENTS.md](../../AGENTS.md).
-
-Instructions y skills propias de `apps/web` ya están indexadas en AGENTS.md; no se repiten acá.
-Ver [web.instructions.md](../../.github/instructions/web.instructions.md) (aplica automáticamente
-bajo `apps/web/**`).
+Convenciones de `apps/web`: [apps/web/CLAUDE.md](../../apps/web/CLAUDE.md) (Claude Code lo carga al trabajar en esa carpeta). Índice general: [CLAUDE.md](../../CLAUDE.md).
 
 ## Mantine (web)
 
 - Paquetes `@mantine/*` en **9.6.1** (`apps/web`), incluido `@mantine/lightbox`.
 - `MantineProvider` usa `deduplicateInlineStyles` (React 19; no cubre `SimpleGrid`/`Grid`).
 - Defaults de inputs vía `Input.extend` en `theme/components.tsx`.
-- Skills oficiales (`mantine-form`, `mantine-combobox`, `mantine-custom-components`): actualizar solo con CLI (`npx skills add mantinedev/skills …`). No editar `.agents/skills/mantine-*` a mano.
 - React Compiler: **no activado**. Spike diferido: [#29](https://github.com/Leancoggiola/omni/issues/29).
 
-## Skills de terceros (`.agents/skills/`)
+## Skills de terceros (`.claude/skills/`)
 
-Instalados con `npx skills add`. No mover a `.github/skills/` (el CLI reinstala en `.agents/`).
+Instaladas como copia con el CLI y fijadas en `skills-lock.json`. No editarlas a mano; actualizar con:
+
+```bash
+npx skills add mantinedev/skills --skill mantine-form mantine-combobox mantine-custom-components --agent claude-code --copy -y
+npx skills add supabase/agent-skills --skill supabase supabase-postgres-best-practices --agent claude-code --copy -y
+```
 
 | Skill                              | Cuándo usarla                   |
 | ---------------------------------- | ------------------------------- |
@@ -25,8 +25,6 @@ Instalados con `npx skills add`. No mover a `.github/skills/` (el CLI reinstala 
 | `mantine-custom-components`        | `factory()`, Styles API         |
 | `supabase`                         | Auth, CLI, integración Supabase |
 | `supabase-postgres-best-practices` | SQL, índices, RLS               |
-
-**Jerarquía:** rule = ley corta en el IDE · skill = procedimiento con ejemplos.
 
 ## Scripts
 
@@ -55,5 +53,3 @@ Prioridad de tests: alta en `shared/api` y utils; media 1–2 smokes con `render
 ## Relación con mobile
 
 Tooling paralelo: [mobile/tooling.md](../mobile/tooling.md). Contratos en `@omni/shared`.
-
-CodeGraph: [codegraph.md](../tooling/codegraph.md).

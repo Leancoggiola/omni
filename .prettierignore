@@ -20,6 +20,7 @@ apps/api/src/generated
 # Auto-generated files
 CHANGELOG.md
 
-# Tooling
-.agents
+# Tooling — skills de terceros, administradas por `npx skills`
+.claude/skills/mantine-*
+.claude/skills/supabase*
 

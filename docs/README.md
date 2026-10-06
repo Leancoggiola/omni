@@ -1,6 +1,6 @@
 # Documentación
 
-**Agentes:** empezar en [AGENTS.md](../AGENTS.md).
+**Agentes:** empezar en [CLAUDE.md](../CLAUDE.md).
 
 ## Índice
 
@@ -14,7 +14,7 @@
 | [mobile/](./mobile/)                   | Tooling, features y prompts mobile  |
 | [api/](./api/)                         | Prisma, tests de rutas              |
 | [ops/](./ops/)                         | Deploy y releases                   |
-| [tooling/](./tooling/)                 | CodeGraph, Playwright, E2E          |
+| [tooling/](./tooling/)                 | Playwright, E2E                     |
 
 ### Getting started
 
@@ -30,17 +30,17 @@
 
 ### Web
 
-| Doc                                    | Contenido                |
-| -------------------------------------- | ------------------------ |
-| [tooling.md](./web/tooling.md)         | Rules/skills/scripts web |
-| [new-feature.md](./web/new-feature.md) | Checklist feature web    |
+| Doc                                    | Contenido             |
+| -------------------------------------- | --------------------- |
+| [tooling.md](./web/tooling.md)         | Scripts y Mantine web |
+| [new-feature.md](./web/new-feature.md) | Checklist feature web |
 
 ### Mobile
 
-| Doc                                       | Contenido                   |
-| ----------------------------------------- | --------------------------- |
-| [tooling.md](./mobile/tooling.md)         | Rules/skills/scripts mobile |
-| [new-feature.md](./mobile/new-feature.md) | Checklist feature mobile    |
+| Doc                                       | Contenido                |
+| ----------------------------------------- | ------------------------ |
+| [tooling.md](./mobile/tooling.md)         | Scripts mobile           |
+| [new-feature.md](./mobile/new-feature.md) | Checklist feature mobile |
 
 ### API
 
@@ -58,10 +58,8 @@
 
 ### Tooling
 
-| Doc                                                | Contenido                           |
-| -------------------------------------------------- | ----------------------------------- |
-| [ai-architecture.md](./tooling/ai-architecture.md) | Agents, MCP, RTK, CodeGraph, tokens |
-| [codegraph.md](./tooling/codegraph.md)             | CodeGraph MCP                       |
-| [e2e.md](./tooling/e2e.md)                         | Suite E2E de la web (Playwright)    |
+| Doc                        | Contenido                        |
+| -------------------------- | -------------------------------- |
+| [e2e.md](./tooling/e2e.md) | Suite E2E de la web (Playwright) |
 
-Convenciones: [AGENTS.md](../AGENTS.md) · [web/tooling.md](./web/tooling.md) · [mobile/tooling.md](./mobile/tooling.md).
+Convenciones: [CLAUDE.md](../CLAUDE.md) · [web/tooling.md](./web/tooling.md) · [mobile/tooling.md](./mobile/tooling.md).

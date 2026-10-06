@@ -92,7 +92,7 @@ La excepción son los **washes sobre superficies casi blancas**: una mezcla que 
 | -------------------------------------------- | ---------------------------------------------------------------------------- |
 | `PageHeader` (`@/shared/ui`)                 | Cabecera de página: chip de ícono terracota + título + subtítulo + `actions` |
 | `NotificationCard` (`@/shared/ui`)           | Contenido de toast, vía `renderNotification` de Mantine 9.6                  |
-| `LoadingState` / `EmptyState` / `ErrorState` | Estados de UI (ver AGENTS.md)                                                |
+| `LoadingState` / `EmptyState` / `ErrorState` | Estados de UI (ver `apps/web/CLAUDE.md`)                                     |
 
 ### Notificaciones
 

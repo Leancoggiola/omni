@@ -14,10 +14,9 @@ Monorepo con **Turborepo** para media tracking personal: películas y series (TM
 
 ## Docs y agentes
 
-- [AGENTS.md](./AGENTS.md) — reglas de oro, skills, verificación
+- [CLAUDE.md](./CLAUDE.md) — reglas de oro, skills, MCP, verificación
 - [docs/README.md](./docs/README.md) — índice de documentación
 - [docs/architecture.md](./docs/architecture.md) — monorepo + auth dual
-- [docs/tooling/codegraph.md](./docs/tooling/codegraph.md) — CodeGraph MCP
 
 ## Estructura
 
@@ -29,9 +28,9 @@ apps/
 packages/
   shared/    → @omni/shared
 docs/        → Guías (ver docs/README.md)
-AGENTS.md
-.github/     → instructions + skills + prompts del proyecto
-.agents/     → skills de terceros
+CLAUDE.md    → contexto raíz para Claude Code (cada app tiene el suyo)
+.claude/     → subagents, commands, skills, hooks y permisos
+.mcp.json    → MCP del proyecto
 ```
 
 ## Requisitos

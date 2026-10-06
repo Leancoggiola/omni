@@ -20,7 +20,7 @@ Closes #
 - [ ] Issue en Omni Roadmap en **En revisión**
 - [ ] Branch sigue `feat/#N-slug`, `fix/#N-slug` o `chore/#N-slug`
 - [ ] Si toca contrato: orden `shared` → `api` → clientes
-- [ ] Verificación local según área (ver `AGENTS.md`):
+- [ ] Verificación local según área (ver `CLAUDE.md`):
 
 ```bash
 # web
