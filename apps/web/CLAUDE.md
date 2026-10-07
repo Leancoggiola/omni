@@ -141,6 +141,8 @@ Grupos de acciones de un form o modal van **alineados a la derecha**, nunca full
 
   Funciona igual en `mode: 'controlled'` y `'uncontrolled'` — detalle en la skill `mantine-form`. No aplica a `onCancel`/`onClose` ni a acciones destructivas standalone.
 
+- **Excepción: el login (`LoginPage`) no deshabilita "Ingresar" por `isDirty()`.** El autocompletado del navegador puede llenar usuario/contraseña sin disparar `onChange`, y el form quedaría "limpio" con el botón bloqueado; ahí la validación del schema (`loginSchema`) es la que frena el submit vacío.
+
 - Referencias: `ConfirmProvider`, `AddMediaForm`, `NewGatheringForm`, `FriendForm`, `ProfileSettingsForm`, `PasswordForm`, `DeleteAccountButton`, `LoginPage`.
 
 ## Paper anidado

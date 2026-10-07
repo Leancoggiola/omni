@@ -15,8 +15,16 @@ export function useSyncColorScheme() {
   const syncedRef = useRef(false);
 
   useEffect(() => {
+    if (!user) {
+      // Logout o sesión vencida: el override ya se borró; el login vuelve al tema por defecto
+      // y el próximo inicio de sesión aplica el del perfil.
+      if (syncedRef.current) {
+        syncedRef.current = false;
+        setColorScheme('auto');
+      }
+      return;
+    }
     if (syncedRef.current) return;
-    if (!user) return;
 
     setColorScheme(getSessionColorScheme() ?? user.theme);
     syncedRef.current = true;

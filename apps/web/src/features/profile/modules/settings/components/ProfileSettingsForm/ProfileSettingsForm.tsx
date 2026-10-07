@@ -68,8 +68,14 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
 
     try {
       await onSave({ profile: profileUpdates, preferences: preferencesUpdates, theme: values.theme });
-      clearSessionColorScheme();
-      setColorScheme(values.theme);
+      // Solo un cambio de tema guardado en el perfil reemplaza al override del toggle de la sesión.
+      if ('theme' in preferencesUpdates) {
+        clearSessionColorScheme();
+        setColorScheme(values.theme);
+      }
+      // Guardar solo preferencias no cambia `profile.updatedAt` (la `key` que remonta el form):
+      // los valores guardados pasan a ser la nueva base para `isDirty`.
+      form.resetDirty(values);
       notifySuccess('Cambios guardados correctamente');
     } catch (err) {
       setError(getErrorMessage(err, 'No se pudieron guardar los cambios'));

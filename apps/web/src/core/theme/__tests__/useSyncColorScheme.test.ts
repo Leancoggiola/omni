@@ -35,4 +35,22 @@ describe('useSyncColorScheme', () => {
     renderHook(() => useSyncColorScheme());
     expect(setColorScheme).toHaveBeenCalledWith('light');
   });
+
+  it('al cerrar sesión vuelve al tema por defecto y el próximo login aplica el del perfil', () => {
+    mockUser = { theme: 'dark' };
+    const { rerender } = renderHook(() => useSyncColorScheme());
+
+    mockUser = null;
+    rerender();
+    expect(setColorScheme).toHaveBeenLastCalledWith('auto');
+
+    mockUser = { theme: 'light' };
+    rerender();
+    expect(setColorScheme).toHaveBeenLastCalledWith('light');
+  });
+
+  it('sin sesión previa no toca el tema', () => {
+    renderHook(() => useSyncColorScheme());
+    expect(setColorScheme).not.toHaveBeenCalled();
+  });
 });

@@ -1,31 +1,40 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useReducedMotion } from '@mantine/hooks';
 
-export function useHolidayCarousel<T>(items: T[], duration = 3000) {
+interface HolidayCarouselOptions {
+  /** Frena el auto-avance (hover o foco dentro de la card). `next` sigue funcionando. */
+  paused?: boolean;
+}
+
+export function useHolidayCarousel<T>(items: T[], duration = 3000, { paused = false }: HolidayCarouselOptions = {}) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const reduceMotion = useReducedMotion();
+  const count = items.length;
+
+  // Si la lista se achica (refetch del día nuevo), el índice guardado puede quedar fuera de rango.
+  const safeIndex = count ? currentIndex % count : 0;
 
   const next = useCallback(() => {
-    setCurrentIndex(prev => {
-      if (items.length === 0) {
-        return 0;
-      }
+    setCurrentIndex(prev => (count === 0 ? 0 : ((prev % count) + 1) % count));
+  }, [count]);
 
-      return (prev + 1) % items.length;
-    });
-  }, [items.length]);
+  // Con `prefers-reduced-motion` no rota solo: el usuario avanza con click o teclado.
+  const isAutoPlaying = count > 1 && !paused && !reduceMotion;
 
   useEffect(() => {
-    if (items.length <= 1) {
+    if (!isAutoPlaying) {
       return;
     }
 
     const timeout = setTimeout(next, duration);
 
     return () => clearTimeout(timeout);
-  }, [currentIndex, items.length, duration, next]);
+  }, [safeIndex, isAutoPlaying, duration, next]);
 
   return {
-    currentIndex,
-    currentItem: items[currentIndex],
+    currentIndex: safeIndex,
+    currentItem: items[safeIndex],
+    isAutoPlaying,
     next,
   };
 }

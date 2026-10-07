@@ -8,6 +8,7 @@ import { Notifications } from '@mantine/notifications';
 import { router } from '@/app/router';
 import { AuthProvider } from '@/core/auth';
 import { SWRProvider } from '@/core/providers';
+import { createSessionColorSchemeManager } from '@/core/theme';
 import { ConfirmProvider, LightboxProvider } from '@/shared/ui';
 import { THEME } from '@/theme/config';
 import { cssVariablesResolver } from '@/theme/css-variables';
@@ -19,11 +20,14 @@ import '@mantine/dates/styles.layer.css';
 import '@mantine/lightbox/styles.layer.css';
 import '@mantine/notifications/styles.layer.css';
 
+const colorSchemeManager = createSessionColorSchemeManager();
+
 createRoot(document.getElementById('app')!).render(
   <StrictMode>
     <MantineProvider
       theme={THEME}
       cssVariablesResolver={cssVariablesResolver}
+      colorSchemeManager={colorSchemeManager}
       defaultColorScheme="auto"
       deduplicateInlineStyles
     >

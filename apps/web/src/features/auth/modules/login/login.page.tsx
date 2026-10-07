@@ -55,7 +55,8 @@ export const LoginPage: FC = () => {
             key={form.key('password')}
             {...form.getInputProps('password')}
           />
-          <Button size="lg" type="submit" loading={loading} disabled={!form.isDirty()}>
+          {/* Sin `disabled` por dirty: el autocompletado del navegador puede no disparar onChange. */}
+          <Button size="lg" type="submit" loading={loading}>
             Ingresar
           </Button>
         </Stack>
