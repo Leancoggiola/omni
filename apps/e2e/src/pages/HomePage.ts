@@ -13,6 +13,11 @@ export class HomePage {
   // Layout: en desktop solo se ve el toggle del navbar (el header es mobile-only).
   readonly themeToggle = () => this.page.getByRole('button', { name: /^Cambiar a tema (claro|oscuro)$/ });
   readonly logoutButton = () => this.page.getByRole('button', { name: 'Cerrar sesión' });
+  /**
+   * Los `NavLink` del navbar se renderizan como `<a>` sin `href` (navegan con `onClick`), así que
+   * no exponen el rol `link`: se acotan por texto dentro del `<nav>`.
+   */
+  readonly navItem = (label: string) => this.page.getByRole('navigation').getByText(label, { exact: true });
   /** Mantine refleja el esquema aplicado en `data-mantine-color-scheme` del `<html>`. */
   readonly documentRoot = () => this.page.locator('html');
 
@@ -20,13 +25,20 @@ export class HomePage {
     await this.page.goto('/');
   }
 
-  /** Toda la card es clickeable; se clickea el título porque el link frena la propagación. */
+  /** Bloque de título + ítem actual; el link a Wikipedia queda fuera, como hermano. */
+  readonly nextHolidayButton = () => this.page.getByRole('button', { name: 'Siguiente efeméride' });
+
   async nextHoliday() {
-    await this.holidaysTitle().click();
+    await this.nextHolidayButton().click();
   }
 
   async toggleTheme() {
     await this.themeToggle().click();
+  }
+
+  /** Navega del lado del cliente, sin recargar la página (a diferencia de `page.goto`). */
+  async navigateTo(label: string) {
+    await this.navItem(label).click();
   }
 
   async logout() {

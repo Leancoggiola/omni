@@ -1,5 +1,8 @@
 import type { Page } from '@playwright/test';
 
+/** Etiquetas de `PROFILE_THEME_OPTIONS` (`@omni/shared/users`). */
+export type ThemeOption = 'Claro' | 'Oscuro' | 'Sistema';
+
 export class ProfilePage {
   constructor(private readonly page: Page) {}
 
@@ -7,6 +10,7 @@ export class ProfilePage {
   readonly themeSelect = () => this.page.getByRole('combobox', { name: 'Tema' });
   readonly notificationsSwitch = () => this.page.getByRole('switch', { name: 'Notificaciones' });
   readonly saveButton = () => this.page.getByRole('button', { name: 'Guardar Cambios' });
+  readonly savedNotification = () => this.page.getByRole('alert').filter({ hasText: 'Listo' });
 
   readonly newPasswordField = () => this.page.getByLabel('Nueva contraseña');
   readonly confirmPasswordField = () => this.page.getByLabel('Confirmar contraseña');
@@ -19,6 +23,15 @@ export class ProfilePage {
   /** El input del Switch de Mantine está oculto visualmente, así que no pasa el check de actionability. */
   async toggleNotifications() {
     await this.notificationsSwitch().click({ force: true });
+  }
+
+  async selectTheme(option: ThemeOption) {
+    await this.themeSelect().click();
+    await this.page.getByRole('option', { name: option, exact: true }).click();
+  }
+
+  async save() {
+    await this.saveButton().click();
   }
 
   async changePassword(newPassword: string, confirmation = newPassword) {
