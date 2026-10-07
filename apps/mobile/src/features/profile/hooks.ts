@@ -4,6 +4,7 @@ import { useSWRConfig } from 'swr';
 import { api, API_KEYS } from '@/shared/api';
 import { toSessionUser } from '@omni/shared/auth';
 
+import type { ProfileResponse } from '@omni/shared/auth';
 import type { UpdatePreferencesPayload, UpdateProfilePayload, UserProfile } from '@omni/shared/users';
 
 export function useProfile() {
@@ -21,10 +22,19 @@ export function useProfile() {
 
   const updatePreferences = async (payload: UpdatePreferencesPayload) => {
     const res = await api.patch(API_KEYS.users.preferences, payload);
-    const fresh = await mutate();
+    const fresh = await mutate().catch(() => undefined);
     // El tema efectivo sale de la sesión (core/theme), así que hay que reflejarlo ahí también.
-    if (payload.theme && fresh) {
-      await globalMutate(API_KEYS.auth.profile, { user: toSessionUser(fresh.user) }, { revalidate: false });
+    // El PATCH ya se guardó, así que la sesión se sincroniza siempre: si la revalidación falló,
+    // SWR devuelve el dato viejo (o undefined) y se usa el tema enviado. Si no, `clearOverride`
+    // volvería al tema anterior.
+    const { theme } = payload;
+    if (theme) {
+      const freshUser = fresh?.user.preferences?.theme === theme ? fresh.user : undefined;
+      await globalMutate<ProfileResponse>(
+        API_KEYS.auth.profile,
+        current => (freshUser ? { user: toSessionUser(freshUser) } : current && { user: { ...current.user, theme } }),
+        { revalidate: false }
+      );
     }
     return res;
   };

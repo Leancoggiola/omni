@@ -9,9 +9,20 @@ import {
   type PropsWithChildren,
 } from 'react';
 import useSWRImmutable from 'swr/immutable';
-import { SWRConfig } from 'swr';
+import { SWRConfig, useSWRConfig, type SWRConfiguration } from 'swr';
 
-import { api, ApiError, API_KEYS, clearTokens, fetcher, getAccessToken, setTokens } from '@/shared/api';
+import {
+  api,
+  ApiError,
+  API_KEYS,
+  clearOnAuthFailure,
+  clearTokens,
+  fetcher,
+  getAccessToken,
+  getRefreshToken,
+  setOnAuthFailure,
+  setTokens,
+} from '@/shared/api';
 
 import type { AuthTokensResponse, ProfileResponse, SessionUser } from '@omni/shared/auth';
 
@@ -28,9 +39,22 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Un 4xx no se arregla reintentando (401 ya pasó por el refresh del client, 404 no va a aparecer). */
+const isClientError = (err: unknown): boolean => err instanceof ApiError && err.status >= 400 && err.status < 500;
+
+const SWR_OPTIONS: SWRConfiguration = {
+  fetcher,
+  revalidateOnFocus: false,
+  errorRetryCount: 3,
+  shouldRetryOnError: err => !isClientError(err),
+};
+
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [bootstrapped, setBootstrapped] = useState(false);
   const [hasToken, setHasToken] = useState(false);
+  // AuthProvider está por encima de su propio SWRConfig, que no define `provider`: este mutate
+  // opera sobre el mismo caché global que usan todos los hooks de la app.
+  const { mutate: globalMutate } = useSWRConfig();
 
   useEffect(() => {
     let cancelled = false;
@@ -54,6 +78,23 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const user = data?.user ?? null;
   const isAuthenticated = !!data?.user;
 
+  /**
+   * Cierra la sesión local: sin token la key de sesión pasa a null (`user` → null, AuthGate
+   * redirige al login y ColorSchemeContext descarta el override) y se vacía todo el caché de
+   * SWR para que el próximo usuario no herede datos del anterior (ej. `users.profile`, immutable).
+   */
+  const clearSession = useCallback(async () => {
+    setHasToken(false);
+    await globalMutate(() => true, undefined, { revalidate: false });
+  }, [globalMutate]);
+
+  // El client avisa cuando el refresh falla (tokens ya limpios); sin esto el perfil quedaba
+  // cacheado y la app seguía "logueada" con todas las requests fallando.
+  useEffect(() => {
+    setOnAuthFailure(() => void clearSession());
+    return clearOnAuthFailure;
+  }, [clearSession]);
+
   const login = useCallback(
     async (username: string, password: string) => {
       const res = await api.post<AuthTokensResponse>(API_KEYS.auth.login, { username, password });
@@ -65,7 +106,6 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   );
 
   const logout = useCallback(async () => {
-    const { getRefreshToken } = await import('@/shared/api');
     const refreshToken = await getRefreshToken();
     try {
       await api.post(API_KEYS.auth.logout, { refreshToken: refreshToken ?? undefined });
@@ -73,9 +113,8 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
       // still clear local session
     }
     await clearTokens();
-    setHasToken(false);
-    await mutate(undefined, { revalidate: false });
-  }, [mutate]);
+    await clearSession();
+  }, [clearSession]);
 
   const value = useMemo(
     () => ({
@@ -90,7 +129,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   );
 
   return (
-    <SWRConfig value={{ fetcher, revalidateOnFocus: false }}>
+    <SWRConfig value={SWR_OPTIONS}>
       <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     </SWRConfig>
   );

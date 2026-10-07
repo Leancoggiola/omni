@@ -25,7 +25,8 @@ const ColorSchemeContext = createContext<ColorSchemeContextValue | null>(null);
 /**
  * Tema efectivo: el override del toggle pisa al del perfil mientras la app esté abierta.
  * Sin sesión o con tema `auto` se sigue el esquema del sistema. El override se descarta al
- * quedar sin usuario (logout o refresh fallido), igual que en web.
+ * quedar sin usuario: logout, o refresh fallido (el client avisa vía `setOnAuthFailure` y
+ * AuthProvider cierra la sesión), igual que en web.
  */
 export const ColorSchemeProvider: FC<PropsWithChildren> = ({ children }) => {
   const { user } = useAuth();

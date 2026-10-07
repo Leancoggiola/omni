@@ -29,10 +29,32 @@ function toUrl(path: string): string {
 }
 
 let refreshPromise: Promise<boolean> | null = null;
+let onAuthFailure: (() => void) | null = null;
+
+/** Registra el callback invocado cuando el refresh falla (sesión inválida), igual que en web. */
+export function setOnAuthFailure(callback: () => void): void {
+  onAuthFailure = callback;
+}
+
+/** Limpia el callback registrado (ej. al desmontar el AuthProvider). */
+export function clearOnAuthFailure(): void {
+  onAuthFailure = null;
+}
+
+/**
+ * Avisa que la sesión ya no es válida para que la UI la cierre. Se llama desde dentro del
+ * single-flight, así que dispara una vez por refresh fallido y no una por cada request con 401.
+ */
+function notifyAuthFailure(): void {
+  onAuthFailure?.();
+}
 
 async function refreshAccessToken(): Promise<boolean> {
   const refreshToken = await getRefreshToken();
-  if (!refreshToken) return false;
+  if (!refreshToken) {
+    notifyAuthFailure();
+    return false;
+  }
 
   const res = await fetch(toUrl(API_KEYS.auth.refresh), {
     method: 'POST',
@@ -42,6 +64,7 @@ async function refreshAccessToken(): Promise<boolean> {
 
   if (!res.ok) {
     await clearTokens();
+    notifyAuthFailure();
     return false;
   }
 

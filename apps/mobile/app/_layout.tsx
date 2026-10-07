@@ -1,7 +1,8 @@
 import { ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Redirect, Slot, useSegments } from 'expo-router';
-import type { PropsWithChildren } from 'react';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, type PropsWithChildren } from 'react';
 import { useColorScheme } from 'react-native';
 import { Spinner, TamaguiProvider, Theme, YStack } from 'tamagui';
 import { StatusBar } from 'expo-status-bar';
@@ -11,6 +12,12 @@ import { ColorSchemeProvider, useColorSchemeControl } from '@/core/theme';
 import { NAVIGATION_THEMES } from '@/theme/navigationTheme';
 import { INTER_FACES } from '@/theme/fonts';
 import { tamaguiConfig } from '@/theme/tamagui.config';
+
+// La splash nativa queda visible hasta que se resuelvan las fuentes (ver RootLayout). Puede
+// rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // noop
+});
 
 function AuthGate() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -52,10 +59,16 @@ function ThemedRoot({ children }: PropsWithChildren) {
 export default function RootLayout() {
   // Solo para el primer render: el tema efectivo lo fija ThemedRoot.
   const systemScheme = useColorScheme();
-  const [fontsLoaded] = useFonts(INTER_FACES);
+  const [fontsLoaded, fontError] = useFonts(INTER_FACES);
+  const fontsSettled = fontsLoaded || !!fontError;
 
-  // Sin las fuentes, el primer render saldría con la tipografía del sistema y saltaría al cargarlas.
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    if (fontsSettled) void SplashScreen.hideAsync();
+  }, [fontsSettled]);
+
+  // Sin las fuentes, el primer render saldría con la tipografía del sistema y saltaría al cargarlas;
+  // mientras tanto se ve la splash. Si fallan se sigue con la del sistema en vez de quedar en blanco.
+  if (!fontsSettled) return null;
 
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme={systemScheme === 'dark' ? 'dark' : 'light'}>

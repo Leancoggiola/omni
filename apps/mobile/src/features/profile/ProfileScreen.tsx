@@ -20,6 +20,7 @@ export function ProfileScreen() {
   const [phone, setPhone] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
+  const [savingTheme, setSavingTheme] = useState(false);
 
   if (isLoading || !profile) {
     return (
@@ -52,12 +53,17 @@ export function ProfileScreen() {
   };
 
   const onChangeTheme = async (theme: ProfileTheme) => {
+    // Un PATCH a la vez: dos en vuelo podrían resolver en otro orden y dejar el tema equivocado.
+    if (savingTheme) return;
+    setSavingTheme(true);
     try {
       await updatePreferences({ theme });
       // Guardar el tema en el perfil descarta el override del toggle, igual que en web.
       clearOverride();
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'No se pudo actualizar');
+    } finally {
+      setSavingTheme(false);
     }
   };
 
@@ -120,7 +126,7 @@ export function ProfileScreen() {
 
       <YStack gap="$2">
         <Paragraph fontWeight="600">Tema</Paragraph>
-        <XStack gap="$2">
+        <XStack gap="$2" accessibilityRole="radiogroup" accessibilityLabel="Tema">
           {PROFILE_THEME_OPTIONS.map(option => {
             const selected = (profile.preferences?.theme ?? 'light') === option.value;
             return (
@@ -132,9 +138,10 @@ export function ProfileScreen() {
                 backgroundColor={selected ? '$primary' : 'transparent'}
                 color={selected ? '$background' : '$color'}
                 pressStyle={{ opacity: 0.8 }}
+                disabled={savingTheme}
                 onPress={() => void onChangeTheme(option.value)}
                 accessibilityRole="radio"
-                accessibilityState={{ checked: selected }}
+                accessibilityState={{ checked: selected, disabled: savingTheme }}
               >
                 {option.label}
               </Button>
