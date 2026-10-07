@@ -5,6 +5,12 @@
   }
 }
 
+.alert_body {
+  &:has(> :only-child) {
+    justify-content: center;
+  }
+}
+
 .appshell_navbar {
   background-color: var(--mantine-color-default);
   /* A warm wash needs far more opacity to read over the near-white light surface

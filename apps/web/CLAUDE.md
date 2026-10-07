@@ -161,11 +161,11 @@ Referencia: `ProfileSectionCard` acepta este caso vía su prop de borde cuando s
 
 ## Feedback
 
-| Situación                          | Patrón                                             |
-| ---------------------------------- | -------------------------------------------------- |
-| Error de validación/submit en form | `Alert color="destructive" variant="light"` inline |
-| Éxito post-mutation                | `notifySuccess()`                                  |
-| Error fuera de form                | `notifyError(getErrorMessage(err, fallback))`      |
+| Situación                          | Patrón                                                                 |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| Error de validación/submit en form | `Alert color="destructive"` inline (el theme ya aplica `light-custom`) |
+| Éxito post-mutation                | `notifySuccess()`                                                      |
+| Error fuera de form                | `notifyError(getErrorMessage(err, fallback))`                          |
 
 Helpers en `@/shared/ui`. Mutaciones en hooks del módulo; las pages orquestan, no llaman `api.*`.
 

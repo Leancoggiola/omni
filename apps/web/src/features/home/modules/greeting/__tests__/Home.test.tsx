@@ -13,6 +13,14 @@ vi.mock('@/core/auth', () => ({
     }),
 }));
 
+vi.mock('../hooks', () => ({
+  useTodayHolidays: () => ({
+    holidays: { date: '2026-10-07', month: '10', day: '07', count: 0, sourceUrl: 'https://wikipedia.org', items: [] },
+    isLoading: false,
+    error: undefined,
+  }),
+}));
+
 describe('HomePage', () => {
   it('muestra el nombre del usuario autenticado', () => {
     renderWithProviders(<HomePage />);

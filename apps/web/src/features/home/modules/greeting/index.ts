@@ -1,1 +1,1 @@
-export { HomeGreetingCard } from './components';
+export { HomeMainCard } from './components';

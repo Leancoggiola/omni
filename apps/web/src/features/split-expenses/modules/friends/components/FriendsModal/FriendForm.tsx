@@ -48,11 +48,7 @@ export const FriendForm: FC<FriendFormProps> = ({ onCreate }) => {
           Agregar amigo
         </Text>
 
-        {submitError && (
-          <Alert color="destructive" variant="light">
-            {submitError}
-          </Alert>
-        )}
+        {submitError && <Alert color="destructive">{submitError}</Alert>}
 
         <TextInput placeholder="Nombre" required maxLength={SPLIT_FRIEND_NAME_MAX} {...form.getInputProps('name')} />
         <TextInput placeholder="Alias" required maxLength={SPLIT_FRIEND_ALIAS_MAX} {...form.getInputProps('alias')} />

@@ -4,6 +4,10 @@ export const componentOverrides = {
   actionIcon: {
     root: styles.action_icon_root,
   },
+  alert: {
+    body: styles.alert_body,
+  },
+
   appShell: {
     navbar: styles.appshell_navbar,
   },

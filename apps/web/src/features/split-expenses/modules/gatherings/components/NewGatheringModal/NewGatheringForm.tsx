@@ -49,11 +49,7 @@ export const NewGatheringForm: FC<NewGatheringFormProps> = ({ loading, onCreate,
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="md">
-        {submitError && (
-          <Alert color="destructive" variant="light">
-            {submitError}
-          </Alert>
-        )}
+        {submitError && <Alert color="destructive">{submitError}</Alert>}
 
         <TextInput
           label="Nombre de la juntada"

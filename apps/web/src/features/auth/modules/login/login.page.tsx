@@ -44,11 +44,7 @@ export const LoginPage: FC = () => {
 
   return (
     <AuthCard title="¡Te damos la bienvenida a Omni!">
-      {error && (
-        <Alert color="destructive" variant="light">
-          {error}
-        </Alert>
-      )}
+      {error && <Alert color="destructive">{error}</Alert>}
 
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>

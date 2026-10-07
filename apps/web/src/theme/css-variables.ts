@@ -1,4 +1,9 @@
-import { type CSSVariablesResolver, defaultVariantColorsResolver, type VariantColorsResolver } from '@mantine/core';
+import {
+  type CSSVariablesResolver,
+  defaultVariantColorsResolver,
+  parseThemeColor,
+  type VariantColorsResolver,
+} from '@mantine/core';
 
 import { semanticDark, semanticLight } from '@omni/shared/theme';
 
@@ -32,21 +37,31 @@ const mantineCoreDark = {
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
   variables: {},
   light: {
-    ...semanticLight,
     ...mantineCoreLight,
+    ...semanticLight,
   },
   dark: {
-    ...semanticDark,
     ...mantineCoreDark,
+    ...semanticDark,
   },
 });
 
 export const variantResolver: VariantColorsResolver = input => {
   const defaultResolvedColors = defaultVariantColorsResolver(input);
-  // const parsedColor = parseThemeColor({
-  //   color: input.color || input.theme.primaryColor,
-  //   theme: input.theme
-  // })
+
+  const parsedColor = parseThemeColor({
+    color: input.color || input.theme.primaryColor,
+    theme: input.theme,
+  });
+
+  // Override some properties for variant
+  if (input.variant === 'light-custom') {
+    return {
+      ...defaultResolvedColors,
+      background: `var(--mantine-color-surfaces-${parsedColor.color}-light)`,
+      border: `1px solid var(--mantine-color-border-${parsedColor.color})`,
+    };
+  }
 
   return defaultResolvedColors;
 };

@@ -16,6 +16,7 @@ import {
 import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 
+import { clearSessionColorScheme } from '@/core/theme';
 import { DISPLAY_DATE_FORMAT } from '@/shared/dates';
 import { getErrorMessage, notifySuccess } from '@/shared/ui';
 
@@ -72,6 +73,7 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
 
     try {
       await onSave({ profile: profileUpdates, preferences: preferencesUpdates, theme: values.theme });
+      clearSessionColorScheme();
       setColorScheme(values.theme);
       notifySuccess('Cambios guardados correctamente');
     } catch (err) {
@@ -138,11 +140,7 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
             </Stack>
           </ProfileSectionCard>
 
-          {error && (
-            <Alert color="destructive" variant="light">
-              {error}
-            </Alert>
-          )}
+          {error && <Alert color="destructive">{error}</Alert>}
 
           <Divider />
 

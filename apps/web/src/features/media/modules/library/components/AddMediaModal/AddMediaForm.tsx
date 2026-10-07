@@ -74,11 +74,7 @@ export const AddMediaForm: FC<AddMediaFormProps> = ({ loading, existingTmdbIds, 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="md">
-        {submitError && (
-          <Alert color="destructive" variant="light">
-            {submitError}
-          </Alert>
-        )}
+        {submitError && <Alert color="destructive">{submitError}</Alert>}
 
         <TmdbSearchField
           value={form.values.titleQuery}

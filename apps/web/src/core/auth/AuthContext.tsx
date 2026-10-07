@@ -2,6 +2,7 @@ import { createContext, FC, PropsWithChildren, useCallback, useContext, useEffec
 import { useSWRConfig } from 'swr';
 import useSWRImmutable from 'swr/immutable';
 
+import { clearSessionColorScheme } from '@/core/theme/sessionColorScheme';
 import { api, ApiError, clearOnAuthFailure, setOnAuthFailure, SWR_KEYS } from '@/shared/api';
 
 import type { SessionUser } from '@omni/shared/auth';
@@ -37,11 +38,13 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const logout = useCallback(async () => {
     await api.post(SWR_KEYS.auth.logout);
+    clearSessionColorScheme();
     await mutate(undefined, { revalidate: false });
   }, [mutate]);
 
   useEffect(() => {
     setOnAuthFailure(() => {
+      clearSessionColorScheme();
       globalMutate(() => true, undefined, { revalidate: false });
     });
     return () => clearOnAuthFailure();
