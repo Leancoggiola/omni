@@ -5,7 +5,8 @@
 
 export const WEB_URL = 'http://localhost:5173';
 export const API_URL = 'http://localhost:3000';
-export const TMDB_STUB_URL = 'http://127.0.0.1:3199';
+/** Stub de TMDB + Wikipedia (src/support/externalStub.mjs). */
+export const EXTERNAL_STUB_URL = 'http://127.0.0.1:3199';
 
 export const ADMIN = {
   username: 'e2eadmin',

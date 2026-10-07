@@ -1,8 +1,9 @@
-// Stub de TMDB. La API llama a TMDB desde el servidor, así que interceptar en el browser no alcanza:
-// se levanta este servidor y se apunta la API con TMDB_BASE_URL.
+// Stub de las APIs externas: TMDB y el feed de efemérides de Wikipedia. La API las llama desde el
+// servidor, así que interceptar en el browser no alcanza: se levanta este servidor y se apunta la API
+// con TMDB_BASE_URL y WIKIPEDIA_BASE_URL (ver apps/api/.env.e2e).
 import { createServer } from 'node:http';
 
-const PORT = Number(process.env.TMDB_STUB_PORT ?? 3199);
+const PORT = Number(process.env.EXTERNAL_STUB_PORT ?? 3199);
 
 const MOVIES = [
   { id: 550, title: 'Fight Club', release_date: '1999-10-15' },
@@ -29,6 +30,20 @@ const TV_SHOWS = [
   genres: [{ id: 18, name: 'Drama' }],
   number_of_seasons: 5,
 }));
+
+/**
+ * Feed fijo de `onthisday/holidays`, igual para cualquier fecha. Las tres entradas sobreviven a
+ * apps/api/src/holidays/holidays.parser.ts (los specs assertean sobre los títulos ya parseados):
+ * - Sin prefijo de país ni arranque religioso: pasan, y el título se corta en el primer punto.
+ * - "Argentina Argentina: …" es el formato real de Wikipedia (alt de la bandera + nombre): sale con isArgentina.
+ */
+const HOLIDAYS = {
+  holidays: [
+    { text: 'Día Mundial de los Animales. Se celebra desde 1931.' },
+    { text: 'Argentina Argentina: Día Nacional del Camino y la Educación Vial.' },
+    { text: 'Día Mundial de los Docentes. Lo proclamó la UNESCO en 1994.' },
+  ],
+};
 
 const byId = new Map([...MOVIES, ...TV_SHOWS].map(item => [item.id, item]));
 
@@ -57,17 +72,19 @@ const server = createServer((req, res) => {
     return send(res, 200, searchPayload(url.searchParams.get('query'), path.slice('/search/'.length)));
   }
 
+  if (/^\/feed\/onthisday\/holidays\/\d{2}\/\d{2}$/.test(path)) return send(res, 200, HOLIDAYS);
+
   const detail = path.match(/^\/(movie|tv)\/(\d+)$/);
   if (detail) {
     const item = byId.get(Number(detail[2]));
     return item
       ? send(res, 200, item)
-      : send(res, 404, { status_message: `TMDB stub: no existe ${detail[1]} ${detail[2]}` });
+      : send(res, 404, { status_message: `Stub: no existe en TMDB ${detail[1]} ${detail[2]}` });
   }
 
-  return send(res, 404, { status_message: `TMDB stub: ruta no contemplada ${path}` });
+  return send(res, 404, { status_message: `Stub: ruta no contemplada ${path}` });
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`TMDB stub escuchando en http://127.0.0.1:${PORT}`);
+  console.log(`Stub de APIs externas escuchando en http://127.0.0.1:${PORT}`);
 });

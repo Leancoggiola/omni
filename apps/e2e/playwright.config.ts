@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-import { API_URL, TMDB_STUB_URL, WEB_URL } from './src/support/env';
+import { API_URL, EXTERNAL_STUB_URL, WEB_URL } from './src/support/env';
 
 const isCI = Boolean(process.env.CI);
 
@@ -20,8 +20,8 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: [
     {
-      command: 'node ./src/support/tmdbStub.mjs',
-      url: `${TMDB_STUB_URL}/health`,
+      command: 'node ./src/support/externalStub.mjs',
+      url: `${EXTERNAL_STUB_URL}/health`,
       reuseExistingServer: false,
       stdout: 'ignore',
     },

@@ -21,7 +21,7 @@ docker compose up -d db-e2e     # postgres:17-alpine, puerto 5434, tmpfs (efíme
 pnpm --filter e2e test:e2e
 ```
 
-No hace falta levantar nada más: Playwright arranca la API, la web y el stub de TMDB, y resetea la base antes de cada corrida.
+No hace falta levantar nada más: Playwright arranca la API, la web y el stub de APIs externas (TMDB + Wikipedia), y resetea la base antes de cada corrida.
 
 | Script            | Para qué                           |
 | ----------------- | ---------------------------------- |
@@ -43,11 +43,11 @@ pnpm --filter e2e exec playwright test -g "abre el poster"
 
 `playwright.config.ts` levanta tres `webServer`:
 
-| Servidor  | Comando                         | Puerto | Por qué                                                                    |
-| --------- | ------------------------------- | ------ | -------------------------------------------------------------------------- |
-| Stub TMDB | `node src/support/tmdbStub.mjs` | 3199   | La API llama a TMDB **desde el servidor**, así que `page.route` no alcanza |
-| API       | `pnpm --filter api dev:e2e`     | 3000   | Carga `apps/api/.env.e2e`. El puerto es fijo: el proxy de Vite apunta ahí  |
-| Web       | `pnpm --filter web dev`         | 5173   | El proxy `/api` hace que todo sea mismo-origen y las cookies funcionen     |
+| Servidor     | Comando                             | Puerto | Por qué                                                                                  |
+| ------------ | ----------------------------------- | ------ | ---------------------------------------------------------------------------------------- |
+| Stub externo | `node src/support/externalStub.mjs` | 3199   | La API llama a TMDB y a Wikipedia **desde el servidor**, así que `page.route` no alcanza |
+| API          | `pnpm --filter api dev:e2e`         | 3000   | Carga `apps/api/.env.e2e`. El puerto es fijo: el proxy de Vite apunta ahí                |
+| Web          | `pnpm --filter web dev`             | 5173   | El proxy `/api` hace que todo sea mismo-origen y las cookies funcionen                   |
 
 `reuseExistingServer` está en `false` a propósito: reusar una API de desarrollo haría que la suite escriba sobre la base de dev sin avisar.
 
@@ -117,6 +117,7 @@ Preferir `getByRole` siempre. Estas son las que ya nos mordieron:
 | El título de la juntada no es un heading               | Se renderiza como `<p>`. Usar `getByText`                                                                        |
 | `getByText(titulo)` matchea 2 veces tras usar el modal | Las opciones del dropdown siguen montadas. Esperar `getByRole('dialog')` oculto                                  |
 | Un monto aparece más de una vez                        | "Parte equitativa" repite el importe. Acotar al bloque, ej. `getByText('¿Quién le debe a quién?').locator('..')` |
+| La efeméride visible cambia sola                       | El carrusel avanza cada 3 s. `page.clock.install()` + `page.clock.pauseAt(new Date())` **antes** del `goto`      |
 
 Si un elemento no tiene nombre accesible, **agregarle `aria-label` en `apps/web`** en vez de recurrir a selectores por clase. Es una mejora real de accesibilidad y de paso hace el test estable. Ya se hizo con el botón de logout, los de media y el `LoadingState`.
 
@@ -165,6 +166,7 @@ Usa `services: postgres` en el puerto 5434 y cachea los browsers según la versi
 | Variable                  | Por qué                                                                                              |
 | ------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `TMDB_BASE_URL`           | Apunta al stub local en vez de a TMDB                                                                |
+| `WIKIPEDIA_BASE_URL`      | Apunta al mismo stub para el feed de efemérides (`/feed/onthisday/holidays/:mm/:dd`)                 |
 | `RATE_LIMIT_DISABLED`     | Los límites son por IP y toda la suite sale de una sola; `authLimiter` permite 10 logins cada 15 min |
 | `ADMIN_USERNAME/PASSWORD` | Los usa el seed. Deben coincidir con `ADMIN` de `src/support/env.ts`                                 |
 
