@@ -19,6 +19,9 @@ const ADJACENT_REPEAT = new RegExp(
 /** "Argentina Argentina: …", "ChinaChina China: …", "Andorra Andorra, España España y Gibraltar Gibraltar: …" */
 const COUNTRY_PREFIX_WITH_COLON = /^([^:]{2,120}):\s*/;
 
+const COUNTRY_FLAG = /^(?:\uD83C[\uDDE6-\uDDFF]){2}\s*/;
+const ARGENTINA_FLAG = '🇦🇷';
+
 /** Variante sin dos puntos: "México México Día Nacional del Cine Mexicano". */
 const COUNTRY_PREFIX_BARE = new RegExp(`^([A-ZÁÉÍÓÚÑÜ]${NAME_CHAR}{2,}(?:\\s+${NAME_CHAR}+){0,3})\\s?\\1\\s+`);
 
@@ -41,26 +44,44 @@ export interface ParsedHoliday {
   isArgentina: boolean;
 }
 
-function stripCountryPrefix(text: string): { rest: string; isArgentina: boolean; hadCountry: boolean } {
+/** Saca un prefijo de país con el nombre repetido (con dos puntos o sin ellos); `prefix` es solo el nombre. */
+function stripRepeatedPrefix(text: string): { rest: string; prefix: string } | null {
   const withColon = text.match(COUNTRY_PREFIX_WITH_COLON);
+
   if (withColon?.[1] && ADJACENT_REPEAT.test(withColon[1])) {
-    return {
-      rest: text.slice(withColon[0].length).trim(),
-      isArgentina: /\bArgentina\b/.test(withColon[1]),
-      hadCountry: true,
-    };
+    return { rest: text.slice(withColon[0].length).trim(), prefix: withColon[1] };
   }
 
   const bare = text.match(COUNTRY_PREFIX_BARE);
+
   if (bare?.[1]) {
-    return {
-      rest: text.slice(bare[0].length).trim(),
-      isArgentina: /\bArgentina\b/.test(bare[1]),
-      hadCountry: true,
-    };
+    return { rest: text.slice(bare[0].length).trim(), prefix: bare[1] };
   }
 
-  return { rest: text, isArgentina: false, hadCountry: false };
+  return null;
+}
+
+function stripCountryPrefix(text: string): {
+  rest: string;
+  isArgentina: boolean;
+  hadCountry: boolean;
+} {
+  const flagMatch = text.match(COUNTRY_FLAG);
+
+  if (flagMatch) {
+    const isArgentina = flagMatch[0].trim() === ARGENTINA_FLAG;
+    const withoutFlag = text.slice(flagMatch[0].length).trim();
+
+    // Bandera ajena: la entrada se descarta más arriba, no hace falta limpiar el prefijo.
+    if (!isArgentina) return { rest: withoutFlag, isArgentina: false, hadCountry: true };
+
+    return { rest: stripRepeatedPrefix(withoutFlag)?.rest ?? withoutFlag, isArgentina: true, hadCountry: true };
+  }
+
+  const stripped = stripRepeatedPrefix(text);
+  if (!stripped) return { rest: text, isArgentina: false, hadCountry: false };
+
+  return { rest: stripped.rest, isArgentina: /\bArgentina\b/.test(stripped.prefix), hadCountry: true };
 }
 
 /** Quita hasta dos sub-prefijos regionales para que "Santa Fe: Día X" no caiga en el filtro religioso. */
@@ -87,7 +108,10 @@ export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
 
   const cleaned = withoutSubregion.replace(TRAILING_NOTE, '').trim();
   const split = cleaned.match(TITLE_SPLIT);
-  const title = (split?.[1] ?? cleaned).replace(/[.:]$/, '').trim();
+  const title = (split?.[1] ?? cleaned)
+    .replace(/[.:]$/, '')
+    .replace(/\([^)]*\)/g, '')
+    .trim();
   if (!title) return null;
 
   return { title, isArgentina };

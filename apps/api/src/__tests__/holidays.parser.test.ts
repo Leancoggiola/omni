@@ -23,10 +23,8 @@ describe('parseHolidayEntry', () => {
       expect(parseHolidayEntry('Día del Dominio Público.')?.title).toBe('Día del Dominio Público');
     });
 
-    it('conserva paréntesis que son parte del título', () => {
-      expect(parseHolidayEntry('Año Nuevo (según el calendario gregoriano).')?.title).toBe(
-        'Año Nuevo (según el calendario gregoriano)'
-      );
+    it('quita las aclaraciones entre paréntesis del título', () => {
+      expect(parseHolidayEntry('Año Nuevo (según el calendario gregoriano).')?.title).toBe('Año Nuevo');
     });
 
     it('normaliza saltos de línea y espacios dobles', () => {
@@ -121,6 +119,45 @@ describe('parseHolidayEntry', () => {
       // "Yennayer" tiene "nn": sin anclar y sin mínimo de largo, se detectaba como nombre repetido.
       expect(parseHolidayEntry('Yennayer: Celebración del Año Nuevo Bereber')).not.toBeNull();
       expect(parseHolidayEntry('Carnaval: Desfile de comparsas')).not.toBeNull();
+    });
+  });
+
+  describe('banderas', () => {
+    it('marca Argentina y quita la bandera junto con el prefijo repetido', () => {
+      expect(parseHolidayEntry('🇦🇷 Argentina Argentina: Día de la Bandera')).toEqual({
+        title: 'Día de la Bandera',
+        isArgentina: true,
+      });
+    });
+
+    it('quita el prefijo repetido pegado a la bandera', () => {
+      expect(parseHolidayEntry('🇦🇷Argentina Argentina: Día del Bibliotecario')).toEqual({
+        title: 'Día del Bibliotecario',
+        isArgentina: true,
+      });
+    });
+
+    it('marca Argentina aunque no haya prefijo repetido', () => {
+      expect(parseHolidayEntry('🇦🇷 Día de la Soberanía Nacional')).toEqual({
+        title: 'Día de la Soberanía Nacional',
+        isArgentina: true,
+      });
+    });
+
+    it('descarta una bandera de otro país', () => {
+      expect(parseHolidayEntry('🇨🇱 Chile Chile: Día de la Independencia')).toBeNull();
+      expect(parseHolidayEntry('🇨🇱 Día Nacional del Cine')).toBeNull();
+    });
+
+    it('quita la provincia después de la bandera', () => {
+      expect(parseHolidayEntry('🇦🇷 Argentina Argentina: Misiones: Aniversario de Wanda')).toEqual({
+        title: 'Aniversario de Wanda',
+        isArgentina: true,
+      });
+    });
+
+    it('aplica el filtro religioso a una entrada argentina con bandera', () => {
+      expect(parseHolidayEntry('🇦🇷 Virgen de Luján')).toBeNull();
     });
   });
 
