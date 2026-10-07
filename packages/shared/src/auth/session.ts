@@ -1,3 +1,5 @@
+import { profileThemeSchema } from '../users/schemas';
+
 import type { ProfileTheme } from '../users/types';
 import type { Role, SessionUser } from './types';
 
@@ -18,6 +20,12 @@ export function toSessionUser(user: SessionUserSource): SessionUser {
     email: user.email,
     role: user.role,
     avatarUrl: user.avatarUrl,
-    theme: (user.preferences?.theme as ProfileTheme | undefined) ?? 'light',
+    theme: toProfileTheme(user.preferences?.theme),
   };
+}
+
+/** La columna es texto libre en la base: un valor desconocido no debe llegar a los clientes. */
+function toProfileTheme(value: string | undefined): ProfileTheme {
+  const parsed = profileThemeSchema.safeParse(value);
+  return parsed.success ? parsed.data : 'light';
 }

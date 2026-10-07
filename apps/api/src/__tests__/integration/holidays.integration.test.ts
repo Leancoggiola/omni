@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 
 import { authHeader } from '../../test/integration/auth';
@@ -54,16 +54,41 @@ describe('holidays routes (integration)', () => {
     expect(res.body.sourceUrl).toMatch(/^https:\/\/es\.wikipedia\.org\/wiki\/\d{1,2}_de_\w+#Celebraciones$/);
   });
 
-  it('propaga el 404 de Wikipedia', async () => {
-    mockedWikipedia.fetchHolidays.mockRejectedValue({
-      status: 404,
-      message: 'No hay efemérides para esta fecha',
+  describe('con el cliente real de Wikipedia', () => {
+    // Acá se usa el fetchHolidays de verdad y solo se finge el fetch global que sale a internet.
+    const fetchMock = vi.fn<typeof fetch>();
+
+    beforeEach(async () => {
+      const actual = await vi.importActual<typeof wikipediaService>('../../holidays/wikipedia.service');
+      mockedWikipedia.fetchHolidays.mockImplementation(actual.fetchHolidays);
+      fetchMock.mockReset();
+      vi.stubGlobal('fetch', fetchMock);
     });
 
-    const res = await request(app).get('/api/holidays/today').set('Authorization', auth);
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
 
-    expect(res.status).toBe(404);
-    expect(res.body).toMatchObject({ statusCode: 404, message: 'No hay efemérides para esta fecha' });
+    it('un 404 de Wikipedia es un día sin efemérides, y se cachea', async () => {
+      fetchMock.mockImplementation(async () => new Response('Not found', { status: 404 }));
+
+      const first = await request(app).get('/api/holidays/today').set('Authorization', auth);
+      const second = await request(app).get('/api/holidays/today').set('Authorization', auth);
+
+      expect(first.status).toBe(200);
+      expect(first.body).toMatchObject({ count: 0, items: [] });
+      expect(second.body).toEqual(first.body);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('devuelve 502 cuando el body no es JSON válido', async () => {
+      fetchMock.mockImplementation(async () => new Response('<html>no es json</html>', { status: 200 }));
+
+      const res = await request(app).get('/api/holidays/today').set('Authorization', auth);
+
+      expect(res.status).toBe(502);
+      expect(res.body).toMatchObject({ statusCode: 502, message: 'Wikipedia devolvió una respuesta inválida' });
+    });
   });
 
   it('devuelve 502 cuando Wikipedia falla', async () => {

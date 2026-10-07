@@ -12,8 +12,9 @@ const BCRYPT_ROUNDS = 12;
 
 // ─── Validate (for LocalStrategy) ──────────────────────────
 
+/** Trae las preferencias junto con el usuario: login arma la sesión sin volver a la base. */
 export async function validateUser(username: string, password: string) {
-  const user = await usersService.findByUsername(username);
+  const user = await usersService.findByUsernameForLogin(username);
   if (!user) return null;
 
   const isMatch = await bcrypt.compare(password, user.password);
@@ -24,25 +25,14 @@ export async function validateUser(username: string, password: string) {
 
 // ─── Login ─────────────────────────────────────────────────
 
-export async function login(
-  user: {
-    id: string;
-    username: string;
-    name: string;
-    email: string | null;
-    role: Role;
-    avatarUrl: string | null;
-  },
-  res: Response
-): Promise<AuthTokensResponse> {
+export type LoginUser = Parameters<typeof toSessionUser>[0] & { id: string; role: Role };
+
+export async function login(user: LoginUser, res: Response): Promise<AuthTokensResponse> {
+  // El usuario ya llega completo desde validateUser: los tokens se emiten recién con la sesión armada.
+  const sessionUser = toSessionUser(user);
   const tokens = await issueTokens({ sub: user.id, username: user.username, role: user.role }, res);
 
-  const fullUser = await usersService.findById(user.id);
-  if (!fullUser) {
-    throw { status: 401, message: 'Usuario no encontrado' };
-  }
-
-  return { user: toSessionUser(fullUser), ...tokens };
+  return { user: sessionUser, ...tokens };
 }
 
 // ─── Refresh ───────────────────────────────────────────────
@@ -182,7 +172,7 @@ function clearCookies(res: Response) {
   });
 }
 
-function sanitizeUser(user: any) {
+function sanitizeUser<T extends { password: string }>(user: T): Omit<T, 'password'> {
   const { password: _password, ...rest } = user;
   return rest;
 }

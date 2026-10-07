@@ -32,7 +32,7 @@ router.post(
   authenticateLocal,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await authService.login(req.user as any, res);
+      const result = await authService.login(req.user as authService.LoginUser, res);
       res.json(result);
     } catch (err) {
       next(err);

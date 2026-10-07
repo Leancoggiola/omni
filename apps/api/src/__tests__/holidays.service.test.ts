@@ -131,6 +131,35 @@ describe('holidays.service', () => {
       expect(result).toMatchObject({ count: 0, items: [] });
       expect(result.sourceUrl).toContain('13_de_septiembre');
     });
+
+    it.each([
+      ['un objeto', { holidays: { text: 'Día del Bibliotecario' } }],
+      ['un string', { holidays: 'Día del Bibliotecario' }],
+      ['null', { holidays: null }],
+    ])('trata un holidays que es %s como lista vacía', async (_label, raw) => {
+      vi.setSystemTime(new Date('2026-09-13T15:00:00Z'));
+      mockedWikipedia.fetchHolidays.mockResolvedValue(raw as unknown as WikipediaHolidaysResponse);
+
+      await expect(getTodayHolidays()).resolves.toMatchObject({ count: 0, items: [] });
+    });
+
+    it('tolera un body null', async () => {
+      vi.setSystemTime(new Date('2026-09-13T15:00:00Z'));
+      mockedWikipedia.fetchHolidays.mockResolvedValue(null as unknown as WikipediaHolidaysResponse);
+
+      await expect(getTodayHolidays()).resolves.toMatchObject({ count: 0, items: [] });
+    });
+
+    it('saltea entradas nulas o sin texto', async () => {
+      vi.setSystemTime(new Date('2026-09-13T15:00:00Z'));
+      mockedWikipedia.fetchHolidays.mockResolvedValue({
+        holidays: [null, { text: 42 }, {}, { text: 'Día del Bibliotecario' }],
+      } as unknown as WikipediaHolidaysResponse);
+
+      const { items } = await getTodayHolidays();
+
+      expect(items).toEqual([{ id: '2026-09-13-3', title: 'Día del Bibliotecario', isArgentina: false }]);
+    });
   });
 
   describe('caché', () => {
@@ -169,6 +198,30 @@ describe('holidays.service', () => {
       expect(mockedWikipedia.fetchHolidays).toHaveBeenCalledTimes(1);
       expect(a).toBe(b);
       expect(b).toBe(c);
+    });
+
+    it('una respuesta tardía del día anterior no pisa el caché del día vigente', async () => {
+      vi.setSystemTime(new Date('2026-09-13T15:00:00Z'));
+      let resolveYesterday!: (raw: WikipediaHolidaysResponse) => void;
+      mockedWikipedia.fetchHolidays.mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveYesterday = resolve;
+        })
+      );
+      const yesterdayRequest = getTodayHolidays();
+
+      vi.setSystemTime(new Date('2026-09-14T15:00:00Z'));
+      mockedWikipedia.fetchHolidays.mockResolvedValueOnce(rawResponse('Día del Programador'));
+      const today = await getTodayHolidays();
+
+      resolveYesterday(rawResponse('Día del Bibliotecario'));
+      const yesterday = await yesterdayRequest;
+      const cached = await getTodayHolidays();
+
+      expect(yesterday.date).toBe('2026-09-13');
+      expect(mockedWikipedia.fetchHolidays).toHaveBeenCalledTimes(2);
+      expect(cached).toBe(today);
+      expect(cached.items.map(i => i.title)).toEqual(['Día del Programador']);
     });
 
     it('no cachea el error: el siguiente pedido reintenta', async () => {

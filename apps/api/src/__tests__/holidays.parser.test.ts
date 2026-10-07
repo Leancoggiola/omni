@@ -122,6 +122,57 @@ describe('parseHolidayEntry', () => {
     });
   });
 
+  describe('prefijos supranacionales', () => {
+    it('conserva la entrada de la Unión Europea con el nombre repetido', () => {
+      const raw =
+        'Unión Europea Unión Europea:\nDía de Europa.Se celebra cada 9 de mayo la paz y la unidad en el continente.';
+
+      expect(parseHolidayEntry(raw)).toEqual({ title: 'Día de Europa', isArgentina: false });
+    });
+
+    it.each([
+      ['Naciones Unidas:\nDía Mundial del Medio Ambiente.', 'Día Mundial del Medio Ambiente'],
+      [
+        'Organización de las Naciones Unidas:\nDía Internacional de las Mujeres Rurales.',
+        'Día Internacional de las Mujeres Rurales',
+      ],
+      ['ONU:\nDía Internacional de las Montañas.', 'Día Internacional de las Montañas'],
+      ['Organización Mundial de la Salud:\nDía Mundial de la Salud.', 'Día Mundial de la Salud'],
+      ['Unión Europea: Día del Número de Emergencias Europeo 112.', 'Día del Número de Emergencias Europeo 112'],
+      ['Mundialmente: Día internacional de la Química.', 'Día internacional de la Química'],
+    ])('quita el prefijo de "%s"', (raw, title) => {
+      expect(parseHolidayEntry(raw)).toEqual({ title, isArgentina: false });
+    });
+
+    it('quita el prefijo sin dos puntos cuando sigue un título', () => {
+      expect(parseHolidayEntry('Naciones Unidas\nDía Mundial de los Océanos.Se celebra desde 2009.')?.title).toBe(
+        'Día Mundial de los Océanos'
+      );
+      expect(parseHolidayEntry('Unión Europea Día Europeo contra la Trata de Personas.')?.title).toBe(
+        'Día Europeo contra la Trata de Personas'
+      );
+    });
+
+    it('quita los dos puntos que deja un paréntesis inicial', () => {
+      expect(parseHolidayEntry('Unión Europea Unión Europea: (ciertas regiones):\nDía del Mediterráneo.')).toEqual({
+        title: 'Día del Mediterráneo',
+        isArgentina: false,
+      });
+    });
+
+    it('no toma como prefijo un nombre seguido de algo que no es título', () => {
+      // Texto hipotético: protege que "Mundial" sin dos puntos no se coma el comienzo de un título.
+      expect(parseHolidayEntry('Mundial de Clubes')?.title).toBe('Mundial de Clubes');
+    });
+
+    it('sigue descartando la Unión Europea combinada con países', () => {
+      const raw =
+        'Unión Europea Unión Europea\nInglaterraInglaterra Inglaterra, EscociaEscocia Escocia, Finlandia Finlandia, Suecia Suecia y Baviera (Alemania Alemania):\nSanta Walburga o Walpurga, santa católica';
+
+      expect(parseHolidayEntry(raw)).toBeNull();
+    });
+  });
+
   describe('banderas', () => {
     it('marca Argentina y quita la bandera junto con el prefijo repetido', () => {
       expect(parseHolidayEntry('🇦🇷 Argentina Argentina: Día de la Bandera')).toEqual({

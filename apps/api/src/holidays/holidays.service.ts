@@ -48,14 +48,18 @@ function todayParts(now = new Date()): DateParts {
   };
 }
 
-function mapHolidays(raw: WikipediaHolidaysResponse, parts: DateParts): TodayHolidays {
+function mapHolidays(raw: WikipediaHolidaysResponse | null, parts: DateParts): TodayHolidays {
   const items: Holiday[] = [];
   const seen = new Set<string>();
 
-  for (const [index, entry] of (raw.holidays ?? []).entries()) {
-    if (typeof entry.text !== 'string') continue;
+  // El feed es externo y no viene validado: un `holidays` que no es array cuenta como día sin efemérides.
+  const entries: unknown[] = Array.isArray(raw?.holidays) ? raw.holidays : [];
 
-    const parsed = parseHolidayEntry(entry.text);
+  for (const [index, entry] of entries.entries()) {
+    const text = (entry as { text?: unknown } | null)?.text;
+    if (typeof text !== 'string') continue;
+
+    const parsed = parseHolidayEntry(text);
     if (!parsed) continue;
 
     // Wikipedia repite la misma celebración en entradas distintas dentro del mismo día.
@@ -93,7 +97,10 @@ export async function getTodayHolidays(): Promise<TodayHolidays> {
     .fetchHolidays(parts.month, parts.day)
     .then(raw => {
       const data = mapHolidays(raw, parts);
-      cache = { dateKey: parts.dateKey, data };
+      // Una respuesta tardía del día anterior no debe pisar el caché del día vigente.
+      if (!cache || cache.dateKey <= parts.dateKey) {
+        cache = { dateKey: parts.dateKey, data };
+      }
       return data;
     })
     .finally(() => {

@@ -29,6 +29,28 @@ const COUNTRY_PREFIX_BARE = new RegExp(`^([A-ZÁÉÍÓÚÑÜ]${NAME_CHAR}{2,}(?:
 const SUBREGION_PREFIX = /^([^:]{2,45}):\s*/;
 const TITLE_START = /^(día|días|fiesta|aniversario|conmemoración|celebración|natalicio|jornada|semana|año)\b/i;
 
+/**
+ * Prefijos supranacionales o globales que usa el feed para efemérides internacionales: se quitan
+ * como un prefijo de país, pero la entrada se conserva. Salen del feed real, donde aparecen como
+ * "Naciones Unidas: …", "Unión Europea Unión Europea: …" o "Naciones Unidas Día Mundial de los Océanos".
+ * Los más largos van primero para que la alternancia no corte "Organización de las Naciones Unidas".
+ */
+const SUPRANATIONAL_NAMES = [
+  'Organización de las Naciones Unidas',
+  'Organización Mundial de la Salud',
+  'Organización del Tratado del Atlántico Norte',
+  'Naciones Unidas',
+  'ONU',
+  'Unión Europea',
+  'Mercosur',
+  'Cruz Roja Internacional',
+  'Mundialmente',
+  'Mundial',
+];
+
+/** El nombre, opcionalmente repetido como en los países, seguido o no de dos puntos (grupo 2). */
+const SUPRANATIONAL_PREFIX = new RegExp(`^(${SUPRANATIONAL_NAMES.join('|')})(?!${NAME_CHAR})(?:\\s?\\1)?(\\s*:)?\\s*`);
+
 /** Santoral y fiestas litúrgicas. */
 const RELIGIOUS =
   /^(san|santo|santa|santos|santas|beato|beata|beatos|beatas|santoral|nuestra\s+señora|señor\s+de|virgen|solemnidad|festividad|exaltación|memoria\s+de|fiesta\s+de\s+(san|santa|la\s+virgen)|conversión\s+de|presentación\s+del\s+señor|asunción|natividad|inmaculada|sagrado\s+coraz(ó|o)n|cristo|la\s+iglesia|las\s+iglesias|el\s+papa)\b/i;
@@ -61,11 +83,27 @@ function stripRepeatedPrefix(text: string): { rest: string; prefix: string } | n
   return null;
 }
 
+/** `null` si el texto no arranca con un prefijo supranacional; si arranca, el texto sin él. */
+function stripSupranationalPrefix(text: string): string | null {
+  const match = text.match(SUPRANATIONAL_PREFIX);
+  if (!match) return null;
+
+  const rest = text.slice(match[0].length).trim();
+  // Sin dos puntos solo es prefijo si lo que sigue arranca como título: "Mundial de Clubes" no lo es.
+  if (!match[2] && !TITLE_START.test(rest)) return null;
+
+  return rest;
+}
+
 function stripCountryPrefix(text: string): {
   rest: string;
   isArgentina: boolean;
   hadCountry: boolean;
 } {
+  // Antes que los países: "Unión Europea Unión Europea: …" tiene la misma forma pero es internacional.
+  const supranational = stripSupranationalPrefix(text);
+  if (supranational !== null) return { rest: supranational, isArgentina: false, hadCountry: false };
+
   const flagMatch = text.match(COUNTRY_FLAG);
 
   if (flagMatch) {
@@ -111,6 +149,8 @@ export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
   const title = (split?.[1] ?? cleaned)
     .replace(/[.:]$/, '')
     .replace(/\([^)]*\)/g, '')
+    // Un paréntesis inicial ya quitado deja sus dos puntos: "(ciertas regiones): Día del Mediterráneo".
+    .replace(/^[:\s]+/, '')
     .trim();
   if (!title) return null;
 
