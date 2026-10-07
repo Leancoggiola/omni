@@ -53,6 +53,27 @@ packages/shared/src/theme/tokens.ts     escalas crudas + semanticLight/semanticD
 
 Cada familia tiene variantes `primary`, `destructive`, `dimmed`, `disabled` y las semánticas `success` / `warning` / `info` / `error` / `accent`.
 
+### Transparencias
+
+Las variantes `*-disabled` y los `surfaces-*-light` de dark son un shade de la escala con alfa. Se escriben con el helper interno `withAlpha(SHADE, 'aa')` de `tokens.ts` (sufijo hex de 2 dígitos: `4d` ≈ 30 %, `29` ≈ 16 %, `33` = 20 %), nunca como hex literal: así un cambio en la escala se propaga a la versión translúcida.
+
+### Gradientes
+
+`GRADIENT_STOPS` (`@omni/shared/theme`) define `from` / `to` / `deg` (convención CSS) de cada gradiente:
+
+| Gradiente    | Stops                         | Uso                                    |
+| ------------ | ----------------------------- | -------------------------------------- |
+| `brand`      | `BRAND[5]` → `BRAND[7]`, 90°  | Avatares, `defaultGradient` de Mantine |
+| `terracotta` | `TERRACOTTA[4]` → `[7]`, 90°  | Acentos puntuales                      |
+| `cardLight`  | `BRAND[0]` → `BRAND[2]`, 215° | Card de efemérides de la home (light)  |
+| `cardDark`   | `BRAND[4]` → `BRAND[5]`, 215° | Card de efemérides de la home (dark)   |
+
+Web los expone como `GRADIENTS` (`apps/web/src/theme/gradients.ts`, tipados como `MantineGradient`); mobile los pasa a `expo-linear-gradient` convirtiendo `deg` a `start` / `end`. El texto sobre `cardLight` / `cardDark` usa `text-black` (`SEMANTIC.*.black` en mobile) en ambos esquemas: los dos fondos son claros/medios.
+
+### Variante `light-custom` (Alert)
+
+Es la variante por defecto de `Alert` en web (`apps/web/src/theme/components.tsx`). El resolver de `css-variables.ts` le pone de fondo `surfaces-{color}-light` y de borde `border-{color}`, así que `<Alert color="success">` usa la paleta semántica sin CSS propio.
+
 ---
 
 ## Agregar un color
@@ -153,6 +174,8 @@ Lo que **no** es automático y hay que replicar a mano en mobile:
 | `NotificationCard` (4 variantes)      | **Pendiente** — mobile hoy usa `Alert.alert` nativo                               |
 | Badges de tipo en terracota           | **Pendiente** — revisar `apps/mobile/src/features/media/components/MediaCard.tsx` |
 | Estados media (neutro/terracota/sage) | **Pendiente** — verificar que mobile no use verde/azul crudos                     |
+| Card de efemérides (gradiente)        | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                 |
+| Tema del perfil + toggle de sesión    | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)   |
 
 Al tocar el design system, correr siempre:
 

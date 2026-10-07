@@ -15,6 +15,7 @@ export {
   TERRACOTTA,
   SAGE,
   SEMANTIC,
+  GRADIENT_STOPS,
   semanticLight,
   semanticDark,
 } from './tokens';

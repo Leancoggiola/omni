@@ -31,13 +31,8 @@ import {
 import type { ProfileTheme, UpdatePreferencesPayload, UpdateProfilePayload, UserProfile } from '@omni/shared/users';
 import type { FC } from 'react';
 
+import { PROFILE_THEME_OPTIONS } from '@omni/shared/users';
 import { CalendarBlankIcon, EnvelopeSimpleIcon, FloppyDiskIcon, PhoneIcon, UserIcon } from '@phosphor-icons/react';
-
-const THEME_OPTIONS = [
-  { value: 'light', label: 'Claro' },
-  { value: 'dark', label: 'Oscuro' },
-  { value: 'auto', label: 'Sistema' },
-] satisfies { value: ProfileTheme; label: string }[];
 
 const READ_ONLY_DESCRIPTION = 'No se puede editar';
 
@@ -136,7 +131,12 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
                   aria-label="Notificaciones"
                 />
               </Group>
-              <Select label="Tema" data={THEME_OPTIONS} allowDeselect={false} {...form.getInputProps('theme')} />
+              <Select
+                label="Tema"
+                data={PROFILE_THEME_OPTIONS}
+                allowDeselect={false}
+                {...form.getInputProps('theme')}
+              />
             </Stack>
           </ProfileSectionCard>
 

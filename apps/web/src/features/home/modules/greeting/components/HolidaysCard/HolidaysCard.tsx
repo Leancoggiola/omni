@@ -54,18 +54,18 @@ export const HolidaysCard: FC = () => {
         </ThemeIcon>
 
         <Stack gap="2xs" flex={1}>
-          <Title order={5} c="black">
+          <Title order={5} c="var(--mantine-color-text-black)">
             Efemérides de hoy
           </Title>
 
           {holidays.items.length === 0 && (
-            <Text size="xs" fw={600} c="black">
+            <Text size="xs" fw={600} c="var(--mantine-color-text-black)">
               Hoy no hay efemérides registradas
             </Text>
           )}
 
           {currentItem && (
-            <Text size="xs" fw={600} c="black">
+            <Text size="xs" fw={600} c="var(--mantine-color-text-black)">
               {currentItem.title}
               {currentItem.isArgentina ? ' · en Argentina' : ''}
             </Text>

@@ -191,6 +191,9 @@ export const SAGE = {
   10: '#1F2B1B',
 } as const;
 
+/** Appends a 2-digit hex alpha channel to a palette swatch, e.g. withAlpha(RED[3], '4d') -> '#E597974d'. */
+const withAlpha = (hex: string, alphaHex: string) => `${hex}${alphaHex}`;
+
 /**
  * Semantic color tokens — Light mode
  */
@@ -216,7 +219,7 @@ export const semanticLight = {
   '--mantine-color-text-accent': TERRACOTTA[7],
   '--mantine-color-text-destructive': RED[7],
   '--mantine-color-text-destructive-hover': RED[8],
-  '--mantine-color-text-destructive-disabled': '#d837374d',
+  '--mantine-color-text-destructive-disabled': withAlpha(RED[7], '4d'),
   '--mantine-color-text-white': '#ffffff',
   '--mantine-color-text-black': '#000000',
 
@@ -228,7 +231,7 @@ export const semanticLight = {
   '--mantine-color-surfaces-primary-light': BRAND[1],
   '--mantine-color-surfaces-destructive': RED[7],
   '--mantine-color-surfaces-destructive-hover': RED[8],
-  '--mantine-color-surfaces-destructive-disabled': '#d837374d',
+  '--mantine-color-surfaces-destructive-disabled': withAlpha(RED[7], '4d'),
   '--mantine-color-surfaces-destructive-subtle': RED[0],
   '--mantine-color-surfaces-destructive-light': RED[1],
   '--mantine-color-surfaces-dimmed': GRAY[5],
@@ -260,7 +263,7 @@ export const semanticLight = {
   '--mantine-color-border-primary-disabled': '#4728254d',
   '--mantine-color-border-destructive': RED[7],
   '--mantine-color-border-destructive-hover': RED[8],
-  '--mantine-color-border-destructive-disabled': '#d837374d',
+  '--mantine-color-border-destructive-disabled': withAlpha(RED[7], '4d'),
   '--mantine-color-border-dimmed': GRAY[5],
   '--mantine-color-border-dimmed-light': GRAY[4],
   '--mantine-color-border-dimmed-hover': GRAY[6],
@@ -281,7 +284,7 @@ export const semanticLight = {
   '--mantine-color-icons-primary-disabled': '#4728254d',
   '--mantine-color-icons-destructive': RED[7],
   '--mantine-color-icons-destructive-hover': RED[8],
-  '--mantine-color-icons-destructive-disabled': '#d837374d',
+  '--mantine-color-icons-destructive-disabled': withAlpha(RED[7], '4d'),
   '--mantine-color-icons-dimmed': GRAY[5],
   '--mantine-color-icons-dimmed-light': GRAY[4],
   '--mantine-color-icons-dimmed-hover': GRAY[6],
@@ -318,7 +321,7 @@ export const semanticDark = {
   '--mantine-color-text-accent': TERRACOTTA[3],
   '--mantine-color-text-destructive': RED[4],
   '--mantine-color-text-destructive-hover': RED[3],
-  '--mantine-color-text-destructive-disabled': '#d837374d',
+  '--mantine-color-text-destructive-disabled': withAlpha(RED[3], '4d'),
   '--mantine-color-text-white': '#ffffff',
   '--mantine-color-text-black': '#000000',
 
@@ -326,15 +329,15 @@ export const semanticDark = {
 
   // Surfaces
   '--mantine-color-surfaces-primary': BRAND[3],
-  '--mantine-color-surfaces-primary-hover': BRAND[8],
-  '--mantine-color-surfaces-primary-disabled': '#d29a764d',
+  '--mantine-color-surfaces-primary-hover': BRAND[2],
+  '--mantine-color-surfaces-primary-disabled': withAlpha(BRAND[3], '4d'),
   '--mantine-color-surfaces-primary-subtle': BRAND[7],
-  '--mantine-color-surfaces-primary-light': '#d29a7629',
+  '--mantine-color-surfaces-primary-light': withAlpha(BRAND[3], '29'),
   '--mantine-color-surfaces-destructive': RED[3],
   '--mantine-color-surfaces-destructive-hover': RED[4],
-  '--mantine-color-surfaces-destructive-disabled': '#ffc9c94d',
-  '--mantine-color-surfaces-destructive-subtle': DARK[6],
-  '--mantine-color-surfaces-destructive-light': RED[8],
+  '--mantine-color-surfaces-destructive-disabled': withAlpha(RED[3], '4d'),
+  '--mantine-color-surfaces-destructive-subtle': RED[8],
+  '--mantine-color-surfaces-destructive-light': withAlpha(RED[8], '60'),
   '--mantine-color-surfaces-dimmed': GRAY[3],
   '--mantine-color-surfaces-dimmed-subtle': DARK[6],
   '--mantine-color-surfaces-dimmed-light': GRAY[3],
@@ -347,13 +350,13 @@ export const semanticDark = {
   '--mantine-color-surfaces-device-bg-onboarding': CANVAS.dark,
   '--mantine-color-surfaces-overlay': '#000000b0',
   '--mantine-color-surfaces-hover': DARK[5],
-  '--mantine-color-surfaces-hover-destructive': '#d8373729',
-  '--mantine-color-surfaces-accent-light': '#c1440e33',
+  '--mantine-color-surfaces-hover-destructive': withAlpha(RED[7], '29'),
+  '--mantine-color-surfaces-accent-light': withAlpha(TERRACOTTA[6], '33'),
   '--mantine-color-surfaces-accent-high': TERRACOTTA[5],
-  '--mantine-color-surfaces-info-light': '#1878cb33',
-  '--mantine-color-surfaces-warning-light': '#e3711133',
-  '--mantine-color-surfaces-success-light': '#57764b40',
-  '--mantine-color-surfaces-error-light': '#d8373733',
+  '--mantine-color-surfaces-info-light': withAlpha(BLUE[6], '33'),
+  '--mantine-color-surfaces-warning-light': withAlpha(ORANGE[6], '33'),
+  '--mantine-color-surfaces-success-light': withAlpha(SAGE[6], '40'),
+  '--mantine-color-surfaces-error-light': withAlpha(RED[7], '33'),
   '--mantine-color-surfaces-success-high': SAGE[5],
   '--mantine-color-surfaces-error-high': RED[3],
   '--mantine-color-surfaces-info-high': BLUE[3],
@@ -362,10 +365,10 @@ export const semanticDark = {
   // Border
   '--mantine-color-border-primary': BRAND[3],
   '--mantine-color-border-primary-hover': BRAND[2],
-  '--mantine-color-border-primary-disabled': '#d29a764d',
+  '--mantine-color-border-primary-disabled': withAlpha(BRAND[3], '4d'),
   '--mantine-color-border-destructive': RED[4],
   '--mantine-color-border-destructive-hover': RED[3],
-  '--mantine-color-border-destructive-disabled': '#d837374d',
+  '--mantine-color-border-destructive-disabled': withAlpha(RED[3], '4d'),
   '--mantine-color-border-dimmed': GRAY[7],
   '--mantine-color-border-dimmed-light': GRAY[3],
   '--mantine-color-border-dimmed-hover': GRAY[5],
@@ -383,14 +386,14 @@ export const semanticDark = {
   // Icons
   '--mantine-color-icons-primary': BRAND[3],
   '--mantine-color-icons-primary-hover': BRAND[2],
-  '--mantine-color-icons-primary-disabled': '#b97cd54d',
-  '--mantine-color-icons-destructive': RED[7],
-  '--mantine-color-icons-destructive-hover': RED[8],
-  '--mantine-color-icons-destructive-disabled': '#d837374d',
+  '--mantine-color-icons-primary-disabled': withAlpha(BRAND[3], '4d'),
+  '--mantine-color-icons-destructive': RED[4],
+  '--mantine-color-icons-destructive-hover': RED[3],
+  '--mantine-color-icons-destructive-disabled': withAlpha(RED[3], '4d'),
   '--mantine-color-icons-dimmed': GRAY[4],
   '--mantine-color-icons-dimmed-light': GRAY[3],
   '--mantine-color-icons-dimmed-hover': GRAY[3],
-  '--mantine-color-icons-dimmed-disabled': '#9393934d',
+  '--mantine-color-icons-dimmed-disabled': withAlpha(GRAY[4], '4d'),
   '--mantine-color-icons-disabled': GRAY[6],
   '--mantine-color-icons-success': SAGE[3],
   '--mantine-color-icons-warning': ORANGE[3],
@@ -422,6 +425,8 @@ export const SEMANTIC = {
     placeholder: semanticLight['--mantine-color-text-placeholder'],
     anchor: semanticLight['--mantine-color-text-link-default'],
     primary: semanticLight['--mantine-color-text-primary'],
+    black: semanticLight['--mantine-color-text-black'],
+    white: semanticLight['--mantine-color-text-white'],
   },
   dark: {
     body: semanticDark['--mantine-color-surfaces-device-bg'],
@@ -439,7 +444,20 @@ export const SEMANTIC = {
     placeholder: semanticDark['--mantine-color-text-placeholder'],
     anchor: semanticDark['--mantine-color-text-link-default'],
     primary: semanticDark['--mantine-color-text-primary'],
+    black: semanticDark['--mantine-color-text-black'],
+    white: semanticDark['--mantine-color-text-white'],
   },
+} as const;
+
+/**
+ * Gradient stops shared by web (Mantine `MantineGradient`) and mobile (expo-linear-gradient).
+ * `deg` follows the CSS convention: 0 points up, 90 to the right.
+ */
+export const GRADIENT_STOPS = {
+  brand: { from: BRAND[5], to: BRAND[7], deg: 90 },
+  terracotta: { from: TERRACOTTA[4], to: TERRACOTTA[7], deg: 90 },
+  cardLight: { from: BRAND[0], to: BRAND[2], deg: 215 },
+  cardDark: { from: BRAND[4], to: BRAND[5], deg: 215 },
 } as const;
 
 export type BrandShade = keyof typeof BRAND;

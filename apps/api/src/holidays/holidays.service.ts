@@ -1,4 +1,4 @@
-import { APP_TIMEZONE, calendarPartsInTimeZone } from '@omni/shared/common';
+import { appDateKey } from '@omni/shared/common';
 import { MAX_HOLIDAY_ITEMS } from '@omni/shared/holidays';
 import type { Holiday, TodayHolidays, WikipediaHolidaysResponse } from '@omni/shared/holidays';
 
@@ -37,14 +37,14 @@ let cache: { dateKey: string; data: TodayHolidays } | null = null;
 let inFlight: { dateKey: string; promise: Promise<TodayHolidays> } | null = null;
 
 function todayParts(now = new Date()): DateParts {
-  const { year, month, day } = calendarPartsInTimeZone(now, APP_TIMEZONE);
-  const mm = String(month).padStart(2, '0');
-  const dd = String(day).padStart(2, '0');
+  const dateKey = appDateKey(now);
+  const mm = dateKey.slice(5, 7);
+  const dd = dateKey.slice(8, 10);
   return {
-    dateKey: `${year}-${mm}-${dd}`,
+    dateKey,
     month: mm,
     day: dd,
-    sourceUrl: `https://es.wikipedia.org/wiki/${day}_de_${MONTH_NAMES_ES[month - 1]}#Celebraciones`,
+    sourceUrl: `https://es.wikipedia.org/wiki/${Number(dd)}_de_${MONTH_NAMES_ES[Number(mm) - 1]}#Celebraciones`,
   };
 }
 

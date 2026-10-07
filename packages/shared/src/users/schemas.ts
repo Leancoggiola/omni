@@ -24,3 +24,9 @@ export const updatePreferencesSchema = z
   .strict();
 export type UpdatePreferencesPayload = z.infer<typeof updatePreferencesSchema>;
 export type ProfileTheme = z.infer<typeof profileThemeSchema>;
+
+export const PROFILE_THEME_OPTIONS = [
+  { value: 'light', label: 'Claro' },
+  { value: 'dark', label: 'Oscuro' },
+  { value: 'auto', label: 'Sistema' },
+] as const satisfies readonly { value: ProfileTheme; label: string }[];
