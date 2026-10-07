@@ -66,6 +66,7 @@ Las de Mantine/Supabase son de terceros: se actualizan con `npx skills add … -
 ## MCP y tooling por máquina
 
 - **`codegraph`** — una sola tool, `codegraph_explore`: símbolos, call paths y blast radius en una llamada. Es punto de entrada, no herramienta de iteración: una llamada por tarea, sin releer lo que ya devolvió, y formulada como flujo ("flujo JWT refresh shared→api→web"), no como ubicación. Setup: `pnpm codegraph:init` (índice local en `.codegraph/`, gitignored); auto-sync por file watcher, `pnpm codegraph:status` si sospechás desfase.
+- **Arranque de MCP** — `codegraph` y `mantine` corren con `npx -y`: en frío (caché vacío) pueden pasar los 30 s por defecto. `.claude/settings.json` fija `MCP_TIMEOUT=90000`; si igual fallan, reconectar con `/mcp`.
 - **`supabase`** — SQL, RLS, advisors. Requiere `SUPABASE_ACCESS_TOKEN` en el entorno.
 - **`mantine`** — props/Styles API en vivo de la versión exacta del repo.
 - Las definiciones de tools MCP pesan en cada request: deshabilitar `supabase`/`mantine` (`/mcp`) fuera de sesiones de DB o de `apps/web`.
