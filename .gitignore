@@ -19,6 +19,7 @@ coverage
 test-results/
 playwright/.cache/
 playwright-report/
+.playwright-mcp/
 apps/e2e/.auth/
 
 

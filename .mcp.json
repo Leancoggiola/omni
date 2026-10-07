@@ -16,6 +16,11 @@
       "type": "stdio",
       "command": "cmd",
       "args": ["/c", "npx", "-y", "@mantine/mcp-server"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@playwright/mcp@latest", "--output-dir", ".playwright-mcp"]
     }
   }
 }

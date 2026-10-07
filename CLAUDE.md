@@ -20,7 +20,7 @@ Cada app tiene su propio `CLAUDE.md` con sus convenciones; se carga al trabajar 
 | `.claude/commands/`     | `/verify`, `/review`, `/new-feature`                    |
 | `.claude/skills/`       | `swr-hooks` (propia) + Mantine/Supabase (terceros, CLI) |
 | `.claude/settings.json` | Permisos y hook de Prettier                             |
-| `.mcp.json`             | MCP: `supabase`, `codegraph`, `mantine`                 |
+| `.mcp.json`             | MCP: `supabase`, `codegraph`, `mantine`, `playwright`   |
 
 > `@/shared` (alias del cliente) ≠ `@omni/shared` (paquete monorepo).
 
@@ -69,7 +69,8 @@ Las de Mantine/Supabase son de terceros: se actualizan con `npx skills add … -
 - **Arranque de MCP** — `codegraph` y `mantine` corren con `npx -y`: en frío (caché vacío) pueden pasar los 30 s por defecto. `.claude/settings.json` fija `MCP_TIMEOUT=90000`; si igual fallan, reconectar con `/mcp`.
 - **`supabase`** — SQL, RLS, advisors. Requiere `SUPABASE_ACCESS_TOKEN` en el entorno.
 - **`mantine`** — props/Styles API en vivo de la versión exacta del repo.
-- Las definiciones de tools MCP pesan en cada request: deshabilitar `supabase`/`mantine` (`/mcp`) fuera de sesiones de DB o de `apps/web`.
+- **`playwright`** — revisión visual de la web (Chromium con ventana). Requiere `dev:api-web` corriendo; login con `ADMIN_USERNAME`/`ADMIN_PASSWORD` de `apps/api/.env` (admin del seed en la base de dev; las de `.env.e2e` no existen ahí). Revisar claro y oscuro; forzar errores interceptando requests con `page.route` (vía `browser_run_code_unsafe`) en vez de tocar código. Capturas en `.playwright-mcp/` (gitignored). Para flujos repetibles, specs en `apps/e2e`, no MCP.
+- Las definiciones de tools MCP pesan en cada request: deshabilitar `supabase`/`mantine`/`playwright` (`/mcp`) fuera de sesiones de DB, de `apps/web` o de revisión de UI.
 - **RTK** (opcional, por máquina) — comprime el output de los comandos Bash. Instalar: `winget install rtk-ai.rtk` y `rtk init -g` (registra el hook en `~/.claude/settings.json`; no está en el repo). Comandos persistentes (`vite`, `expo start`, `turbo run dev`) se excluyen en `%APPDATA%\rtk\config.toml`.
 
 ---
