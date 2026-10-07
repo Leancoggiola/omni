@@ -39,7 +39,7 @@ pnpm check-types
 pnpm lint
 ```
 
-Primera vez en device/emulador: `pnpm prebuild` y luego build del dev client (`npx expo run:android`).
+Primera vez en device/emulador: `pnpm prebuild` y luego build del dev client (`npx expo run:android`). Setup de Windows (Android Studio, JDK 17, variables de entorno, emulador), tiempos y problemas conocidos: [docs/mobile/tooling.md](../../docs/mobile/tooling.md#correr-la-app-en-un-emulador-android-windows).
 
 ## Auth
 

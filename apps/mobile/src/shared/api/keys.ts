@@ -61,6 +61,9 @@ export const API_KEYS = {
     devices: '/api/notifications/devices',
     device: (id: string) => `/api/notifications/devices/${id}`,
   },
+  holidays: {
+    today: '/api/holidays/today',
+  },
 } as const;
 
 export function buildQueryString(params: Record<string, string | number | undefined | null | boolean>): string {

@@ -91,8 +91,27 @@ function altTheme(scheme: 'light' | 'dark', base: Theme, strength: 1 | 2): Theme
   };
 }
 
+/**
+ * En nativo cada peso de Inter es una familia aparte (las carga `app/_layout.tsx`, ver
+ * `theme/fonts.ts`). La fuente `body` de @tamagui/config no trae este mapeo, así que sin él
+ * `fontWeight` no tiene efecto en Android.
+ */
+const interFace = {
+  400: { normal: 'Inter' },
+  500: { normal: 'InterMedium' },
+  600: { normal: 'InterSemiBold' },
+  700: { normal: 'InterBold' },
+  800: { normal: 'InterBold' },
+  900: { normal: 'InterBold' },
+};
+
 export const tamaguiConfig = createTamagui({
   ...config,
+  fonts: {
+    ...config.fonts,
+    body: { ...config.fonts.body, face: interFace },
+    heading: { ...config.fonts.heading, face: interFace },
+  },
   themes: {
     ...config.themes,
     light: surfaceTheme('light', config.themes.light),
@@ -107,6 +126,10 @@ export const tamaguiConfig = createTamagui({
     dark_alt2: altTheme('dark', config.themes.dark_alt2, 2),
   },
 });
+
+// El compilador de @tamagui/babel-plugin solo encuentra la config como `export default` (o `config`):
+// sin esto la descarta, reintenta en cada archivo y el bundle de Metro se cuelga.
+export default tamaguiConfig;
 
 export type AppConfig = typeof tamaguiConfig;
 

@@ -21,7 +21,11 @@ export function useProfile() {
 
   const updatePreferences = async (payload: UpdatePreferencesPayload) => {
     const res = await api.patch(API_KEYS.users.preferences, payload);
-    await mutate();
+    const fresh = await mutate();
+    // El tema efectivo sale de la sesión (core/theme), así que hay que reflejarlo ahí también.
+    if (payload.theme && fresh) {
+      await globalMutate(API_KEYS.auth.profile, { user: toSessionUser(fresh.user) }, { revalidate: false });
+    }
     return res;
   };
 

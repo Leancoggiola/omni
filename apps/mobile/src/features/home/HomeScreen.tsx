@@ -2,6 +2,8 @@ import { Paragraph, Spinner, YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 
+import { HolidaysCard } from './components/HolidaysCard';
+
 function timeGreeting(): string {
   const hour = new Date().getHours();
   if (hour < 12) return 'Buenos días';
@@ -23,6 +25,7 @@ export function HomeScreen() {
         </Paragraph>
       )}
       <Paragraph theme="alt2">Bienvenido a Omni</Paragraph>
+      <HolidaysCard />
     </YStack>
   );
 }
