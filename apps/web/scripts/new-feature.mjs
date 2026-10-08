@@ -25,6 +25,13 @@ if (!name || !/^[a-z][a-z0-9-]*$/.test(name)) {
 }
 
 const routePath = getFlagValue('--path') ?? `/${name}`;
+if (!/^\/[a-z0-9][a-z0-9/-]*$/.test(routePath)) {
+  console.error(
+    `Invalid --path value: "${routePath}". Must look like /gym.\n` +
+      'En Git Bash (MSYS) "/gym" se convierte en una ruta de Windows: usá MSYS_NO_PATHCONV=1 o corré el comando desde PowerShell.'
+  );
+  process.exit(1);
+}
 const moduleName = getFlagValue('--module') ?? 'main';
 const navKey = getFlagValue('--nav-key') ?? name;
 if (!/^[a-z][a-z0-9-]*$/.test(navKey)) {
@@ -105,15 +112,15 @@ export const ${camel}Route: RouteObject = {
 
 write(
   path.join(featureDir, 'index.ts'),
-  `export { ${camel}Route } from './${name}.routes';\n${noNav ? '' : `export { ${camel}NavItem } from './${name}.nav';\n`}`
+  `${noNav ? '' : `export { ${camel}NavItem } from './${name}.nav';\n`}export { ${camel}Route } from './${name}.routes';\n`
 );
 
 if (!noNav) {
   write(
     path.join(featureDir, `${name}.nav.tsx`),
-    `import { HouseIcon } from '@phosphor-icons/react';
+    `import type { NavItemConfig } from '@/layouts/navConfig';
 
-import type { NavItemConfig } from '@/layouts/navConfig';
+import { HouseIcon } from '@phosphor-icons/react';
 
 const iconSize = '1.25rem';
 
@@ -163,17 +170,30 @@ function write(filePath, content) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/** Inserta el import de la feature en orden alfabético entre los `@/features/*` (lo que exige simple-import-sort). */
+function insertFeatureImport(content, name, importLine) {
+  if (content.includes(importLine)) return content;
+
+  const featureImports = [...content.matchAll(/^import \{[^}]*\} from '@\/features\/([a-z0-9-]+)';$/gm)];
+  const next = featureImports.find(match => match[1] > name);
+  if (next) {
+    return content.slice(0, next.index) + `${importLine}\n` + content.slice(next.index);
+  }
+
+  const last = featureImports.at(-1);
+  if (!last) {
+    console.error('No se encontraron imports de @/features/* donde insertar la feature: registrala a mano.');
+    process.exit(1);
+  }
+  const end = last.index + last[0].length;
+  return `${content.slice(0, end)}\n${importLine}${content.slice(end)}`;
 }
 
 function appendRoute(name, camel) {
   const routesFile = path.join(srcRoot, 'app', 'routes.ts');
   let content = fs.readFileSync(routesFile, 'utf8');
   const importLine = `import { ${camel}Route } from '@/features/${name}';`;
-  if (!content.includes(importLine)) {
-    content = content.replace(/(import \{ profileRoute \} from '@\/features\/profile';)/, `$1\n${importLine}`);
-  }
+  content = insertFeatureImport(content, name, importLine);
   const routeRef = `${camel}Route`;
   const escapedRouteRef = escapeRegExp(routeRef);
   if (
@@ -194,19 +214,23 @@ function appendNavRegistry(name, camel, key) {
   let content = fs.readFileSync(navFile, 'utf8');
   const importLine = `import { ${camel}NavItem } from '@/features/${name}';`;
 
-  if (!content.includes(importLine)) {
-    content = content.replace(/(import \{ profileNavItem \} from '@\/features\/profile';)/, `$1\n${importLine}`);
-  }
+  content = insertFeatureImport(content, name, importLine);
 
-  const keyInOrder = content.includes(`'${key}'`);
+  const keyInOrder = new RegExp(`^\\s*'${escapeRegExp(key)}',?\\s*$`, 'm').test(content);
   if (!keyInOrder) {
-    content = content.replace(/(  'split-expenses',\n)(  'profile',)/, `$1  '${key}',\n$2`);
-    content = content.replace(
-      /(  'split-expenses': PLACEHOLDER_NAV_ITEMS\[4\],\n)(};)/,
+    // Antes de 'profile' (último ítem de MAIN_NAV_ORDER) y al final de NAV_BY_KEY, sin depender de sus vecinos.
+    const withOrder = content.replace(/^(\s*)'profile',/m, `$1'${key}',\n$1'profile',`);
+    const withEntry = withOrder.replace(
+      /(const NAV_BY_KEY[^=]*=\s*\{[\s\S]*?\n)(\};)/,
       `$1  '${key}': ${camel}NavItem,\n$2`
     );
+    if (withOrder === content || withEntry === withOrder) {
+      console.error('No se pudo registrar el ítem en nav-registry.tsx: revisá MAIN_NAV_ORDER y NAV_BY_KEY a mano.');
+      process.exit(1);
+    }
+    content = withEntry;
   } else {
-    const entryPattern = new RegExp(`(${escapeRegExp(key)}:\\s*)[^,\\n]+`);
+    const entryPattern = new RegExp(`(['"]?${escapeRegExp(key)}['"]?:\\s*)[^,\\n]+`);
     content = content.replace(entryPattern, `$1${camel}NavItem`);
   }
 
