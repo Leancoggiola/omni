@@ -17,9 +17,17 @@ pnpm-lock.yaml
 # Generated code
 apps/api/src/generated
 
+# Mobile: carpetas nativas de `expo prebuild`, tipos y cachés locales (gitignoreados)
+apps/mobile/android
+apps/mobile/ios
+apps/mobile/.expo
+apps/mobile/.tamagui
+apps/mobile/expo-env.d.ts
+
 # Auto-generated files
 CHANGELOG.md
 
-# Tooling
-.agents
+# Tooling — skills de terceros, administradas por `npx skills`
+.claude/skills/mantine-*
+.claude/skills/supabase*
 

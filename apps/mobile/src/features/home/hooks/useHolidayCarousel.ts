@@ -1,0 +1,35 @@
+import { useCallback, useEffect, useState } from 'react';
+
+export function useHolidayCarousel<T>(items: T[], duration = 3000) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const next = useCallback(() => {
+    setCurrentIndex(prev => {
+      if (items.length === 0) {
+        return 0;
+      }
+
+      return (prev + 1) % items.length;
+    });
+  }, [items.length]);
+
+  useEffect(() => {
+    if (items.length <= 1) {
+      return;
+    }
+
+    const timeout = setTimeout(next, duration);
+
+    return () => clearTimeout(timeout);
+  }, [currentIndex, items.length, duration, next]);
+
+  // Si la lista se achica (ej. llega el día nuevo con menos efemérides), el índice guardado puede
+  // quedar fuera de rango hasta el próximo `next`: se normaliza al leerlo.
+  const safeIndex = items.length ? currentIndex % items.length : 0;
+
+  return {
+    currentIndex: safeIndex,
+    currentItem: items[safeIndex],
+    next,
+  };
+}

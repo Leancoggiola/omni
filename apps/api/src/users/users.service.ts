@@ -27,15 +27,24 @@ export async function findByUsername(username: string): Promise<User | null> {
   });
 }
 
+/** Returns user WITH password and preferences: login valida y arma la sesión con un solo query. */
+export async function findByUsernameForLogin(username: string) {
+  return prisma.user.findUnique({
+    where: { username: username.toLowerCase() },
+    include: { preferences: true },
+  });
+}
+
 /** Returns user WITH password (kept for future password recovery via email). */
 export async function findByEmail(email: string): Promise<User | null> {
   return prisma.user.findUnique({ where: { email } });
 }
 
-export async function findById(id: string): Promise<Omit<User, 'password'> | null> {
+export async function findById(id: string) {
   return prisma.user.findUnique({
     where: { id },
     omit: { password: true },
+    include: { preferences: true },
   });
 }
 

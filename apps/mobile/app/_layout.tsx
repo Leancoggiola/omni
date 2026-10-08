@@ -1,10 +1,23 @@
+import { ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
 import { Redirect, Slot, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, type PropsWithChildren } from 'react';
 import { useColorScheme } from 'react-native';
 import { Spinner, TamaguiProvider, Theme, YStack } from 'tamagui';
 import { StatusBar } from 'expo-status-bar';
 
 import { AuthProvider, useAuth } from '@/core/auth';
+import { ColorSchemeProvider, useColorSchemeControl } from '@/core/theme';
+import { NAVIGATION_THEMES } from '@/theme/navigationTheme';
+import { INTER_FACES } from '@/theme/fonts';
 import { tamaguiConfig } from '@/theme/tamagui.config';
+
+// La splash nativa queda visible hasta que se resuelvan las fuentes (ver RootLayout). Puede
+// rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // noop
+});
 
 function AuthGate() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -30,17 +43,42 @@ function AuthGate() {
   return <Slot />;
 }
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+function ThemedRoot({ children }: PropsWithChildren) {
+  const { colorScheme } = useColorSchemeControl();
 
   return (
-    <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme === 'dark' ? 'dark' : 'light'}>
-      <Theme name={colorScheme === 'dark' ? 'dark' : 'light'}>
-        <AuthProvider>
-          <StatusBar style="auto" />
-          <AuthGate />
-        </AuthProvider>
+    <ThemeProvider value={NAVIGATION_THEMES[colorScheme]}>
+      <Theme name={colorScheme}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        {children}
       </Theme>
+    </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  // Solo para el primer render: el tema efectivo lo fija ThemedRoot.
+  const systemScheme = useColorScheme();
+  const [fontsLoaded, fontError] = useFonts(INTER_FACES);
+  const fontsSettled = fontsLoaded || !!fontError;
+
+  useEffect(() => {
+    if (fontsSettled) void SplashScreen.hideAsync();
+  }, [fontsSettled]);
+
+  // Sin las fuentes, el primer render saldría con la tipografía del sistema y saltaría al cargarlas;
+  // mientras tanto se ve la splash. Si fallan se sigue con la del sistema en vez de quedar en blanco.
+  if (!fontsSettled) return null;
+
+  return (
+    <TamaguiProvider config={tamaguiConfig} defaultTheme={systemScheme === 'dark' ? 'dark' : 'light'}>
+      <AuthProvider>
+        <ColorSchemeProvider>
+          <ThemedRoot>
+            <AuthGate />
+          </ThemedRoot>
+        </ColorSchemeProvider>
+      </AuthProvider>
     </TamaguiProvider>
   );
 }

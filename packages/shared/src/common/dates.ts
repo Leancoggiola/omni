@@ -20,6 +20,12 @@ export function calendarPartsInTimeZone(date: Date, timeZone: string) {
   return { year, month, day };
 }
 
+/** Calendar day in APP_TIMEZONE as 'YYYY-MM-DD'. Shared key for "today" between API and clients. */
+export function appDateKey(now = new Date()): string {
+  const { year, month, day } = calendarPartsInTimeZone(now, APP_TIMEZONE);
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
 /** UTC Date at midnight for the calendar day in APP_TIMEZONE. Matches @db.Date comparisons. */
 export function startOfTodayInAppTz(now = new Date()): Date {
   const { year, month, day } = calendarPartsInTimeZone(now, APP_TIMEZONE);

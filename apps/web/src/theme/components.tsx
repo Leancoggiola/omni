@@ -1,4 +1,4 @@
-import { ActionIcon, AppShell, Card, Combobox, Input, Modal, NavLink, Paper, Select, Tabs } from '@mantine/core';
+import { ActionIcon, Alert, AppShell, Card, Combobox, Input, Modal, NavLink, Paper, Select, Tabs } from '@mantine/core';
 
 import { componentOverrides } from './components.overrides';
 
@@ -9,6 +9,10 @@ const surfaceBg = 'var(--mantine-color-default)';
 export const ComponentsOverride = {
   ActionIcon: ActionIcon.extend({
     classNames: componentOverrides.actionIcon,
+  }),
+  Alert: Alert.extend({
+    classNames: componentOverrides.alert,
+    defaultProps: { variant: 'light-custom' },
   }),
   AppShell: AppShell.extend({
     classNames: componentOverrides.appShell,

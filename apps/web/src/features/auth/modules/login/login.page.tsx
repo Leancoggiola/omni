@@ -44,11 +44,7 @@ export const LoginPage: FC = () => {
 
   return (
     <AuthCard title="¡Te damos la bienvenida a Omni!">
-      {error && (
-        <Alert color="destructive" variant="light">
-          {error}
-        </Alert>
-      )}
+      {error && <Alert color="destructive">{error}</Alert>}
 
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
@@ -59,6 +55,7 @@ export const LoginPage: FC = () => {
             key={form.key('password')}
             {...form.getInputProps('password')}
           />
+          {/* Sin `disabled` por dirty: el autocompletado del navegador puede no disparar onChange. */}
           <Button size="lg" type="submit" loading={loading}>
             Ingresar
           </Button>

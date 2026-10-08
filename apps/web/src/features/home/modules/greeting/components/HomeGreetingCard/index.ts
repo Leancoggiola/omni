@@ -1,1 +1,0 @@
-export { HomeGreetingCard } from './HomeGreetingCard';

@@ -1,1 +1,1 @@
-export { HomeGreetingCard } from './greeting';
+export { HomeMainCard } from './greeting';

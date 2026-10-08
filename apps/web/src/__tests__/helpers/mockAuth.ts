@@ -7,6 +7,7 @@ export function createMockSessionUser(overrides: Partial<SessionUser> = {}): Ses
     email: null,
     role: 'USER',
     avatarUrl: null,
+    theme: 'light',
     ...overrides,
   };
 }

@@ -48,17 +48,13 @@ export const FriendForm: FC<FriendFormProps> = ({ onCreate }) => {
           Agregar amigo
         </Text>
 
-        {submitError && (
-          <Alert color="destructive" variant="light">
-            {submitError}
-          </Alert>
-        )}
+        {submitError && <Alert color="destructive">{submitError}</Alert>}
 
         <TextInput placeholder="Nombre" required maxLength={SPLIT_FRIEND_NAME_MAX} {...form.getInputProps('name')} />
         <TextInput placeholder="Alias" required maxLength={SPLIT_FRIEND_ALIAS_MAX} {...form.getInputProps('alias')} />
 
         <Group justify="flex-end">
-          <Button type="submit" fullWidth loading={loading}>
+          <Button type="submit" loading={loading} disabled={!form.isDirty()}>
             Guardar amigo
           </Button>
         </Group>

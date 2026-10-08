@@ -56,7 +56,7 @@ Ejemplo: `feat/#12-marcar-visto`.
 
 ## Orden full-stack
 
-Si la historia toca contrato API↔clientes: **`shared` → `api` → web y/o mobile** (ver [AGENTS.md](../../AGENTS.md)).
+Si la historia toca contrato API↔clientes: **`shared` → `api` → web y/o mobile** (ver [CLAUDE.md](../../CLAUDE.md)).
 
 ## Checklist de relevamiento (antes de Listo)
 

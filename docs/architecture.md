@@ -2,7 +2,7 @@
 
 Monorepo con **pnpm workspaces** y **Turborepo**. Ambas apps siguen la misma convención de estructura de carpetas para facilitar el onboarding.
 
-**Agentes:** [AGENTS.md](../AGENTS.md) · [web/tooling.md](./web/tooling.md) · [tooling/codegraph.md](./tooling/codegraph.md).
+**Agentes:** [CLAUDE.md](../CLAUDE.md) · [web/tooling.md](./web/tooling.md).
 
 ---
 
@@ -19,10 +19,9 @@ omni/
     eslint-config/
     typescript-config/
   docs/         ← Esta carpeta
-  AGENTS.md       ← Índice para agentes de IA
-  .github/instructions/ ← Convenciones automáticas por glob (web, mobile, api)
-  .github/skills/ ← Skills del proyecto (web, mobile, API, shared)
-  .agents/skills/ ← Skills de terceros (Mantine, Supabase; npx skills)
+  CLAUDE.md       ← Contexto raíz para Claude Code (+ un CLAUDE.md por app)
+  .claude/        ← Subagents, commands, skills (propias y de terceros), hooks, permisos
+  .mcp.json       ← MCP del proyecto (Supabase, CodeGraph, Mantine)
   .codegraph/     ← Índice CodeGraph (local, no commitear *.db)
 ```
 
@@ -42,22 +41,10 @@ src/
       validate.ts         ← Zod validation middleware
       index.ts
     index.ts              ← Barril: re-exporta db + utils
-  auth/                   ← Feature: autenticación
-    middleware/
-    strategies/           ← Passport strategies (local, jwt, jwt-refresh)
+  auth/                   ← Feature ejemplo: routes + service (+ middleware/, strategies/)
     auth.routes.ts
     auth.service.ts
-  admin/                  ← Feature: administración
-    admin.routes.ts
-    admin.service.ts
-  media/                  ← Feature: media tracker
-    media.routes.ts
-    media.service.ts
-    tmdb.service.ts
-  users/                  ← Feature: usuarios y perfil
-    users.routes.ts
-    users.service.ts
-    stats.service.ts
+  <resto de features>/    ← Mismo patrón routes+service — ver router.ts y skill `api-structure`
   generated/
     prisma/               ← Cliente Prisma generado (no editar)
   config.ts               ← Variables de entorno validadas
@@ -75,6 +62,8 @@ src/
 | Imports de utils | `import { validate, logger } from "../common/utils"`           |
 | Naming           | `camelCase` para funciones, `PascalCase` para interfaces/types |
 
+Detalle de la lista real de features y checklist para agregar una nueva: skill `api-structure`.
+
 ---
 
 ## `apps/web/src/`
@@ -87,10 +76,7 @@ src/
     navigation/
       nav-registry.tsx
   features/               ← Dominio de producto (1 navbar item = 1 feature)
-    home/
-    auth/
-    media/
-    profile/              ← UI “Perfil”; API sigue en users/
+    home/ · auth/ · media/ · profile/ · ...
   shared/
     api/                  ← client, fetcher, SWR_KEYS
     ui/                   ← componentes cross-feature (UserAvatar, …)

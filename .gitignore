@@ -19,6 +19,7 @@ coverage
 test-results/
 playwright/.cache/
 playwright-report/
+.playwright-mcp/
 apps/e2e/.auth/
 
 
@@ -53,6 +54,9 @@ apps/api/src/generated/
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# Claude Code — overrides personales
+.claude/settings.local.json
+
 # Debug
 logs
 *.log
@@ -66,13 +70,6 @@ pnpm-debug.log*
 *.pem
 
 postman-collection.json
-
-# MCPs
-.playwright-mcp
-.playwright-output/
-*.playwright-*.md
-*.playwright-*.png
-*.playwright-*.log
 
 # CodeGraph — índice local (commitear solo README + .gitignore aquí)
 .codegraph/*

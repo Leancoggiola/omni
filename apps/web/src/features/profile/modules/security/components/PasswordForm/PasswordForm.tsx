@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, PasswordInput, Stack } from '@mantine/core';
+import { Alert, Button, Group, PasswordInput, SimpleGrid, Stack } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
 import { getErrorMessage, notifySuccess } from '@/shared/ui';
@@ -73,27 +73,27 @@ export const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="sm">
-        {error && (
-          <Alert color="destructive" variant="light">
-            {error}
-          </Alert>
-        )}
-        <PasswordInput
-          label="Nueva contraseña"
-          visibilityToggleFocusable
-          key={form.key('newPassword')}
-          {...form.getInputProps('newPassword')}
-        />
-        <PasswordInput
-          label="Confirmar contraseña"
-          visibilityToggleFocusable
-          key={form.key('confirmPassword')}
-          {...form.getInputProps('confirmPassword')}
-          success={successMessage ?? undefined}
-        />
-        <Button type="submit" loading={loading}>
-          Cambiar contraseña
-        </Button>
+        {error && <Alert color="destructive">{error}</Alert>}
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+          <PasswordInput
+            label="Nueva contraseña"
+            visibilityToggleFocusable
+            key={form.key('newPassword')}
+            {...form.getInputProps('newPassword')}
+          />
+          <PasswordInput
+            label="Confirmar contraseña"
+            visibilityToggleFocusable
+            key={form.key('confirmPassword')}
+            {...form.getInputProps('confirmPassword')}
+            success={successMessage ?? undefined}
+          />
+        </SimpleGrid>
+        <Group justify="flex-end">
+          <Button type="submit" loading={loading} disabled={!form.isDirty()}>
+            Cambiar contraseña
+          </Button>
+        </Group>
       </Stack>
     </form>
   );

@@ -26,4 +26,8 @@ declare module '@mantine/core' {
   export interface MantineThemeColorsOverride {
     colors: Record<AppColors, import('@mantine/core').MantineColorsTuple>;
   }
+
+  export interface AlertProps {
+    variant?: 'light-custom';
+  }
 }
