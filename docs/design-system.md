@@ -141,7 +141,7 @@ Los dos clientes tienen `@/shared/ui` con la misma API; cambia la implementació
 
 `notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` desde `@/shared/ui`. En web las features **no** importan `@mantine/notifications` directo; en mobile **no** usan `Alert.alert`.
 
-Cada variante deriva su acento y su wash de los tokens semánticos (`icons-{variante}` y `surfaces-{variante}-light`; en mobile, `SEMANTIC.success`/`successSurface`, etc.), así que sumar una variante no requiere CSS nuevo por esquema. Mobile dibuja el wash con `expo-linear-gradient` a 135°, igual que el `linear-gradient` de web, terminando en el mismo color con alfa 0 (no `transparent`: Android interpola sin premultiplicar y deja una banda gris). Diferencia aceptada: el chip del ícono usa `surfaces-{variante}-light` como fondo, porque RN no tiene `color-mix`.
+Cada variante deriva su acento y su wash de los tokens semánticos (`icons-{variante}` y `surfaces-{variante}-light`; en mobile, `SEMANTIC.successIcon`/`successSurface`, etc.), así que sumar una variante no requiere CSS nuevo por esquema. Mobile dibuja el wash con `expo-linear-gradient` a 135°, igual que el `linear-gradient` de web, terminando en el mismo color con alfa 0 (no `transparent`: Android interpola sin premultiplicar y deja una banda gris). Diferencia aceptada: el chip del ícono usa `surfaces-{variante}-light` como fondo, porque RN no tiene `color-mix`.
 
 ---
 

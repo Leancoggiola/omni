@@ -13,12 +13,12 @@ import type { NotificationVariant } from './notify';
 const ICON_SIZE = 36;
 const WASH = gradientPoints(135);
 
-/** Acento y wash por variante: los mismos tokens que `NotificationCard.module.scss` de web. */
+/** Acento (`icons-{variante}`) y wash (`surfaces-{variante}-light`): los mismos tokens que `NotificationCard.module.scss` de web. */
 const VARIANTS = {
-  success: { icon: CheckCircleIcon, accent: 'success', wash: 'successSurface' },
-  error: { icon: WarningIcon, accent: 'destructive', wash: 'errorSurface' },
-  warning: { icon: WarningCircleIcon, accent: 'warning', wash: 'warningSurface' },
-  info: { icon: InfoIcon, accent: 'info', wash: 'infoSurface' },
+  success: { icon: CheckCircleIcon, accent: 'successIcon', wash: 'successSurface' },
+  error: { icon: WarningIcon, accent: 'errorIcon', wash: 'errorSurface' },
+  warning: { icon: WarningCircleIcon, accent: 'warningIcon', wash: 'warningSurface' },
+  info: { icon: InfoIcon, accent: 'infoIcon', wash: 'infoSurface' },
 } as const satisfies Record<NotificationVariant, { icon: Icon; accent: string; wash: string }>;
 
 type NotificationCardProps = {
