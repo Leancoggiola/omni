@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FC,
   type PropsWithChildren,
@@ -105,15 +106,23 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     [mutate]
   );
 
-  const logout = useCallback(async () => {
-    const refreshToken = await getRefreshToken();
-    try {
-      await api.post(API_KEYS.auth.logout, { refreshToken: refreshToken ?? undefined });
-    } catch {
-      // still clear local session
-    }
-    await clearTokens();
-    await clearSession();
+  // Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request.
+  const logoutInFlight = useRef<Promise<void> | null>(null);
+
+  const logout = useCallback(() => {
+    logoutInFlight.current ??= (async () => {
+      const refreshToken = await getRefreshToken();
+      try {
+        await api.post(API_KEYS.auth.logout, { refreshToken: refreshToken ?? undefined });
+      } catch {
+        // still clear local session
+      }
+      await clearTokens();
+      await clearSession();
+    })().finally(() => {
+      logoutInFlight.current = null;
+    });
+    return logoutInFlight.current;
   }, [clearSession]);
 
   const value = useMemo(
