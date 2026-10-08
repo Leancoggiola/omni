@@ -30,7 +30,20 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
   // tick, y la request tiene que resolverse una sola vez. Solo se escribe en efectos y handlers.
   const currentRef = useRef<ConfirmRequest | null>(null);
 
-  useEffect(() => registerConfirmHandler(request => setPending(queue => [...queue, request])), []);
+  const pendingRef = useRef<ConfirmRequest[]>([]);
+  useEffect(() => {
+    pendingRef.current = pending;
+  }, [pending]);
+
+  useEffect(() => {
+    const unregister = registerConfirmHandler(request => setPending(queue => [...queue, request]));
+    return () => {
+      unregister();
+      // Si el provider se desmonta con confirmaciones abiertas, el `await confirm()` no queda colgado.
+      currentRef.current?.resolve(false);
+      pendingRef.current.forEach(request => request.resolve(false));
+    };
+  }, []);
 
   useEffect(() => {
     if (current || closing || pending.length === 0) return;
