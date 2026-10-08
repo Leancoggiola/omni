@@ -1,9 +1,8 @@
+import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from 'react';
 import { BackHandler } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Paragraph, Sheet, YStack } from 'tamagui';
-
-import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 
 import { Title } from '../Title';
 

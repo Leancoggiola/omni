@@ -1,9 +1,8 @@
+import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon, type Icon } from 'phosphor-react-native';
 import { StyleSheet } from 'react-native';
 import { Button, Paragraph, XStack, YStack } from 'tamagui';
-
-import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 
 import { useSemanticColors } from '@/core/theme';
 import { elevation } from '@/theme/elevation';

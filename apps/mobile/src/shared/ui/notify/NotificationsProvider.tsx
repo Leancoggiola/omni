@@ -1,9 +1,8 @@
+import { SPACING } from '@omni/shared/theme';
 import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from 'react';
 import { Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { YStack } from 'tamagui';
-
-import { SPACING } from '@omni/shared/theme';
 
 import { NotificationCard } from './NotificationCard';
 import { autoCloseMs, enqueueNotification, registerNotificationHandler, type NotificationRequest } from './notify';
