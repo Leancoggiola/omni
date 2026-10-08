@@ -88,7 +88,9 @@ export async function logout(userId: string, rawRefreshToken: string | undefined
     for (const token of storedTokens) {
       const isMatch = await bcrypt.compare(rawRefreshToken, token.tokenHash);
       if (isMatch) {
-        await prisma.refreshToken.delete({ where: { id: token.id } });
+        // deleteMany y no delete: con dos logouts simultáneos el segundo ya no encuentra el registro
+        // y delete tiraría P2025 (500). El logout tiene que ser idempotente.
+        await prisma.refreshToken.deleteMany({ where: { id: token.id } });
         break;
       }
     }

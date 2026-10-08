@@ -52,4 +52,22 @@ describe('auth routes (integration)', () => {
       expect(await prisma.refreshToken.count({ where: { userId: user.id } })).toBe(0);
     });
   });
+
+  describe('POST /logout', () => {
+    it('es idempotente: dos logouts simultáneos con el mismo refresh token responden 200', async () => {
+      const user = await createUser({ username: 'logouttwice' });
+      const login = await request(app)
+        .post('/api/auth/login')
+        .send({ username: 'logouttwice', password: TEST_PASSWORD });
+      const { accessToken, refreshToken } = login.body as { accessToken: string; refreshToken: string };
+
+      const logout = () =>
+        request(app).post('/api/auth/logout').set('Authorization', `Bearer ${accessToken}`).send({ refreshToken });
+      const [first, second] = await Promise.all([logout(), logout()]);
+
+      expect(first.status).toBe(200);
+      expect(second.status).toBe(200);
+      expect(await prisma.refreshToken.count({ where: { userId: user.id } })).toBe(0);
+    });
+  });
 });
