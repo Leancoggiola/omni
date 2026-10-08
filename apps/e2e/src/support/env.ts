@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 /**
  * Valores compartidos por la config de Playwright y los fixtures.
  * Las credenciales del admin deben coincidir con `apps/api/.env.e2e`, que es lo que consume el seed.
@@ -32,7 +34,20 @@ export const API_URL = `http://localhost:${API_PORT}`;
 /** Stub de TMDB + Wikipedia (src/support/externalStub.mjs). */
 export const EXTERNAL_STUB_URL = `http://127.0.0.1:${STUB_PORT}`;
 
-const databaseUrl = `postgresql://postgres:postgres@127.0.0.1:${DB_E2E_PORT}/omni_e2e`;
+/** Lee una variable de apps/api/.env.e2e, la única fuente de las credenciales y el nombre de la base. */
+function readApiEnvE2e(name: string): string {
+  const file = readFileSync(new URL('../../../api/.env.e2e', import.meta.url), 'utf8');
+  const value = file.match(new RegExp('^' + name + '=(.+)$', 'm'))?.[1]?.trim();
+  if (!value) throw new Error('Falta ' + name + ' en apps/api/.env.e2e');
+  return value;
+}
+
+/** La URL del archivo con solo el puerto cambiado. */
+function withDbPort(url: string): string {
+  const parsed = new URL(url);
+  parsed.port = String(DB_E2E_PORT);
+  return parsed.toString();
+}
 
 /**
  * Entorno de la API de E2E. `dev:e2e` carga apps/api/.env.e2e con --env-file, que no pisa lo que ya está
@@ -44,7 +59,12 @@ export const API_ENV: Record<string, string> = {
   TMDB_BASE_URL: EXTERNAL_STUB_URL,
   WIKIPEDIA_BASE_URL: EXTERNAL_STUB_URL,
   // Con override de la base, el archivo .env.e2e se pisa; sin él manda el archivo.
-  ...(DB_E2E_PORT ? { DATABASE_URL: databaseUrl, DIRECT_URL: databaseUrl } : {}),
+  ...(DB_E2E_PORT
+    ? {
+        DATABASE_URL: withDbPort(readApiEnvE2e('DATABASE_URL')),
+        DIRECT_URL: withDbPort(readApiEnvE2e('DIRECT_URL')),
+      }
+    : {}),
 };
 
 /** Entorno de Vite: puerto propio y proxy hacia la API de esta copia (ver apps/web/vite.config.ts). */
