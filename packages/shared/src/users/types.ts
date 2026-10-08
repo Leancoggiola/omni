@@ -1,3 +1,4 @@
+import type { Role } from '../auth/types';
 import type { ProfileTheme } from './schemas';
 
 export type { ProfileTheme };
@@ -23,6 +24,21 @@ export interface UserProfile {
   createdAt: string;
   updatedAt: string;
   preferences: UserPreferences | null;
+}
+
+/** Usuario en GET /api/admin/users (sin password ni preferencias). */
+export interface AdminUser {
+  id: string;
+  username: string;
+  name: string;
+  email: string | null;
+  role: Role;
+  avatarUrl: string | null;
+  createdAt: string;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUser[];
 }
 
 export interface UserStats {

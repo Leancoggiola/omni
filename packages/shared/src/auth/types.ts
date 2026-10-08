@@ -2,6 +2,11 @@ import type { ProfileTheme } from '../users/types';
 
 export type Role = 'ADMIN' | 'USER';
 
+export const ROLE_LABELS: Record<Role, string> = {
+  ADMIN: 'Administrador',
+  USER: 'Usuario',
+};
+
 /** Usuario expuesto en login, refresh y GET /api/auth/profile (sin id). */
 export interface SessionUser {
   username: string;
