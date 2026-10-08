@@ -27,6 +27,9 @@ apps/mobile/expo-env.d.ts
 # Auto-generated files
 CHANGELOG.md
 
+# Worktrees locales de Claude Code (copias completas del repo, ignoradas por git)
+.claude/worktrees
+
 # Tooling — skills de terceros, administradas por `npx skills`
 .claude/skills/mantine-*
 .claude/skills/supabase*
