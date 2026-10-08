@@ -42,11 +42,42 @@ export function assertTestDatabaseUrl(rawUrl: string | undefined): string {
   return rawUrl;
 }
 
+/** Variable que cambia el puerto del host de cada base descartable (ver docker-compose.yml). */
+const PORT_VARIABLE_BY_ENV_FILE: Record<string, string> = {
+  '.env.test': 'DB_TEST_PORT',
+  '.env.e2e': 'DB_E2E_PORT',
+};
+
+/**
+ * Cambia el puerto de una URL de Postgres. Sirve para tener una base descartable propia por worktree:
+ * dos proyectos compose no pueden publicar el mismo puerto del host.
+ */
+export function applyPortOverride(rawUrl: string, port: string | undefined): string {
+  if (!port) return rawUrl;
+
+  const portNumber = Number(port);
+  if (!Number.isInteger(portNumber) || portNumber < 1 || portNumber > 65535) {
+    throw new Error(`Invalid database port override: "${port}". Expected an integer between 1 and 65535.`);
+  }
+
+  const parsed = new URL(rawUrl);
+  parsed.port = String(portNumber);
+  return parsed.toString();
+}
+
 /**
  * Carga el archivo de entorno indicado por encima de lo que ya haya en el proceso y lo valida.
  * Tiene que correr antes de que algo importe `common/db/prisma`, que lee DATABASE_URL al importarse.
  */
 export function loadTestEnv(fileName = '.env.test'): string {
   dotenv.config({ path: new URL(`../../../${fileName}`, import.meta.url), override: true, quiet: true });
+
+  const portVariable = PORT_VARIABLE_BY_ENV_FILE[fileName];
+  const portOverride = portVariable ? process.env[portVariable] : undefined;
+  for (const key of ['DATABASE_URL', 'DIRECT_URL'] as const) {
+    const current = process.env[key];
+    if (current) process.env[key] = applyPortOverride(current, portOverride);
+  }
+
   return assertTestDatabaseUrl(process.env.DATABASE_URL);
 }

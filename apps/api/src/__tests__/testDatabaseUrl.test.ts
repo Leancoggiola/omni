@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { assertTestDatabaseUrl } from '../test/integration/testDatabaseUrl';
+import { applyPortOverride, assertTestDatabaseUrl } from '../test/integration/testDatabaseUrl';
 
 describe('assertTestDatabaseUrl', () => {
   it('accepts a local database whose name ends in _test', () => {
@@ -31,5 +31,23 @@ describe('assertTestDatabaseUrl', () => {
 
   it('rejects a malformed url', () => {
     expect(() => assertTestDatabaseUrl('not-a-url')).toThrow(/not a valid URL/);
+  });
+});
+
+describe('applyPortOverride', () => {
+  const url = 'postgresql://postgres:postgres@127.0.0.1:5434/omni_e2e';
+
+  it('leaves the url untouched without an override', () => {
+    expect(applyPortOverride(url, undefined)).toBe(url);
+    expect(applyPortOverride(url, '')).toBe(url);
+  });
+
+  it('replaces only the port', () => {
+    expect(applyPortOverride(url, '5444')).toBe('postgresql://postgres:postgres@127.0.0.1:5444/omni_e2e');
+  });
+
+  it('rejects ports that are not valid', () => {
+    expect(() => applyPortOverride(url, 'abc')).toThrow(/Invalid database port override/);
+    expect(() => applyPortOverride(url, '70000')).toThrow(/Invalid database port override/);
   });
 });

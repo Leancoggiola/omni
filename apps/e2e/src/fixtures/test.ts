@@ -3,11 +3,11 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import { createUserViaAdmin, storageStateFor, type NewUser } from '../support/adminApi';
-import { WORKER_PASSWORD, workerUsername } from '../support/env';
+import { RUN_SUFFIX, WORKER_PASSWORD, workerUsername } from '../support/env';
 
 export type WorkerUser = NewUser;
 
-const AUTH_DIR = new URL('../../.auth/', import.meta.url);
+const AUTH_DIR = new URL(`../../.auth${RUN_SUFFIX}/`, import.meta.url);
 
 // PNG de 1x1 transparente.
 const PIXEL = Buffer.from(
