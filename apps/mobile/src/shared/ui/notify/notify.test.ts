@@ -1,5 +1,4 @@
-import { enqueueNotification } from './NotificationsProvider';
-import type { NotificationRequest, NotificationVariant } from './notify';
+import { autoCloseMs, enqueueNotification, type NotificationRequest, type NotificationVariant } from './notify';
 
 function request(id: number, variant: NotificationVariant): NotificationRequest {
   return { id, variant, title: variant, message: `#${id}` };
@@ -40,5 +39,14 @@ describe('enqueueNotification', () => {
   it('si todas son errores descarta el más viejo', () => {
     const items = [request(1, 'error'), request(2, 'error'), request(3, 'error')];
     expect(ids(enqueueNotification(items, request(4, 'error')))).toEqual([2, 3, 4]);
+  });
+});
+
+describe('autoCloseMs', () => {
+  it('deja los errores el doble que el resto', () => {
+    expect(autoCloseMs('error')).toBe(8000);
+    for (const variant of ['success', 'info', 'warning'] as const) {
+      expect(autoCloseMs(variant)).toBe(4000);
+    }
   });
 });

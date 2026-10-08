@@ -222,8 +222,11 @@ describe('ConfirmProvider', () => {
 });
 
 describe('confirm', () => {
-  it('rechaza si no hay ConfirmProvider montado', async () => {
+  it('sin ConfirmProvider montado resuelve false y avisa en dev (mismo criterio que notify*)', async () => {
     screen.unmount();
-    await expect(confirm({ title: 'Sin provider', description: '' })).rejects.toThrow(/ConfirmProvider/);
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    await expect(confirm({ title: 'Sin provider', description: '' })).resolves.toBe(false);
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/ConfirmProvider/));
+    warn.mockRestore();
   });
 });
