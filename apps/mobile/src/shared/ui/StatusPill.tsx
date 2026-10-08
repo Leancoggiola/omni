@@ -1,12 +1,9 @@
+import { MEDIA_STATUS_LABELS, type MediaStatus } from '@omni/shared/media';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CaretDownIcon } from 'phosphor-react-native';
 import { Paragraph, XStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-
-import { MEDIA_STATUS_LABELS } from '@omni/shared/media';
-
-import type { MediaStatus } from '@omni/shared/media';
 
 /**
  * Mismos tokens que el Select de estado de web (`.combobox_root[data-*]`): por ver es neutro,

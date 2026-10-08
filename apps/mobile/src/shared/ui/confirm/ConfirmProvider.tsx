@@ -23,22 +23,23 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
   // request entrara sin pasar por `open=false`, un cierre por overlay/gesto dejaría la cola trabada.
   // Por eso `current` vuelve a null entre requests y la siguiente entra al terminar el cierre.
   const [closing, setClosing] = useState(false);
-  // Contenido de la última request, para que el sheet no se vacíe durante la animación de salida.
-  const shown = useRef<ConfirmRequest | null>(null);
-  if (current) shown.current = current;
+  // Contenido de la última request: no vuelve a null al cerrar, así el sheet no se vacía durante la
+  // animación de salida.
+  const [shown, setShown] = useState<ConfirmRequest | null>(null);
+  // Ref además del estado: el botón y el `onOpenChange(false)` del cierre pueden llegar en el mismo
+  // tick, y la request tiene que resolverse una sola vez. Solo se escribe en efectos y handlers.
+  const currentRef = useRef<ConfirmRequest | null>(null);
 
   useEffect(() => registerConfirmHandler(request => setPending(queue => [...queue, request])), []);
 
   useEffect(() => {
     if (current || closing || pending.length === 0) return;
-    setCurrent(pending[0]);
+    const [next] = pending;
+    currentRef.current = next;
+    setCurrent(next);
+    setShown(next);
     setPending(queue => queue.slice(1));
   }, [current, closing, pending]);
-
-  // Ref además del estado: el botón y el `onOpenChange(false)` del cierre pueden llegar en el mismo
-  // tick, y la request tiene que resolverse una sola vez.
-  const currentRef = useRef<ConfirmRequest | null>(null);
-  currentRef.current = current;
 
   const close = useCallback((result: boolean) => {
     const request = currentRef.current;
@@ -66,7 +67,7 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
     return () => sub.remove();
   }, [current, close]);
 
-  const request = shown.current;
+  const request = shown;
 
   return (
     <>

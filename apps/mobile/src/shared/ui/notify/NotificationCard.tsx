@@ -7,7 +7,7 @@ import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 
 import { useSemanticColors } from '@/core/theme';
 import { elevation } from '@/theme/elevation';
-import { gradientPoints } from '@/theme/gradient';
+import { gradientPoints, transparentOf } from '@/theme/gradient';
 
 import type { NotificationVariant } from './notify';
 
@@ -34,8 +34,7 @@ export function NotificationCard({ variant, title, message, onClose }: Notificat
   const { icon: IconComponent, accent, wash } = VARIANTS[variant];
   const accentColor = colors[accent];
   const washColor = colors[wash];
-  // Mismo color con alfa 0, no 'transparent': Android interpola sin premultiplicar y deja una banda gris.
-  const washClear = `${washColor.slice(0, 7)}00`;
+  const washClear = transparentOf(washColor);
 
   return (
     <YStack

@@ -11,6 +11,19 @@ import { registerNotificationHandler, type NotificationRequest } from './notify'
 /** Mismo `autoClose` que el default de Mantine en web. */
 const AUTO_CLOSE_MS = 4000;
 const MAX_VISIBLE = 3;
+/** Por encima del Sheet de `confirm()` (`zIndex` 100 000): un error de la acción confirmada se tiene que ver. */
+const STACK_Z_INDEX = 100_001;
+
+/**
+ * Agrega `request` respetando `MAX_VISIBLE`. Al llenarse se descarta la más vieja que no sea un
+ * error: un `notifyError` sin leer no se pierde por un éxito posterior.
+ */
+export function enqueueNotification(items: NotificationRequest[], request: NotificationRequest) {
+  const next = [...items, request];
+  if (next.length <= MAX_VISIBLE) return next;
+  const evict = next.findIndex(item => item.variant !== 'error');
+  return next.filter((_, index) => index !== (evict === -1 ? 0 : evict));
+}
 
 function AnimatedNotification({ request, onClose }: { request: NotificationRequest; onClose: (id: number) => void }) {
   const progress = useRef(new Animated.Value(0)).current;
@@ -53,7 +66,7 @@ export function NotificationsProvider({ children }: PropsWithChildren) {
   useEffect(
     () =>
       registerNotificationHandler(request => {
-        setItems(current => [...current, request].slice(-MAX_VISIBLE));
+        setItems(current => enqueueNotification(current, request));
       }),
     []
   );
@@ -67,7 +80,7 @@ export function NotificationsProvider({ children }: PropsWithChildren) {
         left={SPACING.md}
         right={SPACING.md}
         gap={SPACING.xs}
-        zIndex={100_000}
+        zIndex={STACK_Z_INDEX}
         pointerEvents="box-none"
       >
         {items.map(item => (
