@@ -1,1 +1,1 @@
-export { ColorSchemeProvider, useColorSchemeControl } from './ColorSchemeContext';
+export { ColorSchemeProvider, useColorSchemeControl, useSemanticColors } from './ColorSchemeContext';

@@ -1,4 +1,10 @@
-import { RADIUS as RADIUS_PX, SPACING as SPACING_PX } from '@omni/shared/theme';
+import {
+  FONT_SIZE as FONT_SIZE_PX,
+  HEADING as HEADING_PX,
+  LINE_HEIGHT as LINE_HEIGHT_PX,
+  RADIUS as RADIUS_PX,
+  SPACING as SPACING_PX,
+} from '@omni/shared/theme';
 
 export { BRAND, GRAY, SEMANTIC } from '@omni/shared/theme';
 
@@ -20,3 +26,14 @@ export const SHADOWS = {
 export const RADIUS = { ...toRem(RADIUS_PX), full: `${RADIUS_PX.full}px` };
 
 export const SPACING = toRem(SPACING_PX);
+
+export const FONT_SIZES = toRem(FONT_SIZE_PX);
+
+export const LINE_HEIGHTS = toRem(LINE_HEIGHT_PX);
+
+export const HEADING_SIZES = Object.fromEntries(
+  Object.entries(HEADING_PX).map(([order, { fontSize, lineHeight }]) => [
+    order,
+    { fontSize: `${fontSize / 16}rem`, lineHeight: `${lineHeight / 16}rem` },
+  ])
+) as Record<keyof typeof HEADING_PX, { fontSize: string; lineHeight: string }>;

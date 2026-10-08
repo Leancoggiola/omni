@@ -4,7 +4,7 @@ import { ComponentsOverride } from './components';
 import { variantResolver } from './css-variables';
 import { GRADIENTS } from './gradients';
 import { COLOR_PALETTE } from './palettes';
-import { RADIUS, SHADOWS, SPACING } from './tokens';
+import { FONT_SIZES, HEADING_SIZES, LINE_HEIGHTS, RADIUS, SHADOWS, SPACING } from './tokens';
 
 export const THEME = createTheme({
   fontFamily: '"Montserrat", sans-serif',
@@ -37,50 +37,13 @@ export const THEME = createTheme({
     xl: '90em',
   },
 
-  fontSizes: {
-    xs: '0.625rem',
-    sm: '0.75rem',
-    md: '0.875rem',
-    lg: '1rem',
-    xl: '1.125rem',
-  },
+  fontSizes: FONT_SIZES,
 
-  lineHeights: {
-    xs: '0.75rem',
-    sm: '0.875rem',
-    md: '1rem',
-    lg: '1.125rem',
-    xl: '1.375rem',
-  },
+  lineHeights: LINE_HEIGHTS,
 
   headings: {
     fontWeight: '700',
-    sizes: {
-      h1: {
-        fontSize: '1.75rem',
-        lineHeight: '2.0625rem',
-      },
-      h2: {
-        fontSize: '1.375rem',
-        lineHeight: '1.875rem',
-      },
-      h3: {
-        fontSize: '1.125rem',
-        lineHeight: '1.375rem',
-      },
-      h4: {
-        fontSize: '1rem',
-        lineHeight: '1.125rem',
-      },
-      h5: {
-        fontSize: '0.875rem',
-        lineHeight: '1rem',
-      },
-      h6: {
-        fontSize: '0.75rem',
-        lineHeight: '0.875rem',
-      },
-    },
+    sizes: HEADING_SIZES,
   },
 
   shadows: SHADOWS,

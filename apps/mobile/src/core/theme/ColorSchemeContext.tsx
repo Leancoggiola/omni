@@ -9,6 +9,7 @@ import {
   type PropsWithChildren,
 } from 'react';
 import { useColorScheme } from 'react-native';
+import { SEMANTIC } from '@omni/shared/theme';
 
 import { useAuth } from '@/core/auth';
 
@@ -58,3 +59,9 @@ export const useColorSchemeControl = (): ColorSchemeContextValue => {
   }
   return ctx;
 };
+
+/**
+ * Colores semánticos (`SEMANTIC` de `@omni/shared/theme`) del esquema activo, tipados. Para valores
+ * crudos que Tamagui no resuelve con `$token`: color de íconos, gradientes, etc.
+ */
+export const useSemanticColors = () => SEMANTIC[useColorSchemeControl().colorScheme];

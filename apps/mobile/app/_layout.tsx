@@ -12,6 +12,7 @@ import { ColorSchemeProvider, useColorSchemeControl } from '@/core/theme';
 import { NAVIGATION_THEMES } from '@/theme/navigationTheme';
 import { MONTSERRAT_FACES } from '@/theme/fonts';
 import { tamaguiConfig } from '@/theme/tamagui.config';
+import { ConfirmProvider, NotificationsProvider } from '@/shared/ui';
 
 // La splash nativa queda visible hasta que se resuelvan las fuentes (ver RootLayout). Puede
 // rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
@@ -75,7 +76,11 @@ export default function RootLayout() {
       <AuthProvider>
         <ColorSchemeProvider>
           <ThemedRoot>
-            <AuthGate />
+            <NotificationsProvider>
+              <ConfirmProvider>
+                <AuthGate />
+              </ConfirmProvider>
+            </NotificationsProvider>
           </ThemedRoot>
         </ColorSchemeProvider>
       </AuthProvider>
