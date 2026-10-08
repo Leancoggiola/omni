@@ -57,6 +57,22 @@ Cada familia tiene variantes `primary`, `destructive`, `dimmed`, `disabled` y la
 
 Las variantes `*-disabled` y los `surfaces-*-light` de dark son un shade de la escala con alfa. Se escriben con el helper interno `withAlpha(SHADE, 'aa')` de `tokens.ts` (sufijo hex de 2 dígitos: `4d` ≈ 30 %, `29` ≈ 16 %, `33` = 20 %), nunca como hex literal: así un cambio en la escala se propaga a la versión translúcida.
 
+### Radios, espaciado y elevación
+
+`RADIUS`, `SPACING` y `SHADOW` (`@omni/shared/theme`) están en **px** y los consumen los dos clientes:
+
+| Token     | Web (Mantine)                                           | Mobile (Tamagui)                                             |
+| --------- | ------------------------------------------------------- | ------------------------------------------------------------ |
+| `RADIUS`  | `theme.radius`, en rem (`apps/web/src/theme/tokens.ts`) | número: `borderRadius={RADIUS.lg}`                           |
+| `SPACING` | `theme.spacing`, en rem                                 | número: `padding={SPACING.md}`, `gap={SPACING.xs}`           |
+| `SHADOW`  | — (web usa `SHADOWS` CSS de dos capas)                  | `shadowColor/Offset/Opacity/Radius` + `elevation` en Android |
+
+En mobile, **no** se registran como tokens de Tamagui (`$lg`): Input, Select, Popover y ListItem calculan su padding recorriendo la escala `space`/`radius` ordenada por valor (`getSpace(token, { shift })`), y sumarle valores cambia esos pasos. El código nuevo usa las constantes compartidas para que un `lg` signifique lo mismo en las dos plataformas; los `$4` de `@tamagui/config` quedan para el interior de los componentes de Tamagui. `SHADOW` replica la capa principal de cada sombra CSS de web: si cambia una, revisar la otra.
+
+### Tipografía e íconos
+
+Los dos clientes usan **Montserrat** (400/500/600/700) e íconos **Phosphor** con los mismos nombres (`@phosphor-icons/react` en web, `phosphor-react-native` en mobile). Un ícono nuevo se elige una vez y se usa igual en los dos.
+
 ### Gradientes
 
 `GRADIENT_STOPS` (`@omni/shared/theme`) define `from` / `to` / `deg` (convención CSS) de cada gradiente:
@@ -163,7 +179,7 @@ Después de regenerar, actualizar en `app.json` los colores de fondo si cambió 
 
 ## Paridad web ↔ mobile
 
-Lo que ya es automático: cualquier cambio en `tokens.ts` llega a mobile vía `SEMANTIC` (fondo, card, texto, primario, éxito, destructivo, acento).
+Lo que ya es automático: cualquier cambio en `tokens.ts` llega a mobile vía `SEMANTIC` (fondo, card, texto, primario, éxito, destructivo, acento, superficies y bordes de estado, `onPrimary`/`onDestructive`) y vía `RADIUS`/`SPACING`. El plan de paridad completo está en el epic [#70](https://github.com/Leancoggiola/omni/issues/70).
 
 Lo que **no** es automático y hay que replicar a mano en mobile:
 
@@ -175,6 +191,8 @@ Lo que **no** es automático y hay que replicar a mano en mobile:
 | Badges de tipo en terracota           | **Pendiente** — revisar `apps/mobile/src/features/media/components/MediaCard.tsx` |
 | Estados media (neutro/terracota/sage) | **Pendiente** — verificar que mobile no use verde/azul crudos                     |
 | Card de efemérides (gradiente)        | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                 |
+| Montserrat + íconos Phosphor          | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                            |
+| Radios y espaciado                    | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                              |
 | Tema del perfil + toggle de sesión    | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)   |
 
 Al tocar el design system, correr siempre:
@@ -182,7 +200,7 @@ Al tocar el design system, correr siempre:
 ```bash
 pnpm --filter @omni/shared check-types
 pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web test
-pnpm --filter mobile check-types
+pnpm --filter mobile check-types && pnpm --filter mobile lint
 ```
 
 No hay test automatizado de color: la verificación es visual en ambos esquemas.

@@ -1,21 +1,30 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { FilmSlateIcon, HouseIcon, MoonIcon, SunIcon, UserIcon, type Icon } from 'phosphor-react-native';
 import { Button, Paragraph, useTheme } from 'tamagui';
 
 import { useColorSchemeControl } from '@/core/theme';
 
-function TabLabel({ label, focused }: { label: string; focused: boolean }) {
+function TabLabel({ label, focused, color }: { label: string; focused: boolean; color: string }) {
   return (
-    <Paragraph size="$1" fontWeight={focused ? '700' : '400'}>
+    <Paragraph size="$1" fontWeight={focused ? '700' : '400'} color={color}>
       {label}
     </Paragraph>
   );
 }
 
-type TabIconName = 'home' | 'film' | 'person';
-
-function TabIcon({ name, focused, color, size }: { name: TabIconName; focused: boolean; color: string; size: number }) {
-  return <Ionicons name={focused ? name : `${name}-outline`} size={size} color={color} />;
+/** Mismos íconos Phosphor que el nav de web; en mobile el tab activo usa `weight="fill"`. */
+function TabIcon({
+  icon: IconComponent,
+  focused,
+  color,
+  size,
+}: {
+  icon: Icon;
+  focused: boolean;
+  color: string;
+  size: number;
+}) {
+  return <IconComponent size={size} color={color} weight={focused ? 'fill' : 'regular'} />;
 }
 
 function ColorSchemeToggle() {
@@ -32,7 +41,7 @@ function ColorSchemeToggle() {
       onPress={toggle}
       accessibilityRole="button"
       accessibilityLabel={isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
-      icon={<Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={20} color={theme.color.val} />}
+      icon={isDark ? <SunIcon size={20} color={theme.color.val} /> : <MoonIcon size={20} color={theme.color.val} />}
     />
   );
 }
@@ -44,24 +53,24 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Inicio',
-          tabBarIcon: props => <TabIcon name="home" {...props} />,
-          tabBarLabel: ({ focused }) => <TabLabel label="Inicio" focused={focused} />,
+          tabBarIcon: props => <TabIcon icon={HouseIcon} {...props} />,
+          tabBarLabel: ({ focused, color }) => <TabLabel label="Inicio" focused={focused} color={color} />,
         }}
       />
       <Tabs.Screen
         name="media"
         options={{
           title: 'Media',
-          tabBarIcon: props => <TabIcon name="film" {...props} />,
-          tabBarLabel: ({ focused }) => <TabLabel label="Media" focused={focused} />,
+          tabBarIcon: props => <TabIcon icon={FilmSlateIcon} {...props} />,
+          tabBarLabel: ({ focused, color }) => <TabLabel label="Media" focused={focused} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Perfil',
-          tabBarIcon: props => <TabIcon name="person" {...props} />,
-          tabBarLabel: ({ focused }) => <TabLabel label="Perfil" focused={focused} />,
+          tabBarIcon: props => <TabIcon icon={UserIcon} {...props} />,
+          tabBarLabel: ({ focused, color }) => <TabLabel label="Perfil" focused={focused} color={color} />,
         }}
       />
     </Tabs>

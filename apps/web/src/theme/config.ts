@@ -4,7 +4,7 @@ import { ComponentsOverride } from './components';
 import { variantResolver } from './css-variables';
 import { GRADIENTS } from './gradients';
 import { COLOR_PALETTE } from './palettes';
-import { RADIUS, SHADOWS } from './tokens';
+import { RADIUS, SHADOWS, SPACING } from './tokens';
 
 export const THEME = createTheme({
   fontFamily: '"Montserrat", sans-serif',
@@ -27,19 +27,7 @@ export const THEME = createTheme({
   defaultRadius: 'lg',
   radius: RADIUS,
 
-  spacing: {
-    none: '0',
-    '3xs': '0.125rem',
-    '2xs': '0.25rem',
-    xs: '0.5rem',
-    sm: '0.75rem',
-    md: '1rem',
-    lg: '1.25rem',
-    xl: '1.5rem',
-    '2xl': '2rem',
-    '3xl': '3rem',
-    '4xl': '4rem',
-  },
+  spacing: SPACING,
 
   breakpoints: {
     xs: '30em',

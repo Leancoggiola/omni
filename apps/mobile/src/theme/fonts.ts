@@ -1,11 +1,17 @@
-import InterBold from '@tamagui/font-inter/otf/Inter-Bold.otf';
-import InterMedium from '@tamagui/font-inter/otf/Inter-Medium.otf';
-import Inter from '@tamagui/font-inter/otf/Inter-Regular.otf';
-import InterSemiBold from '@tamagui/font-inter/otf/Inter-SemiBold.otf';
+// Import por peso: el barrel del paquete arrastra los 18 .ttf (~6 MB) al bundle.
+import { Montserrat_400Regular } from '@expo-google-fonts/montserrat/400Regular';
+import { Montserrat_500Medium } from '@expo-google-fonts/montserrat/500Medium';
+import { Montserrat_600SemiBold } from '@expo-google-fonts/montserrat/600SemiBold';
+import { Montserrat_700Bold } from '@expo-google-fonts/montserrat/700Bold';
 
 /**
- * Caras de Inter para `useFonts`. Los nombres tienen que coincidir con el `face` de las fuentes en
- * `tamagui.config.ts`. Vive aparte porque el compilador de Tamagui carga esa config en Node, donde
- * importar un `.otf` falla.
+ * Caras de Montserrat (la misma fuente que web) para `useFonts`. Los nombres tienen que coincidir
+ * con el `face` de las fuentes en `tamagui.config.ts`. Vive aparte porque el compilador de Tamagui
+ * carga esa config en Node, donde importar un `.ttf` falla.
  */
-export const INTER_FACES = { Inter, InterMedium, InterSemiBold, InterBold };
+export const MONTSERRAT_FACES = {
+  Montserrat: Montserrat_400Regular,
+  MontserratMedium: Montserrat_500Medium,
+  MontserratSemiBold: Montserrat_600SemiBold,
+  MontserratBold: Montserrat_700Bold,
+};
