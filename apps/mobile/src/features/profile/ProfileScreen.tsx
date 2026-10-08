@@ -86,8 +86,10 @@ export function ProfileScreen() {
     setLoggingOut(true);
     try {
       await logout();
-    } finally {
+    } catch (err) {
+      // En el camino exitoso la sesión se limpia y esta pantalla se desmonta: solo se reactiva el botón si falló.
       setLoggingOut(false);
+      Alert.alert('Error', err instanceof Error ? err.message : 'No se pudo cerrar la sesión');
     }
   };
 
