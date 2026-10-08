@@ -19,6 +19,9 @@ export {
   RADIUS,
   SPACING,
   SHADOW,
+  FONT_SIZE,
+  LINE_HEIGHT,
+  HEADING,
   semanticLight,
   semanticDark,
 } from './tokens';

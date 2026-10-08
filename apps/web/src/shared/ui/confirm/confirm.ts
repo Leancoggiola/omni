@@ -29,6 +29,7 @@ export function confirm(options: ConfirmOptions): Promise<boolean> {
       description: options.description,
       confirmLabel: options.confirmLabel ?? DEFAULT_CONFIRM_LABEL,
       cancelLabel: options.cancelLabel ?? DEFAULT_CANCEL_LABEL,
+      destructive: options.destructive ?? true,
       resolve,
     });
   });

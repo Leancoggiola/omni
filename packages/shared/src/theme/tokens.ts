@@ -426,6 +426,13 @@ export const SEMANTIC = {
     accentBorder: semanticLight['--mantine-color-border-accent'],
     successSurface: semanticLight['--mantine-color-surfaces-success-light'],
     successBorder: semanticLight['--mantine-color-border-success'],
+    warningSurface: semanticLight['--mantine-color-surfaces-warning-light'],
+    infoSurface: semanticLight['--mantine-color-surfaces-info-light'],
+    errorSurface: semanticLight['--mantine-color-surfaces-error-light'],
+    successIcon: semanticLight['--mantine-color-icons-success'],
+    warningIcon: semanticLight['--mantine-color-icons-warning'],
+    infoIcon: semanticLight['--mantine-color-icons-info'],
+    errorIcon: semanticLight['--mantine-color-icons-error'],
     dimmedSurface: semanticLight['--mantine-color-surfaces-dimmed-subtle'],
     dimmedBorder: semanticLight['--mantine-color-border-dimmed'],
     primarySurface: semanticLight['--mantine-color-surfaces-primary-light'],
@@ -454,6 +461,13 @@ export const SEMANTIC = {
     accentBorder: semanticDark['--mantine-color-border-accent'],
     successSurface: semanticDark['--mantine-color-surfaces-success-light'],
     successBorder: semanticDark['--mantine-color-border-success'],
+    warningSurface: semanticDark['--mantine-color-surfaces-warning-light'],
+    infoSurface: semanticDark['--mantine-color-surfaces-info-light'],
+    errorSurface: semanticDark['--mantine-color-surfaces-error-light'],
+    successIcon: semanticDark['--mantine-color-icons-success'],
+    warningIcon: semanticDark['--mantine-color-icons-warning'],
+    infoIcon: semanticDark['--mantine-color-icons-info'],
+    errorIcon: semanticDark['--mantine-color-icons-error'],
     dimmedSurface: semanticDark['--mantine-color-surfaces-dimmed-subtle'],
     dimmedBorder: semanticDark['--mantine-color-border-dimmed'],
     primarySurface: semanticDark['--mantine-color-surfaces-primary-light'],
@@ -493,6 +507,21 @@ export const RADIUS = {
   lg: 12,
   xl: 16,
   full: 9999,
+} as const;
+
+/** Escala tipográfica en px (fuente Montserrat en los dos clientes). Web la pasa a rem. */
+export const FONT_SIZE = { xs: 10, sm: 12, md: 14, lg: 16, xl: 18 } as const;
+
+export const LINE_HEIGHT = { xs: 12, sm: 14, md: 16, lg: 18, xl: 22 } as const;
+
+/** Títulos (`Title order={n}` en web, `Title order={n}` de `@/shared/ui` en mobile); peso 700. */
+export const HEADING = {
+  h1: { fontSize: 28, lineHeight: 33 },
+  h2: { fontSize: 22, lineHeight: 30 },
+  h3: { fontSize: 18, lineHeight: 22 },
+  h4: { fontSize: 16, lineHeight: 18 },
+  h5: { fontSize: 14, lineHeight: 16 },
+  h6: { fontSize: 12, lineHeight: 14 },
 } as const;
 
 export const SPACING = {

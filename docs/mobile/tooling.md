@@ -8,6 +8,7 @@ Convenciones de `apps/mobile`: [apps/mobile/CLAUDE.md](../../apps/mobile/CLAUDE.
 pnpm dev:mobile
 pnpm --filter mobile check-types
 pnpm --filter mobile lint
+pnpm --filter mobile test      # jest-expo; en CI corre como test:coverage vía turbo
 pnpm --filter mobile prebuild
 ```
 

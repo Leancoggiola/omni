@@ -35,7 +35,7 @@ export const ConfirmProvider: FC<{ children: ReactNode }> = ({ children }) => {
           <Button variant="outline" onClick={() => close(false)}>
             {request?.cancelLabel}
           </Button>
-          <Button color="destructive" onClick={() => close(true)}>
+          <Button color={request?.destructive === false ? 'brand' : 'destructive'} onClick={() => close(true)}>
             {request?.confirmLabel}
           </Button>
         </Group>

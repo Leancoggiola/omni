@@ -123,19 +123,25 @@ La excepción son los **washes sobre superficies casi blancas**: una mezcla que 
 
 ---
 
-## Componentes compartidos (web)
+## Componentes compartidos
 
-| Componente                                   | Uso                                                                          |
-| -------------------------------------------- | ---------------------------------------------------------------------------- |
-| `PageHeader` (`@/shared/ui`)                 | Cabecera de página: chip de ícono terracota + título + subtítulo + `actions` |
-| `NotificationCard` (`@/shared/ui`)           | Contenido de toast, vía `renderNotification` de Mantine 9.6                  |
-| `LoadingState` / `EmptyState` / `ErrorState` | Estados de UI (ver `apps/web/CLAUDE.md`)                                     |
+Los dos clientes tienen `@/shared/ui` con la misma API; cambia la implementación (Mantine / Tamagui).
+
+| Web                                          | Mobile                                       | Uso                                                                          |
+| -------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------- |
+| `PageHeader`                                 | `ScreenHeader`                               | Cabecera de página: chip de ícono terracota + título + subtítulo + `actions` |
+| `Paper` / `ProfileSectionCard`               | `SectionCard`                                | Superficie de contenido (card cálida, radio `lg`, sombra `sm`)               |
+| `Title order`                                | `Title order`                                | Títulos con la escala `HEADING`                                              |
+| `NotificationCard` + `notify*`               | `NotificationCard` + `notify*`               | Toasts de feedback (4 variantes)                                             |
+| `confirm()` (modal)                          | `confirm()` (bottom sheet)                   | Confirmación; `Promise<boolean>`                                             |
+| `LoadingState` / `EmptyState` / `ErrorState` | `LoadingState` / `EmptyState` / `ErrorState` | Estados de UI (regla de oro 0)                                               |
+| Select de estado (`.combobox_root[data-*]`)  | `StatusPill`                                 | Estado de media: neutro / terracota / sage                                   |
 
 ### Notificaciones
 
-`notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` desde `@/shared/ui`. Las features **no** importan `@mantine/notifications` directo.
+`notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` desde `@/shared/ui`. En web las features **no** importan `@mantine/notifications` directo; en mobile **no** usan `Alert.alert`.
 
-Cada variante deriva su acento y su wash de los tokens semánticos (`icons-{variante}` y `surfaces-{variante}-light`), así que sumar una variante no requiere CSS nuevo por esquema.
+Cada variante deriva su acento y su wash de los tokens semánticos (`icons-{variante}` y `surfaces-{variante}-light`; en mobile, `SEMANTIC.successIcon`/`successSurface`, etc.), así que sumar una variante no requiere CSS nuevo por esquema. Mobile dibuja el wash con `expo-linear-gradient` a 135°, igual que el `linear-gradient` de web, terminando en el mismo color con alfa 0 (no `transparent`: Android interpola sin premultiplicar y deja una banda gris). Diferencia aceptada: el chip del ícono usa `surfaces-{variante}-light` como fondo, porque RN no tiene `color-mix`.
 
 ---
 
@@ -183,17 +189,17 @@ Lo que ya es automático: cualquier cambio en `tokens.ts` llega a mobile vía `S
 
 Lo que **no** es automático y hay que replicar a mano en mobile:
 
-| Web                                   | Estado en mobile                                                                  |
-| ------------------------------------- | --------------------------------------------------------------------------------- |
-| Gradiente cálido del sidebar          | No aplica (mobile usa tabs, no sidebar)                                           |
-| `PageHeader` con chip de ícono        | **Pendiente** — falta el equivalente Tamagui                                      |
-| `NotificationCard` (4 variantes)      | **Pendiente** — mobile hoy usa `Alert.alert` nativo                               |
-| Badges de tipo en terracota           | **Pendiente** — revisar `apps/mobile/src/features/media/components/MediaCard.tsx` |
-| Estados media (neutro/terracota/sage) | **Pendiente** — verificar que mobile no use verde/azul crudos                     |
-| Card de efemérides (gradiente)        | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                 |
-| Montserrat + íconos Phosphor          | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                            |
-| Radios y espaciado                    | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                              |
-| Tema del perfil + toggle de sesión    | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)   |
+| Web                                   | Estado en mobile                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------- |
+| Gradiente cálido del sidebar          | No aplica (mobile usa tabs, no sidebar)                                         |
+| `PageHeader` con chip de ícono        | Componente listo (`ScreenHeader`); falta usarlo en las pantallas (#66)          |
+| `NotificationCard` (4 variantes)      | Componente listo (`notify*`); falta migrar `Alert.alert` (#68, #69)             |
+| Badges de tipo en terracota           | **Pendiente** — `MediaCard` (#68)                                               |
+| Estados media (neutro/terracota/sage) | Componente listo (`StatusPill`); falta usarlo en `MediaCard` (#68)              |
+| Card de efemérides (gradiente)        | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                               |
+| Montserrat + íconos Phosphor          | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                          |
+| Radios y espaciado                    | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                            |
+| Tema del perfil + toggle de sesión    | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`) |
 
 Al tocar el design system, correr siempre:
 
