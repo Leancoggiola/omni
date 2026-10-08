@@ -15,6 +15,13 @@ function buildTheme(scheme: 'light' | 'dark'): Theme {
       border: s.border,
       notification: s.destructive,
     },
+    // Caras cargadas en `theme/fonts.ts`: en Android cada peso es su propia familia.
+    fonts: {
+      regular: { fontFamily: 'Montserrat', fontWeight: 'normal' },
+      medium: { fontFamily: 'MontserratMedium', fontWeight: 'normal' },
+      bold: { fontFamily: 'MontserratSemiBold', fontWeight: 'normal' },
+      heavy: { fontFamily: 'MontserratBold', fontWeight: 'normal' },
+    },
   };
 }
 

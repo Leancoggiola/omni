@@ -65,7 +65,8 @@ Lo que más pesa en Windows es **Microsoft Defender** escaneando cada archivo qu
 - **No usar `node-linker=hoisted`.** Aplana `node_modules` y esquiva las rutas largas, pero rompe web: el monorepo tiene dos versiones de React (React Native 0.81 exige 19.1.0 y Mantine/react-router piden ≥19.2), con hoisted la raíz queda con la de mobile y web termina con dos instancias de React (`Cannot read properties of null (reading 'useState')` en los tests). La solución es la de rutas largas del setup (`LongPathsEnabled` + CMake ≥3.31). Si alguna vez se cambia el linker, borrar **todos** los `node_modules` antes de reinstalar: pnpm no limpia las junctions del layout anterior.
 - **`metro.config.js` fuerza la build CommonJS de `swr`.** swr publica builds CJS y ESM con contextos separados; si el bundle mezcla las dos, los hooks de `swr/immutable` no ven el `fetcher` del `SWRConfig` y nunca piden datos (pantallas en loading infinito o vacías).
 - **`tamagui.config.ts` tiene `export default`.** El compilador de `@tamagui/babel-plugin` solo encuentra la config así; sin eso la descarta, reintenta en cada archivo y el bundle se cuelga.
-- **Fuentes Inter.** `app/_layout.tsx` carga las caras de Inter (`src/theme/fonts.ts`) y `tamagui.config.ts` mapea cada `fontWeight` a su cara: sin eso Android ignora las negritas.
+- **Fuente Montserrat (igual que web).** `app/_layout.tsx` carga las caras 400/500/600/700 (`src/theme/fonts.ts`) y `tamagui.config.ts` mapea cada `fontWeight` a su cara: sin eso Android ignora las negritas. Se importan por peso (`@expo-google-fonts/montserrat/700Bold`): el barrel del paquete mete los 18 `.ttf` en el bundle.
+- **Íconos Phosphor (`phosphor-react-native`).** Mismos nombres que `@phosphor-icons/react` en web (`HouseIcon`, `FilmSlateIcon`, …). Depende de `react-native-svg`, que es nativo: al agregarlo o actualizarlo hay que rebuildear el dev client (`pnpm --filter mobile prebuild` + `expo run:android`).
 
 ## Relación con web
 

@@ -407,6 +407,8 @@ export const semanticDark = {
 /**
  * Compact semantic map for mobile (Tamagui) and legacy consumers.
  * Derived from `semanticLight` / `semanticDark`.
+ * `secondary` es el alias histórico de fondo secundario (en dark apunta a `surfaces-disabled`);
+ * para el estado neutro "por ver" usar `dimmedSurface` + `dimmedBorder`, igual que web.
  */
 export const SEMANTIC = {
   light: {
@@ -421,6 +423,15 @@ export const SEMANTIC = {
     info: semanticLight['--mantine-color-text-info'],
     accent: semanticLight['--mantine-color-text-accent'],
     accentSurface: semanticLight['--mantine-color-surfaces-accent-light'],
+    accentBorder: semanticLight['--mantine-color-border-accent'],
+    successSurface: semanticLight['--mantine-color-surfaces-success-light'],
+    successBorder: semanticLight['--mantine-color-border-success'],
+    dimmedSurface: semanticLight['--mantine-color-surfaces-dimmed-subtle'],
+    dimmedBorder: semanticLight['--mantine-color-border-dimmed'],
+    primarySurface: semanticLight['--mantine-color-surfaces-primary-light'],
+    hover: semanticLight['--mantine-color-surfaces-hover'],
+    onPrimary: semanticLight['--mantine-color-text-white'],
+    onDestructive: semanticLight['--mantine-color-text-white'],
     dimmed: semanticLight['--mantine-color-text-dimmed'],
     placeholder: semanticLight['--mantine-color-text-placeholder'],
     anchor: semanticLight['--mantine-color-text-link-default'],
@@ -440,6 +451,16 @@ export const SEMANTIC = {
     info: semanticDark['--mantine-color-text-info'],
     accent: semanticDark['--mantine-color-text-accent'],
     accentSurface: semanticDark['--mantine-color-surfaces-accent-light'],
+    accentBorder: semanticDark['--mantine-color-border-accent'],
+    successSurface: semanticDark['--mantine-color-surfaces-success-light'],
+    successBorder: semanticDark['--mantine-color-border-success'],
+    dimmedSurface: semanticDark['--mantine-color-surfaces-dimmed-subtle'],
+    dimmedBorder: semanticDark['--mantine-color-border-dimmed'],
+    primarySurface: semanticDark['--mantine-color-surfaces-primary-light'],
+    hover: semanticDark['--mantine-color-surfaces-hover'],
+    // El primario de dark es claro (BRAND[3]): el texto encima va con el fondo de página, no blanco.
+    onPrimary: semanticDark['--mantine-color-surfaces-device-bg'],
+    onDestructive: semanticDark['--mantine-color-text-white'],
     dimmed: semanticDark['--mantine-color-text-dimmed'],
     placeholder: semanticDark['--mantine-color-text-placeholder'],
     anchor: semanticDark['--mantine-color-text-link-default'],
@@ -458,6 +479,46 @@ export const GRADIENT_STOPS = {
   terracotta: { from: TERRACOTTA[4], to: TERRACOTTA[7], deg: 90 },
   cardLight: { from: BRAND[0], to: BRAND[2], deg: 215 },
   cardDark: { from: BRAND[4], to: BRAND[5], deg: 215 },
+} as const;
+
+/**
+ * Escalas de layout en px, compartidas por los dos clientes. Web las pasa a rem (`px / 16`) para
+ * Mantine; mobile las usa como números (`borderRadius={RADIUS.lg}`), sin registrarlas en Tamagui.
+ */
+export const RADIUS = {
+  none: 0,
+  xs: 2,
+  sm: 6,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  full: 9999,
+} as const;
+
+export const SPACING = {
+  none: 0,
+  '3xs': 2,
+  '2xs': 4,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 20,
+  xl: 24,
+  '2xl': 32,
+  '3xl': 48,
+  '4xl': 64,
+} as const;
+
+/**
+ * Elevación para nativo (`shadow*` en iOS, `elevation` en Android). Replica la capa principal de
+ * los `SHADOWS` CSS de web (`apps/web/src/theme/tokens.ts`): si cambia uno, revisar el otro.
+ */
+export const SHADOW = {
+  xs: { color: '#000000', offsetY: 1, radius: 2, opacity: 0.05, elevation: 1 },
+  sm: { color: '#000000', offsetY: 1, radius: 3, opacity: 0.1, elevation: 2 },
+  md: { color: '#000000', offsetY: 4, radius: 6, opacity: 0.1, elevation: 4 },
+  lg: { color: '#000000', offsetY: 10, radius: 15, opacity: 0.1, elevation: 8 },
+  brand: { color: '#96786F', offsetY: 10, radius: 15, opacity: 0.2, elevation: 8 },
 } as const;
 
 export type BrandShade = keyof typeof BRAND;

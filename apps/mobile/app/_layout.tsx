@@ -10,7 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '@/core/auth';
 import { ColorSchemeProvider, useColorSchemeControl } from '@/core/theme';
 import { NAVIGATION_THEMES } from '@/theme/navigationTheme';
-import { INTER_FACES } from '@/theme/fonts';
+import { MONTSERRAT_FACES } from '@/theme/fonts';
 import { tamaguiConfig } from '@/theme/tamagui.config';
 
 // La splash nativa queda visible hasta que se resuelvan las fuentes (ver RootLayout). Puede
@@ -59,7 +59,7 @@ function ThemedRoot({ children }: PropsWithChildren) {
 export default function RootLayout() {
   // Solo para el primer render: el tema efectivo lo fija ThemedRoot.
   const systemScheme = useColorScheme();
-  const [fontsLoaded, fontError] = useFonts(INTER_FACES);
+  const [fontsLoaded, fontError] = useFonts(MONTSERRAT_FACES);
   const fontsSettled = fontsLoaded || !!fontError;
 
   useEffect(() => {

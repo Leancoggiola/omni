@@ -31,14 +31,22 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     info: s.info,
     accent: s.accent,
     accentSurface: s.accentSurface,
+    accentBorder: s.accentBorder,
+    successSurface: s.successSurface,
+    successBorder: s.successBorder,
+    dimmedSurface: s.dimmedSurface,
+    dimmedBorder: s.dimmedBorder,
+    primarySurface: s.primarySurface,
+    hover: s.hover,
     primary: s.primary,
+    onPrimary: s.onPrimary,
     dimmed: s.dimmed,
   } as Theme;
 }
 
 function primaryTheme(scheme: 'light' | 'dark', base: Theme): Theme {
   const s = SEMANTIC[scheme];
-  const onPrimary = scheme === 'light' ? '#ffffff' : SEMANTIC.dark.body;
+  const onPrimary = s.onPrimary;
   return {
     ...base,
     background: s.primary,
@@ -60,7 +68,7 @@ function primaryTheme(scheme: 'light' | 'dark', base: Theme): Theme {
 
 function destructiveTheme(scheme: 'light' | 'dark', base: Theme): Theme {
   const s = SEMANTIC[scheme];
-  const onDestructive = '#ffffff';
+  const onDestructive = s.onDestructive;
   return {
     ...base,
     background: s.destructive,
@@ -92,25 +100,29 @@ function altTheme(scheme: 'light' | 'dark', base: Theme, strength: 1 | 2): Theme
 }
 
 /**
- * En nativo cada peso de Inter es una familia aparte (las carga `app/_layout.tsx`, ver
- * `theme/fonts.ts`). La fuente `body` de @tamagui/config no trae este mapeo, así que sin él
- * `fontWeight` no tiene efecto en Android.
+ * Montserrat, igual que web. En nativo cada peso es una familia aparte (las carga `app/_layout.tsx`,
+ * ver `theme/fonts.ts`): sin este mapeo `fontWeight` no tiene efecto en Android.
  */
-const interFace = {
-  400: { normal: 'Inter' },
-  500: { normal: 'InterMedium' },
-  600: { normal: 'InterSemiBold' },
-  700: { normal: 'InterBold' },
-  800: { normal: 'InterBold' },
-  900: { normal: 'InterBold' },
+const montserratFace = {
+  400: { normal: 'Montserrat' },
+  500: { normal: 'MontserratMedium' },
+  600: { normal: 'MontserratSemiBold' },
+  700: { normal: 'MontserratBold' },
+  800: { normal: 'MontserratBold' },
+  900: { normal: 'MontserratBold' },
 };
+
+// Radios y espaciado compartidos con web: `RADIUS` / `SPACING` de `@omni/shared/theme`, como números
+// (`borderRadius={RADIUS.lg}`, `padding={SPACING.md}`). No se registran como tokens de Tamagui: sus
+// componentes (Input, Select, Popover, ListItem) recorren `space`/`radius` ordenados por valor con
+// `getSpace(token, { shift })`, y meter valores nuevos en la escala les cambia el padding.
 
 export const tamaguiConfig = createTamagui({
   ...config,
   fonts: {
     ...config.fonts,
-    body: { ...config.fonts.body, face: interFace },
-    heading: { ...config.fonts.heading, face: interFace },
+    body: { ...config.fonts.body, family: 'Montserrat', face: montserratFace },
+    heading: { ...config.fonts.heading, family: 'Montserrat', face: montserratFace },
   },
   themes: {
     ...config.themes,

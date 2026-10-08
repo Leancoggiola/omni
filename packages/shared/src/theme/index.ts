@@ -16,6 +16,9 @@ export {
   SAGE,
   SEMANTIC,
   GRADIENT_STOPS,
+  RADIUS,
+  SPACING,
+  SHADOW,
   semanticLight,
   semanticDark,
 } from './tokens';

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Linking, Pressable, StyleSheet, type AccessibilityActionEvent } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { ArrowSquareOutIcon, ConfettiIcon } from 'phosphor-react-native';
 import { Paragraph, XStack, YStack } from 'tamagui';
 
 import { useColorSchemeControl } from '@/core/theme';
@@ -92,7 +92,7 @@ export function HolidaysCard() {
 
         <XStack gap="$3" padding="$3" alignItems="flex-start" minHeight={CARD_MIN_HEIGHT}>
           <YStack backgroundColor={s.white} borderRadius="$3" padding="$2">
-            <MaterialCommunityIcons name="party-popper" size={20} color={BRAND[7]} />
+            <ConfettiIcon size={20} color={BRAND[7]} />
           </YStack>
 
           <YStack
@@ -129,7 +129,7 @@ export function HolidaysCard() {
             accessibilityLabel="Ver efemérides de hoy en Wikipedia"
             hitSlop={8}
           >
-            <Ionicons name="open-outline" size={18} color={s.black} />
+            <ArrowSquareOutIcon size={18} color={s.black} />
           </Pressable>
         </XStack>
 

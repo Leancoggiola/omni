@@ -1,5 +1,14 @@
+import { RADIUS as RADIUS_PX, SPACING as SPACING_PX } from '@omni/shared/theme';
+
 export { BRAND, GRAY, SEMANTIC } from '@omni/shared/theme';
 
+/** Las escalas compartidas están en px (las usa también mobile); Mantine las recibe en rem. */
+function toRem<K extends string>(scale: Record<K, number>): Record<K, string> {
+  const entries = Object.entries<number>(scale).map(([key, px]) => [key, px === 0 ? '0' : `${px / 16}rem`]);
+  return Object.fromEntries(entries) as Record<K, string>;
+}
+
+/** Mobile replica la capa principal de cada sombra en `SHADOW` de `@omni/shared/theme`. */
 export const SHADOWS = {
   xs: '0 1px 2px rgb(0 0 0 / 0.05)',
   sm: '0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
@@ -8,12 +17,6 @@ export const SHADOWS = {
   brand: '0 10px 15px -3px rgb(150 120 111 / 0.2), 0 4px 6px -4px rgb(150 120 111 / 0.2)',
 } as const;
 
-export const RADIUS = {
-  none: '0',
-  xs: '0.125rem',
-  sm: '0.375rem',
-  md: '0.5rem',
-  lg: '0.75rem',
-  xl: '1rem',
-  full: '9999px',
-} as const;
+export const RADIUS = { ...toRem(RADIUS_PX), full: `${RADIUS_PX.full}px` };
+
+export const SPACING = toRem(SPACING_PX);
