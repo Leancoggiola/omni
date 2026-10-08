@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import { createUserViaAdmin, storageStateFor, type NewUser } from '../support/adminApi';
-import { RUN_SUFFIX, WORKER_PASSWORD, workerUsername } from '../support/env';
+import { ADMIN, RUN_SUFFIX, WORKER_PASSWORD, workerUsername } from '../support/env';
 
 export type WorkerUser = NewUser;
 
@@ -18,6 +18,8 @@ const PIXEL = Buffer.from(
 interface Fixtures {
   /** Crea un usuario nuevo y deja su sesión activa. Para tests que no toleran datos previos. */
   freshUser: (label: string) => Promise<NewUser>;
+  /** Reemplaza la sesión del contexto por la del ADMIN del seed. No crea ni modifica usuarios. */
+  loginAsAdmin: () => Promise<void>;
 }
 
 interface WorkerFixtures {
@@ -69,6 +71,14 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
       await page.context().clearCookies();
       await page.context().addCookies(cookies);
       return user;
+    });
+  },
+
+  loginAsAdmin: async ({ page }, use) => {
+    await use(async () => {
+      const { cookies } = await storageStateFor(ADMIN);
+      await page.context().clearCookies();
+      await page.context().addCookies(cookies);
     });
   },
 
