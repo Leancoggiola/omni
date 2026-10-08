@@ -13,11 +13,8 @@ export class HomePage {
   // Layout: en desktop solo se ve el toggle del navbar (el header es mobile-only).
   readonly themeToggle = () => this.page.getByRole('button', { name: /^Cambiar a tema (claro|oscuro)$/ });
   readonly logoutButton = () => this.page.getByRole('button', { name: 'Cerrar sesión' });
-  /**
-   * Los `NavLink` del navbar se renderizan como `<a>` sin `href` (navegan con `onClick`), así que
-   * no exponen el rol `link`: se acotan por texto dentro del `<nav>`.
-   */
-  readonly navItem = (label: string) => this.page.getByRole('navigation').getByText(label, { exact: true });
+  readonly navItem = (label: string) =>
+    this.page.getByRole('navigation').getByRole('link', { name: label, exact: true });
   /** Mantine refleja el esquema aplicado en `data-mantine-color-scheme` del `<html>`. */
   readonly documentRoot = () => this.page.locator('html');
 
