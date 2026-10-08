@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ActionIcon,
@@ -34,6 +34,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -44,6 +45,11 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
     (path: string) => (path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)),
     [location.pathname]
   );
+
+  // En pantallas bajas la lista scrollea: el ítem de la ruta actual no puede quedar cortado.
+  useEffect(() => {
+    viewportRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' });
+  }, [location.pathname]);
 
   const renderNavItem = (item: NavItemConfig) => {
     const renderIcon = (active: boolean) => (
@@ -99,7 +105,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
         </Group>
       </AppShell.Section>
       <Divider />
-      <AppShell.Section grow my="md" component={ScrollArea}>
+      <AppShell.Section grow my="md" component={ScrollArea} type="auto" viewportRef={viewportRef}>
         <Stack gap="2xs">
           {MAIN_NAV_ITEMS.map(renderNavItem)}
           {user?.role === 'ADMIN' && (
