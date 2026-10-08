@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ActionIcon,
   AppShell,
@@ -40,35 +40,44 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
     navigate('/login');
   }, [logout, navigate]);
 
-  const handleNavigate = useCallback(
-    (path: string) => {
-      navigate(path);
-      onClose();
-    },
-    [navigate, onClose]
-  );
-
   const isActive = useCallback(
     (path: string) => (path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)),
     [location.pathname]
   );
 
   const renderNavItem = (item: NavItemConfig) => {
-    const isDisabled = item.disabled || !item.path;
-    const active = !isDisabled && item.path ? isActive(item.path) : false;
+    const renderIcon = (active: boolean) => (
+      <ThemeIcon variant={active ? 'white' : 'filled'} color="brand" size="lg" radius="md">
+        {item.icon}
+      </ThemeIcon>
+    );
+
+    // Sin destino no hay `href`: `role="link"` + `aria-disabled` es el patrón ARIA de link deshabilitado.
+    if (item.disabled || !item.path) {
+      return (
+        <NavLink
+          key={item.label}
+          label={item.label}
+          leftSection={renderIcon(false)}
+          disabled
+          role="link"
+          aria-disabled
+        />
+      );
+    }
+
+    const active = isActive(item.path);
 
     return (
       <NavLink
         key={item.label}
+        component={Link}
+        to={item.path}
         label={item.label}
-        leftSection={
-          <ThemeIcon variant={active ? 'white' : 'filled'} color="brand" size="lg" radius="md">
-            {item.icon}
-          </ThemeIcon>
-        }
+        leftSection={renderIcon(active)}
         active={active}
-        disabled={isDisabled}
-        onClick={isDisabled || !item.path ? undefined : () => handleNavigate(item.path!)}
+        aria-current={active ? 'page' : undefined}
+        onClick={onClose}
       />
     );
   };
