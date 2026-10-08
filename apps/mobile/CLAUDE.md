@@ -84,8 +84,14 @@ A diferencia de web (alineados a la derecha), en mobile van **centrados y full-w
 - Acciones destructivas standalone (ej. "Eliminar cuenta") siguen siendo filled (`theme="red"`), igual que en web.
 - `LoginScreen`, `MediaScreen` y `ProfileScreen` todavía usan `Alert.alert`: se migran a `notify*` / `confirm` en #67, #68 y #69.
 
+## Tests
+
+- `jest-expo` + `@testing-library/react-native`. Archivos `*.test.ts(x)` al lado del código, nunca dentro de `app/` (Expo Router los tomaría como rutas).
+- Lógica pura (reducers de cola, helpers de tema) se testea sin renderizar. Para providers, mockear `tamagui` con dobles mínimos y probar el comportamiento, no el componente de Tamagui (ver `src/shared/ui/confirm/ConfirmProvider.test.tsx`).
+- Si un paquete de `node_modules` publica ESM sin build CommonJS, sumarlo a `transformIgnorePatterns` en `jest.config.js`.
+
 ## Verificación
 
 ```bash
-pnpm --filter mobile check-types && pnpm --filter mobile lint
+pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile test
 ```
