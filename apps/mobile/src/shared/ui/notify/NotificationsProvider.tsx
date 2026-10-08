@@ -6,33 +6,19 @@ import { YStack } from 'tamagui';
 import { SPACING } from '@omni/shared/theme';
 
 import { NotificationCard } from './NotificationCard';
-import { registerNotificationHandler, type NotificationRequest } from './notify';
+import { autoCloseMs, enqueueNotification, registerNotificationHandler, type NotificationRequest } from './notify';
 
-/** Mismo `autoClose` que el default de Mantine en web. */
-const AUTO_CLOSE_MS = 4000;
-const MAX_VISIBLE = 3;
 /** Por encima del Sheet de `confirm()` (`zIndex` 100 000): un error de la acción confirmada se tiene que ver. */
 const STACK_Z_INDEX = 100_001;
-
-/**
- * Agrega `request` respetando `MAX_VISIBLE`. Al llenarse se descarta la más vieja que no sea un
- * error: un `notifyError` sin leer no se pierde por un éxito posterior.
- */
-export function enqueueNotification(items: NotificationRequest[], request: NotificationRequest) {
-  const next = [...items, request];
-  if (next.length <= MAX_VISIBLE) return next;
-  const evict = next.findIndex(item => item.variant !== 'error');
-  return next.filter((_, index) => index !== (evict === -1 ? 0 : evict));
-}
 
 function AnimatedNotification({ request, onClose }: { request: NotificationRequest; onClose: (id: number) => void }) {
   const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(progress, { toValue: 1, duration: 180, useNativeDriver: true }).start();
-    const timer = setTimeout(() => onClose(request.id), AUTO_CLOSE_MS);
+    const timer = setTimeout(() => onClose(request.id), autoCloseMs(request.variant));
     return () => clearTimeout(timer);
-  }, [progress, onClose, request.id]);
+  }, [progress, onClose, request.id, request.variant]);
 
   return (
     <Animated.View

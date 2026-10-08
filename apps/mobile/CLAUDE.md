@@ -72,7 +72,7 @@ Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 | `notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` | Feedback de acciones. **Nunca `Alert.alert`**                                             |
 | `confirm({ title, description, … })`                             | Confirmación en bottom sheet; devuelve `Promise<boolean>`                                 |
 
-- Medidas: `RADIUS` / `SPACING` / `FONT_SIZE` de `@omni/shared/theme` como números (`padding={SPACING.md}`); sombras con `elevation('sm')` de `@/theme/elevation`. No usar los `$4` de Tamagui en código nuevo (ver `docs/design-system.md`).
+- Medidas: `RADIUS` / `SPACING` / `FONT_SIZE` de `@omni/shared/theme` como números (`padding={SPACING.md}`); sombras con `elevation('sm')` de `@/theme/elevation`. No usar tokens `$4` de Tamagui como medida (`padding="$4"`, `gap="$2"`, `borderRadius="$4"`) en código nuevo (ver `docs/design-system.md`). La prop `size` de los componentes de Tamagui (`<Button size="$4">`, `Spinner`) es otra cosa: elige una variante del componente (alto, padding y fuente juntos) y se sigue usando.
 - Colores: tokens de tema (`$accentSurface`, `$destructive`, …) en props de Tamagui; para valores crudos (íconos Phosphor, gradientes), `useSemanticColors()` de `@/core/theme`.
 
 ## Botones de acción

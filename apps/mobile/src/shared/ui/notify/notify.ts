@@ -7,6 +7,26 @@ export type NotificationRequest = {
   message: string;
 };
 
+/** Mismo `autoClose` que el default de Mantine en web; los errores quedan el doble para poder leerlos. */
+const AUTO_CLOSE_MS = 4000;
+const ERROR_AUTO_CLOSE_MS = 8000;
+const MAX_VISIBLE = 3;
+
+export function autoCloseMs(variant: NotificationVariant): number {
+  return variant === 'error' ? ERROR_AUTO_CLOSE_MS : AUTO_CLOSE_MS;
+}
+
+/**
+ * Agrega `request` respetando `MAX_VISIBLE`. Al llenarse se descarta la más vieja que no sea un
+ * error: un `notifyError` sin leer no se pierde por un éxito posterior.
+ */
+export function enqueueNotification(items: NotificationRequest[], request: NotificationRequest): NotificationRequest[] {
+  const next = [...items, request];
+  if (next.length <= MAX_VISIBLE) return next;
+  const evict = next.findIndex(item => item.variant !== 'error');
+  return next.filter((_, index) => index !== (evict === -1 ? 0 : evict));
+}
+
 let showHandler: ((request: NotificationRequest) => void) | null = null;
 let nextId = 0;
 
