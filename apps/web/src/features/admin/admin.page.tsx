@@ -23,7 +23,7 @@ export const AdminPage: FC = () => {
     if (error) return <ErrorState message="No se pudieron cargar los usuarios" onRetry={() => mutate()} />;
     if (isLoading) return <LoadingState />;
     if (users.length === 0) {
-      return <EmptyState icon={<UsersIcon size="1.5rem" />} title="Todavía no hay usuarios" action={createButton} />;
+      return <EmptyState icon={<UsersIcon size="1.5rem" />} title="Todavía no hay usuarios" />;
     }
 
     return (
