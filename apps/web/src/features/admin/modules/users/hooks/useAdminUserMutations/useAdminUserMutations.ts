@@ -11,10 +11,10 @@ export function useAdminUserMutations() {
 
   const invalidateUsers = useCallback(async () => {
     // Si falla solo la revalidación, la operación ya se hizo: no se propaga para no mostrar un falso error
-    // (reintentar un alta daría 409). La lista se corrige en la próxima revalidación.
-    await mutate((key: unknown) => typeof key === 'string' && key.startsWith(SWR_KEYS.admin.users), undefined, {
-      revalidate: true,
-    }).catch(() => undefined);
+    // (reintentar un alta daría 409). Sin `undefined` como dato: revalida conservando la lista visible.
+    await mutate((key: unknown) => typeof key === 'string' && key.startsWith(SWR_KEYS.admin.users)).catch(
+      () => undefined
+    );
   }, [mutate]);
 
   const createUser = useCallback(
