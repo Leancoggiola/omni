@@ -9,7 +9,7 @@ apps/e2e/
   tests/<feature>.spec.ts     # specs
   src/pages/<Feature>Page.ts  # page objects
   src/fixtures/test.ts        # fixture propio (usuario por worker)
-  src/support/                # env, admin API, stub de TMDB, globalSetup
+  src/support/                # env, admin API, stub de APIs externas (TMDB + Wikipedia), globalSetup
 ```
 
 ## Reglas

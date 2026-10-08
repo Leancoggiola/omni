@@ -21,6 +21,7 @@ export function ProfileScreen() {
   const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [savingTheme, setSavingTheme] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   if (isLoading || !profile) {
     return (
@@ -78,6 +79,17 @@ export function ProfileScreen() {
       Alert.alert('Listo', 'Contraseña actualizada');
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'No se pudo cambiar');
+    }
+  };
+
+  const onLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+    } catch (err) {
+      // En el camino exitoso la sesión se limpia y esta pantalla se desmonta: solo se reactiva el botón si falló.
+      setLoggingOut(false);
+      Alert.alert('Error', err instanceof Error ? err.message : 'No se pudo cerrar la sesión');
     }
   };
 
@@ -160,8 +172,8 @@ export function ProfileScreen() {
         Eliminar cuenta
       </Button>
 
-      <Button chromeless onPress={() => void logout()}>
-        Cerrar sesión
+      <Button chromeless disabled={loggingOut} onPress={() => void onLogout()}>
+        {loggingOut ? <Spinner /> : 'Cerrar sesión'}
       </Button>
     </YStack>
   );
