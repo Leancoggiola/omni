@@ -1,3 +1,4 @@
+import { adminNavItem } from '@/features/admin';
 import { homeNavItem } from '@/features/home';
 import { mediaNavItem } from '@/features/media';
 import { profileNavItem } from '@/features/profile';
@@ -5,7 +6,7 @@ import { splitExpensesNavItem } from '@/features/split-expenses';
 
 import type { NavItemConfig } from '@/layouts/navConfig';
 
-import { BarbellIcon, DesktopIcon, GearIcon, PackageIcon, WalletIcon } from '@phosphor-icons/react';
+import { BarbellIcon, DesktopIcon, PackageIcon, WalletIcon } from '@phosphor-icons/react';
 
 const iconSize = '1.25rem';
 
@@ -43,6 +44,4 @@ export const MAIN_NAV_ITEMS: NavItemConfig[] = MAIN_NAV_ORDER.map(key => NAV_BY_
   (item): item is NavItemConfig => item != null
 );
 
-export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
-  { label: 'Administración', disabled: true, icon: <GearIcon size={iconSize} /> },
-];
+export const ADMIN_NAV_ITEMS: NavItemConfig[] = [adminNavItem];

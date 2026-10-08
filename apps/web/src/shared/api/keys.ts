@@ -11,6 +11,10 @@ export const SWR_KEYS = {
     password: '/api/users/password',
     account: '/api/users/account',
   },
+  admin: {
+    users: '/api/admin/users',
+    user: (id: string) => `/api/admin/users/${id}`,
+  },
   media: {
     list: '/api/media/list',
     search: '/api/media/search',
