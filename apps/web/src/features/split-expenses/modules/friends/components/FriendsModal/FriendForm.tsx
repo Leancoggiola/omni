@@ -42,7 +42,7 @@ export const FriendForm: FC<FriendFormProps> = ({ onCreate }) => {
   };
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
+    <form noValidate onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="sm">
         <Text size="xs" fw={700} c="dimmed" tt="uppercase">
           Agregar amigo

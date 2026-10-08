@@ -71,7 +71,7 @@ export const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
   };
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
+    <form noValidate onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="sm">
         {error && <Alert color="destructive">{error}</Alert>}
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">

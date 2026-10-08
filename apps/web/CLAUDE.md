@@ -64,6 +64,7 @@ if (items.length === 0) return <EmptyState icon={<Icon />} title="..." action={<
 
 - `useForm` + `<form onSubmit={form.onSubmit(handler)}>` + `form.getInputProps('campo')`.
 - Validación con `schemaResolver(schema, { sync: true })` y schemas Zod de `@omni/shared` (`zod` **no** es dependencia de `apps/web`).
+- Todo `<form>` lleva `noValidate`: los mensajes los da el schema (Zod), no el globo nativo del navegador, que rompe el estilo de la app y sale en el idioma del navegador. Cada campo `required` necesita una regla en el schema que cubra el vacío.
 - Excepciones: búsquedas sin submit; campos custom actualizan con `form.setValues`.
 
 ### Reset de modales

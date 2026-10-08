@@ -83,7 +83,7 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
   });
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form noValidate onSubmit={handleSubmit}>
       <Paper>
         <Stack gap="xl">
           <ProfileSectionCard nested title="Información Personal" subtitle="Actualiza tus datos personales">
