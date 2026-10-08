@@ -72,7 +72,7 @@ export const AddMediaForm: FC<AddMediaFormProps> = ({ loading, existingTmdbIds, 
   };
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
+    <form noValidate onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="md">
         {submitError && <Alert color="destructive">{submitError}</Alert>}
 

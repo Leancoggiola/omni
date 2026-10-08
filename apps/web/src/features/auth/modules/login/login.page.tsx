@@ -46,7 +46,7 @@ export const LoginPage: FC = () => {
     <AuthCard title="¡Te damos la bienvenida a Omni!">
       {error && <Alert color="destructive">{error}</Alert>}
 
-      <form onSubmit={form.onSubmit(handleSubmit)}>
+      <form noValidate onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           <TextInput label="Usuario" key={form.key('username')} {...form.getInputProps('username')} />
           <PasswordInput

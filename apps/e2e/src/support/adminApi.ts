@@ -31,7 +31,7 @@ export async function createUserViaAdmin(user: NewUser): Promise<NewUser> {
 }
 
 /** Devuelve el storageState de una sesión iniciada con ese usuario. */
-export async function storageStateFor(user: NewUser) {
+export async function storageStateFor(user: Pick<NewUser, 'username' | 'password'>) {
   const api = await request.newContext({ baseURL: WEB_URL });
   const login = await api.post('/api/auth/login', {
     data: { username: user.username, password: user.password },

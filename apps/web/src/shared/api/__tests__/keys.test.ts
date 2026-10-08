@@ -8,6 +8,11 @@ describe('SWR_KEYS', () => {
     expect(SWR_KEYS.media.listItem(id)).toBe(`${SWR_KEYS.media.list}/${id}`);
   });
 
+  it('exposes admin users path helpers', () => {
+    expect(SWR_KEYS.admin.users).toBe('/api/admin/users');
+    expect(SWR_KEYS.admin.user('u1')).toBe('/api/admin/users/u1');
+  });
+
   it('exposes lifestyle path helpers', () => {
     expect(SWR_KEYS.gym.plan('p1')).toBe('/api/gym/plans/p1');
     expect(SWR_KEYS.gym.planArchive('p1')).toBe('/api/gym/plans/p1/archive');

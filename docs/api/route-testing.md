@@ -30,7 +30,7 @@ docker compose up -d db-test      # postgres:17-alpine, puerto 5433, tmpfs (efí
 pnpm --filter api db:test:reset   # aplica las migraciones
 ```
 
-La conexión vive en `apps/api/.env.test`, que está **commiteado** porque no contiene secretos reales.
+La conexión vive en `apps/api/.env.test`, que está **commiteado** porque no contiene secretos reales. Si otro worktree ya ocupa el puerto 5433, usá `DB_TEST_PORT=5433+N` tanto al levantar el contenedor como al correr los tests (ver [e2e.md](../tooling/e2e.md)).
 
 > **Guard de seguridad.** `prisma.config.ts` resuelve `DIRECT_URL ?? DATABASE_URL` después de cargar `.env`, así que un `migrate reset` con el entorno de dev en scope borraría la base de Supabase. `db:test:reset` carga `.env.test` con `override` y aborta si el host no es local o si el nombre de la base no termina en `_test`.
 

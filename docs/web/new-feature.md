@@ -10,6 +10,10 @@ pnpm web:new-feature gym --path /gym --register-route --register-nav
 
 Ver [tooling.md](./tooling.md).
 
+> **Git Bash en Windows:** MSYS convierte `/gym` en una ruta de Windows (`C:/Program Files/Git/gym`) y el script lo rechaza. Correrlo con `MSYS_NO_PATHCONV=1 pnpm web:new-feature …` o desde PowerShell.
+
+El script inserta los imports en orden alfabético y registra la ruta y el ítem de navbar sin depender de los vecinos actuales; si no encuentra dónde, falla con un mensaje en vez de dejar el registro a medias.
+
 ## 2. Estructura mínima
 
 ```

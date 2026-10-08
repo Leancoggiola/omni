@@ -30,7 +30,7 @@ export async function createUser(dto: CreateUserPayload) {
 export async function listUsers() {
   const { prisma } = await import('../common/db');
   return prisma.user.findMany({
-    omit: { password: true },
+    select: { id: true, username: true, name: true, email: true, role: true, avatarUrl: true, createdAt: true },
     orderBy: { createdAt: 'desc' },
   });
 }
@@ -43,6 +43,10 @@ export async function deleteUser(userId: string, requesterId: string) {
   const user = await usersService.findById(userId);
   if (!user) {
     throw { status: 404, message: 'Usuario no encontrado' };
+  }
+
+  if (user.role === 'ADMIN') {
+    throw { status: 403, message: 'No se puede eliminar a un administrador' };
   }
 
   await usersService.deleteAccount(userId);

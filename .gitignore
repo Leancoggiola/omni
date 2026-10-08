@@ -17,10 +17,13 @@ node_modules
 blob-report/
 coverage
 test-results/
+test-results-*/
 playwright/.cache/
 playwright-report/
+playwright-report-*/
 .playwright-mcp/
 apps/e2e/.auth/
+apps/e2e/.auth-*/
 
 
 # Turbo

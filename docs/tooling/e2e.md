@@ -21,6 +21,22 @@ docker compose up -d db-e2e     # postgres:17-alpine, puerto 5434, tmpfs (efíme
 pnpm --filter e2e test:e2e
 ```
 
+### Varias copias del repo a la vez (worktrees, sesiones)
+
+Docker Compose nombra el proyecto por carpeta, así que cada worktree crea su propio `db-e2e`, pero todos publican el mismo puerto del host y la API, la web y el stub también usan puertos fijos. Para correr dos suites en simultáneo, la segunda copia define:
+
+```bash
+DB_E2E_PORT=5444 docker compose up -d db-e2e
+E2E_PORT_OFFSET=10 DB_E2E_PORT=5444 pnpm --filter e2e test:e2e
+```
+
+| Variable          | Efecto                                                                                          |
+| ----------------- | ----------------------------------------------------------------------------------------------- |
+| `DB_E2E_PORT`     | Puerto del host de `db-e2e` (default 5434). También lo lee `db:e2e:reset`.                      |
+| `E2E_PORT_OFFSET` | Corre en bloque web (5173), API (3000) y stub (3199). Con offset, `DB_E2E_PORT` es obligatorio. |
+
+Con offset, las sesiones, el reporte y los artefactos van a `.auth-N/`, `playwright-report-N/` y `test-results-N/`, para que las corridas no se pisen. `DB_TEST_PORT` hace lo mismo con `db-test`. Sin variables, nada cambia.
+
 No hace falta levantar nada más: Playwright arranca la API, la web y el stub de APIs externas (TMDB + Wikipedia), y resetea la base antes de cada corrida.
 
 | Script            | Para qué                           |

@@ -60,9 +60,12 @@ describe('Navbar', () => {
   });
 
   it('muestra la sección de administración solo a admins', () => {
+    renderNavbar();
+    expect(screen.queryByRole('link', { name: 'Administración' })).not.toBeInTheDocument();
+
     mockAuth.role = 'ADMIN';
     renderNavbar();
-    expect(screen.getByRole('link', { name: 'Administración' })).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('link', { name: 'Administración' })).toHaveAttribute('href', '/admin');
     mockAuth.role = 'USER';
   });
 });
