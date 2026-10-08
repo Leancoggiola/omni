@@ -27,7 +27,7 @@ Closes #
 pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test
 
 # mobile
-pnpm --filter mobile check-types && pnpm --filter mobile lint
+pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile test
 
 # api (si aplica) — los tests de integración necesitan la base efímera
 docker compose up -d db-test

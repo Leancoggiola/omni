@@ -94,7 +94,7 @@ Las de Mantine/Supabase son de terceros: se actualizan con `npx skills add … -
 
 ```bash
 pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test
-pnpm --filter mobile check-types && pnpm --filter mobile lint
+pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile test
 ```
 
 Si tocaste API, los tests de integración necesitan la base efímera levantada:
