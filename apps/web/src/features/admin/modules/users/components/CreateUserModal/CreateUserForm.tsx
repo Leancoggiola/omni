@@ -1,14 +1,10 @@
 import { FC, useState } from 'react';
 import { Alert, Button, Group, PasswordInput, SimpleGrid, Stack, TextInput } from '@mantine/core';
-import { useForm } from '@mantine/form';
+import { schemaResolver, useForm } from '@mantine/form';
 
 import { getErrorMessage } from '@/shared/ui';
 
-import {
-  createUserFormValidators,
-  INITIAL_CREATE_USER_FORM_VALUES,
-  toCreateUserPayload,
-} from '../../utils/createUserForm';
+import { createUserFormSchema, INITIAL_CREATE_USER_FORM_VALUES, toCreateUserPayload } from '../../utils/createUserForm';
 
 import type { CreateUserFormValues } from '../../utils/createUserForm';
 import type { CreateUserPayload } from '@omni/shared/auth';
@@ -27,7 +23,7 @@ export const CreateUserForm: FC<CreateUserFormProps> = ({ loading, onCreate, onC
   const form = useForm<CreateUserFormValues>({
     mode: 'controlled',
     initialValues: INITIAL_CREATE_USER_FORM_VALUES,
-    validate: createUserFormValidators,
+    validate: schemaResolver(createUserFormSchema, { sync: true }),
   });
 
   const handleSubmit = async (values: CreateUserFormValues) => {
