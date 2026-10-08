@@ -42,7 +42,7 @@ export function NotificationCard({ variant, title, message, onClose }: Notificat
       overflow="hidden"
       {...elevation('md')}
       accessibilityRole="alert"
-      accessibilityLiveRegion="polite"
+      accessibilityLiveRegion={variant === 'error' ? 'assertive' : 'polite'}
     >
       <LinearGradient
         colors={[washColor, washClear]}
