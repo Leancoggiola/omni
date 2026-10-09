@@ -1,4 +1,5 @@
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
+import { AccessibilityInfo } from 'react-native';
 
 import { AuthBackground } from './AuthBackground';
 
@@ -24,9 +25,16 @@ jest.mock('react-native-reanimated', () => {
 });
 
 describe('AuthBackground', () => {
+  const remove = jest.fn();
+  const addListener = jest.spyOn(AccessibilityInfo, 'addEventListener');
+
   beforeEach(() => {
     mockWithRepeat.mockClear();
     mockCancelAnimation.mockClear();
+    remove.mockClear();
+    // El mock de RN acumula las llamadas y no devuelve suscripción: se reinicia por test.
+    addListener.mockReset();
+    addListener.mockReturnValue({ remove } as unknown as ReturnType<typeof AccessibilityInfo.addEventListener>);
   });
 
   it('anima las tres manchas', () => {
@@ -47,6 +55,22 @@ describe('AuthBackground', () => {
     mockReducedMotion.mockReturnValue(true);
     render(<AuthBackground />);
     expect(mockWithRepeat).not.toHaveBeenCalled();
+  });
+
+  it('si se activa "reducir movimiento" con el fondo montado, cancela las animaciones', () => {
+    mockReducedMotion.mockReturnValue(false);
+    const { unmount } = render(<AuthBackground />);
+    expect(addListener).toHaveBeenCalledWith('reduceMotionChanged', expect.any(Function));
+
+    mockCancelAnimation.mockClear();
+    const handler = addListener.mock.calls[0][1] as unknown as (enabled: boolean) => void;
+    mockWithRepeat.mockClear();
+    act(() => handler(true));
+    expect(mockCancelAnimation).toHaveBeenCalled();
+    expect(mockWithRepeat).not.toHaveBeenCalled();
+
+    unmount();
+    expect(remove).toHaveBeenCalled();
   });
 
   it('es decorativo: no recibe toques ni lo lee TalkBack', () => {

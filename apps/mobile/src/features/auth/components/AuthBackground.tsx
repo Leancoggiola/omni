@@ -1,6 +1,6 @@
 import { BRAND, TERRACOTTA } from '@omni/shared/theme';
-import { useEffect } from 'react';
-import { StyleSheet, useWindowDimensions, View, type ViewStyle } from 'react-native';
+import { useEffect, useState } from 'react';
+import { AccessibilityInfo, StyleSheet, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -89,10 +89,16 @@ function BlobShape({ blob, id, animate }: { blob: Blob; id: string; animate: boo
 
 /**
  * Fondo animado del login (= `AnimatedBackground` de web): tres manchas de marca que derivan. Con
- * "reducir movimiento" del sistema (se lee al montar) quedan quietas. Es decorativo: no recibe toques ni lo lee TalkBack.
+ * "reducir movimiento" del sistema quedan quietas, también si se activa con el login abierto. Es decorativo:
+ * no recibe toques ni lo lee TalkBack.
  */
 export function AuthBackground() {
-  const reducedMotion = useReducedMotion();
+  // `useReducedMotion` de reanimated se lee una sola vez al montar: el evento cubre el cambio posterior.
+  const [reducedMotion, setReducedMotion] = useState(useReducedMotion());
+  useEffect(() => {
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReducedMotion);
+    return () => subscription.remove();
+  }, []);
 
   return (
     <View

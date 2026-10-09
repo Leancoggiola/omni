@@ -1,6 +1,7 @@
 // tamagui-ignore
 // Sin extracción del compilador de Tamagui: aplana el YStack estático del contenedor y el test (que mockea
-// `tamagui`) lo recibe sin config. Es una pantalla de un solo render: no se pierde nada en runtime.
+// `tamagui`) lo recibe sin config. Solo se pierde la optimización de esos Stacks: no replicar el ignore sin
+// el mismo motivo (ver Tests en apps/mobile/CLAUDE.md).
 import { loginSchema } from '@omni/shared/auth';
 import { BRAND, RADIUS, SPACING } from '@omni/shared/theme';
 import { useRef, useState } from 'react';
