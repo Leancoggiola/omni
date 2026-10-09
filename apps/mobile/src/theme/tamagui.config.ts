@@ -183,12 +183,15 @@ function onSurfaceTheme(scheme: 'light' | 'dark', base: Theme, background: strin
  */
 function componentThemes(scheme: 'light' | 'dark'): Record<string, Theme> {
   const out: Record<string, Theme> = {};
-  for (const [name, base] of Object.entries(allThemes)) {
+  for (const [name, original] of Object.entries(allThemes)) {
     const parts = name.split('_');
     const component = parts[parts.length - 1];
-    if (parts[0] !== scheme || !base || !COMPONENT_THEMES.includes(component)) continue;
+    if (parts[0] !== scheme || !original || !COMPONENT_THEMES.includes(component)) continue;
     if (component.endsWith('Overlay')) continue;
 
+    // Parte de `surfaceTheme` para que los hijos sigan viendo los tokens custom (`$primary`, `$dimmed`…).
+    const base = surfaceTheme(scheme, original);
+    const s = SEMANTIC[scheme];
     const active = parts.includes('active');
     const red = parts.includes('red');
     const filled = ['SliderTrackActive', 'SliderThumb', 'ProgressIndicator'].includes(component);
@@ -196,13 +199,15 @@ function componentThemes(scheme: 'light' | 'dark'): Record<string, Theme> {
     else if (component === 'Switch' && !active && !red) out[name] = switchTheme(scheme, base, 'track');
     else if (red) out[name] = destructiveTheme(scheme, base);
     else if (active || filled) out[name] = primaryTheme(scheme, base);
-    else if (component === 'Button')
-      out[name] = { ...onSurfaceTheme(scheme, base, SEMANTIC[scheme].card), borderColor: SEMANTIC[scheme].border };
-    else if (component === 'Card' || component === 'ListItem')
-      out[name] = onSurfaceTheme(scheme, base, SEMANTIC[scheme].card);
-    else out[name] = surfaceTheme(scheme, base);
+    else if (component === 'Button') out[name] = { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
+    else if (component === 'Card' || component === 'ListItem') out[name] = onSurfaceTheme(scheme, base, s.card);
+    else if (component === 'SliderTrack' || component === 'Progress')
+      out[name] = onSurfaceTheme(scheme, base, s.border);
+    else if (component.startsWith('Tooltip'))
+      out[name] = { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
+    else out[name] = base;
     // Checked, el Switch de Tamagui pinta la pista con `$backgroundActive` (sin `activeStyle`).
-    if (component === 'Switch') out[name] = { ...out[name], backgroundActive: SEMANTIC[scheme].primary } as Theme;
+    if (component === 'Switch') out[name] = { ...out[name], backgroundActive: s.primary } as Theme;
   }
   return out;
 }

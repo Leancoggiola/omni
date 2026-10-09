@@ -29,18 +29,24 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     ['Card', 'background', s.card],
     ['ListItem', 'color', s.text],
     ['Checkbox', 'borderColor', s.border],
+    ['RadioGroupItem', 'borderColor', s.border],
+    ['SliderTrack', 'background', s.border],
+    ['Progress', 'background', s.border],
+    ['TooltipContent', 'background', s.card],
+    ['red_Switch', 'background', s.destructive],
+    ['blue_Button', 'background', s.card],
+    ['Button', 'primary', s.primary],
+    ['active_Button', 'dimmed', s.dimmed],
   ])('%s: %s resuelve a SEMANTIC', (component, key, expected) => {
     expect(value(`${scheme}_${component}`, key)).toBe(expected);
   });
 
   it('ninguna variante de los componentes conserva el gris de @tamagui/config', () => {
-    const grays = Object.entries(themes).filter(
-      ([name, theme]) =>
-        name.startsWith(`${scheme}_`) &&
-        /_(Button|Switch|SwitchThumb|Checkbox|RadioGroupItem|Card|ListItem|Tooltip)$/.test(name) &&
-        typeof theme.background === 'string' &&
-        /^hsl\(0, 0%/.test(theme.background)
-    );
-    expect(grays.map(([name]) => name)).toEqual([]);
+    const family =
+      /_(Button|Switch|SwitchThumb|Checkbox|RadioGroupItem|Card|ListItem|Tooltip|TooltipContent|SliderTrack|Progress)$/;
+    const checked = Object.keys(themes).filter(name => name.startsWith(`${scheme}_`) && family.test(name));
+    expect(checked.length).toBeGreaterThan(100);
+    const grays = checked.filter(name => /^hsl\(0, 0%/.test(String(value(name, 'background'))));
+    expect(grays).toEqual([]);
   });
 });

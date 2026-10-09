@@ -42,6 +42,12 @@ packages/shared/src/theme/tokens.ts     escalas crudas + semanticLight/semanticD
 2. **Tokens semánticos** (`semanticLight` / `semanticDark`) — mapas de CSS vars agrupados en `text-*`, `surfaces-*`, `border-*`, `icons-*`. Es lo que consumen los componentes.
 3. **Mapa compacto** (`SEMANTIC.light` / `SEMANTIC.dark`) — subset plano derivado de los anteriores, para consumidores sin CSS vars (Tamagui en mobile).
 
+### Sub-themes de componentes (mobile)
+
+`@tamagui/config` trae themes propios por componente (`light_Button`, `dark_active_Switch`, …) que Tamagui busca **antes** que el theme base; si no se pisan, Button y Switch salen grises o rosas. `tamagui.config.ts` los reconstruye todos desde `SEMANTIC` (`componentThemes`): `_red` → destructivo, `_active` → primario, el resto → superficie. Casos puntuales: Button neutro sobre `card` con borde, Switch apagado en `border` con thumb blanco y checked en `backgroundActive` = primario, Slider/Progress activos en primario. Overlays (scrim) no se tocan. Un test (`tamagui.config.test.ts`) verifica que resuelvan a `SEMANTIC`.
+
+Límites de Tamagui: `defaultProps` del config sí llega a Input/TextArea (cursor y selección en `$primary`), pero **no** a Spinner (pasar `color="$primary"`; dentro de un Button primario, `$color`) ni al texto de Button (el peso 600 lo fija el `Button` de #76).
+
 ### Familias semánticas
 
 | Prefijo      | Ejemplo                                 |
@@ -194,6 +200,7 @@ Lo que **no** es automático y hay que replicar a mano en mobile:
 | Gradiente cálido del sidebar          | No aplica (mobile usa tabs, no sidebar)                                         |
 | `PageHeader` con chip de ícono        | Componente listo (`ScreenHeader`); falta usarlo en las pantallas (#66)          |
 | `NotificationCard` (4 variantes)      | Componente listo (`notify*`); falta migrar `Alert.alert` (#68, #69)             |
+| Theme de componentes de Tamagui       | Hecho — sub-themes por componente desde `SEMANTIC` (#75)                        |
 | Badges de tipo en terracota           | **Pendiente** — `MediaCard` (#68)                                               |
 | Estados media (neutro/terracota/sage) | Componente listo (`StatusPill`); falta usarlo en `MediaCard` (#68)              |
 | Card de efemérides (gradiente)        | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                               |
