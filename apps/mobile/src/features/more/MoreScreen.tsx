@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { ScrollView } from 'react-native';
 import { ADMIN_NAV_ORDER } from '@omni/shared/navigation';
 import { SPACING } from '@omni/shared/theme';
-import { SignOutIcon, SquaresFourIcon } from 'phosphor-react-native';
+import { SignOutIcon } from 'phosphor-react-native';
 import { Button, YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { useSemanticColors } from '@/core/theme';
+import { MORE_TAB } from '@/shared/navigation';
 import { getErrorMessage, notifyError, Screen, ScreenHeader, SectionCard } from '@/shared/ui';
 
 import { NavRow } from './components/NavRow';
@@ -34,7 +35,7 @@ export function MoreScreen() {
 
   return (
     <Screen>
-      <ScreenHeader icon={SquaresFourIcon} title="Más" subtitle="Tu cuenta y los módulos de Omni" />
+      <ScreenHeader icon={MORE_TAB.icon} title={MORE_TAB.label} subtitle="Tu cuenta y los módulos de Omni" />
       <ScrollView contentContainerStyle={{ gap: SPACING.md, paddingBottom: SPACING.xl }}>
         <UserCard />
         <SectionCard>

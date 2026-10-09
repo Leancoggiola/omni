@@ -1,23 +1,16 @@
 import { FONT_SIZE, RADIUS } from '@omni/shared/theme';
 import { MOBILE_TAB_KEYS, NAV_REGISTRY } from '@omni/shared/navigation';
 import { Tabs } from 'expo-router';
-import { SquaresFourIcon, type Icon } from 'phosphor-react-native';
+import { type Icon } from 'phosphor-react-native';
 import { Paragraph, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { NAV_ICONS } from '@/shared/navigation';
+import { MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';
 
 import type { NavKey } from '@omni/shared/navigation';
 
 const PILL = { width: 56, height: 30 } as const;
 const ICON_SIZE = 22;
-
-/** Archivo de ruta de cada tab del registro (`app/(tabs)/<route>.tsx`). */
-const TAB_ROUTES: Record<(typeof MOBILE_TAB_KEYS)[number], string> = {
-  home: 'index',
-  media: 'media',
-  pantry: 'pantry',
-};
 
 function TabLabel({ label, focused, color }: { label: string; focused: boolean; color: string }) {
   return (
@@ -62,7 +55,7 @@ const TAB_SCREENS = MOBILE_TAB_KEYS.map(key => ({
   name: TAB_ROUTES[key],
   options: tabOptions(tabLabel(key), NAV_ICONS[key]),
 }));
-const MORE_OPTIONS = tabOptions('Más', SquaresFourIcon);
+const MORE_OPTIONS = tabOptions(MORE_TAB.label, MORE_TAB.icon);
 
 export default function TabsLayout() {
   const colors = useSemanticColors();
@@ -80,7 +73,7 @@ export default function TabsLayout() {
       {TAB_SCREENS.map(({ name, options }) => (
         <Tabs.Screen key={name} name={name} options={options} />
       ))}
-      <Tabs.Screen name="more" options={MORE_OPTIONS} />
+      <Tabs.Screen name={MORE_TAB.route} options={MORE_OPTIONS} />
     </Tabs>
   );
 }
