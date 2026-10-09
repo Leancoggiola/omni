@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Alert } from 'react-native';
-import { Button, Input, Paragraph, Spinner, YStack } from 'tamagui';
+import { Button, Input, Paragraph, YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
+import { Spinner } from '@/shared/ui';
 
 export function LoginScreen() {
   const { login } = useAuth();

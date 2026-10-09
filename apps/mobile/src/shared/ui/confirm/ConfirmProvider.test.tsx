@@ -1,44 +1,15 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import type { ReactNode } from 'react';
+import { BackHandler } from 'react-native';
 
 import { confirm, type ConfirmOptions, type ConfirmRequest } from './confirm';
 import { ConfirmProvider } from './ConfirmProvider';
 
-type SheetProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onAnimationComplete: (event: { open: boolean }) => void;
-  children: ReactNode;
-};
+import { mockSheet, type SheetProps } from '@/test/tamaguiMock';
 
-/**
- * El Sheet de Tamagui se reemplaza por un doble que guarda sus props: lo que se prueba es la cola
- * del provider, y los cierres por overlay/gesto/animación se disparan llamando a esos callbacks.
- */
-const mockSheet: { props: SheetProps | null } = { props: null };
-
-jest.mock('tamagui', () => {
-  const { Pressable, Text, View } = jest.requireActual<typeof import('react-native')>('react-native');
-  const Container = ({ children }: { children?: ReactNode }) => <View>{children}</View>;
-  const Sheet = (props: SheetProps) => {
-    mockSheet.props = props;
-    return <View>{props.children}</View>;
-  };
-  const Nothing = () => null;
-  Sheet.Overlay = Nothing;
-  Sheet.Handle = Nothing;
-  Sheet.Frame = Container;
-  return {
-    Sheet,
-    YStack: Container,
-    Paragraph: ({ children }: { children?: ReactNode }) => <Text>{children}</Text>,
-    Button: ({ children, onPress }: { children?: ReactNode; onPress: () => void }) => (
-      <Pressable accessibilityRole="button" onPress={onPress}>
-        <Text>{children}</Text>
-      </Pressable>
-    ),
-  };
-});
+// El Sheet de Tamagui es un doble que guarda sus props: lo que se prueba es la cola del provider, y
+// los cierres por overlay/gesto/animación se disparan llamando a esos callbacks.
+jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
+jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
 
 /** Handler que registra el provider: permite encolar requests con un `resolve` espía. */
 const mockConfirm: { handler: ((request: ConfirmRequest) => void) | null } = { handler: null };
@@ -140,7 +111,33 @@ describe('ConfirmProvider', () => {
     expect(second.result).toBe(false);
   });
 
-  it('usa los labels por defecto y los personalizados', () => {
+  it('sin labels usa Confirmar y Cancelar', () => {
+    act(() => {
+      track({ title: 'Borrar' });
+    });
+    expect(screen.getByRole('button', { name: 'Confirmar' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeTruthy();
+  });
+
+  it('el botón Atrás de Android cancela (resuelve false) y no navega', async () => {
+    const addListener = jest.spyOn(BackHandler, 'addEventListener');
+    let state!: ReturnType<typeof track>;
+    act(() => {
+      state = track({ title: 'Borrar' });
+    });
+
+    const handler = addListener.mock.calls.at(-1)?.[1];
+    let handled: boolean | null | undefined;
+    act(() => {
+      handled = handler?.();
+    });
+    await flush();
+    expect(handled).toBe(true);
+    expect(state.result).toBe(false);
+    addListener.mockRestore();
+  });
+
+  it('usa los labels personalizados', () => {
     act(() => {
       track({ title: 'Borrar', confirmLabel: 'Borrar', cancelLabel: 'Volver' });
     });
