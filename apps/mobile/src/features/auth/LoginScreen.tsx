@@ -45,6 +45,8 @@ export function LoginScreen() {
         if ((field === 'username' || field === 'password') && !errors[field]) errors[field] = issue.message;
       }
       setFieldErrors(errors);
+      // El error del servidor de un intento anterior ya no corresponde a lo que hay en los campos.
+      setError(null);
       return;
     }
 

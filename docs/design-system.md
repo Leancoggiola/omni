@@ -219,7 +219,7 @@ Lo que **no** es automático y hay que replicar a mano en mobile:
 | `PageHeader` con chip de ícono         | Componente listo (`ScreenHeader`); falta usarlo en las pantallas (#66)                                 |
 | `NotificationCard` (4 variantes)       | Componente listo (`notify*`); falta migrar `Alert.alert` (#68, #69)                                    |
 | Theme de componentes de Tamagui        | Hecho — sub-themes por componente desde `SEMANTIC` (#75)                                               |
-| Primitivas de formulario y acción      | Hechas (#76); falta usarlas en Login, Media y Perfil (#67–#69)                                         |
+| Primitivas de formulario y acción      | Hechas (#76); Login ya las usa (#67); falta usarlas en Media y Perfil (#68, #69)                       |
 | Login: card con logo, blobs y `Banner` | Hecho (#67) — `LoginScreen` + `AuthBackground` (blobs de reanimated, quietos con "reducir movimiento") |
 | Badges de tipo en terracota            | Componente listo (`Badge` accent filled); falta usarlo en `MediaCard` (#68)                            |
 | Estados media (neutro/terracota/sage)  | Componente listo (`StatusPill`); falta usarlo en `MediaCard` (#68)                                     |

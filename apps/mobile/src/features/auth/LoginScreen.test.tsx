@@ -92,6 +92,20 @@ describe('LoginScreen', () => {
     expect(screen.getByText('Usuario o contraseña incorrectos')).toHaveProp('color', '$destructive');
   });
 
+  it('si la validación local falla, el error del servidor anterior deja de mostrarse', async () => {
+    mockLogin.mockRejectedValue(new Error('Credenciales inválidas'));
+    render(<LoginScreen />);
+    fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+    fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
+    await act(async () => submit());
+    expect(screen.getByRole('alert', { name: 'Credenciales inválidas' })).toBeTruthy();
+
+    fireEvent.changeText(screen.getByLabelText('Contraseña'), '');
+    submit();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByText('La contraseña es requerida')).toBeTruthy();
+  });
+
   it('un error que no es Error cae al mensaje genérico', async () => {
     mockLogin.mockRejectedValue('boom');
     render(<LoginScreen />);
