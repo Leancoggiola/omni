@@ -1,5 +1,3 @@
-// El único lugar que puede importar el Spinner de Tamagui (ver `no-restricted-imports` en eslint.config.js).
- 
 import { Spinner as TamaguiSpinner, type SpinnerProps } from 'tamagui';
 
 /**

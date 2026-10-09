@@ -27,4 +27,10 @@ module.exports = defineConfig([
       ],
     },
   },
+  {
+    // El único archivo que envuelve el Spinner de Tamagui. Va como override y no como eslint-disable en
+    // línea: el `eslint --fix` de lint-staged corre con la config raíz, ve la directiva sin uso y la borra.
+    files: ['src/shared/ui/Spinner.tsx'],
+    rules: { 'no-restricted-imports': 'off' },
+  },
 ]);
