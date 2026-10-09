@@ -140,9 +140,6 @@ const COMPONENT_THEMES = [
   'TooltipContent',
   'TooltipArrow',
   'DrawerFrame',
-  'SheetOverlay',
-  'DialogOverlay',
-  'ModalOverlay',
 ];
 
 // Existen en runtime, pero el tipo de `config.themes` de @tamagui/config no los declara.
@@ -179,7 +176,7 @@ function onSurfaceTheme(scheme: 'light' | 'dark', base: Theme, background: strin
 
 /**
  * Reconstruye todas las variantes (`<scheme>_<color|alt|active>_<Componente>`) de cada familia:
- * `_red` → destructivo, `_active` → primario, el resto → superficie. Los overlays (scrim) no se tocan.
+ * `_red` → destructivo, `_active` → primario, el resto → superficie. Los `*Overlay` (scrim) no están en la lista: Tamagui ya los resuelve con `rgba` neutro, válido en los dos esquemas.
  */
 function componentThemes(scheme: 'light' | 'dark'): Record<string, Theme> {
   const out: Record<string, Theme> = {};
@@ -187,7 +184,6 @@ function componentThemes(scheme: 'light' | 'dark'): Record<string, Theme> {
     const parts = name.split('_');
     const component = parts[parts.length - 1];
     if (parts[0] !== scheme || !original || !COMPONENT_THEMES.includes(component)) continue;
-    if (component.endsWith('Overlay')) continue;
 
     // Parte de `surfaceTheme` para que los hijos sigan viendo los tokens custom (`$primary`, `$dimmed`…).
     const base = surfaceTheme(scheme, original);
