@@ -28,6 +28,7 @@ export function NavRow({ navKey }: { navKey: NavKey }) {
       alignItems="center"
       gap={SPACING.sm}
       paddingVertical={SPACING.xs}
+      disabled={!available}
       onPress={href ? () => router.navigate(href) : undefined}
       pressStyle={available ? { opacity: 0.7 } : undefined}
       accessibilityRole="button"

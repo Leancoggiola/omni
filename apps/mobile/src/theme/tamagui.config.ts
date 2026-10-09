@@ -106,10 +106,10 @@ function altTheme(scheme: 'light' | 'dark', base: Theme, strength: 1 | 2): Theme
  * `@tamagui/config` trae themes propios para Input y TextArea con su propio `placeholderColor`
  * (`#545454` en oscuro, casi invisible sobre el canvas) que pisan el del theme base.
  */
-function inputTheme(scheme: 'light' | 'dark', base: Theme | undefined): Theme {
+function inputTheme(scheme: 'light' | 'dark', base: Theme): Theme {
   const s = SEMANTIC[scheme];
   return {
-    ...(base as Theme),
+    ...base,
     background: s.card,
     color: s.text,
     borderColor: s.border,
@@ -165,10 +165,10 @@ export const tamaguiConfig = createTamagui({
     dark_alt1: altTheme('dark', config.themes.dark_alt1, 1),
     light_alt2: altTheme('light', config.themes.light_alt2, 2),
     dark_alt2: altTheme('dark', config.themes.dark_alt2, 2),
-    light_Input: inputTheme('light', componentThemes.light_Input),
-    dark_Input: inputTheme('dark', componentThemes.dark_Input),
-    light_TextArea: inputTheme('light', componentThemes.light_TextArea),
-    dark_TextArea: inputTheme('dark', componentThemes.dark_TextArea),
+    light_Input: inputTheme('light', componentThemes.light_Input ?? config.themes.light),
+    dark_Input: inputTheme('dark', componentThemes.dark_Input ?? config.themes.dark),
+    light_TextArea: inputTheme('light', componentThemes.light_TextArea ?? config.themes.light),
+    dark_TextArea: inputTheme('dark', componentThemes.dark_TextArea ?? config.themes.dark),
   },
 });
 

@@ -15,7 +15,6 @@ export const NAV_KEYS = [
 export type NavKey = (typeof NAV_KEYS)[number];
 
 export interface NavEntry {
-  key: NavKey;
   label: string;
   /** Etiqueta de la tab bar mobile, donde el ancho no alcanza para `label`. */
   shortLabel?: string;
@@ -27,7 +26,6 @@ export interface NavEntry {
    * estar disponible.
    */
   availableOn: readonly NavPlatform[];
-  adminOnly?: boolean;
 }
 
 /**
@@ -35,20 +33,19 @@ export interface NavEntry {
  * pone cada cliente (`Record<NavKey, Icon>`) con el mismo nombre de Phosphor en los dos.
  */
 export const NAV_REGISTRY: Record<NavKey, NavEntry> = {
-  home: { key: 'home', label: 'Inicio', path: '/', availableOn: ['web', 'mobile'] },
-  media: { key: 'media', label: 'Películas', shortLabel: 'Media', path: '/media', availableOn: ['web', 'mobile'] },
-  gym: { key: 'gym', label: 'Gimnasio', path: '/gym', availableOn: [] },
-  expenses: { key: 'expenses', label: 'Gastos', path: '/expenses', availableOn: [] },
-  'pc-control': { key: 'pc-control', label: 'PC Control', path: '/pc-control', availableOn: [] },
-  pantry: { key: 'pantry', label: 'Alacena', path: '/pantry', availableOn: [] },
+  home: { label: 'Inicio', path: '/', availableOn: ['web', 'mobile'] },
+  media: { label: 'Películas', shortLabel: 'Media', path: '/media', availableOn: ['web', 'mobile'] },
+  gym: { label: 'Gimnasio', path: '/gym', availableOn: [] },
+  expenses: { label: 'Gastos', path: '/expenses', availableOn: [] },
+  'pc-control': { label: 'PC Control', path: '/pc-control', availableOn: [] },
+  pantry: { label: 'Alacena', path: '/pantry', availableOn: [] },
   'split-expenses': {
-    key: 'split-expenses',
     label: 'Dividir gastos',
     path: '/split-expenses',
     availableOn: ['web'],
   },
-  profile: { key: 'profile', label: 'Perfil', path: '/profile', availableOn: ['web', 'mobile'] },
-  admin: { key: 'admin', label: 'Administración', path: '/admin', availableOn: ['web'], adminOnly: true },
+  profile: { label: 'Perfil', path: '/profile', availableOn: ['web', 'mobile'] },
+  admin: { label: 'Administración', path: '/admin', availableOn: ['web'] },
 };
 
 /** Orden de los módulos: navbar de web y lista de "Más" en mobile. */
@@ -63,7 +60,7 @@ export const MAIN_NAV_ORDER = [
   'profile',
 ] as const satisfies readonly NavKey[];
 
-/** Sección de administración: solo para el rol ADMIN. */
+/** Sección de administración: cada cliente la muestra solo al rol ADMIN (el registro no filtra por rol). */
 export const ADMIN_NAV_ORDER = ['admin'] as const satisfies readonly NavKey[];
 
 /** Tabs de mobile antes de "Más". Alacena es tab aunque todavía no exista (#48). */
