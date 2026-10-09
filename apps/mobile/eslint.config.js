@@ -27,8 +27,4 @@ module.exports = defineConfig([
       ],
     },
   },
-  {
-    files: ['src/shared/ui/Spinner.tsx'],
-    rules: { 'no-restricted-imports': 'off' },
-  },
 ]);

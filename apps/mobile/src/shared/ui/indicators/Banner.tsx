@@ -48,7 +48,9 @@ export function Banner({ children, color = 'brand', title, icon: IconComponent }
   const t = BANNER_TOKENS[color];
   const announcement = title ? `${title}. ${children}` : children;
 
-  // Android no siempre anuncia una live region que recién se monta: se anuncia al aparecer o cambiar.
+  // Intencional: el Banner es para mensajes que aparecen (error al enviar, resultado de una acción) y
+  // RN no anuncia solo un `role="alert"` recién montado, así que se anuncia al montar o cambiar el
+  // texto (un único anuncio; el rol no dispara otro). Para un aviso fijo de la pantalla, usar texto común.
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(announcement);
   }, [announcement]);

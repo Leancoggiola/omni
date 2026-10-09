@@ -46,7 +46,8 @@ export function TextField({
 }: TextFieldProps) {
   const colors = useSemanticColors();
   // Lo visual (asterisco, descripción, error) también para TalkBack: el error primero.
-  const a11yLabel = accessibilityLabel ?? (label && required ? `${label}, obligatorio` : label);
+  const baseLabel = accessibilityLabel ?? label;
+  const a11yLabel = baseLabel && required ? `${baseLabel}, obligatorio` : baseLabel;
   const a11yHint = [error, description, accessibilityHint].filter(Boolean).join('. ') || undefined;
 
   // Un error que aparece debajo del campo (p. ej. al enviar) no siempre se anuncia como live region

@@ -26,6 +26,11 @@ describe('TextField', () => {
     expect(screen.getByLabelText('Teléfono, obligatorio')).toHaveProp('accessibilityHint', 'Con código de área');
   });
 
+  it('un accessibilityLabel propio también suma ", obligatorio"', () => {
+    render(<TextField label="Tel." accessibilityLabel="Teléfono" required />);
+    expect(screen.getByLabelText('Teléfono, obligatorio')).toBeTruthy();
+  });
+
   it('el error se muestra debajo, pinta el borde y va en el hint', () => {
     render(<TextField label="Usuario" error="El usuario es obligatorio" />);
 

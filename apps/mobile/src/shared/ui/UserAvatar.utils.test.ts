@@ -7,6 +7,8 @@ describe('getInitials', () => {
     ['ana', 'AN'],
     ['J', 'J'],
     ['  maría  josé  pérez ', 'MJ'],
+    ['😀Ana', '😀A'],
+    ['😀 Ana', '😀A'],
     ['   ', ''],
     ['', ''],
   ])('"%s" → "%s"', (name, initials) => {
