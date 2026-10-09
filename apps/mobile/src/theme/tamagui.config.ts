@@ -61,24 +61,30 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
  * los tokens propios (`$primarySurface`, `$disabledSurface`…) siguen resolviendo dentro de un subárbol
  * con `theme="active"` y una primitiva anidada no se queda sin color.
  */
-function primaryTheme(scheme: 'light' | 'dark', base: Theme): Theme {
+function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'accent' = 'accent'): Theme {
   const s = SEMANTIC[scheme];
-  const onPrimary = s.onPrimary;
+  // `fill` es el relleno del Button de marca (primaryShade de web: 7 en claro, 4 en oscuro); `accent` el
+  // tono de texto/acento (Switch, Slider, Progress), que es más suave.
+  const fill = tone === 'fill';
+  const background = fill ? s.primaryFill : s.primary;
+  const onPrimary = fill ? s.onPrimaryFill : s.onPrimary;
+  const hover = fill ? (scheme === 'light' ? BRAND[8] : BRAND[5]) : scheme === 'light' ? BRAND[6] : BRAND[3];
+  const press = fill ? (scheme === 'light' ? BRAND[9] : BRAND[6]) : scheme === 'light' ? BRAND[8] : BRAND[5];
   return {
     ...surfaceTheme(scheme, base),
-    background: s.primary,
-    backgroundHover: scheme === 'light' ? BRAND[6] : BRAND[3],
-    backgroundPress: scheme === 'light' ? BRAND[8] : BRAND[5],
-    backgroundFocus: s.primary,
-    backgroundStrong: s.primary,
+    background,
+    backgroundHover: hover,
+    backgroundPress: press,
+    backgroundFocus: background,
+    backgroundStrong: background,
     color: onPrimary,
     colorHover: onPrimary,
     colorPress: onPrimary,
     colorFocus: onPrimary,
-    borderColor: s.primary,
-    borderColorHover: s.primary,
-    borderColorFocus: s.primary,
-    borderColorPress: s.primary,
+    borderColor: background,
+    borderColorHover: background,
+    borderColorFocus: background,
+    borderColorPress: background,
     placeholderColor: onPrimary,
   };
 }
@@ -208,7 +214,8 @@ function buildComponentTheme(scheme: 'light' | 'dark', component: string, parts:
     return { ...theme, backgroundActive: s.primary } as Theme;
   }
   if (red) return destructiveTheme(scheme, base);
-  if (active || FILLED.includes(component)) return primaryTheme(scheme, base);
+  if (active) return primaryTheme(scheme, base, component === 'Button' ? 'fill' : 'accent');
+  if (FILLED.includes(component)) return primaryTheme(scheme, base);
   if (component === 'Button') return { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
   if (component === 'Card' || component === 'ListItem') return onSurfaceTheme(scheme, base, s.card);
   if (component === 'SliderTrack' || component === 'Progress') return onSurfaceTheme(scheme, base, s.border);
@@ -268,8 +275,8 @@ export const tamaguiConfig = createTamagui({
     ...config.themes,
     light: surfaceTheme('light', config.themes.light),
     dark: surfaceTheme('dark', config.themes.dark),
-    light_active: primaryTheme('light', config.themes.light_active),
-    dark_active: primaryTheme('dark', config.themes.dark_active),
+    light_active: primaryTheme('light', config.themes.light_active, 'fill'),
+    dark_active: primaryTheme('dark', config.themes.dark_active, 'fill'),
     light_red: destructiveTheme('light', config.themes.light_red),
     dark_red: destructiveTheme('dark', config.themes.dark_red),
     light_alt1: altTheme('light', config.themes.light_alt1, 1),

@@ -84,7 +84,7 @@ export function buttonPalette(
         backgroundPress: '$backgroundPress',
         borderColor: 'transparent',
         color: '$color',
-        icon: color === 'destructive' ? colors.onDestructive : colors.onPrimary,
+        icon: color === 'destructive' ? colors.onDestructive : colors.onPrimaryFill,
         // El theme `red` no tiene un tono presionado propio.
         pressOpacity: color === 'destructive' ? 0.85 : 1,
       };

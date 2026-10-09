@@ -17,8 +17,8 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
 
   it.each([
     ['Button', 'background', s.card],
-    ['active_Button', 'background', s.primary],
-    ['active_Button', 'color', s.onPrimary],
+    ['active_Button', 'background', s.primaryFill],
+    ['active_Button', 'color', s.onPrimaryFill],
     ['red_Button', 'background', s.destructive],
     ['red_Button', 'color', s.onDestructive],
     ['Switch', 'background', s.border],
@@ -50,7 +50,8 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     ['active', 'disabledSurface', s.disabledSurface],
     ['red', 'primarySurface', s.primarySurface],
     ['alt1', 'destructiveBorder', s.destructiveBorder],
-    ['active', 'background', s.primary],
+    ['active', 'background', s.primaryFill],
+    ['active', 'color', s.onPrimaryFill],
     ['red', 'color', s.onDestructive],
     ['active', 'onAccentFill', s.onAccentFill],
   ])('%s: %s resuelve a SEMANTIC', (component, key, expected) => {

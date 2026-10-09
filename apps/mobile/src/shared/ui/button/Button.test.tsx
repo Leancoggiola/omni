@@ -97,7 +97,7 @@ describe('IconButton', () => {
 
 describe('buttonPalette', () => {
   it('filled usa los themes de marca de #75', () => {
-    expect(buttonPalette('filled', 'brand', false, s)).toMatchObject({ theme: 'active', icon: s.onPrimary });
+    expect(buttonPalette('filled', 'brand', false, s)).toMatchObject({ theme: 'active', icon: s.onPrimaryFill });
     expect(buttonPalette('filled', 'destructive', false, s)).toMatchObject({ theme: 'red', icon: s.onDestructive });
   });
 
