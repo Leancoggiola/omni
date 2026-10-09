@@ -1,8 +1,11 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { WarningCircleIcon, type Icon } from 'phosphor-react-native';
-import { Button, Paragraph, Spinner, XStack, YStack } from 'tamagui';
+import { Paragraph, XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
+
+import { Button } from './button/Button';
+import { Spinner } from './Spinner';
 
 import type { ReactNode } from 'react';
 
@@ -14,7 +17,7 @@ import type { ReactNode } from 'react';
 export function LoadingState({ size = 'large' }: { size?: 'small' | 'large' }) {
   return (
     <YStack paddingVertical={SPACING.xl} alignItems="center" justifyContent="center">
-      <Spinner size={size} color="$primary" accessibilityRole="progressbar" accessibilityLabel="Cargando" />
+      <Spinner size={size} />
     </YStack>
   );
 }
@@ -84,7 +87,7 @@ export function ErrorState({ message = 'No se pudieron cargar los datos', onRetr
         </Paragraph>
       </XStack>
       {onRetry ? (
-        <Button size="$3" variant="outlined" borderColor="$destructive" color="$destructive" onPress={onRetry}>
+        <Button fullWidth size="sm" variant="outline" color="destructive" onPress={onRetry}>
           Reintentar
         </Button>
       ) : null}

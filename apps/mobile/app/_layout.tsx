@@ -4,7 +4,7 @@ import { Redirect, Stack, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, type PropsWithChildren } from 'react';
 import { useColorScheme } from 'react-native';
-import { Spinner, TamaguiProvider, Theme, YStack } from 'tamagui';
+import { TamaguiProvider, Theme, YStack } from 'tamagui';
 import { StatusBar } from 'expo-status-bar';
 
 import { AuthProvider, useAuth } from '@/core/auth';
@@ -12,7 +12,7 @@ import { ColorSchemeProvider, useColorSchemeControl, useSemanticColors } from '@
 import { NAVIGATION_THEMES } from '@/theme/navigationTheme';
 import { MONTSERRAT_FACES } from '@/theme/fonts';
 import { tamaguiConfig } from '@/theme/tamagui.config';
-import { ConfirmProvider, NotificationsProvider } from '@/shared/ui';
+import { ActionSheetProvider, ConfirmProvider, NotificationsProvider, Spinner } from '@/shared/ui';
 
 // La splash nativa queda visible hasta que se resuelvan las fuentes (ver RootLayout). Puede
 // rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
@@ -29,7 +29,7 @@ function AuthGate() {
   if (isLoading) {
     return (
       <YStack flex={1} justifyContent="center" alignItems="center">
-        <Spinner size="large" color="$primary" />
+        <Spinner size="large" />
       </YStack>
     );
   }
@@ -94,7 +94,9 @@ export default function RootLayout() {
           <ThemedRoot>
             <NotificationsProvider>
               <ConfirmProvider>
-                <AuthGate />
+                <ActionSheetProvider>
+                  <AuthGate />
+                </ActionSheetProvider>
               </ConfirmProvider>
             </NotificationsProvider>
           </ThemedRoot>

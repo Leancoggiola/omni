@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable } from 'react-native';
-import { Button, Input, Paragraph, Spinner, XStack, YStack } from 'tamagui';
+import { Button, Input, Paragraph, XStack, YStack } from 'tamagui';
 import { mutate as globalMutate } from 'swr';
 import { FilmSlateIcon } from 'phosphor-react-native';
 
 import { ApiError, API_KEYS } from '@/shared/api';
-import { Screen, ScreenHeader } from '@/shared/ui';
+import { Screen, ScreenHeader, Spinner } from '@/shared/ui';
 import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS } from '@omni/shared/media';
 
 import { MediaCard } from './components/MediaCard';
@@ -160,7 +160,7 @@ export function MediaScreen() {
             </Button>
           ))}
         </XStack>
-        {searching ? <Spinner color="$primary" /> : null}
+        {searching ? <Spinner /> : null}
         {results.slice(0, 5).map(result => {
           const mediaType = resolveMediaType(result);
           const key = getTmdbResultKey(result);
@@ -189,7 +189,7 @@ export function MediaScreen() {
       </YStack>
 
       {isLoading ? (
-        <Spinner color="$primary" />
+        <Spinner />
       ) : (
         <FlatList
           data={filtered}

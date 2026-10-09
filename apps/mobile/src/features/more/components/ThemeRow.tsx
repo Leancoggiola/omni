@@ -1,8 +1,9 @@
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { MoonIcon } from 'phosphor-react-native';
-import { Paragraph, Switch, XStack } from 'tamagui';
+import { Paragraph, XStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
+import { Switch } from '@/shared/ui';
 
 /** Toggle de tema (= `ColorSchemeToggle` de web): override de la sesión, no toca la preferencia del perfil. */
 export function ThemeRow() {
@@ -16,9 +17,7 @@ export function ThemeRow() {
       <Paragraph flex={1} fontSize={FONT_SIZE.lg}>
         Tema oscuro
       </Paragraph>
-      <Switch checked={isDark} onCheckedChange={toggle} accessibilityLabel="Tema oscuro">
-        <Switch.Thumb />
-      </Switch>
+      <Switch checked={isDark} onCheckedChange={toggle} accessibilityLabel="Tema oscuro" />
     </XStack>
   );
 }

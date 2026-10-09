@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { Alert, ScrollView } from 'react-native';
 import { SPACING } from '@omni/shared/theme';
 import { UserIcon } from 'phosphor-react-native';
-import { Button, Input, Paragraph, Spinner, Switch, XStack, YStack } from 'tamagui';
+import { Button, Input, Paragraph, Switch, XStack, YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { useColorSchemeControl } from '@/core/theme';
-import { Screen, ScreenHeader } from '@/shared/ui';
+import { Screen, ScreenHeader, Spinner } from '@/shared/ui';
 
 import { useAccountActions, useProfile } from './hooks';
 
@@ -29,7 +29,7 @@ export function ProfileScreen() {
   if (isLoading || !profile) {
     return (
       <YStack flex={1} justifyContent="center" alignItems="center">
-        <Spinner color="$primary" />
+        <Spinner />
       </YStack>
     );
   }
@@ -179,7 +179,7 @@ export function ProfileScreen() {
         </Button>
 
         <Button chromeless disabled={loggingOut} onPress={() => void onLogout()}>
-          {loggingOut ? <Spinner color="$primary" /> : 'Cerrar sesión'}
+          {loggingOut ? <Spinner /> : 'Cerrar sesión'}
         </Button>
       </ScrollView>
     </Screen>

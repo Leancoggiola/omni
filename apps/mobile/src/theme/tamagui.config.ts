@@ -40,6 +40,13 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     dimmedSurface: s.dimmedSurface,
     dimmedBorder: s.dimmedBorder,
     primarySurface: s.primarySurface,
+    primaryBorder: s.primaryBorder,
+    destructiveBorder: s.destructiveBorder,
+    warningBorder: s.warningBorder,
+    infoBorder: s.infoBorder,
+    accentFill: s.accentFill,
+    disabledSurface: s.disabledSurface,
+    disabledText: s.disabledText,
     hover: s.hover,
     primary: s.primary,
     onPrimary: s.onPrimary,
@@ -104,12 +111,13 @@ function altTheme(scheme: 'light' | 'dark', base: Theme, strength: 1 | 2): Theme
 
 /**
  * `@tamagui/config` trae themes propios para Input y TextArea con su propio `placeholderColor`
- * (`#545454` en oscuro, casi invisible sobre el canvas) que pisan el del theme base.
+ * (`#545454` en oscuro, casi invisible sobre el canvas) que pisan el del theme base. Parte de
+ * `surfaceTheme` para que dentro del Input resuelvan los tokens propios (`$destructive`, `$disabledSurface`).
  */
 function inputTheme(scheme: 'light' | 'dark', base: Theme): Theme {
   const s = SEMANTIC[scheme];
   return {
-    ...base,
+    ...surfaceTheme(scheme, base),
     background: s.card,
     color: s.text,
     borderColor: s.border,
