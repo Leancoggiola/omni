@@ -5,8 +5,9 @@ import { ArrowSquareOutIcon, ConfettiIcon } from 'phosphor-react-native';
 import { Paragraph, XStack, YStack } from 'tamagui';
 
 import { useColorSchemeControl } from '@/core/theme';
+import { ErrorState } from '@/shared/ui';
 import { gradientPoints } from '@/theme/gradient';
-import { BRAND, GRADIENT_STOPS, SEMANTIC } from '@omni/shared/theme';
+import { BRAND, GRADIENT_STOPS, RADIUS, SEMANTIC } from '@omni/shared/theme';
 
 import { useHolidayCarousel, useTodayHolidays } from '../hooks';
 
@@ -42,19 +43,15 @@ export function HolidaysCard() {
   const s = SEMANTIC[colorScheme];
 
   if (error) {
-    return (
-      <YStack borderWidth={1} borderColor="$borderColor" borderRadius="$4" padding="$4">
-        <Paragraph color="$destructive">No se pudieron cargar las efemérides de hoy</Paragraph>
-      </YStack>
-    );
+    return <ErrorState message="No se pudieron cargar las efemérides de hoy" />;
   }
 
   if (isLoading) {
     return (
       <YStack
         minHeight={CARD_MIN_HEIGHT}
-        borderRadius="$4"
-        backgroundColor="$color3"
+        borderRadius={RADIUS.lg}
+        backgroundColor="$dimmedSurface"
         accessibilityLabel="Cargando efemérides"
       />
     );
@@ -83,7 +80,7 @@ export function HolidaysCard() {
   // texto, que no contiene el link; con un solo ítem ese bloque es solo texto, no botón.
   return (
     <Pressable onPress={next} disabled={!hasCarousel} accessible={false}>
-      <YStack borderWidth={1} borderColor="$borderColor" borderRadius="$4" overflow="hidden">
+      <YStack borderWidth={1} borderColor="$borderColor" borderRadius={RADIUS.lg} overflow="hidden">
         <LinearGradient
           colors={[gradient.from, gradient.to]}
           {...gradientPoints(gradient.deg)}

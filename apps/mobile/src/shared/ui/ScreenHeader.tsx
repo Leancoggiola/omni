@@ -3,7 +3,10 @@ import { Paragraph, XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 
+import { IconButton } from './button/IconButton';
 import { Title } from './Title';
+
+import { ArrowLeftIcon } from 'phosphor-react-native';
 
 import type { Icon } from 'phosphor-react-native';
 import type { ReactNode } from 'react';
@@ -16,15 +19,18 @@ type ScreenHeaderProps = {
   subtitle?: string;
   /** Se muestra en el borde opuesto: botones, avatar, etc. */
   actions?: ReactNode;
+  /** Pantallas de stack (Perfil): agrega un `IconButton` de volver antes del chip. */
+  onBack?: () => void;
 };
 
 /** Equivalente de `PageHeader` de web: chip de ícono terracota + título + subtítulo + acciones. */
-export function ScreenHeader({ icon: IconComponent, title, subtitle, actions }: ScreenHeaderProps) {
+export function ScreenHeader({ icon: IconComponent, title, subtitle, actions, onBack }: ScreenHeaderProps) {
   const colors = useSemanticColors();
 
   return (
     <XStack alignItems="center" justifyContent="space-between" gap={SPACING.md}>
       <XStack alignItems="center" gap={SPACING.sm} flexShrink={1}>
+        {onBack ? <IconButton icon={ArrowLeftIcon} accessibilityLabel="Volver" onPress={onBack} /> : null}
         <YStack
           width={CHIP_SIZE}
           height={CHIP_SIZE}

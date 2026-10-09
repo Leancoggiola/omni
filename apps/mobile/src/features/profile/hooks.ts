@@ -44,6 +44,7 @@ export function useProfile() {
     error,
     isLoading,
     isMutating: isValidating,
+    refresh: () => mutate(),
     updateProfile,
     updatePreferences,
   };

@@ -42,22 +42,8 @@ function AuthGate() {
     return <Redirect href="/(tabs)" />;
   }
 
-  // Tabs y login sin header; Perfil es una ruta de stack sobre las tabs y su header solo trae el
-  // botón de volver: el título lo pone el `ScreenHeader` de la pantalla.
-  return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.body } }}>
-      <Stack.Screen
-        name="profile"
-        options={{
-          headerShown: true,
-          title: '',
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: colors.body },
-          headerTintColor: colors.text,
-        }}
-      />
-    </Stack>
-  );
+  // Sin header nativo en ninguna ruta: cada pantalla trae su `ScreenHeader` (Perfil, con el botón de volver).
+  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.body } }} />;
 }
 
 function ThemedRoot({ children }: PropsWithChildren) {
