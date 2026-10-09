@@ -305,8 +305,8 @@ describe('ProfileScreen · eliminar cuenta', () => {
 
     expect(notifyError).not.toHaveBeenCalled();
     expect(notifyWarning).toHaveBeenCalledWith(expect.stringContaining('se eliminó'));
-    // El botón no queda con el spinner para siempre en una pantalla que no se desmonta.
-    expect(screen.getByRole('button', { name: 'Eliminar cuenta' })).toBeTruthy();
+    // La cuenta ya no existe: el botón queda deshabilitado y sin spinner, no se puede borrar de nuevo.
+    expect(screen.getByRole('button', { name: 'Eliminar cuenta', disabled: true })).toBeTruthy();
   });
 });
 

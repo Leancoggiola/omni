@@ -20,14 +20,20 @@ export function useProfile() {
 
   const updatePreferences = async (payload: UpdatePreferencesPayload) => {
     const res = await api.patch<{ preferences: UserPreferences }>(API_KEYS.users.preferences, payload);
-    // La respuesta es la fila ya guardada: se escribe en el cache sin depender de una revalidación, que
-    // puede fallar con el PATCH ya aplicado y dejar a la card mostrando el valor viejo.
-    await mutate(current => current && { user: { ...current.user, preferences: res.preferences } }, {
-      revalidate: false,
-    });
+    // Se escribe en el cache sin depender de una revalidación, que puede fallar con el PATCH ya aplicado y
+    // dejar a la card mostrando el valor viejo. Se mezcla solo lo enviado: con dos PATCH en vuelo (uno por
+    // clave) la respuesta más vieja trae el otro campo desactualizado y no debe revertirlo. Sin fila previa,
+    // la respuesta aporta el resto.
+    await mutate(
+      current =>
+        current && {
+          user: { ...current.user, preferences: { ...(current.user.preferences ?? res.preferences), ...payload } },
+        },
+      { revalidate: false }
+    );
     // El tema efectivo sale de la sesión (core/theme), así que hay que reflejarlo ahí también.
     if (payload.theme) {
-      const { theme } = res.preferences;
+      const { theme } = payload;
       await globalMutate<ProfileResponse>(
         API_KEYS.auth.profile,
         current => current && { user: { ...current.user, theme } },

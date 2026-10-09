@@ -100,6 +100,24 @@ describe('useProfile · updatePreferences', () => {
     expect(result.current.profile.profile?.preferences?.theme).toBe('dark');
   });
 
+  it('dos PATCH en paralelo: la respuesta más vieja no revierte el otro campo', async () => {
+    // Cada respuesta trae el otro campo con el valor que tenía al procesarse.
+    let finishTheme!: (value: { preferences: UserPreferences }) => void;
+    mockPatch
+      .mockImplementationOnce(() => new Promise(resolve => (finishTheme = resolve as typeof finishTheme)))
+      .mockResolvedValueOnce({ preferences: { ...PREFERENCES, notifications: true } });
+    const { result } = setup();
+
+    await act(async () => {
+      const theme = result.current.profile.updatePreferences({ theme: 'dark' });
+      await result.current.profile.updatePreferences({ notifications: true });
+      finishTheme({ preferences: { ...PREFERENCES, theme: 'dark' } });
+      await theme;
+    });
+
+    expect(result.current.profile.profile?.preferences).toMatchObject({ notifications: true, theme: 'dark' });
+  });
+
   it('sin cambio de tema no toca la sesión', async () => {
     mockPatch.mockResolvedValue({ preferences: { ...PREFERENCES, notifications: true } });
     const { result } = setup();

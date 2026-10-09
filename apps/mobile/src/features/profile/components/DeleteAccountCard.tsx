@@ -10,6 +10,8 @@ type DeleteAccountCardProps = {
 /** Zona de peligro (= `DeleteAccountButton` de web): advertencia + botón destructivo + `confirm()`. */
 export function DeleteAccountCard({ onDelete }: DeleteAccountCardProps) {
   const [loading, setLoading] = useState(false);
+  // La cuenta ya no existe: si la pantalla sigue montada (falló el cierre de sesión local) el botón no se reactiva.
+  const [deleted, setDeleted] = useState(false);
   const busy = useRef(false);
 
   const handlePress = async () => {
@@ -27,11 +29,10 @@ export function DeleteAccountCard({ onDelete }: DeleteAccountCardProps) {
       setLoading(true);
       try {
         await onDelete();
+        setDeleted(true);
       } catch (err) {
         notifyError(getErrorMessage(err, 'No se pudo eliminar la cuenta'));
       } finally {
-        // Si todo salió bien la pantalla se desmonta; si la cuenta se borró pero la sesión no se cerró, el
-        // botón no puede quedar con el spinner para siempre.
         setLoading(false);
       }
     } finally {
@@ -44,7 +45,7 @@ export function DeleteAccountCard({ onDelete }: DeleteAccountCardProps) {
       title="¿Eliminar tu cuenta?"
       subtitle="Se borran todos tus datos de forma permanente. Esta acción no se puede deshacer."
     >
-      <Button fullWidth color="destructive" loading={loading} onPress={() => void handlePress()}>
+      <Button fullWidth color="destructive" loading={loading} disabled={deleted} onPress={() => void handlePress()}>
         Eliminar cuenta
       </Button>
     </SectionCard>
