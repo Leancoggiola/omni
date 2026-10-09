@@ -13,6 +13,7 @@ export { Select } from './form/Select';
 export { Switch } from './form/Switch';
 export type { TextFieldProps } from './form/TextField';
 export { TextField } from './form/TextField';
+export { useScrollFocusedInputIntoView } from './form/useScrollFocusedInputIntoView';
 export type { BadgeColor } from './indicators/Badge';
 export { Badge } from './indicators/Badge';
 export type { BannerColor } from './indicators/Banner';

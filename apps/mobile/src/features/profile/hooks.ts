@@ -5,13 +5,11 @@ import { api, API_KEYS } from '@/shared/api';
 import { toSessionUser } from '@omni/shared/auth';
 
 import type { ProfileResponse } from '@omni/shared/auth';
-import type { UpdatePreferencesPayload, UpdateProfilePayload, UserProfile } from '@omni/shared/users';
+import type { UpdatePreferencesPayload, UpdateProfilePayload, UserPreferences, UserProfile } from '@omni/shared/users';
 
 export function useProfile() {
   const { mutate: globalMutate } = useSWRConfig();
-  const { data, error, isLoading, mutate, isValidating } = useSWRImmutable<{ user: UserProfile }>(
-    API_KEYS.users.profile
-  );
+  const { data, error, isLoading, mutate } = useSWRImmutable<{ user: UserProfile }>(API_KEYS.users.profile);
 
   const updateProfile = async (payload: UpdateProfilePayload) => {
     const res = await api.patch<{ user: UserProfile }>(API_KEYS.users.profile, payload);
@@ -21,18 +19,24 @@ export function useProfile() {
   };
 
   const updatePreferences = async (payload: UpdatePreferencesPayload) => {
-    const res = await api.patch(API_KEYS.users.preferences, payload);
-    const fresh = await mutate().catch(() => undefined);
+    const res = await api.patch<{ preferences: UserPreferences }>(API_KEYS.users.preferences, payload);
+    // Se escribe en el cache sin depender de una revalidación, que puede fallar con el PATCH ya aplicado y
+    // dejar a la card mostrando el valor viejo. Se mezcla solo lo enviado: con dos PATCH en vuelo (uno por
+    // clave) la respuesta más vieja trae el otro campo desactualizado y no debe revertirlo. Sin fila previa,
+    // la respuesta aporta el resto.
+    await mutate(
+      current =>
+        current && {
+          user: { ...current.user, preferences: { ...(current.user.preferences ?? res.preferences), ...payload } },
+        },
+      { revalidate: false }
+    );
     // El tema efectivo sale de la sesión (core/theme), así que hay que reflejarlo ahí también.
-    // El PATCH ya se guardó, así que la sesión se sincroniza siempre: si la revalidación falló,
-    // SWR devuelve el dato viejo (o undefined) y se usa el tema enviado. Si no, `clearOverride`
-    // volvería al tema anterior.
-    const { theme } = payload;
-    if (theme) {
-      const freshUser = fresh?.user.preferences?.theme === theme ? fresh.user : undefined;
+    if (payload.theme) {
+      const { theme } = payload;
       await globalMutate<ProfileResponse>(
         API_KEYS.auth.profile,
-        current => (freshUser ? { user: toSessionUser(freshUser) } : current && { user: { ...current.user, theme } }),
+        current => current && { user: { ...current.user, theme } },
         { revalidate: false }
       );
     }
@@ -43,7 +47,7 @@ export function useProfile() {
     profile: data?.user ?? null,
     error,
     isLoading,
-    isMutating: isValidating,
+    refresh: () => mutate(),
     updateProfile,
     updatePreferences,
   };

@@ -49,5 +49,5 @@ export function useTodayHolidays() {
 
   // En SWR 2 `isLoading` es true para la key nueva aunque keepPreviousData traiga el día
   // anterior en `data`: solo se considera "cargando" (skeleton) si no hay nada para mostrar.
-  return { holidays: data ?? fallback, isLoading: isLoading && !data, error };
+  return { holidays: data ?? fallback, isLoading: isLoading && !data, error, retry: () => void mutate() };
 }

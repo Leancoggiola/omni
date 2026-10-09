@@ -1,9 +1,12 @@
 import { z } from 'zod';
 
+/** Largo máximo del teléfono: los formularios lo usan como `maxLength`. */
+export const PHONE_MAX_LENGTH = 30;
+
 /** Self-service profile updates. Name and email are immutable after registration. */
 export const updateProfileSchema = z
   .object({
-    phone: z.string().max(30).optional().nullable(),
+    phone: z.string().max(PHONE_MAX_LENGTH).optional().nullable(),
     birthDate: z.iso.datetime().optional().nullable(),
   })
   .strict();

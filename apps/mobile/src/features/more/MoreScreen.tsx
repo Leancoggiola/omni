@@ -3,12 +3,11 @@ import { ScrollView } from 'react-native';
 import { ADMIN_NAV_ORDER } from '@omni/shared/navigation';
 import { SPACING } from '@omni/shared/theme';
 import { SignOutIcon } from 'phosphor-react-native';
-import { Button, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
-import { useSemanticColors } from '@/core/theme';
 import { MORE_TAB } from '@/shared/navigation';
-import { getErrorMessage, notifyError, Screen, ScreenHeader, SectionCard } from '@/shared/ui';
+import { Button, getErrorMessage, notifyError, Screen, ScreenHeader, SectionCard } from '@/shared/ui';
 
 import { NavRow } from './components/NavRow';
 import { ThemeRow } from './components/ThemeRow';
@@ -18,7 +17,6 @@ import { MORE_NAV_KEYS } from './moreNavKeys';
 /** Launcher de "Más": cuenta, tema, módulos y administración (lo que en web es el navbar). */
 export function MoreScreen() {
   const { user, logout } = useAuth();
-  const colors = useSemanticColors();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -58,11 +56,11 @@ export function MoreScreen() {
           </SectionCard>
         ) : null}
         <Button
-          variant="outlined"
-          borderColor="$destructive"
-          color="$destructive"
-          icon={<SignOutIcon size={18} color={colors.destructive} />}
-          disabled={loggingOut}
+          fullWidth
+          variant="outline"
+          color="destructive"
+          leftSection={SignOutIcon}
+          loading={loggingOut}
           onPress={() => void handleLogout()}
         >
           Cerrar sesión

@@ -6,6 +6,7 @@ import { Paragraph, XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 import { NAV_HREFS, NAV_ICONS } from '@/shared/navigation';
+import { Badge } from '@/shared/ui';
 
 import type { NavKey } from '@omni/shared/navigation';
 
@@ -13,7 +14,7 @@ const CHIP_SIZE = 36;
 
 /**
  * Ítem de módulo del launcher. Igual que en el navbar de web, lo que mobile todavía no tiene se
- * muestra deshabilitado, acá con la pill "Próximamente".
+ * muestra deshabilitado, acá con el `Badge` "Próximamente".
  */
 export function NavRow({ navKey }: { navKey: NavKey }) {
   const router = useRouter();
@@ -51,19 +52,9 @@ export function NavRow({ navKey }: { navKey: NavKey }) {
       {available ? (
         <CaretRightIcon size={16} color={colors.dimmed} />
       ) : (
-        <Paragraph
-          fontSize={FONT_SIZE.sm}
-          fontWeight="600"
-          color="$dimmed"
-          paddingHorizontal={SPACING.sm}
-          paddingVertical={SPACING['3xs']}
-          borderRadius={RADIUS.full}
-          borderWidth={1}
-          borderColor="$dimmedBorder"
-          backgroundColor="$dimmedSurface"
-        >
+        <Badge color="dimmed" size="md" alignSelf="center">
           Próximamente
-        </Paragraph>
+        </Badge>
       )}
     </XStack>
   );

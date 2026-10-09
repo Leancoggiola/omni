@@ -218,20 +218,23 @@ Lo que ya es automático: cualquier cambio en `tokens.ts` llega a mobile vía `S
 
 Lo que **no** es automático y hay que replicar a mano en mobile:
 
-| Web                                    | Estado en mobile                                                                                        |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Gradiente cálido del sidebar           | No aplica (mobile usa tabs, no sidebar)                                                                 |
-| `PageHeader` con chip de ícono         | Componente listo (`ScreenHeader`); falta usarlo en las pantallas (#66)                                  |
-| `NotificationCard` (4 variantes)       | Componente listo (`notify*`); Media ya no usa `Alert.alert` (#68); falta Perfil (#69)                   |
-| Theme de componentes de Tamagui        | Hecho — sub-themes por componente desde `SEMANTIC` (#75)                                                |
-| Primitivas de formulario y acción      | Hechas (#76); las usan Login (#67) y Media (#68); falta Perfil (#69)                                    |
-| Login: card con logo, blobs y `Banner` | Hecho (#67) — `LoginScreen` + `AuthBackground` (blobs de reanimated, quietos con "reducir movimiento")  |
-| Media: lista, filtros, agregar, estado | Hecho (#68) — `MediaListItem` (póster 56 dp, `Badge`, `StatusPill`, tacho), `MediaToolbar`, FAB + Sheet |
-| Contraste de rellenos en oscuro        | Hecho (#68) — `onFill()` en `SEMANTIC` y `--mantine-color-<color>-on-filled` en web                     |
-| Card de efemérides (gradiente)         | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                                       |
-| Montserrat + íconos Phosphor           | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                                                  |
-| Radios y espaciado                     | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                                                    |
-| Tema del perfil + toggle de sesión     | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)                         |
+| Web                                      | Estado en mobile                                                                                                                                          |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gradiente cálido del sidebar             | No aplica (mobile usa tabs, no sidebar)                                                                                                                   |
+| `PageHeader` con chip de ícono           | Hecho — `ScreenHeader` en las pantallas; Perfil suma `onBack` (IconButton de volver, sin header nativo)                                                   |
+| `NotificationCard` (4 variantes)         | Hecho — `notify*`; ninguna pantalla usa `Alert.alert` (Media #68, Perfil #69) y ESLint lo prohíbe                                                         |
+| Theme de componentes de Tamagui          | Hecho — sub-themes por componente desde `SEMANTIC` (#75)                                                                                                  |
+| Primitivas de formulario y acción        | Hechas (#76); las usan Login (#67), Media (#68) y Perfil (#69); ESLint prohíbe `Button`/`Input`/`Switch` crudos                                           |
+| Login: card con logo, blobs y `Banner`   | Hecho (#67) — `LoginScreen` + `AuthBackground` (blobs de reanimated, quietos con "reducir movimiento")                                                    |
+| Media: lista, filtros, agregar, estado   | Hecho (#68) — `MediaListItem` (póster 56 dp, `Badge`, `StatusPill`, tacho), `MediaToolbar`, FAB + Sheet                                                   |
+| Contraste de rellenos en oscuro          | Hecho (#68) — `onFill()` en `SEMANTIC` y `--mantine-color-<color>-on-filled` en web                                                                       |
+| Inicio: una card con saludo y efemérides | Hecho (#69) — `HomeScreen` = `HomeMainCard` de web (sin `ScreenHeader` ni ícono de destellos)                                                             |
+| Perfil: cards, preferencias instantáneas | Hecho (#69) — Información personal, Preferencias (Switch + `SegmentedControl` de Tema, guardan al instante), Contraseña y Zona de peligro con `confirm()` |
+| Más: `Badge` de "Próximamente"           | Hecho (#69) — `NavRow` con `Badge color="dimmed"`; "Cerrar sesión" es un `Button` outline destructivo                                                     |
+| Card de efemérides (gradiente)           | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                                                                                         |
+| Montserrat + íconos Phosphor             | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                                                                                                    |
+| Radios y espaciado                       | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                                                                                                      |
+| Tema del perfil + toggle de sesión       | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)                                                                           |
 
 Al tocar el design system, correr siempre:
 
