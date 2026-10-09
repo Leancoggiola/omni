@@ -46,7 +46,9 @@ packages/shared/src/theme/tokens.ts     escalas crudas + semanticLight/semanticD
 
 `@tamagui/config` trae themes propios por componente (`light_Button`, `dark_active_Switch`, …) que Tamagui busca **antes** que el theme base; si no se pisan, Button y Switch salen grises o rosas. `tamagui.config.ts` los reconstruye todos desde `SEMANTIC` (`componentThemes`): `_red` → destructivo, `_active` → primario, el resto → superficie. Casos puntuales: Button neutro sobre `card` con borde, Switch apagado en `border` con thumb blanco y checked en `backgroundActive` = primario, Slider/Progress activos en primario. Overlays (scrim) no se tocan. Un test (`tamagui.config.test.ts`) verifica que resuelvan a `SEMANTIC`.
 
-Límites de Tamagui: `defaultProps` del config sí llega a Input/TextArea (cursor y selección en `$primary`), pero **no** a Spinner (pasar `color="$primary"`; dentro de un Button primario, `$color`) ni al texto de Button (el peso 600 lo fija el `Button` de #76).
+Límites de Tamagui: `defaultProps` del config sí llega a Input/TextArea (cursor y selección en `$primary`), pero **no** a Spinner ni al texto de Button. Por eso existen el `Spinner` de `@/shared/ui` (`$primary` por defecto; ESLint prohíbe el de `tamagui`) y el `Button` propio, que fija el peso 600.
+
+Los sub-themes por componente reemplazan el theme entero: un token propio (`$destructive`, `$disabledSurface`) solo resuelve dentro de Input si su sub-theme parte de `surfaceTheme`, como hace `inputTheme`.
 
 ### Familias semánticas
 
@@ -58,6 +60,8 @@ Límites de Tamagui: `defaultProps` del config sí llega a Input/TextArea (curso
 | `icons-*`    | `--mantine-color-icons-error`           |
 
 Cada familia tiene variantes `primary`, `destructive`, `dimmed`, `disabled` y las semánticas `success` / `warning` / `info` / `error` / `accent`.
+
+En `SEMANTIC`, cada color de estado tiene su terna `{color}` (texto) / `{color}Surface` (wash) / `{color}Border`, igual que `text-*` / `surfaces-*-light` / `border-*` de web: `primary`/`primarySurface`/`primaryBorder`, `destructive`/`errorSurface`/`destructiveBorder`, y lo mismo para `success`, `warning`, `info`, `accent` y `dimmed`. Se suman `accentFill` (fondo del Badge de tipo, `surfaces-accent-high`) y `disabledSurface`/`disabledText` (= `--mantine-color-disabled*`). Son los que usan `Badge`, `Banner` y el estado deshabilitado de `Button`.
 
 ### Transparencias
 
@@ -131,17 +135,31 @@ La excepción son los **washes sobre superficies casi blancas**: una mezcla que 
 
 ## Componentes compartidos
 
-Los dos clientes tienen `@/shared/ui` con la misma API; cambia la implementación (Mantine / Tamagui).
+Los dos clientes tienen `@/shared/ui` con la misma API; cambia la implementación (Mantine / Tamagui). Tabla de equivalencias web ↔ mobile:
 
-| Web                                          | Mobile                                       | Uso                                                                          |
-| -------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------- |
-| `PageHeader`                                 | `ScreenHeader`                               | Cabecera de página: chip de ícono terracota + título + subtítulo + `actions` |
-| `Paper` / `ProfileSectionCard`               | `SectionCard`                                | Superficie de contenido (card cálida, radio `lg`, sombra `sm`)               |
-| `Title order`                                | `Title order`                                | Títulos con la escala `HEADING`                                              |
-| `NotificationCard` + `notify*`               | `NotificationCard` + `notify*`               | Toasts de feedback (4 variantes)                                             |
-| `confirm()` (modal)                          | `confirm()` (bottom sheet)                   | Confirmación; `Promise<boolean>`                                             |
-| `LoadingState` / `EmptyState` / `ErrorState` | `LoadingState` / `EmptyState` / `ErrorState` | Estados de UI (regla de oro 0)                                               |
-| Select de estado (`.combobox_root[data-*]`)  | `StatusPill`                                 | Estado de media: neutro / terracota / sage                                   |
+| Web (Mantine)                                | Mobile (`@/shared/ui`)                       | Notas                                                                                                                           |
+| -------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `PageHeader`                                 | `ScreenHeader`                               | Chip de ícono terracota + título + subtítulo + `actions`                                                                        |
+| `Paper` / `ProfileSectionCard`               | `SectionCard`                                | Card cálida, radio `lg`, sombra `sm`                                                                                            |
+| `Title order`                                | `Title order`                                | Escala `HEADING`                                                                                                                |
+| `Button`                                     | `Button`                                     | Mismas `variant` (filled · outline · light · subtle). `color`: default · destructive. sm 36 / md 44 / lg 50 dp (web md = 42 px) |
+| `ActionIcon`                                 | `IconButton`                                 | `subtle` por defecto; `color="dimmed"` = `color="gray"`. `accessibilityLabel` obligatorio                                       |
+| `TextInput`                                  | `TextField`                                  | `label` 14/600, `description`, `error`, `required`, `leftSection`, alto 44                                                      |
+| `PasswordInput`                              | `PasswordField`                              | Ojo para mostrar u ocultar                                                                                                      |
+| `Switch`                                     | `Switch`                                     | Con `label` arma la fila (texto a la izquierda, switch a la derecha)                                                            |
+| `SegmentedControl size="sm" color="brand.6"` | `SegmentedControl`                           | Mismo `data` (strings u objetos); siempre a lo ancho                                                                            |
+| `Chip`                                       | `Chip`                                       | Variante light: marcado en `primarySurface` con check                                                                           |
+| `Badge`                                      | `Badge`                                      | `color`: brand · accent · success · destructive · dimmed. Tipo de media = `accent` filled sm                                    |
+| `Alert` (`light-custom`)                     | `Banner`                                     | Mismo wash y borde por color; error de formulario = `color="destructive"`                                                       |
+| `Select` / `Menu`                            | `actionSheet()`                              | Opciones en bottom sheet, check en la actual + "Cancelar"; `Promise` con el `value` o `null`                                    |
+| `confirm()` (modal)                          | `confirm()` (bottom sheet)                   | `Promise<boolean>`                                                                                                              |
+| `NotificationCard` + `notify*`               | `NotificationCard` + `notify*`               | Toasts de feedback (4 variantes)                                                                                                |
+| `LoadingState` / `EmptyState` / `ErrorState` | `LoadingState` / `EmptyState` / `ErrorState` | Regla de oro 0                                                                                                                  |
+| `Loader`                                     | `Spinner`                                    | Color de marca por defecto                                                                                                      |
+| `UserAvatar` (`Avatar name`)                 | `UserAvatar`                                 | Gradiente de marca; iniciales como Mantine ("Admin" → "AD")                                                                     |
+| Select de estado (`.combobox_root[data-*]`)  | `StatusPill`                                 | Neutro / terracota / sage                                                                                                       |
+
+Diferencias aceptadas: en mobile los botones de acción van a lo ancho (`fullWidth`) y apilados (ver "Botones de acción" en `apps/mobile/CLAUDE.md`); el md de Button y los campos miden 44 dp por área de toque; el selector de opciones es un bottom sheet en lugar de un dropdown.
 
 ### Notificaciones
 
@@ -201,7 +219,8 @@ Lo que **no** es automático y hay que replicar a mano en mobile:
 | `PageHeader` con chip de ícono        | Componente listo (`ScreenHeader`); falta usarlo en las pantallas (#66)          |
 | `NotificationCard` (4 variantes)      | Componente listo (`notify*`); falta migrar `Alert.alert` (#68, #69)             |
 | Theme de componentes de Tamagui       | Hecho — sub-themes por componente desde `SEMANTIC` (#75)                        |
-| Badges de tipo en terracota           | **Pendiente** — `MediaCard` (#68)                                               |
+| Primitivas de formulario y acción     | Hechas (#76); falta usarlas en Login, Media y Perfil (#67–#69)                  |
+| Badges de tipo en terracota           | Componente listo (`Badge` accent filled); falta usarlo en `MediaCard` (#68)     |
 | Estados media (neutro/terracota/sage) | Componente listo (`StatusPill`); falta usarlo en `MediaCard` (#68)              |
 | Card de efemérides (gradiente)        | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                               |
 | Montserrat + íconos Phosphor          | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                          |

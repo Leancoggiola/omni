@@ -7,7 +7,7 @@ UI con **Tamagui**, nunca Mantine. Nueva feature: `/new-feature`.
 ```
 apps/mobile/
   app/                    # Expo Router
-    _layout.tsx           # Tamagui + AuthProvider + Notifications/Confirm + AuthGate (Stack)
+    _layout.tsx           # Tamagui + AuthProvider + Notifications/Confirm/ActionSheet + AuthGate (Stack)
     login.tsx
     profile.tsx           # ruta de stack sobre las tabs (se abre solo desde la tarjeta de usuario de "Más")
     (tabs)/index|media|pantry|more.tsx
@@ -71,34 +71,50 @@ Return: dominio + `isLoading` + `error` (+ `isMutating` si aplica). Paridad de p
 
 Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 
-| Pieza                                                            | Uso                                                                                                           |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `Screen`                                                         | Contenedor de pantalla: fondo, márgenes e inset de la status bar (`insetTop={false}` bajo un header de stack) |
-| `UserAvatar`                                                     | Avatar con gradiente de marca e iniciales (= `UserAvatar` de web)                                             |
-| `ScreenHeader`                                                   | Cabecera de pantalla: chip terracota + título + subtítulo + `actions` (= `PageHeader`)                        |
-| `SectionCard`                                                    | Superficie de contenido, `title`/`subtitle` opcionales (= `Paper` / `ProfileSectionCard`)                     |
-| `Title`                                                          | Títulos con la escala `HEADING` (= `Title order`)                                                             |
-| `LoadingState` / `EmptyState` / `ErrorState`                     | Estados de UI (regla de oro 0)                                                                                |
-| `StatusPill`                                                     | Estado de media: neutro / terracota / sage; con `onPress` abre un selector                                    |
-| `notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` | Feedback de acciones. **Nunca `Alert.alert`**                                                                 |
-| `confirm({ title, description, … })`                             | Confirmación en bottom sheet; devuelve `Promise<boolean>`                                                     |
+| Pieza                                                            | Uso                                                                                                                                                                               |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Screen`                                                         | Contenedor de pantalla: fondo, márgenes e inset de la status bar (`insetTop={false}` bajo un header de stack)                                                                     |
+| `UserAvatar`                                                     | Avatar con gradiente de marca e iniciales (= `UserAvatar` de web)                                                                                                                 |
+| `ScreenHeader`                                                   | Cabecera de pantalla: chip terracota + título + subtítulo + `actions` (= `PageHeader`)                                                                                            |
+| `SectionCard`                                                    | Superficie de contenido, `title`/`subtitle` opcionales (= `Paper` / `ProfileSectionCard`)                                                                                         |
+| `Title`                                                          | Títulos con la escala `HEADING` (= `Title order`)                                                                                                                                 |
+| `LoadingState` / `EmptyState` / `ErrorState`                     | Estados de UI (regla de oro 0)                                                                                                                                                    |
+| `StatusPill`                                                     | Estado de media: neutro / terracota / sage; con `onPress` abre un selector                                                                                                        |
+| `notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` | Feedback de acciones. **Nunca `Alert.alert`**                                                                                                                                     |
+| `confirm({ title, description, … })`                             | Confirmación en bottom sheet; devuelve `Promise<boolean>`                                                                                                                         |
+| `actionSheet({ title, options, value })`                         | Elegir una opción en bottom sheet (check en la actual + "Cancelar"); resuelve el `value` o `null`. Nunca `Alert.alert` con opciones                                               |
+| `Button` / `IconButton`                                          | = `Button` / `ActionIcon`: `variant` filled · outline · light · subtle, `color`, `size` sm 36 / md 44 / lg 50, `leftSection`/`icon` (componente Phosphor), `loading`, `fullWidth` |
+| `TextField` / `PasswordField`                                    | = `TextInput` / `PasswordInput`: `label`, `description`, `error`, `required`, `leftSection`, `disabled`, `ref` para encadenar foco                                                |
+| `Switch`                                                         | Switch de marca; con `label`/`description` arma la fila                                                                                                                           |
+| `SegmentedControl` / `Chip`                                      | Selección: segmento activo en marca (= `SegmentedControl size="sm" color="brand.6"`) / chip de filtro                                                                             |
+| `Badge` / `Banner`                                               | Indicadores: pill en mayúsculas (`accent` filled = tipo de media) / `Alert` light-custom (`color="destructive"` para errores de formulario)                                       |
+| `Spinner`                                                        | Color de marca por defecto (`color="$color"` dentro de un botón filled). ESLint prohíbe el de `tamagui`                                                                           |
 
 - Medidas: `RADIUS` / `SPACING` / `FONT_SIZE` de `@omni/shared/theme` como números (`padding={SPACING.md}`); sombras con `elevation('sm')` de `@/theme/elevation`. No usar tokens `$4` de Tamagui como medida (`padding="$4"`, `gap="$2"`, `borderRadius="$4"`) en código nuevo (ver `docs/design-system.md`). La prop `size` de los componentes de Tamagui (`<Button size="$4">`, `Spinner`) es otra cosa: elige una variante del componente (alto, padding y fuente juntos) y se sigue usando.
 - Colores: tokens de tema (`$accentSurface`, `$destructive`, …) en props de Tamagui; para valores crudos (íconos Phosphor, gradientes), `useSemanticColors()` de `@/core/theme`.
+- Código nuevo usa las primitivas, no `Button`/`Input`/`Switch` de Tamagui directo (las pantallas que todavía los usan se migran en #67–#69).
 
 ## Botones de acción
 
-A diferencia de web (alineados a la derecha), en mobile van **centrados y full-width**, apilados verticalmente cuando hay más de uno — así se maximiza el área de toque. `YStack` ya estira los hijos a lo ancho por defecto (`alignItems: stretch`); no hay que forzar nada extra.
+A diferencia de web (alineados a la derecha), en mobile van **centrados y full-width**, apilados verticalmente cuando hay más de uno — así se maximiza el área de toque. El `Button` de `@/shared/ui` ocupa solo su contenido, como en Mantine: el ancho completo se pide con `fullWidth`.
 
-- Un solo botón (guardar, actualizar) → `Button` full-width tal cual.
-- Confirmar + cancelar: **confirmar arriba** (filled), **cancelar abajo** (`variant="outlined"`). `confirm()` de `@/shared/ui` ya lo hace así.
-- Acciones destructivas standalone (ej. "Eliminar cuenta") siguen siendo filled (`theme="red"`), igual que en web.
+- Un solo botón (guardar, actualizar) → `<Button fullWidth>`.
+- Confirmar + cancelar: **confirmar arriba** (filled), **cancelar abajo** (`variant="outline"`). `confirm()` de `@/shared/ui` ya lo hace así.
+- Acciones destructivas standalone (ej. "Eliminar cuenta") siguen siendo filled (`color="destructive"`), igual que en web.
 - `LoginScreen`, `MediaScreen` y `ProfileScreen` todavía usan `Alert.alert`: se migran a `notify*` / `confirm` en #67, #68 y #69.
 
 ## Tests
 
 - `jest-expo` + `@testing-library/react-native`. Archivos `*.test.ts(x)` al lado del código, nunca dentro de `app/` (Expo Router los tomaría como rutas).
-- Lógica pura (reducers de cola, helpers de tema) se testea sin renderizar. Para providers, mockear `tamagui` con dobles mínimos y probar el comportamiento, no el componente de Tamagui (ver `src/shared/ui/confirm/ConfirmProvider.test.tsx`).
+- Lógica pura (reducers de cola, helpers de tema) se testea sin renderizar. Para primitivas y providers, mockear `tamagui` con el doble compartido y probar el comportamiento (role, label, estado, callbacks), no el componente de Tamagui:
+
+  ```ts
+  jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
+  jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
+  ```
+
+  Los Stacks interactivos llevan `accessible` (si no, ni TalkBack ni `getByRole` los encuentran cuando están deshabilitados).
+
 - Si un paquete de `node_modules` publica ESM sin build CommonJS, sumarlo a `transformIgnorePatterns` en `jest.config.js`.
 
 ## Verificación
