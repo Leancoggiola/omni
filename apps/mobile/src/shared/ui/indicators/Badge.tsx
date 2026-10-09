@@ -17,8 +17,8 @@ type BadgeProps = {
 };
 
 /**
- * Fondo lleno, texto encima, wash, borde y texto sobre el wash de cada color. Sobre los fondos
- * claros de dark (brand, success, dimmed) el texto va oscuro (`onPrimary`), como el Button filled.
+ * Fondo lleno, texto encima, wash, borde y texto sobre el wash de cada color. El texto de cada
+ * relleno sale de `onFill` (`onPrimary`, `onSuccess`, `onDimmed`…): oscuro sobre los fondos claros de dark.
  * Terracota usa el tono y el texto del Badge filled de web (`$accentFill`/`$onAccentFill`); rojo, blanco.
  */
 const BADGE_TOKENS = {
@@ -38,7 +38,7 @@ const BADGE_TOKENS = {
   },
   success: {
     fill: '$success',
-    onFill: '$onPrimary',
+    onFill: '$onSuccess',
     surface: '$successSurface',
     border: '$successBorder',
     text: '$success',
@@ -52,7 +52,7 @@ const BADGE_TOKENS = {
   },
   dimmed: {
     fill: '$dimmed',
-    onFill: '$onPrimary',
+    onFill: '$onDimmed',
     surface: '$dimmedSurface',
     border: '$dimmedBorder',
     text: '$dimmed',

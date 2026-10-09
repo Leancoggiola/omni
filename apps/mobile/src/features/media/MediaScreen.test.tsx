@@ -27,7 +27,7 @@ jest.mock('./hooks', () => ({
   MIN_SEARCH_LENGTH: 2,
   useMyMediaList: () => mockUseMyMediaList(),
   useMediaMutations: () => mockMutations,
-  useMediaSearch: () => ({ results: [], error: undefined, isLoading: false, tooShort: true }),
+  useMediaSearch: () => ({ results: [], error: undefined, isLoading: false, tooShort: true, retry: jest.fn() }),
 }));
 
 const mockActionSheet = jest.mocked(actionSheet);
@@ -181,6 +181,21 @@ describe('MediaScreen · acciones', () => {
     await act(async () => fireEvent.press(trash));
     expect(mockMutations.removeFromList).toHaveBeenCalledWith('2');
     expect(notifySuccess).toHaveBeenCalledWith('Eliminado de tu lista');
+  });
+
+  it('un doble toque en el tacho abre un solo confirm (y borra una vez)', async () => {
+    let answer!: (value: boolean) => void;
+    mockConfirm.mockImplementation(() => new Promise<boolean>(resolve => (answer = resolve)));
+    mockMutations.removeFromList.mockResolvedValue(undefined);
+    renderWith();
+    const trash = screen.getByRole('button', { name: 'Eliminar The Bear' });
+
+    fireEvent.press(trash);
+    fireEvent.press(trash);
+    expect(mockConfirm).toHaveBeenCalledTimes(1);
+
+    await act(async () => answer(true));
+    expect(mockMutations.removeFromList).toHaveBeenCalledTimes(1);
   });
 
   it('si el borrado falla avisa con notifyError', async () => {

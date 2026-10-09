@@ -19,6 +19,8 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     ['Button', 'background', s.card],
     ['active_Button', 'background', s.primaryFill],
     ['active_Button', 'color', s.onPrimaryFill],
+    ['active_Button', 'backgroundHover', s.primaryFillHover],
+    ['active_Button', 'backgroundPress', s.primaryFillPress],
     ['red_Button', 'background', s.destructiveFill],
     ['red_Button', 'color', s.onDestructive],
     ['Switch', 'background', s.border],

@@ -47,6 +47,8 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     accentFill: s.accentFill,
     destructiveFill: s.destructiveFill,
     onAccentFill: s.onAccentFill,
+    onSuccess: s.onSuccess,
+    onDimmed: s.onDimmed,
     disabledSurface: s.disabledSurface,
     disabledText: s.disabledText,
     hover: s.hover,
@@ -69,8 +71,9 @@ function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'acc
   const fill = tone === 'fill';
   const background = fill ? s.primaryFill : s.primary;
   const onPrimary = fill ? s.onPrimaryFill : s.onPrimary;
-  const hover = fill ? (scheme === 'light' ? BRAND[8] : BRAND[5]) : scheme === 'light' ? BRAND[6] : BRAND[3];
-  const press = fill ? (scheme === 'light' ? BRAND[9] : BRAND[6]) : scheme === 'light' ? BRAND[8] : BRAND[5];
+  // Los tonos de interacción del relleno salen de SEMANTIC: con el texto encima siguen en AA (con test).
+  const hover = fill ? s.primaryFillHover : scheme === 'light' ? BRAND[6] : BRAND[3];
+  const press = fill ? s.primaryFillPress : scheme === 'light' ? BRAND[8] : BRAND[5];
   return {
     ...surfaceTheme(scheme, base),
     background,

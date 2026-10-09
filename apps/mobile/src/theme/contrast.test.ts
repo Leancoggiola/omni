@@ -9,11 +9,13 @@ describe.each(['light', 'dark'] as const)('contraste de rellenos de SEMANTIC (%s
 
   it.each([
     ['Button filled de marca', s.primaryFill, s.onPrimaryFill],
+    ['Button filled de marca (hover)', s.primaryFillHover, s.onPrimaryFill],
+    ['Button filled de marca (presionado) y FAB', s.primaryFillPress, s.onPrimaryFill],
     ['segmento activo y Badge brand', s.primary, s.onPrimary],
     ['Badge terracota (tipo de media)', s.accentFill, s.onAccentFill],
     ['Button y Badge destructivo', s.destructiveFill, s.onDestructive],
-    ['Badge success', s.success, s.onPrimary],
-    ['Badge dimmed', s.dimmed, s.onPrimary],
+    ['Badge success', s.success, s.onSuccess],
+    ['Badge dimmed', s.dimmed, s.onDimmed],
   ])('%s llega a AA', (_name, fill, text) => {
     expect(contrastRatio(fill, text)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
   });

@@ -50,9 +50,19 @@ const onFilledVar = (color: string) => `--mantine-color-${color}-on-filled`;
 function onFilledVariables(theme: MantineTheme, scheme: 'light' | 'dark'): Record<string, string> {
   const shade = getPrimaryShade(theme, scheme);
   return Object.fromEntries(
-    Object.entries(theme.colors)
-      .filter(([, scale]) => HEX_COLOR.test(scale[shade]))
-      .map(([color, scale]) => [onFilledVar(color), onFill(scale[shade])])
+    Object.entries(theme.colors).flatMap(([color, scale]) => {
+      const fill = scale[shade];
+      if (!fill || !HEX_COLOR.test(fill)) return [];
+      const text = onFill(fill);
+      // El hover de Mantine siempre oscurece un tono: con texto oscuro encima (dark) bajaba de AA.
+      // Con texto oscuro se aclara, igual que `primaryFillHover` de mobile.
+      const hoverShade = text === '#ffffff' ? Math.min(shade + 1, 9) : Math.max(shade - 1, 0);
+      const hover = scale[hoverShade] ?? fill;
+      return [
+        [onFilledVar(color), text],
+        [`--mantine-color-${color}-filled-hover`, hover],
+      ];
+    })
   );
 }
 

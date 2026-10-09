@@ -43,7 +43,7 @@ export const TmdbResultRow = memo(function TmdbResultRow({
       backgroundColor={selected ? '$primarySurface' : 'transparent'}
       opacity={alreadyAdded ? 0.5 : 1}
       onPress={alreadyAdded ? undefined : onPress}
-      pressStyle={{ backgroundColor: '$hover' }}
+      pressStyle={alreadyAdded ? undefined : { backgroundColor: '$hover' }}
       accessible
       accessibilityRole="radio"
       accessibilityLabel={`${title}, ${type}${alreadyAdded ? ', ya en tu lista' : ''}`}

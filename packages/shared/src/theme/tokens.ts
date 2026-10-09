@@ -453,15 +453,20 @@ export const SEMANTIC = {
     // terracota y Button/Badge destructivo (la paleta `destructive` de web es RED[7] en todos los tonos).
     primaryFill: BRAND[7],
     onPrimaryFill: onFill(BRAND[7]),
+    // Hover y presionado del relleno de marca: con texto blanco, más oscuros.
+    primaryFillHover: BRAND[8],
+    primaryFillPress: BRAND[9],
     accentFill: TERRACOTTA[7],
     onAccentFill: onFill(TERRACOTTA[7]),
     destructiveFill: RED[7],
     disabledSurface: semanticLight['--mantine-color-surfaces-disabled'],
     disabledText: semanticLight['--mantine-color-text-disabled'],
     hover: semanticLight['--mantine-color-surfaces-hover'],
-    // Texto sobre `primary` (segmento activo, Badge brand) y sobre `destructiveFill`.
+    // Texto sobre `primary` (segmento activo, Badge brand), `destructiveFill`, `success` y `dimmed`.
     onPrimary: onFill(semanticLight['--mantine-color-text-primary']),
     onDestructive: onFill(RED[7]),
+    onSuccess: onFill(semanticLight['--mantine-color-text-success']),
+    onDimmed: onFill(semanticLight['--mantine-color-text-dimmed']),
     dimmed: semanticLight['--mantine-color-text-dimmed'],
     placeholder: semanticLight['--mantine-color-text-placeholder'],
     anchor: semanticLight['--mantine-color-text-link-default'],
@@ -503,6 +508,9 @@ export const SEMANTIC = {
     // `destructive` de texto) con blanco daba 2,9:1.
     primaryFill: BRAND[4],
     onPrimaryFill: onFill(BRAND[4]),
+    // Con texto oscuro, hover y presionado van más claros: oscurecer (BRAND[5]/[6]) bajaba a 3,7:1 y 2,4:1.
+    primaryFillHover: BRAND[3],
+    primaryFillPress: BRAND[2],
     accentFill: TERRACOTTA[4],
     onAccentFill: onFill(TERRACOTTA[4]),
     destructiveFill: RED[7],
@@ -512,6 +520,8 @@ export const SEMANTIC = {
     // El primario de dark es claro (BRAND[3]): el texto encima va con el fondo de página, no blanco.
     onPrimary: onFill(semanticDark['--mantine-color-text-primary']),
     onDestructive: onFill(RED[7]),
+    onSuccess: onFill(semanticDark['--mantine-color-text-success']),
+    onDimmed: onFill(semanticDark['--mantine-color-text-dimmed']),
     dimmed: semanticDark['--mantine-color-text-dimmed'],
     placeholder: semanticDark['--mantine-color-text-placeholder'],
     anchor: semanticDark['--mantine-color-text-link-default'],

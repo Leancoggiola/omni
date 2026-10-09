@@ -2,8 +2,8 @@
 import { MEDIA_STATUS_LABELS, MEDIA_STATUSES } from '@omni/shared/media';
 import { SPACING } from '@omni/shared/theme';
 import { FilmSlateIcon, PlusIcon } from 'phosphor-react-native';
-import { useCallback, useMemo, useState } from 'react';
-import { FlatList } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { FlatList, type ListRenderItem } from 'react-native';
 import { YStack } from 'tamagui';
 
 import {
@@ -40,6 +40,19 @@ export function MediaScreen() {
 
   const { data, error, isLoading, mutate } = useMyMediaList();
   const { addToList, updateStatus, removeFromList } = useMediaMutations();
+  // Ítems con un sheet de acción abierto o una mutación en curso: un doble toque en la pill o el tacho
+  // encolaría un segundo sheet (y un segundo DELETE, que daría 404).
+  const busy = useRef(new Set<string>());
+
+  const withItemLock = useCallback(async (item: MediaItem, action: () => Promise<void>) => {
+    if (busy.current.has(item.id)) return;
+    busy.current.add(item.id);
+    try {
+      await action();
+    } finally {
+      busy.current.delete(item.id);
+    }
+  }, []);
 
   const items = useMemo(() => filterMediaItems(data ?? [], filters), [data, filters]);
 
@@ -62,39 +75,49 @@ export function MediaScreen() {
 
   // El cambio se ve en la pill (optimista); solo avisa si falla, como acordamos para mobile.
   const handleStatusPress = useCallback(
-    async (item: MediaItem) => {
-      const status = await actionSheet({
-        title: 'Cambiar estado',
-        description: item.title,
-        options: STATUS_OPTIONS,
-        value: item.status,
-      });
-      if (!status || status === item.status) return;
-      try {
-        await updateStatus(item.id, status);
-      } catch (err) {
-        notifyError(getErrorMessage(err, 'No se pudo actualizar el estado'));
-      }
-    },
-    [updateStatus]
+    (item: MediaItem) =>
+      withItemLock(item, async () => {
+        const status = await actionSheet({
+          title: 'Cambiar estado',
+          description: item.title,
+          options: STATUS_OPTIONS,
+          value: item.status,
+        });
+        if (!status || status === item.status) return;
+        try {
+          await updateStatus(item.id, status);
+        } catch (err) {
+          notifyError(getErrorMessage(err, 'No se pudo actualizar el estado'));
+        }
+      }),
+    [updateStatus, withItemLock]
   );
 
   const handleDeletePress = useCallback(
-    async (item: MediaItem) => {
-      const confirmed = await confirm({
-        title: '¿Eliminar?',
-        description: 'Esta acción no se puede deshacer.',
-        confirmLabel: 'Eliminar',
-      });
-      if (!confirmed) return;
-      try {
-        await removeFromList(item.id);
-        notifySuccess('Eliminado de tu lista');
-      } catch (err) {
-        notifyError(getErrorMessage(err, 'No se pudo eliminar de la lista'));
-      }
-    },
-    [removeFromList]
+    (item: MediaItem) =>
+      withItemLock(item, async () => {
+        const confirmed = await confirm({
+          title: '¿Eliminar?',
+          description: 'Esta acción no se puede deshacer.',
+          confirmLabel: 'Eliminar',
+        });
+        if (!confirmed) return;
+        try {
+          await removeFromList(item.id);
+          notifySuccess('Eliminado de tu lista');
+        } catch (err) {
+          notifyError(getErrorMessage(err, 'No se pudo eliminar de la lista'));
+        }
+      }),
+    [removeFromList, withItemLock]
+  );
+
+  // Handlers y renderItem estables: el `memo` de MediaListItem evita re-render de las filas al tipear.
+  const onStatusPress = useCallback((item: MediaItem) => void handleStatusPress(item), [handleStatusPress]);
+  const onDeletePress = useCallback((item: MediaItem) => void handleDeletePress(item), [handleDeletePress]);
+  const renderItem = useCallback<ListRenderItem<MediaItem>>(
+    ({ item }) => <MediaListItem item={item} onStatusPress={onStatusPress} onDeletePress={onDeletePress} />,
+    [onStatusPress, onDeletePress]
   );
 
   const renderEmpty = () => {
@@ -122,13 +145,7 @@ export function MediaScreen() {
       <FlatList
         data={listData}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <MediaListItem
-            item={item}
-            onStatusPress={i => void handleStatusPress(i)}
-            onDeletePress={i => void handleDeletePress(i)}
-          />
-        )}
+        renderItem={renderItem}
         ListHeaderComponent={
           <YStack gap={SPACING.md} paddingBottom={SPACING.md}>
             {/* Título de la página, como el `PageHeader` de web: no es el label de navegación del registro. */}

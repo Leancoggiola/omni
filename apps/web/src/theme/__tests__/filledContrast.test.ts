@@ -25,11 +25,20 @@ describe.each(['light', 'dark'] as const)('contraste de los filled (%s)', scheme
     expect(contrastRatio(background, text)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
   });
 
-  it('el Button de marca coincide con el de mobile (SEMANTIC)', () => {
+  it.each(['brand', 'terracotta', 'sage', 'destructive', 'success'])('el hover de %s también llega a AA', color => {
+    const { text } = filled(color, scheme);
+    const vars: Record<string, string | undefined> = resolved[scheme];
+    const hover = vars[`--mantine-color-${color}-filled-hover`] ?? '';
+    expect(contrastRatio(hover, text)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+  });
+
+  it('el Button de marca coincide con el de mobile (SEMANTIC), hover incluido', () => {
     expect(filled('brand', scheme)).toEqual({
       background: SEMANTIC[scheme].primaryFill,
       text: SEMANTIC[scheme].onPrimaryFill,
     });
+    const vars: Record<string, string | undefined> = resolved[scheme];
+    expect(vars['--mantine-color-brand-filled-hover']).toBe(SEMANTIC[scheme].primaryFillHover);
   });
 });
 

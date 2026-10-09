@@ -22,6 +22,7 @@ export { NotificationsProvider } from './notify/NotificationsProvider';
 export { Screen } from './Screen';
 export { ScreenHeader } from './ScreenHeader';
 export { SectionCard } from './SectionCard';
+export { SHEET_EXIT_MS } from './sheet/useSheetQueue';
 export { Chip } from './selection/Chip';
 export type { SegmentedControlItem } from './selection/SegmentedControl';
 export { SegmentedControl } from './selection/SegmentedControl';

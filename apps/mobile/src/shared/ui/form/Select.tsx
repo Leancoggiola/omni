@@ -66,7 +66,7 @@ export function Select<T extends string>({
         borderColor="$borderColor"
         backgroundColor={disabled ? '$disabledSurface' : '$background'}
         onPress={disabled ? undefined : () => void open()}
-        pressStyle={{ borderColor: '$primary' }}
+        pressStyle={disabled ? undefined : { borderColor: '$primary' }}
         accessible
         accessibilityRole="button"
         accessibilityLabel={`${name}: ${current}`}

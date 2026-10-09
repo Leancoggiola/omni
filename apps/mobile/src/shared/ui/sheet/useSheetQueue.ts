@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler } from 'react-native';
 
-const CLOSE_FALLBACK_MS = 600;
+/**
+ * Duración de la salida de un Sheet (`transition="medium"`). Tamagui no siempre llama a
+ * `onAnimationComplete` al cerrar: los sheets que esperan el cierre usan este tiempo fijo.
+ */
+export const SHEET_EXIT_MS = 600;
 
 /** Request de un sheet imperativo (`confirm()`, `actionSheet()`): la promesa se resuelve con `resolve`. */
 export type SheetRequest<T> = { resolve: (value: T) => void };
@@ -83,7 +87,7 @@ export function useSheetQueue<T, R extends SheetRequest<T>>(
   // Respaldo por si `onAnimationComplete` no llega (p. ej. sin driver de animación): la cola no se traba.
   useEffect(() => {
     if (!closing) return;
-    const timer = setTimeout(() => setClosing(false), CLOSE_FALLBACK_MS);
+    const timer = setTimeout(() => setClosing(false), SHEET_EXIT_MS);
     return () => clearTimeout(timer);
   }, [closing]);
 

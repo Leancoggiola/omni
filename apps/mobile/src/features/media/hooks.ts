@@ -22,59 +22,64 @@ export function useMyMediaList() {
   return { data, error, isLoading, mutate };
 }
 
-/** Mutaciones sobre el cache de la lista, como `useMediaMutations` de web (sin refetch). */
+type ListTransform = (items: MediaItem[]) => MediaItem[];
+
+/**
+ * Mutaciones sobre la lista (mismo criterio que `useMediaMutations` de web). El optimista parte de la
+ * lista que se ve, no de la última confirmada: dos cambios seguidos (estado de A y después de B) no se
+ * pisan. La respuesta no se escribe en el cache: al terminar se revalida, porque SWR descarta el
+ * resultado de una mutación si arrancó otra después.
+ */
 export function useMediaMutations() {
   const { mutate } = useSWRConfig();
+
+  const mutateList = useCallback(
+    (request: () => Promise<unknown>, transform: ListTransform) =>
+      mutate<MediaItem[]>(
+        LIST_KEY,
+        async () => {
+          await request();
+          return undefined;
+        },
+        {
+          optimisticData: (_committed, displayed) => transform(displayed ?? []),
+          rollbackOnError: true,
+          populateCache: false,
+          revalidate: true,
+        }
+      ),
+    [mutate]
+  );
 
   const addToList = useCallback(
     async (tmdbId: number, mediaType: MediaType, status: MediaStatus) => {
       const item = await api.post<MediaItem>(LIST_KEY, { tmdbId, mediaType, status });
-      await mutate(LIST_KEY, (current: MediaItem[] | undefined) => [item, ...(current ?? [])], {
-        revalidate: false,
-      });
+      await mutateList(
+        () => Promise.resolve(),
+        items => [item, ...items]
+      );
       return item;
     },
-    [mutate]
+    [mutateList]
   );
 
   /** Optimista: la pill cambia al instante y vuelve atrás si falla. */
   const updateStatus = useCallback(
-    async (itemId: string, status: MediaStatus) => {
-      await mutate(
-        LIST_KEY,
-        async (current: MediaItem[] | undefined) => {
-          const updated = await api.patch<MediaItem>(API_KEYS.media.listItem(itemId), { status });
-          return current?.map(item => (item.id === itemId ? updated : item)) ?? [updated];
-        },
-        {
-          optimisticData: (current: MediaItem[] | undefined) =>
-            current?.map(item => (item.id === itemId ? { ...item, status } : item)) ?? [],
-          rollbackOnError: true,
-          populateCache: true,
-          revalidate: false,
-        }
-      );
-    },
-    [mutate]
+    (itemId: string, status: MediaStatus) =>
+      mutateList(
+        () => api.patch<MediaItem>(API_KEYS.media.listItem(itemId), { status }),
+        items => items.map(item => (item.id === itemId ? { ...item, status } : item))
+      ).then(() => undefined),
+    [mutateList]
   );
 
   const removeFromList = useCallback(
-    async (itemId: string) => {
-      await mutate(
-        LIST_KEY,
-        async (current: MediaItem[] | undefined) => {
-          await api.delete(API_KEYS.media.listItem(itemId));
-          return current?.filter(item => item.id !== itemId) ?? [];
-        },
-        {
-          optimisticData: (current: MediaItem[] | undefined) => current?.filter(item => item.id !== itemId) ?? [],
-          rollbackOnError: true,
-          populateCache: true,
-          revalidate: false,
-        }
-      );
-    },
-    [mutate]
+    (itemId: string) =>
+      mutateList(
+        () => api.delete(API_KEYS.media.listItem(itemId)),
+        items => items.filter(item => item.id !== itemId)
+      ).then(() => undefined),
+    [mutateList]
   );
 
   return { addToList, updateStatus, removeFromList };
@@ -82,18 +87,22 @@ export function useMediaMutations() {
 
 /** Búsqueda en TMDB (películas y series) con debounce; sin query suficiente no pide nada. */
 export function useMediaSearch(query: string) {
-  const debounced = useDebouncedValue(query.trim(), SEARCH_DEBOUNCE_MS);
-  const enabled = debounced.length >= MIN_SEARCH_LENGTH;
+  const raw = query.trim();
+  const tooShort = raw.length < MIN_SEARCH_LENGTH;
+  const debounced = useDebouncedValue(raw, SEARCH_DEBOUNCE_MS);
+  const enabled = !tooShort && debounced.length >= MIN_SEARCH_LENGTH;
   const key = enabled
     ? `${API_KEYS.media.search}${buildQueryString({ query: debounced, page: 1, type: 'multi' })}`
     : null;
-  const { data, error, isLoading } = useSWR<TmdbSearchResponse>(key, { keepPreviousData: true });
+  const { data, error, isValidating, mutate } = useSWR<TmdbSearchResponse>(key, { keepPreviousData: true });
 
   return {
     results: enabled ? (data?.results ?? []) : [],
-    error,
-    isLoading,
-    /** El texto todavía no llegó al mínimo (o el debounce aún no lo tomó). */
-    tooShort: !enabled,
+    error: enabled ? error : undefined,
+    /** Busca mientras corre el debounce o la request; los resultados anteriores siguen a la vista. */
+    isLoading: !tooShort && (raw !== debounced || isValidating),
+    /** El texto (sin debounce) no llega al mínimo. */
+    tooShort,
+    retry: () => void mutate(),
   };
 }
