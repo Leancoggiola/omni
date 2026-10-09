@@ -102,7 +102,8 @@ export function AuthBackground() {
       importantForAccessibility="no-hide-descendants"
     >
       {BLOBS.map((blob, index) => (
-        <BlobShape key={blob.color} blob={blob} id={`auth-blob-${index}`} animate={!reducedMotion} />
+        // La lista es fija: el índice es una key estable aunque dos manchas compartan color.
+        <BlobShape key={index} blob={blob} id={`auth-blob-${index}`} animate={!reducedMotion} />
       ))}
     </View>
   );
