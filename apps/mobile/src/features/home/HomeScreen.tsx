@@ -3,7 +3,8 @@ import { HouseIcon } from 'phosphor-react-native';
 import { Paragraph, Spinner } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
-import { ProfileAvatarButton, Screen, ScreenHeader } from '@/shared/ui';
+import { ProfileAvatarButton } from '@/shared/navigation';
+import { Screen, ScreenHeader } from '@/shared/ui';
 
 import { HolidaysCard } from './components/HolidaysCard';
 

@@ -3,7 +3,6 @@ export { confirm } from './confirm/confirm';
 export { ConfirmProvider } from './confirm/ConfirmProvider';
 export { getErrorMessage, notifyError, notifyInfo, notifySuccess, notifyWarning } from './notify/notify';
 export { NotificationsProvider } from './notify/NotificationsProvider';
-export { ProfileAvatarButton } from './ProfileAvatarButton';
 export { Screen } from './Screen';
 export { ScreenHeader } from './ScreenHeader';
 export { SectionCard } from './SectionCard';

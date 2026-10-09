@@ -15,7 +15,7 @@ apps/mobile/
     core/auth/            # AuthProvider, SecureStore
     shared/api/           # API_KEYS, client Bearer, tokenStorage
     shared/ui/            # primitivas de UI (ver abajo)
-    shared/navigation/    # NAV_ICONS: íconos del registro de @omni/shared/navigation
+    shared/navigation/    # NAV_ICONS, NAV_HREFS y ProfileAvatarButton (lo que depende de auth/router; shared/ui es presentacional)
     features/<name>/      # screen + hooks
     theme/                # tamagui.config, fonts, elevation, gradient
 ```
@@ -74,7 +74,7 @@ Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 | Pieza                                                            | Uso                                                                                                           |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `Screen`                                                         | Contenedor de pantalla: fondo, márgenes e inset de la status bar (`insetTop={false}` bajo un header de stack) |
-| `UserAvatar` / `ProfileAvatarButton`                             | Avatar con gradiente de marca e iniciales (= `UserAvatar` de web) / el mismo, que lleva a Perfil              |
+| `UserAvatar`                                                     | Avatar con gradiente de marca e iniciales (= `UserAvatar` de web)                                             |
 | `ScreenHeader`                                                   | Cabecera de pantalla: chip terracota + título + subtítulo + `actions` (= `PageHeader`)                        |
 | `SectionCard`                                                    | Superficie de contenido, `title`/`subtitle` opcionales (= `Paper` / `ProfileSectionCard`)                     |
 | `Title`                                                          | Títulos con la escala `HEADING` (= `Title order`)                                                             |

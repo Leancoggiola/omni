@@ -1,8 +1,8 @@
 import { NAV_REGISTRY } from '@omni/shared/navigation';
 import { ClockCountdownIcon } from 'phosphor-react-native';
 
-import { NAV_ICONS } from '@/shared/navigation';
-import { EmptyState, ProfileAvatarButton, Screen, ScreenHeader } from '@/shared/ui';
+import { NAV_ICONS, ProfileAvatarButton } from '@/shared/navigation';
+import { EmptyState, Screen, ScreenHeader } from '@/shared/ui';
 
 /** Tab reservada para la alacena: la pantalla llega con #48. */
 export function PantryScreen() {

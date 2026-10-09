@@ -5,7 +5,8 @@ import { mutate as globalMutate } from 'swr';
 import { FilmSlateIcon } from 'phosphor-react-native';
 
 import { ApiError, API_KEYS } from '@/shared/api';
-import { ProfileAvatarButton, Screen, ScreenHeader } from '@/shared/ui';
+import { ProfileAvatarButton } from '@/shared/navigation';
+import { Screen, ScreenHeader } from '@/shared/ui';
 import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS } from '@omni/shared/media';
 
 import { MediaCard } from './components/MediaCard';

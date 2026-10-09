@@ -3,7 +3,7 @@ import { Pressable } from 'react-native';
 
 import { useAuth } from '@/core/auth';
 
-import { UserAvatar } from './UserAvatar';
+import { UserAvatar } from '@/shared/ui';
 
 /** Avatar del `ScreenHeader` de las tabs: lleva a Perfil, que es una ruta de stack. */
 export function ProfileAvatarButton() {
