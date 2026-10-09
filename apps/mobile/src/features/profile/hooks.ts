@@ -9,9 +9,7 @@ import type { UpdatePreferencesPayload, UpdateProfilePayload, UserPreferences, U
 
 export function useProfile() {
   const { mutate: globalMutate } = useSWRConfig();
-  const { data, error, isLoading, mutate, isValidating } = useSWRImmutable<{ user: UserProfile }>(
-    API_KEYS.users.profile
-  );
+  const { data, error, isLoading, mutate } = useSWRImmutable<{ user: UserProfile }>(API_KEYS.users.profile);
 
   const updateProfile = async (payload: UpdateProfilePayload) => {
     const res = await api.patch<{ user: UserProfile }>(API_KEYS.users.profile, payload);
@@ -43,7 +41,6 @@ export function useProfile() {
     profile: data?.user ?? null,
     error,
     isLoading,
-    isMutating: isValidating,
     refresh: () => mutate(),
     updateProfile,
     updatePreferences,
