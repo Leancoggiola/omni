@@ -61,7 +61,9 @@ Los sub-themes reemplazan el theme entero: un token propio (`$destructive`, `$di
 
 Cada familia tiene variantes `primary`, `destructive`, `dimmed`, `disabled` y las semánticas `success` / `warning` / `info` / `error` / `accent`.
 
-En `SEMANTIC`, cada color de estado tiene su terna `{color}` (texto) / `{color}Surface` (wash) / `{color}Border`, igual que `text-*` / `surfaces-*-light` / `border-*` de web: `primary`/`primarySurface`/`primaryBorder`, `destructive`/`errorSurface`/`destructiveBorder`, y lo mismo para `success`, `warning`, `info`, `accent` y `dimmed`. Se suman `primaryFill`/`onPrimaryFill` (relleno del `Button` filled de marca: `BRAND[7]` en claro y `BRAND[4]` en oscuro, el `primaryShade` de web, con texto blanco en los dos esquemas; `primary` queda para texto y acentos), `accentFill`/`onAccentFill` (Badge de tipo: el tono filled de Mantine, `TERRACOTTA[7]` en claro y `[4]` en oscuro, con el texto que elige `autoContrast`: blanco y oscuro) y `disabledSurface`/`disabledText` (= `--mantine-color-disabled*`). Son los que usan `Badge`, `Banner` y el estado deshabilitado de `Button`.
+En `SEMANTIC`, cada color de estado tiene su terna `{color}` (texto) / `{color}Surface` (wash) / `{color}Border`, igual que `text-*` / `surfaces-*-light` / `border-*` de web: `primary`/`primarySurface`/`primaryBorder`, `destructive`/`errorSurface`/`destructiveBorder`, y lo mismo para `success`, `warning`, `info`, `accent` y `dimmed`. Se suman los rellenos `filled`: `primaryFill`/`onPrimaryFill` (`Button` de marca: `BRAND[7]` en claro y `BRAND[4]` en oscuro, el `primaryShade` de web; `primary` queda para texto y acentos), `accentFill`/`onAccentFill` (Badge de tipo: `TERRACOTTA[7]` / `[4]`) y `destructiveFill`/`onDestructive` (`RED[7]` en los dos esquemas, como la paleta `destructive` de web; `destructive` es el rojo de texto, que en oscuro es `RED[4]`). Más `disabledSurface`/`disabledText` (= `--mantine-color-disabled*`). Son los que usan `Button`, `Badge`, `Banner` y el estado deshabilitado.
+
+**Texto sobre un relleno: `onFill()`.** Todo `on*` de un relleno sale de `onFill(fill)` de `@omni/shared/theme`: blanco o `CANVAS.dark`, el que más contraste da en ese esquema. En web, `cssVariablesResolver` genera `--mantine-color-<color>-on-filled` por esquema para cada paleta y el `variantResolver` lo usa en `filled`, en lugar del `autoContrast` de Mantine (que decide con el tono de claro y en oscuro dejaba texto blanco sobre el shade 4, ~3:1). Resultado en oscuro: texto oscuro sobre el Button de marca (5,5:1) y el Badge terracota (6,3:1). El hover (web, `--mantine-color-<color>-filled-hover`) y el presionado (mobile, `primaryFillHover`/`primaryFillPress`) se mueven hacia el lado que conserva el contraste: más oscuros con texto blanco, más claros con texto oscuro. El umbral es el de máximo contraste, no el 0,3 de luminancia de Mantine: en claro, `orange`, `indigo`, `teal` y `cyan` filled pasan a texto oscuro (hoy ninguna se usa filled). Los badges `success` y `dimmed` usan `onSuccess`/`onDimmed`, cada uno calculado sobre su propio fondo. Tests de regresión: `apps/mobile/src/theme/contrast.test.ts` y `apps/web/src/theme/__tests__/filledContrast.test.ts` exigen ≥ 4,5:1 (`WCAG_AA_TEXT`).
 
 ### Transparencias
 
@@ -151,7 +153,8 @@ Los dos clientes tienen `@/shared/ui` con la misma API; cambia la implementació
 | `Chip`                                       | `Chip`                                       | Variante light: marcado en `primarySurface` con check                                                                         |
 | `Badge`                                      | `Badge`                                      | `color`: brand · accent · success · destructive · dimmed. Tipo de media = `accent` filled sm                                  |
 | `Alert` (`light-custom`)                     | `Banner`                                     | Mismo wash y borde por color; error de formulario = `color="destructive"`                                                     |
-| `Select` / `Menu`                            | `actionSheet()`                              | Opciones en bottom sheet, check en la actual + "Cancelar"; `Promise` con el `value` o `null`                                  |
+| `Select`                                     | `Select`                                     | Campo de 44 dp con el valor y el caret; las opciones abren un `actionSheet()`                                                 |
+| `Menu` / opciones sueltas                    | `actionSheet()`                              | Opciones en bottom sheet, check en la actual + "Cancelar"; `Promise` con el `value` o `null`                                  |
 | `confirm()` (modal)                          | `confirm()` (bottom sheet)                   | `Promise<boolean>`                                                                                                            |
 | `NotificationCard` + `notify*`               | `NotificationCard` + `notify*`               | Toasts de feedback (4 variantes)                                                                                              |
 | `LoadingState` / `EmptyState` / `ErrorState` | `LoadingState` / `EmptyState` / `ErrorState` | Regla de oro 0                                                                                                                |
@@ -165,7 +168,9 @@ Diferencias aceptadas: en mobile los botones de acción van a lo ancho (`fullWid
 
 `notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` desde `@/shared/ui`. En web las features **no** importan `@mantine/notifications` directo; en mobile **no** usan `Alert.alert`.
 
-Cada variante deriva su acento y su wash de los tokens semánticos (`icons-{variante}` y `surfaces-{variante}-light`; en mobile, `SEMANTIC.successIcon`/`successSurface`, etc.), así que sumar una variante no requiere CSS nuevo por esquema. Mobile dibuja el wash con `expo-linear-gradient` a 135°, igual que el `linear-gradient` de web, terminando en el mismo color con alfa 0 (no `transparent`: Android interpola sin premultiplicar y deja una banda gris). Diferencia aceptada: el chip del ícono usa `surfaces-{variante}-light` como fondo, porque RN no tiene `color-mix`.
+Mismo diseño en las dos plataformas (#68): **abajo** (web `bottom-center`; mobile encima de la tab bar, que le informa su alto con `useSetNotificationsBottomOffset` desde `MeasuredTabBar` mientras las tabs tienen el foco; si no, sobre el inset inferior o encima del teclado), **compacto** (padding xs/sm, título 12/700, mensaje 12 dimmed, X chica), **ícono suelto sin chip** y lavado **D**: una barra de 3 px del color del estado a la izquierda y el lavado horizontal que se desvanece al 90 %.
+
+Cada variante deriva su acento (`icons-{variante}`: ícono y barra) y su lavado (`surfaces-{variante}-light`) de los tokens semánticos (en mobile, `SEMANTIC.successIcon`/`successSurface`, etc.), así que sumar una variante no requiere CSS nuevo por esquema. Mobile dibuja el lavado con `expo-linear-gradient` a 90°, terminando en el mismo color con alfa 0 (no `transparent`: Android interpola sin premultiplicar y deja una banda gris), y la barra con un Stack absoluto. Diferencias aceptadas: en mobile la X mide 36 dp (44 de toque) y la pila va **debajo** de los Sheets (`confirm()`, `actionSheet()`), porque comparten la franja inferior con sus botones.
 
 ---
 
@@ -213,20 +218,20 @@ Lo que ya es automático: cualquier cambio en `tokens.ts` llega a mobile vía `S
 
 Lo que **no** es automático y hay que replicar a mano en mobile:
 
-| Web                                    | Estado en mobile                                                                                       |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Gradiente cálido del sidebar           | No aplica (mobile usa tabs, no sidebar)                                                                |
-| `PageHeader` con chip de ícono         | Componente listo (`ScreenHeader`); falta usarlo en las pantallas (#66)                                 |
-| `NotificationCard` (4 variantes)       | Componente listo (`notify*`); falta migrar `Alert.alert` (#68, #69)                                    |
-| Theme de componentes de Tamagui        | Hecho — sub-themes por componente desde `SEMANTIC` (#75)                                               |
-| Primitivas de formulario y acción      | Hechas (#76); Login ya las usa (#67); falta usarlas en Media y Perfil (#68, #69)                       |
-| Login: card con logo, blobs y `Banner` | Hecho (#67) — `LoginScreen` + `AuthBackground` (blobs de reanimated, quietos con "reducir movimiento") |
-| Badges de tipo en terracota            | Componente listo (`Badge` accent filled); falta usarlo en `MediaCard` (#68)                            |
-| Estados media (neutro/terracota/sage)  | Componente listo (`StatusPill`); falta usarlo en `MediaCard` (#68)                                     |
-| Card de efemérides (gradiente)         | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                                      |
-| Montserrat + íconos Phosphor           | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                                                 |
-| Radios y espaciado                     | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                                                   |
-| Tema del perfil + toggle de sesión     | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)                        |
+| Web                                    | Estado en mobile                                                                                        |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Gradiente cálido del sidebar           | No aplica (mobile usa tabs, no sidebar)                                                                 |
+| `PageHeader` con chip de ícono         | Componente listo (`ScreenHeader`); falta usarlo en las pantallas (#66)                                  |
+| `NotificationCard` (4 variantes)       | Componente listo (`notify*`); Media ya no usa `Alert.alert` (#68); falta Perfil (#69)                   |
+| Theme de componentes de Tamagui        | Hecho — sub-themes por componente desde `SEMANTIC` (#75)                                                |
+| Primitivas de formulario y acción      | Hechas (#76); las usan Login (#67) y Media (#68); falta Perfil (#69)                                    |
+| Login: card con logo, blobs y `Banner` | Hecho (#67) — `LoginScreen` + `AuthBackground` (blobs de reanimated, quietos con "reducir movimiento")  |
+| Media: lista, filtros, agregar, estado | Hecho (#68) — `MediaListItem` (póster 56 dp, `Badge`, `StatusPill`, tacho), `MediaToolbar`, FAB + Sheet |
+| Contraste de rellenos en oscuro        | Hecho (#68) — `onFill()` en `SEMANTIC` y `--mantine-color-<color>-on-filled` en web                     |
+| Card de efemérides (gradiente)         | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                                       |
+| Montserrat + íconos Phosphor           | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                                                  |
+| Radios y espaciado                     | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                                                    |
+| Tema del perfil + toggle de sesión     | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)                         |
 
 Al tocar el design system, correr siempre:
 

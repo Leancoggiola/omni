@@ -19,7 +19,9 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     ['Button', 'background', s.card],
     ['active_Button', 'background', s.primaryFill],
     ['active_Button', 'color', s.onPrimaryFill],
-    ['red_Button', 'background', s.destructive],
+    ['active_Button', 'backgroundHover', s.primaryFillHover],
+    ['active_Button', 'backgroundPress', s.primaryFillPress],
+    ['red_Button', 'background', s.destructiveFill],
     ['red_Button', 'color', s.onDestructive],
     ['Switch', 'background', s.border],
     ['active_Switch', 'background', s.primary],
@@ -38,7 +40,7 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     ['DrawerFrame', 'background', s.body],
     ['Progress', 'background', s.border],
     ['TooltipContent', 'background', s.card],
-    ['red_Switch', 'background', s.destructive],
+    ['red_Switch', 'background', s.destructiveFill],
     ['blue_Button', 'background', s.card],
     ['Button', 'primary', s.primary],
     ['active_Button', 'dimmed', s.dimmed],
@@ -68,8 +70,13 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     expect(untouched).toEqual([]);
   });
 
+  it('el theme _red pone el texto de onDestructive sobre destructiveFill', () => {
+    expect(value(`${scheme}_red`, 'background')).toBe(s.destructiveFill);
+    expect(value(`${scheme}_red`, 'color')).toBe(s.onDestructive);
+  });
+
   it('las variantes _red de Slider y Progress activos van en destructivo', () => {
-    expect(value(`${scheme}_red_SliderTrackActive`, 'background')).toBe(s.destructive);
-    expect(value(`${scheme}_red_ProgressIndicator`, 'background')).toBe(s.destructive);
+    expect(value(`${scheme}_red_SliderTrackActive`, 'background')).toBe(s.destructiveFill);
+    expect(value(`${scheme}_red_ProgressIndicator`, 'background')).toBe(s.destructiveFill);
   });
 });

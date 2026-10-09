@@ -73,8 +73,8 @@ export function buttonPalette(
           background: '$dimmed',
           backgroundPress: '$dimmed',
           borderColor: 'transparent',
-          color: '$onPrimary',
-          icon: colors.onPrimary,
+          color: '$onDimmed',
+          icon: colors.onDimmed,
           pressOpacity: 0.85,
         };
       }

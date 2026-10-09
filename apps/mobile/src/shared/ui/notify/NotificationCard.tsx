@@ -1,19 +1,26 @@
-import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
+import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon, type Icon } from 'phosphor-react-native';
 import { StyleSheet } from 'react-native';
-import { Button, Paragraph, XStack, YStack } from 'tamagui';
+import { Paragraph, XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 import { elevation } from '@/theme/elevation';
 import { gradientPoints, transparentOf } from '@/theme/gradient';
 
+import { IconButton } from '../button/IconButton';
+
 import type { NotificationVariant } from './notify';
 
-const ICON_SIZE = 36;
-const WASH = gradientPoints(135);
+const ICON_SIZE = 18;
+/** Lavado horizontal, como web: del color del estado a transparente al 90 %. */
+const WASH = gradientPoints(90);
+const ACCENT_BAR_WIDTH = 3;
 
-/** Acento (`icons-{variante}`) y wash (`surfaces-{variante}-light`): los mismos tokens que `NotificationCard.module.scss` de web. */
+/**
+ * Acento (`icons-{variante}`: ícono y barra izquierda) y wash (`surfaces-{variante}-light`): los mismos
+ * tokens que `NotificationCard.module.scss` de web.
+ */
 const VARIANTS = {
   success: { icon: CheckCircleIcon, accent: 'successIcon', wash: 'successSurface' },
   error: { icon: WarningIcon, accent: 'errorIcon', wash: 'errorSurface' },
@@ -46,39 +53,39 @@ export function NotificationCard({ variant, title, message, onClose }: Notificat
     >
       <LinearGradient
         colors={[washColor, washClear]}
-        locations={[0, 0.65]}
+        locations={[0, 0.9]}
         start={WASH.start}
         end={WASH.end}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
-      <XStack padding={SPACING.md} gap={SPACING.sm} alignItems="flex-start">
-        <YStack
-          width={ICON_SIZE}
-          height={ICON_SIZE}
-          borderRadius={RADIUS.full}
-          backgroundColor={washColor}
-          alignItems="center"
-          justifyContent="center"
-        >
-          <IconComponent size={20} color={accentColor} weight="fill" />
-        </YStack>
+      <YStack
+        position="absolute"
+        left={0}
+        top={0}
+        bottom={0}
+        width={ACCENT_BAR_WIDTH}
+        backgroundColor={accentColor}
+        pointerEvents="none"
+      />
+      {/* Compacta, como el `NotificationCard` de web: ícono suelto (sin chip), título y mensaje 12. */}
+      <XStack
+        paddingVertical={SPACING.xs}
+        paddingLeft={SPACING.sm}
+        paddingRight={SPACING['2xs']}
+        gap={SPACING.xs}
+        alignItems="center"
+      >
+        <IconComponent size={ICON_SIZE} color={accentColor} weight="fill" />
         <YStack flex={1} gap={SPACING['3xs']}>
-          <Paragraph fontSize={FONT_SIZE.md} fontWeight="700">
+          <Paragraph fontSize={FONT_SIZE.sm} lineHeight={LINE_HEIGHT.sm} fontWeight="700">
             {title}
           </Paragraph>
-          <Paragraph fontSize={FONT_SIZE.md} color="$dimmed">
+          <Paragraph fontSize={FONT_SIZE.sm} lineHeight={LINE_HEIGHT.sm} color="$dimmed">
             {message}
           </Paragraph>
         </YStack>
-        <Button
-          chromeless
-          circular
-          size="$2"
-          onPress={onClose}
-          accessibilityLabel="Cerrar notificación"
-          icon={<XIcon size={16} color={colors.dimmed} />}
-        />
+        <IconButton icon={XIcon} color="dimmed" size="sm" accessibilityLabel="Cerrar notificación" onPress={onClose} />
       </XStack>
     </YStack>
   );

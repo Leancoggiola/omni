@@ -19,9 +19,11 @@ type StatusPillProps = {
   status: MediaStatus;
   /** Con `onPress` la pill se vuelve un disparador (muestra un caret), p. ej. para abrir un Sheet. */
   onPress?: () => void;
+  /** Reemplaza al label por defecto; en listas, con el título del ítem ("Estado de Dune: Vista"). */
+  accessibilityLabel?: string;
 };
 
-export function StatusPill({ status, onPress }: StatusPillProps) {
+export function StatusPill({ status, onPress, accessibilityLabel }: StatusPillProps) {
   const colors = useSemanticColors();
   const tokens = STATUS_TOKENS[status];
   const label = MEDIA_STATUS_LABELS[status];
@@ -41,7 +43,7 @@ export function StatusPill({ status, onPress }: StatusPillProps) {
       hitSlop={onPress ? { top: 12, bottom: 12, left: 8, right: 8 } : undefined}
       pressStyle={onPress ? { opacity: 0.7 } : undefined}
       accessibilityRole={onPress ? 'button' : 'text'}
-      accessibilityLabel={onPress ? `Estado: ${label}. Cambiar estado` : `Estado: ${label}`}
+      accessibilityLabel={accessibilityLabel ?? (onPress ? `Estado: ${label}. Cambiar estado` : `Estado: ${label}`)}
     >
       <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600">
         {label}

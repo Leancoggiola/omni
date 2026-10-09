@@ -5,68 +5,66 @@ import { api, SWR_KEYS } from '@/shared/api';
 
 import type { MediaItem, MediaStatus, MediaType } from '../../types';
 
+type ListTransform = (items: MediaItem[]) => MediaItem[];
+
+/**
+ * El optimista parte de la lista que se ve, no de la última confirmada: dos cambios seguidos (estado
+ * de A y después de B) no se pisan. La respuesta no se escribe en el cache: al terminar se revalida,
+ * porque SWR descarta el resultado de una mutación si arrancó otra después. Mismo criterio en mobile.
+ */
 export function useMediaMutations() {
   const { mutate } = useSWRConfig();
   const listKey = SWR_KEYS.media.list;
 
-  const addToList = useCallback(
-    async (tmdbId: number, mediaType: MediaType, status: MediaStatus = 'to_watch') => {
-      const item = await api.post<MediaItem>(listKey, {
-        tmdbId,
-        mediaType,
-        status,
-      });
-
-      await mutate(listKey, (current: MediaItem[] | undefined) => (current ? [item, ...current] : [item]), {
-        revalidate: false,
-      });
-
-      return item;
+  const mutateList = useCallback(
+    <T>(request: () => Promise<T>, transform: ListTransform) => {
+      let result: T | undefined;
+      return mutate<MediaItem[]>(
+        listKey,
+        async () => {
+          result = await request();
+          return undefined;
+        },
+        {
+          optimisticData: (_committed, displayed) => transform(displayed ?? []),
+          rollbackOnError: true,
+          populateCache: false,
+          revalidate: true,
+        }
+      ).then(() => result as T);
     },
     [mutate, listKey]
   );
 
-  const updateStatus = useCallback(
-    async (itemId: string, status: MediaStatus) => {
-      let updated: MediaItem | undefined;
-
-      await mutate(
-        listKey,
-        async (current: MediaItem[] | undefined) => {
-          updated = await api.patch<MediaItem>(SWR_KEYS.media.listItem(itemId), { status });
-          return current?.map(item => (item.id === itemId ? updated! : item)) ?? [updated!];
-        },
-        {
-          optimisticData: (current: MediaItem[] | undefined) =>
-            current?.map(item => (item.id === itemId ? { ...item, status } : item)) ?? [],
-          rollbackOnError: true,
-          populateCache: true,
-          revalidate: false,
-        }
+  const addToList = useCallback(
+    async (tmdbId: number, mediaType: MediaType, status: MediaStatus = 'to_watch') => {
+      const item = await api.post<MediaItem>(listKey, { tmdbId, mediaType, status });
+      await mutateList(
+        () => Promise.resolve(item),
+        items => [item, ...items]
       );
-
-      return updated!;
+      return item;
     },
-    [mutate, listKey]
+    [mutateList, listKey]
+  );
+
+  const updateStatus = useCallback(
+    (itemId: string, status: MediaStatus) =>
+      mutateList(
+        () => api.patch<MediaItem>(SWR_KEYS.media.listItem(itemId), { status }),
+        items => items.map(item => (item.id === itemId ? { ...item, status } : item))
+      ),
+    [mutateList]
   );
 
   const removeFromList = useCallback(
     async (itemId: string) => {
-      await mutate(
-        listKey,
-        async (current: MediaItem[] | undefined) => {
-          await api.delete(SWR_KEYS.media.listItem(itemId));
-          return current?.filter(item => item.id !== itemId) ?? [];
-        },
-        {
-          optimisticData: (current: MediaItem[] | undefined) => current?.filter(item => item.id !== itemId) ?? [],
-          rollbackOnError: true,
-          populateCache: true,
-          revalidate: false,
-        }
+      await mutateList(
+        () => api.delete(SWR_KEYS.media.listItem(itemId)),
+        items => items.filter(item => item.id !== itemId)
       );
     },
-    [mutate, listKey]
+    [mutateList]
   );
 
   return { addToList, updateStatus, removeFromList };

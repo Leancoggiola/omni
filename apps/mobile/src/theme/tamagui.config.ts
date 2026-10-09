@@ -45,7 +45,10 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     warningBorder: s.warningBorder,
     infoBorder: s.infoBorder,
     accentFill: s.accentFill,
+    destructiveFill: s.destructiveFill,
     onAccentFill: s.onAccentFill,
+    onSuccess: s.onSuccess,
+    onDimmed: s.onDimmed,
     disabledSurface: s.disabledSurface,
     disabledText: s.disabledText,
     hover: s.hover,
@@ -68,8 +71,9 @@ function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'acc
   const fill = tone === 'fill';
   const background = fill ? s.primaryFill : s.primary;
   const onPrimary = fill ? s.onPrimaryFill : s.onPrimary;
-  const hover = fill ? (scheme === 'light' ? BRAND[8] : BRAND[5]) : scheme === 'light' ? BRAND[6] : BRAND[3];
-  const press = fill ? (scheme === 'light' ? BRAND[9] : BRAND[6]) : scheme === 'light' ? BRAND[8] : BRAND[5];
+  // Los tonos de interacción del relleno salen de SEMANTIC: con el texto encima siguen en AA (con test).
+  const hover = fill ? s.primaryFillHover : scheme === 'light' ? BRAND[6] : BRAND[3];
+  const press = fill ? s.primaryFillPress : scheme === 'light' ? BRAND[8] : BRAND[5];
   return {
     ...surfaceTheme(scheme, base),
     background,
@@ -91,22 +95,25 @@ function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'acc
 
 function destructiveTheme(scheme: 'light' | 'dark', base: Theme): Theme {
   const s = SEMANTIC[scheme];
+  // El relleno es `destructiveFill` (RED[7], como web), no el `destructive` de texto: en oscuro es RED[4]
+  // y con blanco daba 2,9:1.
+  const fill = s.destructiveFill;
   const onDestructive = s.onDestructive;
   return {
     ...surfaceTheme(scheme, base),
-    background: s.destructive,
-    backgroundHover: s.destructive,
-    backgroundPress: s.destructive,
-    backgroundFocus: s.destructive,
-    backgroundStrong: s.destructive,
+    background: fill,
+    backgroundHover: fill,
+    backgroundPress: fill,
+    backgroundFocus: fill,
+    backgroundStrong: fill,
     color: onDestructive,
     colorHover: onDestructive,
     colorPress: onDestructive,
     colorFocus: onDestructive,
-    borderColor: s.destructive,
-    borderColorHover: s.destructive,
-    borderColorFocus: s.destructive,
-    borderColorPress: s.destructive,
+    borderColor: fill,
+    borderColorHover: fill,
+    borderColorFocus: fill,
+    borderColorPress: fill,
     placeholderColor: onDestructive,
   };
 }
