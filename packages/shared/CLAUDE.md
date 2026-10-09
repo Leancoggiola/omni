@@ -10,6 +10,7 @@ src/
   media/      MEDIA_TYPES, MEDIA_STATUSES, add/update/search schemas
   users/      profile, password, preferences
   theme/      BRAND, SEMANTIC, GRAY, success/destructive (web + mobile)
+  navigation/ NAV_REGISTRY: labels, rutas y disponibilidad de módulos (navbar web, tabs y "Más" mobile)
   index.ts    re-exports
 ```
 

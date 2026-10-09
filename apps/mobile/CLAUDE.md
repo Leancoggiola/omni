@@ -7,13 +7,15 @@ UI con **Tamagui**, nunca Mantine. Nueva feature: `/new-feature`.
 ```
 apps/mobile/
   app/                    # Expo Router
-    _layout.tsx           # Tamagui + AuthProvider + Notifications/Confirm + AuthGate
+    _layout.tsx           # Tamagui + AuthProvider + Notifications/Confirm + AuthGate (Stack)
     login.tsx
-    (tabs)/index|media|profile.tsx
+    profile.tsx           # ruta de stack sobre las tabs (avatar del header y tarjeta de "Más")
+    (tabs)/index|media|pantry|more.tsx
   src/
     core/auth/            # AuthProvider, SecureStore
     shared/api/           # API_KEYS, client Bearer, tokenStorage
     shared/ui/            # primitivas de UI (ver abajo)
+    shared/navigation/    # NAV_ICONS: íconos del registro de @omni/shared/navigation
     features/<name>/      # screen + hooks
     theme/                # tamagui.config, fonts, elevation, gradient
 ```
@@ -21,6 +23,13 @@ apps/mobile/
 - Imports: `@/shared/api`, `@/shared/ui`, `@/core/auth`, `@/features/...`, `@/theme/...`.
 - **Prohibido:** feature A → feature B.
 - Contratos desde `@omni/shared/*`; no duplicar schemas.
+
+## Navegación
+
+- Tabs **Inicio · Media · Alacena · Más**, sin header de React Navigation: cada pantalla arranca con `Screen` + `ScreenHeader` (con `ProfileAvatarButton` en `actions`).
+- Labels, rutas y disponibilidad salen de `NAV_REGISTRY` de `@omni/shared/navigation` (el mismo que usa el navbar de web); los íconos, de `NAV_ICONS`. Tabs: `MOBILE_TAB_KEYS`.
+- "Más" es el launcher: tarjeta de usuario → Perfil, toggle de tema, módulos (los que no tienen `"mobile"` en `availableOn` salen como "Próximamente"), Administración si el rol es ADMIN y cerrar sesión.
+- Módulo nuevo en mobile: sumar `"mobile"` a su `availableOn`, crear la ruta en `app/` con el mismo `path` y registrarla en `NAV_HREFS` (`src/shared/navigation/navHrefs.ts`, tipada con `typedRoutes`).
 
 ## API paths
 
@@ -62,15 +71,17 @@ Return: dominio + `isLoading` + `error` (+ `isMutating` si aplica). Paridad de p
 
 Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 
-| Pieza                                                            | Uso                                                                                       |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `ScreenHeader`                                                   | Cabecera de pantalla: chip terracota + título + subtítulo + `actions` (= `PageHeader`)    |
-| `SectionCard`                                                    | Superficie de contenido, `title`/`subtitle` opcionales (= `Paper` / `ProfileSectionCard`) |
-| `Title`                                                          | Títulos con la escala `HEADING` (= `Title order`)                                         |
-| `LoadingState` / `EmptyState` / `ErrorState`                     | Estados de UI (regla de oro 0)                                                            |
-| `StatusPill`                                                     | Estado de media: neutro / terracota / sage; con `onPress` abre un selector                |
-| `notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` | Feedback de acciones. **Nunca `Alert.alert`**                                             |
-| `confirm({ title, description, … })`                             | Confirmación en bottom sheet; devuelve `Promise<boolean>`                                 |
+| Pieza                                                            | Uso                                                                                                           |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `Screen`                                                         | Contenedor de pantalla: fondo, márgenes e inset de la status bar (`insetTop={false}` bajo un header de stack) |
+| `UserAvatar` / `ProfileAvatarButton`                             | Avatar con gradiente de marca e iniciales (= `UserAvatar` de web) / el mismo, que lleva a Perfil              |
+| `ScreenHeader`                                                   | Cabecera de pantalla: chip terracota + título + subtítulo + `actions` (= `PageHeader`)                        |
+| `SectionCard`                                                    | Superficie de contenido, `title`/`subtitle` opcionales (= `Paper` / `ProfileSectionCard`)                     |
+| `Title`                                                          | Títulos con la escala `HEADING` (= `Title order`)                                                             |
+| `LoadingState` / `EmptyState` / `ErrorState`                     | Estados de UI (regla de oro 0)                                                                                |
+| `StatusPill`                                                     | Estado de media: neutro / terracota / sage; con `onPress` abre un selector                                    |
+| `notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` | Feedback de acciones. **Nunca `Alert.alert`**                                                                 |
+| `confirm({ title, description, … })`                             | Confirmación en bottom sheet; devuelve `Promise<boolean>`                                                     |
 
 - Medidas: `RADIUS` / `SPACING` / `FONT_SIZE` de `@omni/shared/theme` como números (`padding={SPACING.md}`); sombras con `elevation('sm')` de `@/theme/elevation`. No usar tokens `$4` de Tamagui como medida (`padding="$4"`, `gap="$2"`, `borderRadius="$4"`) en código nuevo (ver `docs/design-system.md`). La prop `size` de los componentes de Tamagui (`<Button size="$4">`, `Spinner`) es otra cosa: elige una variante del componente (alto, padding y fuente juntos) y se sigue usando.
 - Colores: tokens de tema (`$accentSurface`, `$destructive`, …) en props de Tamagui; para valores crudos (íconos Phosphor, gradientes), `useSemanticColors()` de `@/core/theme`.

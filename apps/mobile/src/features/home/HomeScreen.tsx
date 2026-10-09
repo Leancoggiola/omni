@@ -1,6 +1,9 @@
-import { Paragraph, Spinner, YStack } from 'tamagui';
+import { NAV_REGISTRY } from '@omni/shared/navigation';
+import { HouseIcon } from 'phosphor-react-native';
+import { Paragraph, Spinner } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
+import { ProfileAvatarButton, Screen, ScreenHeader } from '@/shared/ui';
 
 import { HolidaysCard } from './components/HolidaysCard';
 
@@ -15,7 +18,13 @@ export function HomeScreen() {
   const { user, isLoading } = useAuth();
 
   return (
-    <YStack flex={1} padding="$4" gap="$3" backgroundColor="$background">
+    <Screen>
+      <ScreenHeader
+        icon={HouseIcon}
+        title={NAV_REGISTRY.home.label}
+        subtitle="Bienvenido a Omni"
+        actions={<ProfileAvatarButton />}
+      />
       <Paragraph theme="alt1">{timeGreeting()}</Paragraph>
       {isLoading ? (
         <Spinner />
@@ -24,8 +33,7 @@ export function HomeScreen() {
           {user?.name ?? '—'}
         </Paragraph>
       )}
-      <Paragraph theme="alt2">Bienvenido a Omni</Paragraph>
       <HolidaysCard />
-    </YStack>
+    </Screen>
   );
 }

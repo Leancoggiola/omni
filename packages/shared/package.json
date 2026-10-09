@@ -16,7 +16,8 @@
     "./pantry": "./src/pantry/index.ts",
     "./notifications": "./src/notifications/index.ts",
     "./holidays": "./src/holidays/index.ts",
-    "./common": "./src/common/index.ts"
+    "./common": "./src/common/index.ts",
+    "./navigation": "./src/navigation/index.ts"
   },
   "typesVersions": {
     "*": {
@@ -52,6 +53,9 @@
       ],
       "common": [
         "src/common/index.ts"
+      ],
+      "navigation": [
+        "src/navigation/index.ts"
       ]
     }
   },

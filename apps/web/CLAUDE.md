@@ -15,7 +15,7 @@ Hooks SWR: skill `swr-hooks`. Formularios: skill `mantine-form`. Nueva feature: 
 
 ```
 features/<name>/
-  <name>.routes.tsx · <name>.page.tsx · <name>.nav.tsx (opcional) · index.ts
+  <name>.routes.tsx · <name>.page.tsx · index.ts
   modules/<module>/
     components/<Component>/<Component>.tsx + index.ts
     hooks/useX/useX.ts + index.ts
@@ -23,8 +23,8 @@ features/<name>/
 ```
 
 - **Prohibido:** `features/A` → `features/B`. UI usada en 2+ features → `shared/ui/`.
-- Navbar: `*.nav.tsx` colocado + clave en `MAIN_NAV_ORDER` de `app/navigation/nav-registry.tsx`.
-- Scaffolding: `pnpm web:new-feature <name> --register-route --register-nav`.
+- Navbar: clave en `NAV_REGISTRY` / `MAIN_NAV_ORDER` de `@omni/shared/navigation` (compartido con mobile) + ícono en `NAV_ICONS` de `app/navigation/nav-registry.tsx`.
+- Scaffolding: `pnpm web:new-feature <name> --register-route`.
 - Referencias: `home` (simple), `media` (multi-módulo + SWR), `profile` (forms + PATCH), `split-expenses` (CRUD anidado).
 
 ## API paths
