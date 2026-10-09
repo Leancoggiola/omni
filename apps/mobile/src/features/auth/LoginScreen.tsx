@@ -31,9 +31,11 @@ export function LoginScreen() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // `loading` es estado de React: Enter y toque en el mismo frame pasarían los dos antes del re-render.
+  const submitting = useRef(false);
 
   const onSubmit = async () => {
-    if (loading) return;
+    if (submitting.current) return;
     // Como web: "Ingresar" siempre habilitado y validación al enviar con el schema compartido.
     const parsed = loginSchema.safeParse({ username: username.trim(), password });
     if (!parsed.success) {
@@ -46,6 +48,7 @@ export function LoginScreen() {
       return;
     }
 
+    submitting.current = true;
     setFieldErrors({});
     setLoading(true);
     setError(null);
@@ -54,6 +57,7 @@ export function LoginScreen() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
     } finally {
+      submitting.current = false;
       setLoading(false);
     }
   };
@@ -113,6 +117,7 @@ export function LoginScreen() {
                   autoComplete="username"
                   returnKeyType="next"
                   submitBehavior="submit"
+                  // Tamagui tipa el ref de Input como TamaguiElement; en nativo es el TextInput de RN.
                   onSubmitEditing={() => (passwordRef.current as TextInput | null)?.focus()}
                 />
                 <PasswordField

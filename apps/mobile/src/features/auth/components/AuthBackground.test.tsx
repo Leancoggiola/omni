@@ -4,6 +4,7 @@ import { AuthBackground } from './AuthBackground';
 
 const mockWithRepeat = jest.fn((animation: unknown) => animation);
 const mockReducedMotion = jest.fn();
+const mockCancelAnimation = jest.fn();
 
 // Doble mínimo de reanimated: lo que se prueba es si arranca la animación, no el motor.
 jest.mock('react-native-reanimated', () => {
@@ -16,19 +17,30 @@ jest.mock('react-native-reanimated', () => {
     useReducedMotion: () => mockReducedMotion(),
     withRepeat: (animation: unknown) => mockWithRepeat(animation),
     withTiming: (to: number) => to,
-    cancelAnimation: jest.fn(),
+    cancelAnimation: (value: unknown) => mockCancelAnimation(value),
     interpolate: () => 0,
     Easing: { inOut: () => undefined, ease: undefined },
   };
 });
 
 describe('AuthBackground', () => {
-  beforeEach(() => mockWithRepeat.mockClear());
+  beforeEach(() => {
+    mockWithRepeat.mockClear();
+    mockCancelAnimation.mockClear();
+  });
 
   it('anima las tres manchas', () => {
     mockReducedMotion.mockReturnValue(false);
     render(<AuthBackground />);
     expect(mockWithRepeat).toHaveBeenCalledTimes(3);
+  });
+
+  it('al desmontar cancela las tres animaciones (withRepeat infinito)', () => {
+    mockReducedMotion.mockReturnValue(false);
+    const { unmount } = render(<AuthBackground />);
+    mockCancelAnimation.mockClear();
+    unmount();
+    expect(mockCancelAnimation).toHaveBeenCalledTimes(3);
   });
 
   it('con "reducir movimiento" quedan quietas', () => {

@@ -89,7 +89,7 @@ function BlobShape({ blob, id, animate }: { blob: Blob; id: string; animate: boo
 
 /**
  * Fondo animado del login (= `AnimatedBackground` de web): tres manchas de marca que derivan. Con
- * "reducir movimiento" del sistema quedan quietas. Es decorativo: no recibe toques ni lo lee TalkBack.
+ * "reducir movimiento" del sistema (se lee al montar) quedan quietas. Es decorativo: no recibe toques ni lo lee TalkBack.
  */
 export function AuthBackground() {
   const reducedMotion = useReducedMotion();

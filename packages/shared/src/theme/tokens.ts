@@ -440,10 +440,10 @@ export const SEMANTIC = {
     destructiveBorder: semanticLight['--mantine-color-border-destructive'],
     warningBorder: semanticLight['--mantine-color-border-warning'],
     infoBorder: semanticLight['--mantine-color-border-info'],
-    // Badge filled terracota: el tono `filled` de Mantine (primaryShade 7) y el texto que elige autoContrast.
     // Button filled de marca: el tono `filled` de Mantine (primaryShade 7) y el texto que elige autoContrast.
     primaryFill: BRAND[7],
     onPrimaryFill: semanticLight['--mantine-color-text-white'],
+    // Badge filled terracota: el mismo tono `filled` (primaryShade 7) y el texto que elige autoContrast.
     accentFill: TERRACOTTA[7],
     onAccentFill: semanticLight['--mantine-color-text-white'],
     disabledSurface: semanticLight['--mantine-color-surfaces-disabled'],
@@ -487,10 +487,11 @@ export const SEMANTIC = {
     destructiveBorder: semanticDark['--mantine-color-border-destructive'],
     warningBorder: semanticDark['--mantine-color-border-warning'],
     infoBorder: semanticDark['--mantine-color-border-info'],
-    // primaryShade 4 en dark: claro (luminancia > 0,3), así que autoContrast pone texto oscuro.
-    // BRAND[4] tiene luminancia < 0,3: autoContrast pone texto blanco (a diferencia de `primary`, BRAND[3]).
+    // BRAND[4] (primaryShade 4 en dark) tiene luminancia < 0,3: autoContrast pone texto blanco (a diferencia
+    // de `primary`, BRAND[3]).
     primaryFill: BRAND[4],
     onPrimaryFill: semanticDark['--mantine-color-text-white'],
+    // TERRACOTTA[4] es claro (luminancia > 0,3): autoContrast pone texto oscuro.
     accentFill: TERRACOTTA[4],
     onAccentFill: semanticDark['--mantine-color-surfaces-device-bg'],
     disabledSurface: semanticDark['--mantine-color-surfaces-disabled'],
