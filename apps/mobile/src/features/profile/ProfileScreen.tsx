@@ -6,7 +6,14 @@ import { YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { useColorSchemeControl } from '@/core/theme';
-import { ErrorState, LoadingState, Screen, ScreenHeader, useScrollFocusedInputIntoView } from '@/shared/ui';
+import {
+  ErrorState,
+  LoadingState,
+  notifyWarning,
+  Screen,
+  ScreenHeader,
+  useScrollFocusedInputIntoView,
+} from '@/shared/ui';
 
 import { DeleteAccountCard } from './components/DeleteAccountCard';
 import { PasswordCard } from './components/PasswordCard';
@@ -35,7 +42,12 @@ export function ProfileScreen() {
 
   const handleDelete = async () => {
     await deleteAccount();
-    await logout();
+    // La cuenta ya no existe: un fallo al limpiar la sesión local no es un fallo del borrado.
+    try {
+      await logout();
+    } catch {
+      notifyWarning('Tu cuenta se eliminó, pero no se pudo cerrar la sesión. Cerrala desde "Más".');
+    }
   };
 
   const renderBody = () => {

@@ -18,9 +18,13 @@ export function useScrollFocusedInputIntoView() {
   const offsetY = useRef(0);
   const keyboardTop = useRef<number | null>(null);
 
+  const frame = useRef<number | null>(null);
+
   const scrollIntoView = useCallback(() => {
+    if (frame.current !== null) cancelAnimationFrame(frame.current);
     // Un frame después: al cambiar de campo, `currentlyFocusedInput` ya apunta al nuevo.
-    requestAnimationFrame(() => {
+    frame.current = requestAnimationFrame(() => {
+      frame.current = null;
       const top = keyboardTop.current;
       const input = TextInput.State.currentlyFocusedInput();
       if (top === null || !input) return;
@@ -44,6 +48,7 @@ export function useScrollFocusedInputIntoView() {
     return () => {
       show.remove();
       hide.remove();
+      if (frame.current !== null) cancelAnimationFrame(frame.current);
     };
   }, [scrollIntoView]);
 

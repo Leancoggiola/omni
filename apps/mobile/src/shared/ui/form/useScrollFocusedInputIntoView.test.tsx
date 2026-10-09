@@ -83,6 +83,18 @@ describe('useScrollFocusedInputIntoView', () => {
     expect(scrollTo).toHaveBeenCalledWith({ y: 240, animated: true });
   });
 
+  it('si se desmonta antes del frame no mide ni scrollea', async () => {
+    const measureInWindow = jest.fn();
+    jest.spyOn(TextInput.State, 'currentlyFocusedInput').mockReturnValue({ measureInWindow } as never);
+    const { unmount } = setup();
+    await act(async () => listeners.keyboardDidShow({ endCoordinates: { screenY: 900 } }));
+    unmount();
+    await act(async () => jest.advanceTimersByTime(50));
+
+    expect(measureInWindow).not.toHaveBeenCalled();
+    expect(scrollTo).not.toHaveBeenCalled();
+  });
+
   it('sin teclado visible no hace nada', async () => {
     const { result } = setup();
     focusInputAt(1000);

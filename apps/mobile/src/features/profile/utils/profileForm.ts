@@ -20,17 +20,24 @@ export const buildProfileUpdates = (profile: Pick<UserProfile, 'phone'>, phone: 
 export type PasswordFormErrors = Partial<Record<'newPassword' | 'confirmPassword', string>>;
 
 const TOO_SHORT = 'La contraseña debe tener al menos 8 caracteres';
+const INVALID = 'La contraseña no es válida';
 
-/**
- * Mismas reglas que `PasswordForm` de web. El mensaje del schema compartido sale en inglés (zod sin
- * locale), así que el de largo mínimo se fija acá.
- */
+/** Primer error del schema compartido para una contraseña; los mensajes de zod salen en inglés (sin locale). */
+const passwordError = (value: string): string | undefined => {
+  const result = changePasswordSchema.shape.newPassword.safeParse(value);
+  if (result.success) return undefined;
+  return result.error.issues[0]?.code === 'too_small' ? TOO_SHORT : INVALID;
+};
+
+/** Mismas reglas que `PasswordForm` de web; la regla de la contraseña sale del schema compartido. */
 export const validatePasswordForm = (newPassword: string, confirmPassword: string): PasswordFormErrors => {
   const errors: PasswordFormErrors = {};
 
-  if (!changePasswordSchema.safeParse({ newPassword }).success) errors.newPassword = TOO_SHORT;
+  const newPasswordError = passwordError(newPassword);
+  if (newPasswordError) errors.newPassword = newPasswordError;
 
-  if (confirmPassword.length < 8) errors.confirmPassword = TOO_SHORT;
+  const confirmError = passwordError(confirmPassword);
+  if (confirmError) errors.confirmPassword = confirmError;
   else if (confirmPassword !== newPassword) errors.confirmPassword = 'Las contraseñas no coinciden';
 
   return errors;

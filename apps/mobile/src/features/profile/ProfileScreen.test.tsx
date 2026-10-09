@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
-import { confirm, notifyError, notifySuccess } from '@/shared/ui';
+import { confirm, notifyError, notifySuccess, notifyWarning } from '@/shared/ui';
 
 import { ProfileScreen } from './ProfileScreen';
 
@@ -32,6 +32,7 @@ jest.mock('@/shared/ui', () => ({
   confirm: jest.fn(),
   notifySuccess: jest.fn(),
   notifyError: jest.fn(),
+  notifyWarning: jest.fn(),
 }));
 jest.mock('./hooks', () => ({
   useProfile: () => mockProfile(),
@@ -275,6 +276,17 @@ describe('ProfileScreen · eliminar cuenta', () => {
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo');
     expect(mockLogout).not.toHaveBeenCalled();
+  });
+
+  it('si el borrado salió bien y falla el cierre de sesión, no lo reporta como fallo del borrado', async () => {
+    jest.mocked(confirm).mockResolvedValue(true);
+    mockDeleteAccount.mockResolvedValue(undefined);
+    mockLogout.mockRejectedValue(new Error('SecureStore'));
+    renderProfile();
+    await act(async () => press());
+
+    expect(notifyError).not.toHaveBeenCalled();
+    expect(notifyWarning).toHaveBeenCalledWith(expect.stringContaining('se eliminó'));
   });
 });
 

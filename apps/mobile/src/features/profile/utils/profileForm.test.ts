@@ -33,6 +33,12 @@ describe('validatePasswordForm', () => {
     });
   });
 
+  it('una confirmación de 8+ caracteres pasa por la misma regla del schema y solo se compara', () => {
+    expect(validatePasswordForm('12345678', '1234567')).toEqual({
+      confirmPassword: 'La contraseña debe tener al menos 8 caracteres',
+    });
+  });
+
   it('marca que las contraseñas no coinciden en la confirmación', () => {
     expect(validatePasswordForm('12345678', '87654321')).toEqual({ confirmPassword: 'Las contraseñas no coinciden' });
   });
