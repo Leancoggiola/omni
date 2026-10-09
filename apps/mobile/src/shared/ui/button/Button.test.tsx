@@ -47,6 +47,8 @@ describe('Button', () => {
     expect(screen.queryByRole('progressbar')).toBeNull();
     fireEvent.press(button);
     expect(onPress).not.toHaveBeenCalled();
+    // Sin feedback de toque mientras ignora los toques.
+    expect(button.props.pressStyle).toBeUndefined();
   });
 
   it('el texto va en peso 600 y con el tamaño de la variante', () => {

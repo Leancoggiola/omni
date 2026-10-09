@@ -1,5 +1,5 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { Input, Paragraph, XStack, YStack, type InputProps } from 'tamagui';
 
@@ -49,9 +49,12 @@ export function TextField({
   const a11yLabel = accessibilityLabel ?? (label && required ? `${label}, obligatorio` : label);
   const a11yHint = [error, description, accessibilityHint].filter(Boolean).join('. ') || undefined;
 
-  // Un error que aparece debajo del campo no siempre se anuncia como live region en Android.
+  // Un error que aparece debajo del campo (p. ej. al enviar) no siempre se anuncia como live region
+  // en Android. Solo cuando aparece o cambia: el que ya estaba al montar se lee en el hint al enfocar.
+  const previousError = useRef(error);
   useEffect(() => {
-    if (error) AccessibilityInfo.announceForAccessibility(error);
+    if (error && error !== previousError.current) AccessibilityInfo.announceForAccessibility(error);
+    previousError.current = error;
   }, [error]);
 
   return (

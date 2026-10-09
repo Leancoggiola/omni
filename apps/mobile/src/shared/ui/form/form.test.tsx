@@ -26,15 +26,27 @@ describe('TextField', () => {
     expect(screen.getByLabelText('Teléfono, obligatorio')).toHaveProp('accessibilityHint', 'Con código de área');
   });
 
-  it('el error se muestra debajo, pinta el borde y se anuncia', () => {
-    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+  it('el error se muestra debajo, pinta el borde y va en el hint', () => {
     render(<TextField label="Usuario" error="El usuario es obligatorio" />);
 
     expect(screen.getByText('El usuario es obligatorio')).toBeTruthy();
     const input = screen.getByLabelText('Usuario');
     expect(input).toHaveProp('borderColor', '$destructive');
     expect(input).toHaveProp('accessibilityHint', 'El usuario es obligatorio');
+  });
+
+  it('anuncia el error solo cuando aparece o cambia, no el que ya estaba al montar', () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockClear();
+    const { rerender } = render(<TextField label="Usuario" error="Inicial" />);
+    expect(announce).not.toHaveBeenCalled();
+
+    rerender(<TextField label="Usuario" />);
+    rerender(<TextField label="Usuario" error="El usuario es obligatorio" />);
+    expect(announce).toHaveBeenCalledTimes(1);
     expect(announce).toHaveBeenCalledWith('El usuario es obligatorio');
+
+    rerender(<TextField label="Usuario" error="El usuario es obligatorio" />);
+    expect(announce).toHaveBeenCalledTimes(1);
   });
 
   it('el hint junta error, descripción y el hint propio, sin pisar el error', () => {

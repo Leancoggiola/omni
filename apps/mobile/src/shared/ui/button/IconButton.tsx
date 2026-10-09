@@ -47,7 +47,7 @@ export function IconButton({
       alignItems="center"
       justifyContent="center"
       onPress={disabled ? undefined : onPress}
-      pressStyle={{ backgroundColor: palette.backgroundPress, opacity: palette.pressOpacity }}
+      pressStyle={disabled ? undefined : { backgroundColor: palette.backgroundPress, opacity: palette.pressOpacity }}
       hitSlop={slop ? { top: slop, bottom: slop, left: slop, right: slop } : undefined}
       accessible
       accessibilityRole="button"

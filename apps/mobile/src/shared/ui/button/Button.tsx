@@ -64,7 +64,8 @@ export function Button({
       alignItems="center"
       justifyContent="center"
       onPress={interactive ? onPress : undefined}
-      pressStyle={{ backgroundColor: palette.backgroundPress, opacity: palette.pressOpacity }}
+      // Sin feedback de toque mientras ignora los toques (loading o disabled).
+      pressStyle={interactive ? { backgroundColor: palette.backgroundPress, opacity: palette.pressOpacity } : undefined}
       accessible
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? children}
