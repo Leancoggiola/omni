@@ -52,6 +52,7 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     ['alt1', 'destructiveBorder', s.destructiveBorder],
     ['active', 'background', s.primary],
     ['red', 'color', s.onDestructive],
+    ['active', 'onAccentFill', s.onAccentFill],
   ])('%s: %s resuelve a SEMANTIC', (component, key, expected) => {
     expect(value(`${scheme}_${component}`, key)).toBe(expected);
   });

@@ -440,7 +440,9 @@ export const SEMANTIC = {
     destructiveBorder: semanticLight['--mantine-color-border-destructive'],
     warningBorder: semanticLight['--mantine-color-border-warning'],
     infoBorder: semanticLight['--mantine-color-border-info'],
-    accentFill: semanticLight['--mantine-color-surfaces-accent-high'],
+    // Badge filled terracota: el tono `filled` de Mantine (primaryShade 7) y el texto que elige autoContrast.
+    accentFill: TERRACOTTA[7],
+    onAccentFill: semanticLight['--mantine-color-text-white'],
     disabledSurface: semanticLight['--mantine-color-surfaces-disabled'],
     disabledText: semanticLight['--mantine-color-text-disabled'],
     hover: semanticLight['--mantine-color-surfaces-hover'],
@@ -482,7 +484,9 @@ export const SEMANTIC = {
     destructiveBorder: semanticDark['--mantine-color-border-destructive'],
     warningBorder: semanticDark['--mantine-color-border-warning'],
     infoBorder: semanticDark['--mantine-color-border-info'],
-    accentFill: semanticDark['--mantine-color-surfaces-accent-high'],
+    // primaryShade 4 en dark: claro (luminancia > 0,3), así que autoContrast pone texto oscuro.
+    accentFill: TERRACOTTA[4],
+    onAccentFill: semanticDark['--mantine-color-surfaces-device-bg'],
     disabledSurface: semanticDark['--mantine-color-surfaces-disabled'],
     disabledText: semanticDark['--mantine-color-text-disabled'],
     hover: semanticDark['--mantine-color-surfaces-hover'],

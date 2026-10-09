@@ -19,7 +19,7 @@ type BadgeProps = {
 /**
  * Fondo lleno, texto encima, wash, borde y texto sobre el wash de cada color. Sobre los fondos
  * claros de dark (brand, success, dimmed) el texto va oscuro (`onPrimary`), como el Button filled.
- * Sobre terracota y rojo va blanco en los dos esquemas (`$onDestructive`).
+ * Terracota usa el tono y el texto del Badge filled de web (`$accentFill`/`$onAccentFill`); rojo, blanco.
  */
 const BADGE_TOKENS = {
   brand: {
@@ -31,7 +31,7 @@ const BADGE_TOKENS = {
   },
   accent: {
     fill: '$accentFill',
-    onFill: '$onDestructive',
+    onFill: '$onAccentFill',
     surface: '$accentSurface',
     border: '$accentBorder',
     text: '$accent',

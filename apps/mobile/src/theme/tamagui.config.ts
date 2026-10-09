@@ -45,6 +45,7 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     warningBorder: s.warningBorder,
     infoBorder: s.infoBorder,
     accentFill: s.accentFill,
+    onAccentFill: s.onAccentFill,
     disabledSurface: s.disabledSurface,
     disabledText: s.disabledText,
     hover: s.hover,

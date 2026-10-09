@@ -9,14 +9,14 @@ jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
 
 describe('Badge', () => {
-  it('filled accent: blanco sobre terracota, en mayúsculas y 700 (tipo de media)', () => {
+  it('filled accent: texto de autoContrast sobre terracota, en mayúsculas y 700 (tipo de media)', () => {
     render(
       <Badge color="accent" variant="filled">
         Serie
       </Badge>
     );
     const text = screen.getByText('Serie');
-    expect(text).toHaveProp('color', '$onDestructive');
+    expect(text).toHaveProp('color', '$onAccentFill');
     expect(text).toHaveProp('textTransform', 'uppercase');
     expect(text).toHaveProp('fontWeight', '700');
   });
