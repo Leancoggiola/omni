@@ -1,3 +1,5 @@
+import { pickOnFill } from './contrast';
+
 /** Omni brand scale (0 = lightest). Warmed toward terracotta (Direction B). */
 export const BRAND = {
   0: '#FBF1E9',
@@ -50,6 +52,13 @@ export const SURFACE = {
   light: '#FFFDFB',
   dark: '#211E1C',
 } as const;
+
+/**
+ * Texto sobre un relleno de color (Button/Badge filled, segmento activo): blanco o el canvas oscuro, el
+ * que más contraste da. Es el `autoContrast` de los dos clientes, pero calculado por esquema: el de
+ * Mantine decide con el tono de claro y en oscuro dejaba texto blanco sobre el shade 4 (~3:1).
+ */
+export const onFill = (fill: string): string => pickOnFill(fill, ['#ffffff', CANVAS.dark]);
 
 // Semantic Colors
 export const BLUE = {
@@ -440,17 +449,19 @@ export const SEMANTIC = {
     destructiveBorder: semanticLight['--mantine-color-border-destructive'],
     warningBorder: semanticLight['--mantine-color-border-warning'],
     infoBorder: semanticLight['--mantine-color-border-info'],
-    // Button filled de marca: el tono `filled` de Mantine (primaryShade 7) y el texto que elige autoContrast.
+    // Rellenos `filled` de Mantine (primaryShade 7) y su texto (`onFill`): Button de marca, Badge
+    // terracota y Button/Badge destructivo (la paleta `destructive` de web es RED[7] en todos los tonos).
     primaryFill: BRAND[7],
-    onPrimaryFill: semanticLight['--mantine-color-text-white'],
-    // Badge filled terracota: el mismo tono `filled` (primaryShade 7) y el texto que elige autoContrast.
+    onPrimaryFill: onFill(BRAND[7]),
     accentFill: TERRACOTTA[7],
-    onAccentFill: semanticLight['--mantine-color-text-white'],
+    onAccentFill: onFill(TERRACOTTA[7]),
+    destructiveFill: RED[7],
     disabledSurface: semanticLight['--mantine-color-surfaces-disabled'],
     disabledText: semanticLight['--mantine-color-text-disabled'],
     hover: semanticLight['--mantine-color-surfaces-hover'],
-    onPrimary: semanticLight['--mantine-color-text-white'],
-    onDestructive: semanticLight['--mantine-color-text-white'],
+    // Texto sobre `primary` (segmento activo, Badge brand) y sobre `destructiveFill`.
+    onPrimary: onFill(semanticLight['--mantine-color-text-primary']),
+    onDestructive: onFill(RED[7]),
     dimmed: semanticLight['--mantine-color-text-dimmed'],
     placeholder: semanticLight['--mantine-color-text-placeholder'],
     anchor: semanticLight['--mantine-color-text-link-default'],
@@ -487,19 +498,20 @@ export const SEMANTIC = {
     destructiveBorder: semanticDark['--mantine-color-border-destructive'],
     warningBorder: semanticDark['--mantine-color-border-warning'],
     infoBorder: semanticDark['--mantine-color-border-info'],
-    // BRAND[4] (primaryShade 4 en dark) tiene luminancia < 0,3: autoContrast pone texto blanco (a diferencia
-    // de `primary`, BRAND[3]).
+    // primaryShade 4 en dark. Sobre BRAND[4] y TERRACOTTA[4] el texto que más contrasta es el oscuro
+    // (5,5:1 y 6,3:1; el blanco daba 3,4:1 y 3:1). El destructivo es RED[7], como en web: RED[4] (el
+    // `destructive` de texto) con blanco daba 2,9:1.
     primaryFill: BRAND[4],
-    onPrimaryFill: semanticDark['--mantine-color-text-white'],
-    // TERRACOTTA[4] es claro (luminancia > 0,3): autoContrast pone texto oscuro.
+    onPrimaryFill: onFill(BRAND[4]),
     accentFill: TERRACOTTA[4],
-    onAccentFill: semanticDark['--mantine-color-surfaces-device-bg'],
+    onAccentFill: onFill(TERRACOTTA[4]),
+    destructiveFill: RED[7],
     disabledSurface: semanticDark['--mantine-color-surfaces-disabled'],
     disabledText: semanticDark['--mantine-color-text-disabled'],
     hover: semanticDark['--mantine-color-surfaces-hover'],
     // El primario de dark es claro (BRAND[3]): el texto encima va con el fondo de página, no blanco.
-    onPrimary: semanticDark['--mantine-color-surfaces-device-bg'],
-    onDestructive: semanticDark['--mantine-color-text-white'],
+    onPrimary: onFill(semanticDark['--mantine-color-text-primary']),
+    onDestructive: onFill(RED[7]),
     dimmed: semanticDark['--mantine-color-text-dimmed'],
     placeholder: semanticDark['--mantine-color-text-placeholder'],
     anchor: semanticDark['--mantine-color-text-link-default'],

@@ -1,11 +1,14 @@
 import {
   type CSSVariablesResolver,
   defaultVariantColorsResolver,
+  getPrimaryShade,
+  isVirtualColor,
+  type MantineTheme,
   parseThemeColor,
   type VariantColorsResolver,
 } from '@mantine/core';
 
-import { semanticDark, semanticLight } from '@omni/shared/theme';
+import { onFill, semanticDark, semanticLight } from '@omni/shared/theme';
 
 /** Core Mantine vars mapped from the full semantic token set. */
 const mantineCoreLight = {
@@ -34,23 +37,59 @@ const mantineCoreDark = {
   '--mantine-color-anchor': semanticDark['--mantine-color-text-link-default'],
 } as const;
 
-export const cssVariablesResolver: CSSVariablesResolver = () => ({
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+
+/** Variable con el texto de un `filled` de `color` sin tono explícito (cambia con el esquema). */
+const onFilledVar = (color: string) => `--mantine-color-${color}-on-filled`;
+
+/**
+ * `--mantine-color-<color>-on-filled` de cada paleta en un esquema: el texto que más contrasta con su
+ * `filled` (el tono de `primaryShade` de ese esquema). Reemplaza al `autoContrast` de Mantine, que lo
+ * calcula con el tono de claro y en oscuro deja texto blanco sobre el shade 4 (~3:1).
+ */
+function onFilledVariables(theme: MantineTheme, scheme: 'light' | 'dark'): Record<string, string> {
+  const shade = getPrimaryShade(theme, scheme);
+  return Object.fromEntries(
+    Object.entries(theme.colors)
+      .filter(([, scale]) => HEX_COLOR.test(scale[shade]))
+      .map(([color, scale]) => [onFilledVar(color), onFill(scale[shade])])
+  );
+}
+
+export const cssVariablesResolver: CSSVariablesResolver = theme => ({
   variables: {},
   light: {
     ...mantineCoreLight,
     ...semanticLight,
+    ...onFilledVariables(theme, 'light'),
   },
   dark: {
     ...mantineCoreDark,
     ...semanticDark,
+    ...onFilledVariables(theme, 'dark'),
   },
 });
 
+/** Texto de un `filled` con `autoContrast`; `null` deja el de Mantine (colores no hex, virtuales). */
+function filledTextColor(color: string, theme: MantineTheme): string | null {
+  const parsed = parseThemeColor({ color, theme });
+  if (!parsed.isThemeColor) return HEX_COLOR.test(color) ? onFill(color) : null;
+  const scale = theme.colors[parsed.color];
+  if (!scale || isVirtualColor(scale)) return null;
+  // Con tono explícito (`brand.6`) el relleno es el mismo en los dos esquemas.
+  if (parsed.shade !== undefined) {
+    const fill = scale[parsed.shade];
+    return fill && HEX_COLOR.test(fill) ? onFill(fill) : null;
+  }
+  return `var(${onFilledVar(parsed.color)})`;
+}
+
 export const variantResolver: VariantColorsResolver = input => {
   const defaultResolvedColors = defaultVariantColorsResolver(input);
+  const color = input.color || input.theme.primaryColor;
 
   const parsedColor = parseThemeColor({
-    color: input.color || input.theme.primaryColor,
+    color,
     theme: input.theme,
   });
 
@@ -61,6 +100,12 @@ export const variantResolver: VariantColorsResolver = input => {
       background: `var(--mantine-color-surfaces-${parsedColor.color}-light)`,
       border: `1px solid var(--mantine-color-border-${parsedColor.color})`,
     };
+  }
+
+  const autoContrast = input.autoContrast ?? input.theme.autoContrast;
+  if (input.variant === 'filled' && autoContrast) {
+    const text = filledTextColor(color, input.theme);
+    if (text) return { ...defaultResolvedColors, color: text };
   }
 
   return defaultResolvedColors;

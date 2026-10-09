@@ -44,7 +44,7 @@ const BADGE_TOKENS = {
     text: '$success',
   },
   destructive: {
-    fill: '$destructive',
+    fill: '$destructiveFill',
     onFill: '$onDestructive',
     surface: '$errorSurface',
     border: '$destructiveBorder',

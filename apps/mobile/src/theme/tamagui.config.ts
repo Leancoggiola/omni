@@ -45,6 +45,7 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     warningBorder: s.warningBorder,
     infoBorder: s.infoBorder,
     accentFill: s.accentFill,
+    destructiveFill: s.destructiveFill,
     onAccentFill: s.onAccentFill,
     disabledSurface: s.disabledSurface,
     disabledText: s.disabledText,
@@ -91,22 +92,25 @@ function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'acc
 
 function destructiveTheme(scheme: 'light' | 'dark', base: Theme): Theme {
   const s = SEMANTIC[scheme];
+  // El relleno es `destructiveFill` (RED[7], como web), no el `destructive` de texto: en oscuro es RED[4]
+  // y con blanco daba 2,9:1.
+  const fill = s.destructiveFill;
   const onDestructive = s.onDestructive;
   return {
     ...surfaceTheme(scheme, base),
-    background: s.destructive,
-    backgroundHover: s.destructive,
-    backgroundPress: s.destructive,
-    backgroundFocus: s.destructive,
-    backgroundStrong: s.destructive,
+    background: fill,
+    backgroundHover: fill,
+    backgroundPress: fill,
+    backgroundFocus: fill,
+    backgroundStrong: fill,
     color: onDestructive,
     colorHover: onDestructive,
     colorPress: onDestructive,
     colorFocus: onDestructive,
-    borderColor: s.destructive,
-    borderColorHover: s.destructive,
-    borderColorFocus: s.destructive,
-    borderColorPress: s.destructive,
+    borderColor: fill,
+    borderColorHover: fill,
+    borderColorFocus: fill,
+    borderColorPress: fill,
     placeholderColor: onDestructive,
   };
 }

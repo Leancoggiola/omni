@@ -24,5 +24,7 @@ export {
   HEADING,
   semanticLight,
   semanticDark,
+  onFill,
 } from './tokens';
+export { contrastRatio, pickOnFill, relativeLuminance, WCAG_AA_TEXT } from './contrast';
 export type { BrandShade, ColorScheme } from './tokens';
