@@ -5,7 +5,6 @@ import { mutate as globalMutate } from 'swr';
 import { FilmSlateIcon } from 'phosphor-react-native';
 
 import { ApiError, API_KEYS } from '@/shared/api';
-import { ProfileAvatarButton } from '@/shared/navigation';
 import { Screen, ScreenHeader } from '@/shared/ui';
 import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS } from '@omni/shared/media';
 
@@ -121,12 +120,7 @@ export function MediaScreen() {
   return (
     <Screen>
       {/* Título de la página, como el `PageHeader` de web: no es el label de navegación del registro. */}
-      <ScreenHeader
-        icon={FilmSlateIcon}
-        title="Películas y Series"
-        subtitle="Tu lista de seguimiento"
-        actions={<ProfileAvatarButton />}
-      />
+      <ScreenHeader icon={FilmSlateIcon} title="Películas y Series" subtitle="Tu lista de seguimiento" />
 
       <Input placeholder="Buscar en tu lista" value={searchText} onChangeText={setSearchText} />
 
@@ -166,7 +160,7 @@ export function MediaScreen() {
             </Button>
           ))}
         </XStack>
-        {searching ? <Spinner /> : null}
+        {searching ? <Spinner color="$primary" /> : null}
         {results.slice(0, 5).map(result => {
           const mediaType = resolveMediaType(result);
           const key = getTmdbResultKey(result);
@@ -195,7 +189,7 @@ export function MediaScreen() {
       </YStack>
 
       {isLoading ? (
-        <Spinner />
+        <Spinner color="$primary" />
       ) : (
         <FlatList
           data={filtered}

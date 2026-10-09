@@ -3,7 +3,6 @@ import { HouseIcon } from 'phosphor-react-native';
 import { Paragraph, Spinner } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
-import { ProfileAvatarButton } from '@/shared/navigation';
 import { Screen, ScreenHeader } from '@/shared/ui';
 
 import { HolidaysCard } from './components/HolidaysCard';
@@ -20,15 +19,10 @@ export function HomeScreen() {
 
   return (
     <Screen>
-      <ScreenHeader
-        icon={HouseIcon}
-        title={NAV_REGISTRY.home.label}
-        subtitle="Bienvenido a Omni"
-        actions={<ProfileAvatarButton />}
-      />
+      <ScreenHeader icon={HouseIcon} title={NAV_REGISTRY.home.label} subtitle="Bienvenido a Omni" />
       <Paragraph theme="alt1">{timeGreeting()}</Paragraph>
       {isLoading ? (
-        <Spinner />
+        <Spinner color="$primary" />
       ) : (
         <Paragraph size="$8" fontWeight="700">
           {user?.name ?? '—'}

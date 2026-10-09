@@ -29,7 +29,7 @@ export function ProfileScreen() {
   if (isLoading || !profile) {
     return (
       <YStack flex={1} justifyContent="center" alignItems="center">
-        <Spinner />
+        <Spinner color="$primary" />
       </YStack>
     );
   }
@@ -128,7 +128,7 @@ export function ProfileScreen() {
           <Paragraph fontWeight="600">Teléfono</Paragraph>
           <Input value={phoneValue} onChangeText={setPhone} placeholder="Teléfono" />
           <Button disabled={saving} onPress={() => void onSaveProfile()}>
-            {saving ? <Spinner /> : 'Guardar perfil'}
+            {saving ? <Spinner color="$color" /> : 'Guardar perfil'}
           </Button>
         </YStack>
 
@@ -179,7 +179,7 @@ export function ProfileScreen() {
         </Button>
 
         <Button chromeless disabled={loggingOut} onPress={() => void onLogout()}>
-          {loggingOut ? <Spinner /> : 'Cerrar sesión'}
+          {loggingOut ? <Spinner color="$primary" /> : 'Cerrar sesión'}
         </Button>
       </ScrollView>
     </Screen>

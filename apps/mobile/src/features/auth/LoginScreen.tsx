@@ -58,7 +58,7 @@ export function LoginScreen() {
       ) : null}
 
       <Button disabled={!canSubmit || loading} onPress={() => void onSubmit()} theme="active">
-        {loading ? <Spinner /> : 'Entrar'}
+        {loading ? <Spinner color="$color" /> : 'Entrar'}
       </Button>
     </YStack>
   );

@@ -16,18 +16,8 @@ export function ThemeRow() {
       <Paragraph flex={1} fontSize={FONT_SIZE.lg}>
         Tema oscuro
       </Paragraph>
-      {/* Activo, Tamagui pinta el track con `$backgroundActive` salvo que haya `activeStyle`; el thumb
-          por defecto toma `$color` y en claro sale negro. Track primario como el Switch de Mantine. */}
-      <Switch
-        checked={isDark}
-        onCheckedChange={toggle}
-        backgroundColor="$dimmedSurface"
-        borderWidth={1}
-        borderColor="$borderColor"
-        activeStyle={{ backgroundColor: '$primary', borderColor: '$primary' }}
-        accessibilityLabel="Tema oscuro"
-      >
-        <Switch.Thumb backgroundColor={colors.white} />
+      <Switch checked={isDark} onCheckedChange={toggle} accessibilityLabel="Tema oscuro">
+        <Switch.Thumb />
       </Switch>
     </XStack>
   );
