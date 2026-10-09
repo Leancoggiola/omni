@@ -1,6 +1,8 @@
 import { SEMANTIC } from '@omni/shared/theme';
 
-import { tamaguiConfig } from './tamagui.config';
+import { config } from '@tamagui/config';
+
+import { COMPONENT_THEMES, tamaguiConfig } from './tamagui.config';
 
 const themes = tamaguiConfig.themes as unknown as Record<string, Record<string, unknown>>;
 
@@ -44,12 +46,18 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     expect(value(`${scheme}_${component}`, key)).toBe(expected);
   });
 
-  it('ninguna variante de los componentes conserva el gris de @tamagui/config', () => {
-    const family =
-      /_(Button|Switch|SwitchThumb|Checkbox|RadioGroupItem|Card|ListItem|Tooltip|TooltipContent|SliderTrack|Progress)$/;
-    const checked = Object.keys(themes).filter(name => name.startsWith(`${scheme}_`) && family.test(name));
-    expect(checked.length).toBeGreaterThan(0);
-    const grays = checked.filter(name => /^hsl\(0, 0%/.test(String(value(name, 'background'))));
-    expect(grays).toEqual([]);
+  it('toda variante de COMPONENT_THEMES se reconstruye (ninguna conserva el valor de @tamagui/config)', () => {
+    const originals = config.themes as unknown as Record<string, Record<string, unknown>>;
+    const names = Object.keys(originals).filter(
+      name => name.startsWith(`${scheme}_`) && COMPONENT_THEMES.includes(name.split('_').pop() ?? '')
+    );
+    expect(names.length).toBeGreaterThan(0);
+    const untouched = names.filter(name => value(name, 'background') === originals[name].background);
+    expect(untouched).toEqual([]);
+  });
+
+  it('las variantes _red de Slider y Progress activos van en destructivo', () => {
+    expect(value(`${scheme}_red_SliderTrackActive`, 'background')).toBe(s.destructive);
+    expect(value(`${scheme}_red_ProgressIndicator`, 'background')).toBe(s.destructive);
   });
 });

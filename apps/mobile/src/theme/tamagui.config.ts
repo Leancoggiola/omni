@@ -123,7 +123,7 @@ function inputTheme(scheme: 'light' | 'dark', base: Theme): Theme {
  * Familias de sub-themes por componente de `@tamagui/config` (`light_Button`, `dark_red_active_Switch`…).
  * Tamagui las busca antes que el theme base, así que sin pisarlas Button y Switch salen grises o rosas.
  */
-const COMPONENT_THEMES = [
+export const COMPONENT_THEMES = [
   'Button',
   'Switch',
   'SwitchThumb',
@@ -174,6 +174,33 @@ function onSurfaceTheme(scheme: 'light' | 'dark', base: Theme, background: strin
   };
 }
 
+const FILLED = ['SliderTrackActive', 'SliderThumb', 'ProgressIndicator'];
+
+/** Sub-theme de un componente según su variante (`parts`: `['light', 'red', 'active', 'Button']`). */
+function buildComponentTheme(scheme: 'light' | 'dark', component: string, parts: string[], base: Theme): Theme {
+  const s = SEMANTIC[scheme];
+  const active = parts.includes('active');
+  const red = parts.includes('red');
+  if (component === 'SwitchThumb') return switchTheme(scheme, base, 'thumb');
+  if (component === 'Switch') {
+    const theme = red
+      ? destructiveTheme(scheme, base)
+      : active
+        ? primaryTheme(scheme, base)
+        : switchTheme(scheme, base, 'track');
+    // Checked, el Switch de Tamagui pinta la pista con `$backgroundActive` (sin `activeStyle`); la clave
+    // existe en runtime pero el tipo `Theme` de @tamagui/config no la declara, de ahí el cast.
+    return { ...theme, backgroundActive: s.primary } as Theme;
+  }
+  if (red) return destructiveTheme(scheme, base);
+  if (active || FILLED.includes(component)) return primaryTheme(scheme, base);
+  if (component === 'Button') return { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
+  if (component === 'Card' || component === 'ListItem') return onSurfaceTheme(scheme, base, s.card);
+  if (component === 'SliderTrack' || component === 'Progress') return onSurfaceTheme(scheme, base, s.border);
+  if (component.startsWith('Tooltip')) return { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
+  return base;
+}
+
 /**
  * Reconstruye todas las variantes (`<scheme>_<color|alt|active>_<Componente>`) de cada familia:
  * `_red` → destructivo, `_active` → primario, el resto → superficie. Los `*Overlay` (scrim) no están en la lista: Tamagui ya los resuelve con `rgba` neutro, válido en los dos esquemas.
@@ -185,25 +212,7 @@ function componentThemes(scheme: 'light' | 'dark'): Record<string, Theme> {
     const component = parts[parts.length - 1];
     if (parts[0] !== scheme || !original || !COMPONENT_THEMES.includes(component)) continue;
 
-    // Parte de `surfaceTheme` para que los hijos sigan viendo los tokens custom (`$primary`, `$dimmed`…).
-    const base = surfaceTheme(scheme, original);
-    const s = SEMANTIC[scheme];
-    const active = parts.includes('active');
-    const red = parts.includes('red');
-    const filled = ['SliderTrackActive', 'SliderThumb', 'ProgressIndicator'].includes(component);
-    if (component === 'SwitchThumb') out[name] = switchTheme(scheme, base, 'thumb');
-    else if (component === 'Switch' && !active && !red) out[name] = switchTheme(scheme, base, 'track');
-    else if (red) out[name] = destructiveTheme(scheme, base);
-    else if (active || filled) out[name] = primaryTheme(scheme, base);
-    else if (component === 'Button') out[name] = { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
-    else if (component === 'Card' || component === 'ListItem') out[name] = onSurfaceTheme(scheme, base, s.card);
-    else if (component === 'SliderTrack' || component === 'Progress')
-      out[name] = onSurfaceTheme(scheme, base, s.border);
-    else if (component.startsWith('Tooltip'))
-      out[name] = { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
-    else out[name] = base;
-    // Checked, el Switch de Tamagui pinta la pista con `$backgroundActive` (sin `activeStyle`).
-    if (component === 'Switch') out[name] = { ...out[name], backgroundActive: s.primary } as Theme;
+    out[name] = buildComponentTheme(scheme, component, parts, surfaceTheme(scheme, original));
   }
   return out;
 }
