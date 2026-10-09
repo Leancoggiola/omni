@@ -1,10 +1,14 @@
+import { BottomTabBar, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { FONT_SIZE, RADIUS } from '@omni/shared/theme';
 import { MOBILE_TAB_KEYS, NAV_REGISTRY } from '@omni/shared/navigation';
 import { Tabs } from 'expo-router';
+import { useEffect } from 'react';
+import { View } from 'react-native';
 import { type Icon } from 'phosphor-react-native';
 import { Paragraph, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
+import { useNotificationsBottomOffset } from '@/shared/ui';
 import { MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';
 
 import type { NavKey } from '@omni/shared/navigation';
@@ -48,6 +52,20 @@ function tabOptions(label: string, icon: Icon) {
   };
 }
 
+/** La tab bar de siempre, que además le pasa su alto a las notificaciones para apilarlas encima. */
+function MeasuredTabBar(props: BottomTabBarProps) {
+  const setBottomOffset = useNotificationsBottomOffset();
+  useEffect(() => () => setBottomOffset(0), [setBottomOffset]);
+
+  return (
+    <View onLayout={event => setBottomOffset(event.nativeEvent.layout.height)}>
+      <BottomTabBar {...props} />
+    </View>
+  );
+}
+
+const renderTabBar = (props: BottomTabBarProps) => <MeasuredTabBar {...props} />;
+
 const tabLabel = (key: NavKey) => NAV_REGISTRY[key].shortLabel ?? NAV_REGISTRY[key].label;
 
 // No dependen del tema (el color llega por props): se arman una vez y no en cada render del layout.
@@ -63,6 +81,7 @@ export default function TabsLayout() {
   return (
     // Sin header de navegación: cada pantalla trae su `ScreenHeader` (evita el título duplicado).
     <Tabs
+      tabBar={renderTabBar}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,

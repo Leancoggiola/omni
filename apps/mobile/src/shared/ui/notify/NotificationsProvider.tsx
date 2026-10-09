@@ -1,5 +1,5 @@
 import { SPACING } from '@omni/shared/theme';
-import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
 import { Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { YStack } from 'tamagui';
@@ -9,6 +9,17 @@ import { autoCloseMs, enqueueNotification, registerNotificationHandler, type Not
 
 /** Por encima del Sheet de `confirm()` (`zIndex` 100 000): un error de la acción confirmada se tiene que ver. */
 const STACK_Z_INDEX = 100_001;
+
+/**
+ * Alto de lo que ocupa el borde inferior (la tab bar, con su inset). La pila se apoya encima; sin tab
+ * bar (login, Perfil) queda sobre el inset del sistema.
+ */
+const BottomOffsetContext = createContext<(height: number) => void>(() => undefined);
+
+/** Para la tab bar: informa su alto (incluye el inset inferior) y lo libera al desmontarse. */
+export function useNotificationsBottomOffset() {
+  return useContext(BottomOffsetContext);
+}
 
 function AnimatedNotification({ request, onClose }: { request: NotificationRequest; onClose: (id: number) => void }) {
   const progress = useRef(new Animated.Value(0)).current;
@@ -23,7 +34,7 @@ function AnimatedNotification({ request, onClose }: { request: NotificationReque
     <Animated.View
       style={{
         opacity: progress,
-        transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [-12, 0] }) }],
+        transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
       }}
     >
       <NotificationCard
@@ -37,12 +48,14 @@ function AnimatedNotification({ request, onClose }: { request: NotificationReque
 }
 
 /**
- * Pila de notificaciones arriba de la pantalla. Montar una vez en `app/_layout.tsx`; las features
- * llaman a `notifySuccess` / `notifyError` / … de `@/shared/ui`, nunca a `Alert.alert`.
+ * Pila de notificaciones abajo de la pantalla, como en web (la más nueva, abajo). Montar una vez en
+ * `app/_layout.tsx`; las features llaman a `notifySuccess` / `notifyError` / … de `@/shared/ui`, nunca
+ * a `Alert.alert`.
  */
 export function NotificationsProvider({ children }: PropsWithChildren) {
   const insets = useSafeAreaInsets();
   const [items, setItems] = useState<NotificationRequest[]>([]);
+  const [bottomOffset, setBottomOffset] = useState(0);
 
   const close = useCallback((id: number) => {
     setItems(current => current.filter(item => item.id !== id));
@@ -57,11 +70,11 @@ export function NotificationsProvider({ children }: PropsWithChildren) {
   );
 
   return (
-    <>
+    <BottomOffsetContext.Provider value={setBottomOffset}>
       {children}
       <YStack
         position="absolute"
-        top={insets.top + SPACING.xs}
+        bottom={Math.max(bottomOffset, insets.bottom) + SPACING.sm}
         left={SPACING.md}
         right={SPACING.md}
         gap={SPACING.xs}
@@ -72,6 +85,6 @@ export function NotificationsProvider({ children }: PropsWithChildren) {
           <AnimatedNotification key={item.id} request={item} onClose={close} />
         ))}
       </YStack>
-    </>
+    </BottomOffsetContext.Provider>
   );
 }

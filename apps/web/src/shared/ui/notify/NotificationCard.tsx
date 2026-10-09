@@ -9,10 +9,10 @@ import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon } from
 export type NotificationVariant = 'success' | 'error' | 'warning' | 'info';
 
 const VARIANT_ICON: Record<NotificationVariant, ReactNode> = {
-  success: <CheckCircleIcon weight="fill" size="1.25rem" />,
-  error: <WarningIcon weight="fill" size="1.25rem" />,
-  warning: <WarningCircleIcon weight="fill" size="1.25rem" />,
-  info: <InfoIcon weight="fill" size="1.25rem" />,
+  success: <CheckCircleIcon weight="fill" size="1.125rem" />,
+  error: <WarningIcon weight="fill" size="1.125rem" />,
+  warning: <WarningCircleIcon weight="fill" size="1.125rem" />,
+  info: <InfoIcon weight="fill" size="1.125rem" />,
 };
 
 interface NotificationCardProps {
@@ -25,7 +25,7 @@ interface NotificationCardProps {
 /** Custom notification content, wired via `renderNotification` (Mantine 9.6+). */
 export const NotificationCard: FC<NotificationCardProps> = ({ variant, title, message, onClose }) => (
   <div className={styles.root} data-variant={variant}>
-    <Group wrap="nowrap" align="flex-start" gap="sm" className={styles.content}>
+    <Group wrap="nowrap" align="center" gap="xs" className={styles.content}>
       <div className={styles.icon}>{VARIANT_ICON[variant]}</div>
       <Stack gap="3xs" flex={1} miw={0}>
         {title && (

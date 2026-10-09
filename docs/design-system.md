@@ -168,7 +168,9 @@ Diferencias aceptadas: en mobile los botones de acción van a lo ancho (`fullWid
 
 `notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` desde `@/shared/ui`. En web las features **no** importan `@mantine/notifications` directo; en mobile **no** usan `Alert.alert`.
 
-Cada variante deriva su acento y su wash de los tokens semánticos (`icons-{variante}` y `surfaces-{variante}-light`; en mobile, `SEMANTIC.successIcon`/`successSurface`, etc.), así que sumar una variante no requiere CSS nuevo por esquema. Mobile dibuja el wash con `expo-linear-gradient` a 135°, igual que el `linear-gradient` de web, terminando en el mismo color con alfa 0 (no `transparent`: Android interpola sin premultiplicar y deja una banda gris). Diferencia aceptada: el chip del ícono usa `surfaces-{variante}-light` como fondo, porque RN no tiene `color-mix`.
+Mismo diseño en las dos plataformas (#68): **abajo** (web `bottom-center`; mobile encima de la tab bar, que le informa su alto con `useNotificationsBottomOffset`, o sobre el inset inferior donde no hay tabs), **compacto** (padding xs/sm, título 12/700, mensaje 12 dimmed, X chica), **ícono suelto sin chip** y lavado **D**: una barra de 3 px del color del estado a la izquierda y el lavado horizontal que se desvanece al 90 %.
+
+Cada variante deriva su acento (`icons-{variante}`: ícono y barra) y su lavado (`surfaces-{variante}-light`) de los tokens semánticos (en mobile, `SEMANTIC.successIcon`/`successSurface`, etc.), así que sumar una variante no requiere CSS nuevo por esquema. Mobile dibuja el lavado con `expo-linear-gradient` a 90°, terminando en el mismo color con alfa 0 (no `transparent`: Android interpola sin premultiplicar y deja una banda gris), y la barra con un Stack absoluto.
 
 ---
 

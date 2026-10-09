@@ -1,19 +1,21 @@
 .root {
   position: relative;
   overflow: hidden;
-  padding: var(--mantine-spacing-md);
+  /* Compacta, igual que mobile: padding xs/sm y la X pegada al borde. */
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-2xs) var(--mantine-spacing-xs) var(--mantine-spacing-sm);
   border-radius: var(--mantine-radius-lg);
   background-color: var(--mantine-color-surfaces-card);
   box-shadow: var(--mantine-shadow-md);
 
-  /* Colored corner wash — the "-light" tokens are pale solids in light mode and
-     translucent overlays in dark mode, so the same gradient adapts to both. */
+  /* Barra de 3 px del color del estado y lavado horizontal que se desvanece (igual en mobile). Los
+     tokens "-light" son sólidos pálidos en claro y overlays translúcidos en oscuro: el mismo
+     gradiente sirve para los dos esquemas. */
   &::before {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(135deg, var(--notif-wash) 0%, transparent 65%);
+    background: linear-gradient(90deg, var(--notif-accent) 0 3px, var(--notif-wash) 3px, transparent 90%);
   }
 
   &[data-variant='success'] {
@@ -39,14 +41,9 @@
   z-index: 1;
 }
 
+/* Ícono suelto, sin chip. */
 .icon {
   display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: var(--mantine-radius-full);
   color: var(--notif-accent);
-  background: color-mix(in srgb, var(--notif-accent) 16%, var(--mantine-color-surfaces-card));
 }

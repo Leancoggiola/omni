@@ -32,7 +32,7 @@ createRoot(document.getElementById('app')!).render(
       deduplicateInlineStyles
     >
       <DatesProvider settings={{ locale: 'es', firstDayOfWeek: 1 }}>
-        <Notifications layout="stacked" />
+        <Notifications layout="stacked" position="bottom-center" />
         <LightboxProvider />
         <ConfirmProvider>
           <SWRProvider>
