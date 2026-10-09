@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { BackHandler } from 'react-native';
 
 import { confirm, type ConfirmOptions, type ConfirmRequest } from './confirm';
 import { ConfirmProvider } from './ConfirmProvider';
@@ -110,7 +111,33 @@ describe('ConfirmProvider', () => {
     expect(second.result).toBe(false);
   });
 
-  it('usa los labels por defecto y los personalizados', () => {
+  it('sin labels usa Confirmar y Cancelar', () => {
+    act(() => {
+      track({ title: 'Borrar' });
+    });
+    expect(screen.getByRole('button', { name: 'Confirmar' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeTruthy();
+  });
+
+  it('el botón Atrás de Android cancela (resuelve false) y no navega', async () => {
+    const addListener = jest.spyOn(BackHandler, 'addEventListener');
+    let state!: ReturnType<typeof track>;
+    act(() => {
+      state = track({ title: 'Borrar' });
+    });
+
+    const handler = addListener.mock.calls.at(-1)?.[1];
+    let handled: boolean | null | undefined;
+    act(() => {
+      handled = handler?.();
+    });
+    await flush();
+    expect(handled).toBe(true);
+    expect(state.result).toBe(false);
+    addListener.mockRestore();
+  });
+
+  it('usa los labels personalizados', () => {
     act(() => {
       track({ title: 'Borrar', confirmLabel: 'Borrar', cancelLabel: 'Volver' });
     });

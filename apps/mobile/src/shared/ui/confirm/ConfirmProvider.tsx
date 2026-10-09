@@ -28,11 +28,11 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
           </Paragraph>
         </YStack>
         <YStack gap={SPACING.sm}>
-          <Button fullWidth color={request?.destructive ? 'destructive' : 'default'} onPress={() => queue.close(true)}>
-            {request?.confirmLabel}
+          <Button fullWidth color={request?.destructive ? 'destructive' : 'brand'} onPress={() => queue.close(true)}>
+            {request?.confirmLabel ?? ''}
           </Button>
           <Button fullWidth variant="outline" onPress={() => queue.close(false)}>
-            {request?.cancelLabel}
+            {request?.cancelLabel ?? ''}
           </Button>
         </YStack>
       </QueuedSheet>

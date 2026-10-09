@@ -1,8 +1,6 @@
-import { SEMANTIC } from '@omni/shared/theme';
 import { render, screen } from '@testing-library/react-native';
 import { WarningCircleIcon } from 'phosphor-react-native';
-
-import { Spinner } from '../Spinner';
+import { AccessibilityInfo } from 'react-native';
 
 import { Badge } from './Badge';
 import { Banner } from './Banner';
@@ -10,56 +8,44 @@ import { Banner } from './Banner';
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
 
-const s = SEMANTIC.light;
-
 describe('Badge', () => {
-  it('filled accent: texto blanco sobre terracota, en mayúsculas y 700 (tipo de media)', () => {
+  it('filled accent: blanco sobre terracota, en mayúsculas y 700 (tipo de media)', () => {
     render(
       <Badge color="accent" variant="filled">
         Serie
       </Badge>
     );
     const text = screen.getByText('Serie');
-    expect(text).toHaveProp('color', s.white);
+    expect(text).toHaveProp('color', '$onDestructive');
     expect(text).toHaveProp('textTransform', 'uppercase');
     expect(text).toHaveProp('fontWeight', '700');
   });
 
   it('light dimmed: texto atenuado ("Próximamente")', () => {
     render(<Badge color="dimmed">Próximamente</Badge>);
-    expect(screen.getByText('Próximamente')).toHaveProp('color', s.dimmed);
+    expect(screen.getByText('Próximamente')).toHaveProp('color', '$dimmed');
   });
 });
 
 describe('Banner', () => {
-  it('se anuncia como alerta y muestra el mensaje en el color', () => {
+  it('se anuncia como alerta, al aparecer, y muestra el mensaje en el color', () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
     render(<Banner color="destructive">Usuario o contraseña incorrectos</Banner>);
 
-    expect(screen.getByRole('alert')).toBeTruthy();
-    expect(screen.getByText('Usuario o contraseña incorrectos')).toHaveProp('color', s.destructive);
+    expect(screen.getByRole('alert', { name: 'Usuario o contraseña incorrectos' })).toBeTruthy();
+    expect(screen.getByText('Usuario o contraseña incorrectos')).toHaveProp('color', '$destructive');
+    expect(announce).toHaveBeenCalledWith('Usuario o contraseña incorrectos');
   });
 
-  it('con título: título en el color y mensaje en el texto normal', () => {
+  it('con título: título en el color, mensaje en el texto normal y se leen juntos', () => {
     render(
       <Banner color="warning" title="Atención" icon={WarningCircleIcon}>
         Revisá los datos
       </Banner>
     );
 
-    expect(screen.getByText('Atención')).toHaveProp('color', s.warning);
+    expect(screen.getByText('Atención')).toHaveProp('color', '$warning');
     expect(screen.getByText('Revisá los datos')).toHaveProp('color', '$color');
-  });
-});
-
-describe('Spinner', () => {
-  it('va en el color de marca por defecto y se anuncia como progreso', () => {
-    render(<Spinner />);
-    const spinner = screen.getByRole('progressbar', { name: 'Cargando' });
-    expect(spinner).toHaveProp('color', '$primary');
-  });
-
-  it('acepta otro color (dentro de un botón filled)', () => {
-    render(<Spinner color="$color" />);
-    expect(screen.getByRole('progressbar')).toHaveProp('color', '$color');
+    expect(screen.getByRole('alert', { name: 'Atención. Revisá los datos' })).toBeTruthy();
   });
 });

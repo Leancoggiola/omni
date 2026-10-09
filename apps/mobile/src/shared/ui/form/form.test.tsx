@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { UserIcon } from 'phosphor-react-native';
+import { AccessibilityInfo } from 'react-native';
 
 import { PasswordField } from './PasswordField';
 import { Switch } from './Switch';
@@ -17,24 +18,35 @@ describe('TextField', () => {
     expect(onChangeText).toHaveBeenCalledWith('admin');
   });
 
-  it('required suma el asterisco y la descripción se muestra', () => {
+  it('required suma el asterisco y lo anuncia; la descripción va como hint', () => {
     render(<TextField label="Teléfono" required description="Con código de área" />);
+
     expect(screen.getByText(/\*/)).toBeTruthy();
     expect(screen.getByText('Con código de área')).toBeTruthy();
+    expect(screen.getByLabelText('Teléfono, obligatorio')).toHaveProp('accessibilityHint', 'Con código de área');
   });
 
-  it('el error se muestra debajo, pinta el borde y se anuncia como hint', () => {
+  it('el error se muestra debajo, pinta el borde y se anuncia', () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
     render(<TextField label="Usuario" error="El usuario es obligatorio" />);
 
     expect(screen.getByText('El usuario es obligatorio')).toBeTruthy();
     const input = screen.getByLabelText('Usuario');
     expect(input).toHaveProp('borderColor', '$destructive');
     expect(input).toHaveProp('accessibilityHint', 'El usuario es obligatorio');
+    expect(announce).toHaveBeenCalledWith('El usuario es obligatorio');
+  });
+
+  it('el hint junta error, descripción y el hint propio, sin pisar el error', () => {
+    render(<TextField label="Usuario" error="Obligatorio" description="Tu alias" accessibilityHint="Sin espacios" />);
+    expect(screen.getByLabelText('Usuario')).toHaveProp('accessibilityHint', 'Obligatorio. Tu alias. Sin espacios');
   });
 
   it('sin error no hay mensaje y el borde es el normal', () => {
     render(<TextField label="Usuario" />);
-    expect(screen.getByLabelText('Usuario')).toHaveProp('borderColor', '$borderColor');
+    const input = screen.getByLabelText('Usuario');
+    expect(input).toHaveProp('borderColor', '$borderColor');
+    expect(input.props.accessibilityHint).toBeUndefined();
   });
 
   it('deshabilitado no es editable', () => {
@@ -48,8 +60,7 @@ describe('TextField', () => {
 describe('PasswordField', () => {
   it('oculta el texto y el ojo lo muestra y lo vuelve a ocultar', () => {
     render(<PasswordField label="Contraseña" />);
-    const input = screen.getByLabelText('Contraseña');
-    expect(input).toHaveProp('secureTextEntry', true);
+    expect(screen.getByLabelText('Contraseña')).toHaveProp('secureTextEntry', true);
 
     fireEvent.press(screen.getByRole('button', { name: 'Mostrar contraseña' }));
     expect(screen.getByLabelText('Contraseña')).toHaveProp('secureTextEntry', false);
@@ -70,21 +81,29 @@ describe('Switch', () => {
     const onCheckedChange = jest.fn();
     render(<Switch label="Notificaciones" checked={false} onCheckedChange={onCheckedChange} />);
 
-    const control = screen.getByRole('switch', { name: 'Notificaciones', checked: false });
-    fireEvent.press(control);
+    fireEvent.press(screen.getByRole('switch', { name: 'Notificaciones', checked: false }));
     expect(onCheckedChange).toHaveBeenCalledWith(true);
   });
 
-  it('muestra label y descripción', () => {
-    render(<Switch label="Notificaciones" description="Avisos por email" checked onCheckedChange={jest.fn()} />);
-    expect(screen.getByText('Notificaciones')).toBeTruthy();
-    expect(screen.getByText('Avisos por email')).toBeTruthy();
-    expect(screen.getByRole('switch', { checked: true })).toBeTruthy();
+  it('con label la fila es un solo switch (descripción como hint) y tocar el texto lo cambia', () => {
+    const onCheckedChange = jest.fn();
+    render(<Switch label="Notificaciones" description="Avisos por email" checked onCheckedChange={onCheckedChange} />);
+
+    expect(screen.getAllByRole('switch')).toHaveLength(1);
+    expect(screen.getByRole('switch', { name: 'Notificaciones', checked: true })).toHaveProp(
+      'accessibilityHint',
+      'Avisos por email'
+    );
+    fireEvent.press(screen.getByText('Notificaciones'));
+    expect(onCheckedChange).toHaveBeenCalledWith(false);
   });
 
   it('sin label usa accessibilityLabel', () => {
-    render(<Switch accessibilityLabel="Tema oscuro" checked onCheckedChange={jest.fn()} />);
-    expect(screen.getByRole('switch', { name: 'Tema oscuro' })).toBeTruthy();
+    const onCheckedChange = jest.fn();
+    render(<Switch accessibilityLabel="Tema oscuro" checked onCheckedChange={onCheckedChange} />);
+
+    fireEvent.press(screen.getByRole('switch', { name: 'Tema oscuro', checked: true }));
+    expect(onCheckedChange).toHaveBeenCalledWith(false);
   });
 
   it('deshabilitado no cambia', () => {

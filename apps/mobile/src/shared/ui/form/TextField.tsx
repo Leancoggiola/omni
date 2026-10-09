@@ -1,4 +1,6 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
+import { useEffect } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { Input, Paragraph, XStack, YStack, type InputProps } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
@@ -39,9 +41,18 @@ export function TextField({
   disabled = false,
   ref,
   accessibilityLabel,
+  accessibilityHint,
   ...inputProps
 }: TextFieldProps) {
   const colors = useSemanticColors();
+  // Lo visual (asterisco, descripción, error) también para TalkBack: el error primero.
+  const a11yLabel = accessibilityLabel ?? (label && required ? `${label}, obligatorio` : label);
+  const a11yHint = [error, description, accessibilityHint].filter(Boolean).join('. ') || undefined;
+
+  // Un error que aparece debajo del campo no siempre se anuncia como live region en Android.
+  useEffect(() => {
+    if (error) AccessibilityInfo.announceForAccessibility(error);
+  }, [error]);
 
   return (
     <YStack gap={SPACING['2xs']}>
@@ -75,8 +86,8 @@ export function TextField({
           paddingLeft={LeftIcon ? SECTION_WIDTH : SPACING.sm}
           paddingRight={rightSection ? SECTION_WIDTH : SPACING.sm}
           disabled={disabled}
-          accessibilityLabel={accessibilityLabel ?? label}
-          accessibilityHint={error}
+          accessibilityLabel={a11yLabel}
+          accessibilityHint={a11yHint}
           accessibilityState={{ disabled }}
           {...inputProps}
         />
@@ -100,7 +111,7 @@ export function TextField({
         ) : null}
       </XStack>
       {error ? (
-        <Paragraph color="$destructive" fontSize={FONT_SIZE.sm} accessibilityLiveRegion="polite">
+        <Paragraph color="$destructive" fontSize={FONT_SIZE.sm}>
           {error}
         </Paragraph>
       ) : null}

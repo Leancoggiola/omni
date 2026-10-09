@@ -4,7 +4,7 @@ import { Paragraph, Switch as TamaguiSwitch, XStack, YStack } from 'tamagui';
 type SwitchProps = {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
-  /** Con label se arma la fila completa: texto a la izquierda y switch a la derecha. */
+  /** Con label se arma la fila completa: texto a la izquierda y switch a la derecha, toda tocable. */
   label?: string;
   description?: string;
   disabled?: boolean;
@@ -24,15 +24,22 @@ export function Switch({
   disabled = false,
   accessibilityLabel,
 }: SwitchProps) {
+  const a11y = {
+    accessible: true,
+    accessibilityRole: 'switch',
+    accessibilityLabel: accessibilityLabel ?? label,
+    accessibilityHint: description,
+    accessibilityState: { checked, disabled },
+  } as const;
+
   const control = (
     <TamaguiSwitch
       checked={checked}
       onCheckedChange={onCheckedChange}
       disabled={disabled}
       opacity={disabled ? 0.5 : 1}
-      accessibilityRole="switch"
-      accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityState={{ checked, disabled }}
+      // Con label el nodo accesible es la fila: el control no se anuncia dos veces.
+      {...(label ? { accessible: false, importantForAccessibility: 'no-hide-descendants' as const } : a11y)}
     >
       <TamaguiSwitch.Thumb />
     </TamaguiSwitch>
@@ -41,7 +48,12 @@ export function Switch({
   if (!label) return control;
 
   return (
-    <XStack alignItems="center" gap={SPACING.sm}>
+    <XStack
+      alignItems="center"
+      gap={SPACING.sm}
+      onPress={disabled ? undefined : () => onCheckedChange(!checked)}
+      {...a11y}
+    >
       <YStack flex={1} gap={SPACING['3xs']}>
         <Paragraph fontSize={FONT_SIZE.md} color={disabled ? '$dimmed' : '$color'}>
           {label}

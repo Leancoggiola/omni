@@ -42,7 +42,9 @@ describe('Button', () => {
     );
 
     const button = screen.getByRole('button', { name: 'Ingresar', busy: true, disabled: true });
-    expect(screen.getByTestId('spinner')).toBeTruthy();
+    expect(screen.getByTestId('spinner', { includeHiddenElements: true })).toBeTruthy();
+    // El botón ya anuncia busy: el Spinner no es un nodo aparte para TalkBack.
+    expect(screen.queryByRole('progressbar')).toBeNull();
     fireEvent.press(button);
     expect(onPress).not.toHaveBeenCalled();
   });
@@ -79,7 +81,7 @@ describe('IconButton', () => {
 
 describe('buttonPalette', () => {
   it('filled usa los themes de marca de #75', () => {
-    expect(buttonPalette('filled', 'default', false, s)).toMatchObject({ theme: 'active', icon: s.onPrimary });
+    expect(buttonPalette('filled', 'brand', false, s)).toMatchObject({ theme: 'active', icon: s.onPrimary });
     expect(buttonPalette('filled', 'destructive', false, s)).toMatchObject({ theme: 'red', icon: s.onDestructive });
   });
 
@@ -93,12 +95,12 @@ describe('buttonPalette', () => {
 
   it('deshabilitado ignora la variante, como Mantine', () => {
     for (const variant of ['filled', 'outline', 'light', 'subtle'] as const) {
-      expect(buttonPalette(variant, 'default', true, s)).toMatchObject({
+      expect(buttonPalette(variant, 'brand', true, s)).toMatchObject({
         background: '$disabledSurface',
         color: '$disabledText',
         icon: s.disabledText,
       });
-      expect(buttonPalette(variant, 'default', true, s).theme).toBeUndefined();
+      expect(buttonPalette(variant, 'brand', true, s).theme).toBeUndefined();
     }
   });
 });

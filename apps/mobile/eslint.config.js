@@ -18,6 +18,10 @@ module.exports = defineConfig([
               importNames: ['Spinner'],
               message: 'Usar Spinner de @/shared/ui: trae el color de marca (Tamagui no le aplica defaultProps).',
             },
+            {
+              name: '@tamagui/spinner',
+              message: 'Usar Spinner de @/shared/ui: trae el color de marca (Tamagui no le aplica defaultProps).',
+            },
           ],
         },
       ],

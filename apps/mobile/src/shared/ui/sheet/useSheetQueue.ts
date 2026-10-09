@@ -19,8 +19,9 @@ export type SheetQueue<T, R extends SheetRequest<T>> = {
 
 /**
  * Cola de un sheet imperativo: muestra las requests de a una, cancela con `cancelValue` al cerrar
- * por overlay, gesto o Atrás, y resuelve las pendientes si el provider se desmonta. `register` y
- * `cancelValue` tienen que ser estables (función de módulo y primitivo): si cambian, se re-registra.
+ * por overlay, gesto o Atrás, y resuelve las pendientes si el provider se desmonta. Registra el
+ * handler una sola vez: `register` y `cancelValue` se leen de refs, así que pasarlos inline no
+ * resuelve ni re-registra nada en cada render.
  */
 export function useSheetQueue<T, R extends SheetRequest<T>>(
   register: (handler: (request: R) => void) => () => void,
@@ -42,15 +43,24 @@ export function useSheetQueue<T, R extends SheetRequest<T>>(
     pendingRef.current = pending;
   }, [pending]);
 
+  const registerRef = useRef(register);
+  const cancelRef = useRef(cancelValue);
   useEffect(() => {
-    const unregister = register(request => setPending(queue => [...queue, request]));
+    registerRef.current = register;
+    cancelRef.current = cancelValue;
+  });
+
+  useEffect(() => {
+    const unregister = registerRef.current(request => setPending(queue => [...queue, request]));
     return () => {
       unregister();
-      // Si el provider se desmonta con requests abiertas, el `await` no queda colgado.
-      currentRef.current?.resolve(cancelValue);
-      pendingRef.current.forEach(request => request.resolve(cancelValue));
+      // Si el provider se desmonta con requests abiertas, el `await` no queda colgado. Se lee el
+      // `cancelValue` vigente al desmontar, a propósito.
+      const cancel = cancelRef.current;
+      currentRef.current?.resolve(cancel);
+      pendingRef.current.forEach(request => request.resolve(cancel));
     };
-  }, [register, cancelValue]);
+  }, []);
 
   useEffect(() => {
     if (current || closing || pending.length === 0) return;
@@ -81,17 +91,17 @@ export function useSheetQueue<T, R extends SheetRequest<T>>(
   useEffect(() => {
     if (!current) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      close(cancelValue);
+      close(cancelRef.current);
       return true;
     });
     return () => sub.remove();
-  }, [current, close, cancelValue]);
+  }, [current, close]);
 
   const onOpenChange = useCallback(
     (open: boolean) => {
-      if (!open) close(cancelValue);
+      if (!open) close(cancelRef.current);
     },
-    [close, cancelValue]
+    [close]
   );
 
   const onAnimationComplete = useCallback(({ open }: { open: boolean }) => {

@@ -5,7 +5,7 @@ import type { useSemanticColors } from '@/core/theme';
 export type ButtonVariant = 'filled' | 'outline' | 'light' | 'subtle';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 /** `dimmed` es el `color="gray"` de Mantine: solo lo usa `IconButton` (cerrar, mostrar contraseña). */
-export type ButtonColor = 'default' | 'destructive' | 'dimmed';
+export type ButtonColor = 'brand' | 'destructive' | 'dimmed';
 
 type SemanticColors = ReturnType<typeof useSemanticColors>;
 
@@ -30,7 +30,7 @@ export type ButtonPalette = {
 };
 
 const ACCENT = {
-  default: { token: '$primary', surface: '$primarySurface', raw: (s: SemanticColors) => s.primary },
+  brand: { token: '$primary', surface: '$primarySurface', raw: (s: SemanticColors) => s.primary },
   destructive: { token: '$destructive', surface: '$errorSurface', raw: (s: SemanticColors) => s.destructive },
   dimmed: { token: '$dimmed', surface: '$dimmedSurface', raw: (s: SemanticColors) => s.dimmed },
 } as const;

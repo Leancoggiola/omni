@@ -96,9 +96,9 @@ Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 
 ## Botones de acción
 
-A diferencia de web (alineados a la derecha), en mobile van **centrados y full-width**, apilados verticalmente cuando hay más de uno — así se maximiza el área de toque. El `Button` de `@/shared/ui` ocupa solo su contenido, como en Mantine: el ancho completo se pide con `fullWidth`.
+A diferencia de web (alineados a la derecha), en mobile van **centrados y full-width**, apilados verticalmente cuando hay más de uno — así se maximiza el área de toque. El `Button` de `@/shared/ui` ocupa solo su contenido, como en Mantine: el ancho completo se pide con `fullWidth`. Sin `fullWidth`, `Button`, `Badge` y `Chip` se alinean al inicio (`alignSelf="flex-start"`); en una fila centrada se pasa `alignSelf="center"`.
 
-- Un solo botón (guardar, actualizar) → `<Button fullWidth>`.
+- Un solo botón (guardar, actualizar) → `<Button fullWidth>`. El texto va como `children` (string) y la carga con `loading`, nunca un `Spinner` adentro.
 - Confirmar + cancelar: **confirmar arriba** (filled), **cancelar abajo** (`variant="outline"`). `confirm()` de `@/shared/ui` ya lo hace así.
 - Acciones destructivas standalone (ej. "Eliminar cuenta") siguen siendo filled (`color="destructive"`), igual que en web.
 - `LoginScreen`, `MediaScreen` y `ProfileScreen` todavía usan `Alert.alert`: se migran a `notify*` / `confirm` en #67, #68 y #69.

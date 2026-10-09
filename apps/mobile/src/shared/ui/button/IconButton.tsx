@@ -25,7 +25,7 @@ export function IconButton({
   accessibilityLabel,
   onPress,
   variant = 'subtle',
-  color = 'default',
+  color = 'brand',
   size = 'md',
   disabled = false,
 }: IconButtonProps) {

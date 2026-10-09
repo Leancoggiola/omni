@@ -50,15 +50,21 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     hover: s.hover,
     primary: s.primary,
     onPrimary: s.onPrimary,
+    onDestructive: s.onDestructive,
     dimmed: s.dimmed,
   } as Theme;
 }
 
+/**
+ * Los themes de color (`active`, `red`, `alt*`) parten de `surfaceTheme` y pisan fondo y texto: así
+ * los tokens propios (`$primarySurface`, `$disabledSurface`…) siguen resolviendo dentro de un subárbol
+ * con `theme="active"` y una primitiva anidada no se queda sin color.
+ */
 function primaryTheme(scheme: 'light' | 'dark', base: Theme): Theme {
   const s = SEMANTIC[scheme];
   const onPrimary = s.onPrimary;
   return {
-    ...base,
+    ...surfaceTheme(scheme, base),
     background: s.primary,
     backgroundHover: scheme === 'light' ? BRAND[6] : BRAND[3],
     backgroundPress: scheme === 'light' ? BRAND[8] : BRAND[5],
@@ -80,7 +86,7 @@ function destructiveTheme(scheme: 'light' | 'dark', base: Theme): Theme {
   const s = SEMANTIC[scheme];
   const onDestructive = s.onDestructive;
   return {
-    ...base,
+    ...surfaceTheme(scheme, base),
     background: s.destructive,
     backgroundHover: s.destructive,
     backgroundPress: s.destructive,
@@ -101,7 +107,7 @@ function destructiveTheme(scheme: 'light' | 'dark', base: Theme): Theme {
 function altTheme(scheme: 'light' | 'dark', base: Theme, strength: 1 | 2): Theme {
   const s = SEMANTIC[scheme];
   return {
-    ...base,
+    ...surfaceTheme(scheme, base),
     background: s.body,
     color: s.dimmed,
     colorHover: strength === 1 ? s.text : s.dimmed,

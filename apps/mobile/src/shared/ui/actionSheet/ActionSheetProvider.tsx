@@ -67,7 +67,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
           })}
         </YStack>
         <Button fullWidth variant="outline" onPress={() => queue.close(null)}>
-          {request?.cancelLabel}
+          {request?.cancelLabel ?? ''}
         </Button>
       </QueuedSheet>
     </>

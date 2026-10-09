@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { BackHandler } from 'react-native';
 
 import { actionSheet } from './actionSheet';
 import { ActionSheetProvider } from './ActionSheetProvider';
@@ -81,6 +82,29 @@ describe('ActionSheetProvider', () => {
     const state = open();
 
     act(() => sheet().onOpenChange(false));
+    await flush();
+    expect(state.result).toBeNull();
+  });
+
+  it('el botón Atrás de Android cancela (resuelve null) y no navega', async () => {
+    const addListener = jest.spyOn(BackHandler, 'addEventListener');
+    const state = open();
+
+    const handler = addListener.mock.calls.at(-1)?.[1];
+    let handled: boolean | null | undefined;
+    act(() => {
+      handled = handler?.();
+    });
+    await flush();
+    expect(handled).toBe(true);
+    expect(state.result).toBeNull();
+    addListener.mockRestore();
+  });
+
+  it('si el provider se desmonta con un actionSheet() abierto, resuelve null', async () => {
+    const state = open();
+
+    screen.unmount();
     await flush();
     expect(state.result).toBeNull();
   });

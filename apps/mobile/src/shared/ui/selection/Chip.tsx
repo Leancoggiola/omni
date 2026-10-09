@@ -4,6 +4,8 @@ import { Paragraph, XStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 
+import type { InlineAlign } from '../types';
+
 type ChipProps = {
   children: string;
   checked: boolean;
@@ -11,19 +13,27 @@ type ChipProps = {
   /** Ícono cuando no está marcado; marcado muestra el check, como `Chip` de Mantine. */
   icon?: Icon;
   disabled?: boolean;
+  alignSelf?: InlineAlign;
 };
 
 const CHIP_HEIGHT = 32;
 const ICON_SIZE = 14;
 
 /** Chip de filtro (= `Chip` de Mantine, variante light): pill que se marca y desmarca. */
-export function Chip({ children, checked, onChange, icon: IconComponent, disabled = false }: ChipProps) {
+export function Chip({
+  children,
+  checked,
+  onChange,
+  icon: IconComponent,
+  disabled = false,
+  alignSelf = 'flex-start',
+}: ChipProps) {
   const colors = useSemanticColors();
   const LeadingIcon = checked ? CheckIcon : IconComponent;
 
   return (
     <XStack
-      alignSelf="flex-start"
+      alignSelf={alignSelf}
       height={CHIP_HEIGHT}
       paddingHorizontal={SPACING.sm}
       gap={SPACING['2xs']}
