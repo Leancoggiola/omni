@@ -26,9 +26,9 @@ apps/mobile/
 
 ## Navegación
 
-- Tabs **Inicio · Media · Alacena · Más**, sin header de React Navigation: cada pantalla arranca con `Screen` + `ScreenHeader`. Perfil (`/profile`, ruta de stack) se abre **solo desde Más**: los headers de las tabs no llevan avatar.
+- Tabs **Inicio · Media · Alacena · Más**, sin header de React Navigation: cada pantalla arranca con `Screen` + `ScreenHeader` (Inicio es la excepción: una sola card con el saludo, como web). Perfil (`/profile`, ruta de stack, también sin header nativo) se abre **solo desde Más** y su `ScreenHeader` lleva el botón de volver (`onBack`): los headers de las tabs no llevan avatar.
 - Labels, rutas y disponibilidad salen de `NAV_REGISTRY` de `@omni/shared/navigation` (el mismo que usa el navbar de web); los íconos, de `NAV_ICONS`. Tabs: `MOBILE_TAB_KEYS`.
-- "Más" es el launcher: tarjeta de usuario → Perfil, toggle de tema, módulos (los que no tienen `"mobile"` en `availableOn` salen como "Próximamente"), Administración si el rol es ADMIN y cerrar sesión.
+- "Más" es el launcher: tarjeta de usuario → Perfil, toggle de tema (override de la sesión), módulos (los que no tienen `"mobile"` en `availableOn` salen con el `Badge` "Próximamente"), Administración si el rol es ADMIN y cerrar sesión (que solo está acá, no en Perfil).
 - Módulo nuevo en mobile: sumar `"mobile"` a su `availableOn`, crear la ruta en `app/` con el mismo `path` y registrarla en `NAV_HREFS` (`src/shared/navigation/navHrefs.ts`, tipada con `typedRoutes`).
 
 ## API paths
@@ -73,9 +73,9 @@ Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 
 | Pieza                                                            | Uso                                                                                                                                                                               |
 | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Screen`                                                         | Contenedor de pantalla: fondo, márgenes e inset de la status bar (`insetTop={false}` bajo un header de stack)                                                                     |
+| `Screen`                                                         | Contenedor de pantalla: fondo, márgenes e inset de la status bar (ninguna ruta tiene header nativo); `insetBottom` en rutas de stack sin tab bar                                  |
 | `UserAvatar`                                                     | Avatar con gradiente de marca e iniciales (= `UserAvatar` de web)                                                                                                                 |
-| `ScreenHeader`                                                   | Cabecera de pantalla: chip terracota + título + subtítulo + `actions` (= `PageHeader`)                                                                                            |
+| `ScreenHeader`                                                   | Cabecera de pantalla: chip terracota + título + subtítulo + `actions` (= `PageHeader`); `onBack` suma el `IconButton` de volver (rutas de stack)                                  |
 | `SectionCard`                                                    | Superficie de contenido, `title`/`subtitle` opcionales (= `Paper` / `ProfileSectionCard`)                                                                                         |
 | `Title`                                                          | Títulos con la escala `HEADING` (= `Title order`)                                                                                                                                 |
 | `LoadingState` / `EmptyState` / `ErrorState`                     | Estados de UI (regla de oro 0)                                                                                                                                                    |
@@ -93,7 +93,7 @@ Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 
 - Medidas: `RADIUS` / `SPACING` / `FONT_SIZE` de `@omni/shared/theme` como números (`padding={SPACING.md}`); sombras con `elevation('sm')` de `@/theme/elevation`. No usar tokens `$4` de Tamagui como medida (`padding="$4"`, `gap="$2"`, `borderRadius="$4"`) en código nuevo (ver `docs/design-system.md`). La prop `size` de los componentes de Tamagui (`<Button size="$4">`, `Spinner`) es otra cosa: elige una variante del componente (alto, padding y fuente juntos) y se sigue usando.
 - Colores: tokens de tema (`$accentSurface`, `$destructive`, …) en props de Tamagui; para valores crudos (íconos Phosphor, gradientes), `useSemanticColors()` de `@/core/theme`.
-- Código nuevo usa las primitivas, no `Button`/`Input`/`Switch` de Tamagui directo (Perfil todavía los usa y se migra en #69).
+- Las features usan las primitivas: ESLint prohíbe importar `Button`, `Input`, `Switch` y `Spinner` de `tamagui` en `src/features` y `app`, y llamar a `Alert.alert` en cualquier archivo (`eslint.config.js`). Feedback: `notify*`; confirmar: `confirm()`; elegir: `actionSheet()`.
 - Un formulario en bottom sheet que tiene que tapar las tabs (p. ej. `AddMediaSheet`) va dentro de un `Modal` de RN con el `Sheet` sin `modal`: el portal de Tamagui (`<Sheet modal>`) crashea en Fabric con "The specified child already has a parent". Tamagui no llama a `onAnimationComplete` al cerrar, así que el `Modal` se oculta con un tiempo fijo; mientras está visible tapa los toasts, por eso el error va en un `Banner` adentro y el éxito se avisa al cerrar.
 
 ## Botones de acción
@@ -103,7 +103,8 @@ A diferencia de web (alineados a la derecha), en mobile van **centrados y full-w
 - Un solo botón (guardar, actualizar) → `<Button fullWidth>`. El texto va como `children` (string) y la carga con `loading`, nunca un `Spinner` adentro.
 - Confirmar + cancelar: **confirmar arriba** (filled), **cancelar abajo** (`variant="outline"`). `confirm()` de `@/shared/ui` ya lo hace así.
 - Acciones destructivas standalone (ej. "Eliminar cuenta") siguen siendo filled (`color="destructive"`), igual que en web.
-- `ProfileScreen` todavía usa `Alert.alert`: se migra a `notify*` / `confirm` en #69.
+- **Deshabilitado hasta que haya cambios:** un botón de guardar de formulario (`Guardar cambios`, `Cambiar contraseña`) va `disabled` mientras no haya nada que enviar (campo distinto del guardado, o algo escrito). Las validaciones corren al enviar, con el error debajo de cada campo.
+- **Preferencias que guardan al instante** (Switch, `SegmentedControl` de Tema en Perfil): muestran el valor nuevo enseguida, ignoran un segundo cambio de la misma preferencia mientras hay un PATCH en vuelo y, si falla, vuelven al valor anterior con `notifyError`. No llevan botón.
 
 ## Tests
 
