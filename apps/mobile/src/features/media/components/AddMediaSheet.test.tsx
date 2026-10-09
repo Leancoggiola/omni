@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Modal } from 'react-native';
 
-import { notifySuccess, SHEET_EXIT_MS } from '@/shared/ui';
+import { SHEET_EXIT_MS } from '@/shared/ui';
 
 import { AddMediaSheet } from './AddMediaSheet';
 
@@ -15,7 +15,6 @@ jest.mock(
   'react-native-safe-area-context',
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default
 );
-jest.mock('@/shared/ui', () => ({ ...jest.requireActual('@/shared/ui'), notifySuccess: jest.fn() }));
 jest.mock('../hooks', () => ({ MIN_SEARCH_LENGTH: 2, useMediaSearch: (query: string) => mockSearch(query) }));
 
 const RESULTS: TmdbMediaResult[] = [
@@ -29,14 +28,11 @@ const mockRetry = jest.fn();
 
 function renderSheet(onSubmit = jest.fn().mockResolvedValue(undefined)) {
   const onOpenChange = jest.fn();
-  const view = render(
-    <AddMediaSheet open onOpenChange={onOpenChange} existingTmdbIds={EXISTING} onSubmit={onSubmit} />
-  );
-  const close = () =>
-    view.rerender(
-      <AddMediaSheet open={false} onOpenChange={onOpenChange} existingTmdbIds={EXISTING} onSubmit={onSubmit} />
-    );
-  return { onSubmit, onOpenChange, close };
+  const onClosed = jest.fn();
+  const props = { onOpenChange, onClosed, existingTmdbIds: EXISTING, onSubmit };
+  const view = render(<AddMediaSheet open {...props} />);
+  const close = () => view.rerender(<AddMediaSheet open={false} {...props} />);
+  return { onSubmit, onOpenChange, onClosed, close };
 }
 
 beforeEach(() => {
@@ -126,9 +122,9 @@ describe('AddMediaSheet', () => {
     expect(screen.getByRole('button', { name: 'Agregar' })).toBeDisabled();
   });
 
-  it('elegir resultado y estado, y "Agregar" llama a onSubmit, cierra y avisa al terminar de cerrar', async () => {
+  it('elegir resultado y estado, y "Agregar" llama a onSubmit, cierra y avisa al ocultar el Modal', async () => {
     jest.useFakeTimers();
-    const { onSubmit, onOpenChange, close } = renderSheet();
+    const { onSubmit, onOpenChange, onClosed, close } = renderSheet();
 
     fireEvent.press(screen.getByRole('radio', { name: 'Dune: Prophecy, Serie' }));
     expect(screen.getByRole('radio', { name: 'Dune: Prophecy, Serie' })).toBeChecked();
@@ -138,23 +134,24 @@ describe('AddMediaSheet', () => {
     expect(onSubmit).toHaveBeenCalledWith(90228, 'tv', 'watching');
     expect(onOpenChange).toHaveBeenCalledWith(false);
 
-    // El toast sale cuando termina la salida del Sheet: con el Modal visible quedaría tapado.
+    // onClosed llega cuando termina la salida del Sheet: con el Modal visible un toast quedaría tapado.
     close();
-    expect(notifySuccess).not.toHaveBeenCalled();
+    expect(onClosed).not.toHaveBeenCalled();
     act(() => jest.advanceTimersByTime(SHEET_EXIT_MS));
-    expect(notifySuccess).toHaveBeenCalledWith('Agregado a tu lista');
+    expect(onClosed).toHaveBeenCalledTimes(1);
+    expect(screen.UNSAFE_getByType(Modal).props.visible).toBe(false);
     jest.useRealTimers();
   });
 
   it('si falla, el error queda en el sheet y no se cierra', async () => {
-    const { onOpenChange } = renderSheet(jest.fn().mockRejectedValue(new Error('Ya está en tu lista')));
+    const { onOpenChange, onClosed } = renderSheet(jest.fn().mockRejectedValue(new Error('Ya está en tu lista')));
 
     fireEvent.press(screen.getByRole('radio', { name: 'Dune, Película' }));
     await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));
 
     expect(screen.getByText('Ya está en tu lista')).toBeTruthy();
     expect(onOpenChange).not.toHaveBeenCalled();
-    expect(notifySuccess).not.toHaveBeenCalled();
+    expect(onClosed).not.toHaveBeenCalled();
   });
 
   it('editar la búsqueda descarta la selección', () => {

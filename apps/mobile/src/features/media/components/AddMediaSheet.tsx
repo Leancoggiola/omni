@@ -12,7 +12,6 @@ import {
   ErrorState,
   getErrorMessage,
   IconButton,
-  notifySuccess,
   SegmentedControl,
   SHEET_EXIT_MS,
   Spinner,
@@ -37,6 +36,8 @@ type AddMediaSheetProps = {
   existingTmdbIds: Set<string>;
   /** Tira si falla: el sheet muestra el error (Banner, como el Alert de web) y queda abierto. */
   onSubmit: (tmdbId: number, mediaType: MediaType, status: MediaStatus) => Promise<void>;
+  /** El Modal ya se ocultó: recién ahí un toast queda a la vista. No llega si se remonta antes. */
+  onClosed?: () => void;
 };
 
 /**
@@ -47,9 +48,10 @@ type AddMediaSheetProps = {
  * crashea en Fabric ("The specified child already has a parent"). El `Modal` es su propia ventana, así
  * que tapa las tabs; por eso el error se muestra adentro y no con un toast, que quedaría debajo. El
  * Modal se oculta `SHEET_EXIT_MS` después de cerrar (Tamagui no llama a `onAnimationComplete`): si no,
- * queda abierto y transparente encima de la app.
+ * queda abierto y transparente encima de la app. El aviso de éxito lo da el padre en `onClosed`, que
+ * sobrevive al remonte por `key`.
  */
-export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit }: AddMediaSheetProps) {
+export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, onClosed }: AddMediaSheetProps) {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -61,29 +63,16 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit }:
   if (open && !visible) setVisible(true);
   // El estado de React llega tarde para cortar un doble toque en "Agregar".
   const submittingRef = useRef(false);
-  // El toast vive en la ventana de la app: con el Modal todavía visible quedaría tapado.
-  const added = useRef(false);
   const { results, error, isLoading, tooShort, retry } = useMediaSearch(query);
 
   useEffect(() => {
     if (open) return;
     const timer = setTimeout(() => {
       setVisible(false);
-      if (added.current) {
-        added.current = false;
-        notifySuccess('Agregado a tu lista');
-      }
+      onClosed?.();
     }, SHEET_EXIT_MS);
     return () => clearTimeout(timer);
-  }, [open]);
-
-  // Si se desmonta antes de terminar el cierre (p. ej. logout), el aviso no se pierde.
-  useEffect(
-    () => () => {
-      if (added.current) notifySuccess('Agregado a tu lista');
-    },
-    []
-  );
+  }, [open, onClosed]);
 
   const handleOpenChange = (next: boolean) => {
     if (!next && submittingRef.current) return;
@@ -98,7 +87,6 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit }:
     try {
       await onSubmit(selection.tmdbId, selection.mediaType, status);
       // Se cierra sin liberar el envío: durante la salida "Agregar" sigue bloqueado y no reenvía.
-      added.current = true;
       onOpenChange(false);
     } catch (err) {
       setSubmitError(getErrorMessage(err, 'No se pudo agregar'));

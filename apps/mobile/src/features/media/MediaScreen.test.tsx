@@ -1,12 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
-import { actionSheet, confirm, notifyError, notifySuccess } from '@/shared/ui';
+import { actionSheet, confirm, notifyError, notifySuccess, SHEET_EXIT_MS } from '@/shared/ui';
 
 import { MediaScreen } from './MediaScreen';
 
-import type { MediaItem } from '@omni/shared/media';
+import type { MediaItem, TmdbMediaResult } from '@omni/shared/media';
 
 const mockUseMyMediaList = jest.fn();
+const mockSearch = jest.fn();
 const mockMutations = { addToList: jest.fn(), updateStatus: jest.fn(), removeFromList: jest.fn() };
 
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
@@ -27,7 +28,7 @@ jest.mock('./hooks', () => ({
   MIN_SEARCH_LENGTH: 2,
   useMyMediaList: () => mockUseMyMediaList(),
   useMediaMutations: () => mockMutations,
-  useMediaSearch: () => ({ results: [], error: undefined, isLoading: false, tooShort: true, retry: jest.fn() }),
+  useMediaSearch: () => mockSearch(),
 }));
 
 const mockActionSheet = jest.mocked(actionSheet);
@@ -63,8 +64,11 @@ function renderWith(list: Partial<{ data: MediaItem[]; error: Error; isLoading: 
   return { mutate };
 }
 
+const DUNE: TmdbMediaResult = { id: 438631, media_type: 'movie', title: 'Dune', poster_path: null };
+
 beforeEach(() => {
   jest.clearAllMocks();
+  mockSearch.mockReturnValue({ results: [], error: undefined, isLoading: false, tooShort: true, retry: jest.fn() });
 });
 
 describe('MediaScreen · lista', () => {
@@ -206,5 +210,59 @@ describe('MediaScreen · acciones', () => {
     await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Eliminar Breaking Bad' })));
     expect(notifyError).toHaveBeenCalledWith('No encontrado');
     expect(notifySuccess).not.toHaveBeenCalled();
+  });
+});
+
+describe('MediaScreen · agregar', () => {
+  afterEach(() => jest.useRealTimers());
+
+  it('reabrir el sheet durante su salida no tapa el aviso: sale al ocultarse el Modal nuevo', async () => {
+    jest.useFakeTimers();
+    mockSearch.mockReturnValue({
+      results: [DUNE],
+      error: undefined,
+      isLoading: false,
+      tooShort: false,
+      retry: jest.fn(),
+    });
+    mockMutations.addToList.mockResolvedValue(undefined);
+    renderWith();
+    const fab = screen.getByRole('button', { name: 'Agregar película o serie' });
+
+    fireEvent.press(fab);
+    fireEvent.press(screen.getByRole('radio', { name: 'Dune, Película' }));
+    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));
+    expect(mockMutations.addToList).toHaveBeenCalledWith(438631, 'movie', 'to_watch');
+
+    // Antes de que termine la salida, se vuelve a abrir: el sheet se remonta y su Modal sigue visible.
+    fireEvent.press(fab);
+    act(() => jest.advanceTimersByTime(SHEET_EXIT_MS));
+    expect(notifySuccess).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Cerrar' }));
+    act(() => jest.advanceTimersByTime(SHEET_EXIT_MS));
+    expect(notifySuccess).toHaveBeenCalledTimes(1);
+    expect(notifySuccess).toHaveBeenCalledWith('Agregado a tu lista');
+  });
+
+  it('si la pantalla se desmonta durante la salida, el aviso no se pierde', async () => {
+    mockSearch.mockReturnValue({
+      results: [DUNE],
+      error: undefined,
+      isLoading: false,
+      tooShort: false,
+      retry: jest.fn(),
+    });
+    mockMutations.addToList.mockResolvedValue(undefined);
+    mockUseMyMediaList.mockReturnValue({ data: ITEMS, error: undefined, isLoading: false, mutate: jest.fn() });
+    const view = render(<MediaScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Agregar película o serie' }));
+    fireEvent.press(screen.getByRole('radio', { name: 'Dune, Película' }));
+    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));
+    expect(notifySuccess).not.toHaveBeenCalled();
+
+    view.unmount();
+    expect(notifySuccess).toHaveBeenCalledWith('Agregado a tu lista');
   });
 });

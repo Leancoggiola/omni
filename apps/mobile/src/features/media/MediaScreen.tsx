@@ -2,7 +2,7 @@
 import { MEDIA_STATUS_LABELS, MEDIA_STATUSES } from '@omni/shared/media';
 import { SPACING } from '@omni/shared/theme';
 import { FilmSlateIcon, PlusIcon } from 'phosphor-react-native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, type ListRenderItem } from 'react-native';
 import { YStack } from 'tamagui';
 
@@ -37,6 +37,9 @@ export function MediaScreen() {
   const [addOpen, setAddOpen] = useState(false);
   // Remonta el sheet en cada apertura: arranca sin búsqueda ni selección (como el modal de web).
   const [addKey, setAddKey] = useState(0);
+  // Alta pendiente de avisar: el toast espera a que se oculte el Modal del sheet (si no, queda tapado).
+  // Vive acá y no en el sheet porque reabrirlo durante la salida lo remonta y cortaría su cierre.
+  const pendingAddNotice = useRef(false);
 
   const { data, error, isLoading, mutate } = useMyMediaList();
   const { addToList, updateStatus, removeFromList } = useMediaMutations();
@@ -69,9 +72,19 @@ export function MediaScreen() {
   const handleAdd = useCallback(
     async (tmdbId: number, mediaType: MediaType, status: MediaStatus) => {
       await addToList(tmdbId, mediaType, status);
+      pendingAddNotice.current = true;
     },
     [addToList]
   );
+
+  const flushAddNotice = useCallback(() => {
+    if (!pendingAddNotice.current) return;
+    pendingAddNotice.current = false;
+    notifySuccess('Agregado a tu lista');
+  }, []);
+
+  // Si la pantalla se desmonta con el sheet cerrándose (p. ej. logout), el aviso no se pierde.
+  useEffect(() => flushAddNotice, [flushAddNotice]);
 
   // El cambio se ve en la pill (optimista); solo avisa si falla, como acordamos para mobile.
   const handleStatusPress = useCallback(
@@ -167,6 +180,7 @@ export function MediaScreen() {
         onOpenChange={setAddOpen}
         existingTmdbIds={existingTmdbIds}
         onSubmit={handleAdd}
+        onClosed={flushAddNotice}
       />
     </Screen>
   );
