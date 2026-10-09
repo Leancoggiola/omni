@@ -1,8 +1,8 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CheckIcon } from 'phosphor-react-native';
 import { type PropsWithChildren } from 'react';
-import { ScrollView, useWindowDimensions } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { useWindowDimensions } from 'react-native';
+import { Paragraph, Sheet, XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 
@@ -14,7 +14,10 @@ import { Title } from '../Title';
 import { registerActionSheetHandler, type ActionSheetRequest } from './actionSheet';
 
 const OPTION_HEIGHT = 48;
-/** Con muchas opciones la lista scrollea dentro de este alto: título y "Cancelar" siempre quedan a la vista. */
+/**
+ * Con muchas opciones la lista scrollea dentro de este alto: título y "Cancelar" siempre quedan a la vista.
+ * `Sheet.ScrollView` coordina el scroll con el arrastre del sheet.
+ */
 const MAX_LIST_RATIO = 0.5;
 
 /** Opciones de `actionSheet()` en un bottom sheet: una por fila, check en la actual y "Cancelar" abajo. */
@@ -36,7 +39,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
             </Paragraph>
           ) : null}
         </YStack>
-        <ScrollView style={{ maxHeight: height * MAX_LIST_RATIO }} bounces={false}>
+        <Sheet.ScrollView maxHeight={height * MAX_LIST_RATIO} bounces={false}>
           <YStack gap={SPACING['2xs']} accessibilityRole="menu">
             {request?.options.map(option => {
               const selected = option.value === request.value;
@@ -71,7 +74,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
               );
             })}
           </YStack>
-        </ScrollView>
+        </Sheet.ScrollView>
         <Button fullWidth variant="outline" onPress={() => queue.close(null)}>
           {request?.cancelLabel ?? ''}
         </Button>

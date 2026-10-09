@@ -69,3 +69,4 @@ Sheet.Handle = function Handle() {
   return null;
 };
 Sheet.Frame = Stack;
+Sheet.ScrollView = Stack;
