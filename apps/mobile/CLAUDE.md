@@ -9,13 +9,13 @@ apps/mobile/
   app/                    # Expo Router
     _layout.tsx           # Tamagui + AuthProvider + Notifications/Confirm + AuthGate (Stack)
     login.tsx
-    profile.tsx           # ruta de stack sobre las tabs (avatar del header y tarjeta de "Más")
+    profile.tsx           # ruta de stack sobre las tabs (se abre solo desde la tarjeta de usuario de "Más")
     (tabs)/index|media|pantry|more.tsx
   src/
     core/auth/            # AuthProvider, SecureStore
     shared/api/           # API_KEYS, client Bearer, tokenStorage
     shared/ui/            # primitivas de UI (ver abajo)
-    shared/navigation/    # NAV_ICONS, NAV_HREFS y ProfileAvatarButton (lo que depende de auth/router; shared/ui es presentacional)
+    shared/navigation/    # NAV_ICONS, NAV_HREFS, TAB_ROUTES y MORE_TAB (lo que depende de auth/router; shared/ui es presentacional)
     features/<name>/      # screen + hooks
     theme/                # tamagui.config, fonts, elevation, gradient
 ```
@@ -26,7 +26,7 @@ apps/mobile/
 
 ## Navegación
 
-- Tabs **Inicio · Media · Alacena · Más**, sin header de React Navigation: cada pantalla arranca con `Screen` + `ScreenHeader` (con `ProfileAvatarButton` en `actions`).
+- Tabs **Inicio · Media · Alacena · Más**, sin header de React Navigation: cada pantalla arranca con `Screen` + `ScreenHeader`. Perfil (`/profile`, ruta de stack) se abre **solo desde Más**: los headers de las tabs no llevan avatar.
 - Labels, rutas y disponibilidad salen de `NAV_REGISTRY` de `@omni/shared/navigation` (el mismo que usa el navbar de web); los íconos, de `NAV_ICONS`. Tabs: `MOBILE_TAB_KEYS`.
 - "Más" es el launcher: tarjeta de usuario → Perfil, toggle de tema, módulos (los que no tienen `"mobile"` en `availableOn` salen como "Próximamente"), Administración si el rol es ADMIN y cerrar sesión.
 - Módulo nuevo en mobile: sumar `"mobile"` a su `availableOn`, crear la ruta en `app/` con el mismo `path` y registrarla en `NAV_HREFS` (`src/shared/navigation/navHrefs.ts`, tipada con `typedRoutes`).

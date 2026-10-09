@@ -29,7 +29,7 @@ function AuthGate() {
   if (isLoading) {
     return (
       <YStack flex={1} justifyContent="center" alignItems="center">
-        <Spinner size="large" />
+        <Spinner size="large" color="$primary" />
       </YStack>
     );
   }

@@ -120,6 +120,104 @@ function inputTheme(scheme: 'light' | 'dark', base: Theme): Theme {
 }
 
 /**
+ * Familias de sub-themes por componente de `@tamagui/config` (`light_Button`, `dark_red_active_Switch`…).
+ * Tamagui las busca antes que el theme base, así que sin pisarlas Button y Switch salen grises o rosas.
+ */
+export const COMPONENT_THEMES = [
+  'Button',
+  'Switch',
+  'SwitchThumb',
+  'Checkbox',
+  'RadioGroupItem',
+  'SliderTrack',
+  'SliderTrackActive',
+  'SliderThumb',
+  'Progress',
+  'ProgressIndicator',
+  'ListItem',
+  'Card',
+  'Tooltip',
+  'TooltipContent',
+  'TooltipArrow',
+  'DrawerFrame',
+];
+
+// Existen en runtime, pero el tipo de `config.themes` de @tamagui/config no los declara.
+const allThemes: Partial<Record<string, Theme>> = config.themes;
+
+/** Pista del Switch apagado (gris con contraste sobre la card) y su thumb blanco (en claro sale negro). */
+function switchTheme(scheme: 'light' | 'dark', base: Theme, part: 'track' | 'thumb'): Theme {
+  const s = SEMANTIC[scheme];
+  const color = part === 'thumb' ? s.white : s.border;
+  return {
+    ...base,
+    background: color,
+    backgroundHover: color,
+    backgroundPress: color,
+    backgroundFocus: color,
+    backgroundStrong: color,
+    borderColor: s.border,
+    borderColorHover: s.border,
+    borderColorFocus: s.border,
+    borderColorPress: s.border,
+  };
+}
+
+/** Superficie con otro fondo que el canvas: Button neutro (botón sobre el fondo no se vería) y Card/ListItem. */
+function onSurfaceTheme(scheme: 'light' | 'dark', base: Theme, background: string): Theme {
+  return {
+    ...surfaceTheme(scheme, base),
+    background,
+    backgroundHover: background,
+    backgroundPress: SEMANTIC[scheme].border,
+    backgroundFocus: background,
+  };
+}
+
+const FILLED = ['SliderTrackActive', 'SliderThumb', 'ProgressIndicator'];
+
+/** Sub-theme de un componente según su variante (`parts`: `['light', 'red', 'active', 'Button']`). */
+function buildComponentTheme(scheme: 'light' | 'dark', component: string, parts: string[], base: Theme): Theme {
+  const s = SEMANTIC[scheme];
+  const active = parts.includes('active');
+  const red = parts.includes('red');
+  if (component === 'SwitchThumb') return switchTheme(scheme, base, 'thumb');
+  if (component === 'Switch') {
+    const theme = red
+      ? destructiveTheme(scheme, base)
+      : active
+        ? primaryTheme(scheme, base)
+        : switchTheme(scheme, base, 'track');
+    // Checked, el Switch de Tamagui pinta la pista con `$backgroundActive` (sin `activeStyle`); la clave
+    // existe en runtime pero el tipo `Theme` de @tamagui/config no la declara, de ahí el cast.
+    return { ...theme, backgroundActive: s.primary } as Theme;
+  }
+  if (red) return destructiveTheme(scheme, base);
+  if (active || FILLED.includes(component)) return primaryTheme(scheme, base);
+  if (component === 'Button') return { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
+  if (component === 'Card' || component === 'ListItem') return onSurfaceTheme(scheme, base, s.card);
+  if (component === 'SliderTrack' || component === 'Progress') return onSurfaceTheme(scheme, base, s.border);
+  if (component.startsWith('Tooltip')) return { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
+  return base;
+}
+
+/**
+ * Reconstruye todas las variantes (`<scheme>_<color|alt|active>_<Componente>`) de cada familia:
+ * `_red` → destructivo, `_active` → primario, el resto → superficie. Los `*Overlay` (scrim) no están en la lista: Tamagui ya los resuelve con `rgba` neutro, válido en los dos esquemas.
+ */
+function componentThemes(scheme: 'light' | 'dark'): Record<string, Theme> {
+  const out: Record<string, Theme> = {};
+  for (const [name, original] of Object.entries(allThemes)) {
+    const parts = name.split('_');
+    const component = parts[parts.length - 1];
+    if (parts[0] !== scheme || !original || !COMPONENT_THEMES.includes(component)) continue;
+
+    out[name] = buildComponentTheme(scheme, component, parts, surfaceTheme(scheme, original));
+  }
+  return out;
+}
+
+/**
  * Montserrat, igual que web. En nativo cada peso es una familia aparte (las carga `app/_layout.tsx`,
  * ver `theme/fonts.ts`): sin este mapeo `fontWeight` no tiene efecto en Android.
  */
@@ -137,16 +235,14 @@ const montserratFace = {
 // componentes (Input, Select, Popover, ListItem) recorren `space`/`radius` ordenados por valor con
 // `getSpace(token, { shift })`, y meter valores nuevos en la escala les cambia el padding.
 
-// Existen en runtime, pero el tipo de `config.themes` de @tamagui/config no los declara.
-const componentThemes: Partial<Record<string, Theme>> = config.themes;
-
 export const tamaguiConfig = createTamagui({
   ...config,
   // En nativo el Input de Tamagui no le pasa ningún color de placeholder a RN (en web lo hace por CSS):
   // sin esto Android usa su gris por defecto, ilegible en oscuro.
+  // Cursor y selección: sin esto Android usa su teal.
   defaultProps: {
-    Input: { placeholderTextColor: '$placeholderColor' },
-    TextArea: { placeholderTextColor: '$placeholderColor' },
+    Input: { placeholderTextColor: '$placeholderColor', cursorColor: '$primary', selectionColor: '$primary' },
+    TextArea: { placeholderTextColor: '$placeholderColor', cursorColor: '$primary', selectionColor: '$primary' },
   },
   fonts: {
     ...config.fonts,
@@ -165,10 +261,12 @@ export const tamaguiConfig = createTamagui({
     dark_alt1: altTheme('dark', config.themes.dark_alt1, 1),
     light_alt2: altTheme('light', config.themes.light_alt2, 2),
     dark_alt2: altTheme('dark', config.themes.dark_alt2, 2),
-    light_Input: inputTheme('light', componentThemes.light_Input ?? config.themes.light),
-    dark_Input: inputTheme('dark', componentThemes.dark_Input ?? config.themes.dark),
-    light_TextArea: inputTheme('light', componentThemes.light_TextArea ?? config.themes.light),
-    dark_TextArea: inputTheme('dark', componentThemes.dark_TextArea ?? config.themes.dark),
+    light_Input: inputTheme('light', allThemes.light_Input ?? config.themes.light),
+    dark_Input: inputTheme('dark', allThemes.dark_Input ?? config.themes.dark),
+    light_TextArea: inputTheme('light', allThemes.light_TextArea ?? config.themes.light),
+    dark_TextArea: inputTheme('dark', allThemes.dark_TextArea ?? config.themes.dark),
+    ...componentThemes('light'),
+    ...componentThemes('dark'),
   },
 });
 
