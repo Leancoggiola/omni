@@ -9,10 +9,12 @@ import { validatePasswordForm, type PasswordFormErrors } from '../utils/profileF
 
 type PasswordCardProps = {
   onSubmit: (newPassword: string) => Promise<void>;
+  /** Al enfocar un campo (el teclado puede estar ya abierto): la pantalla lo mantiene a la vista. */
+  onFieldFocus?: () => void;
 };
 
 /** Cambiar contraseña: nueva + confirmar, con validación al enviar y botón deshabilitado hasta que haya cambios. */
-export function PasswordCard({ onSubmit }: PasswordCardProps) {
+export function PasswordCard({ onSubmit, onFieldFocus }: PasswordCardProps) {
   const confirmRef = useRef<TamaguiElement>(null);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -49,6 +51,7 @@ export function PasswordCard({ onSubmit }: PasswordCardProps) {
       <YStack gap={SPACING.md}>
         <PasswordField
           label="Nueva contraseña"
+          onFocus={onFieldFocus}
           value={newPassword}
           onChangeText={value => {
             setNewPassword(value);
@@ -64,6 +67,7 @@ export function PasswordCard({ onSubmit }: PasswordCardProps) {
         <PasswordField
           ref={confirmRef}
           label="Confirmar contraseña"
+          onFocus={onFieldFocus}
           value={confirmPassword}
           onChangeText={value => {
             setConfirmPassword(value);

@@ -6,7 +6,7 @@ import { YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { useColorSchemeControl } from '@/core/theme';
-import { ErrorState, LoadingState, Screen, ScreenHeader } from '@/shared/ui';
+import { ErrorState, LoadingState, Screen, ScreenHeader, useScrollFocusedInputIntoView } from '@/shared/ui';
 
 import { DeleteAccountCard } from './components/DeleteAccountCard';
 import { PasswordCard } from './components/PasswordCard';
@@ -23,6 +23,7 @@ export function ProfileScreen() {
   const { changePassword, deleteAccount } = useAccountActions();
   const { logout } = useAuth();
   const { clearOverride } = useColorSchemeControl();
+  const { scrollRef, onScroll, scrollIntoView } = useScrollFocusedInputIntoView();
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/more'));
 
@@ -52,6 +53,9 @@ export function ProfileScreen() {
       // Sin tab bar abajo: el contenido scrollea para llegar a las acciones con el teclado abierto.
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView
+          ref={scrollRef}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ gap: SPACING.md, paddingBottom: SPACING.xl }}
@@ -64,7 +68,7 @@ export function ProfileScreen() {
             }}
             onChange={savePreferences}
           />
-          <PasswordCard onSubmit={changePassword} />
+          <PasswordCard onSubmit={changePassword} onFieldFocus={scrollIntoView} />
           <DeleteAccountCard onDelete={handleDelete} />
         </ScrollView>
       </KeyboardAvoidingView>
