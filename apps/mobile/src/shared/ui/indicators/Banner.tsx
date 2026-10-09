@@ -15,6 +15,11 @@ type BannerProps = {
   color?: BannerColor;
   title?: string;
   icon?: Icon;
+  /**
+   * Anunciar el texto al montar o cambiar (default). `false` para un aviso fijo de la pantalla, que
+   * el lector ya encuentra al recorrerla.
+   */
+  announce?: boolean;
 };
 
 type SemanticColors = ReturnType<typeof useSemanticColors>;
@@ -43,17 +48,17 @@ const ICON_COLOR = {
  * Equivalente de `Alert` de web (variante `light-custom`, la que tiene por defecto): wash del color,
  * borde de 1 y texto en el color. Para errores de formulario: `<Banner color="destructive">`.
  */
-export function Banner({ children, color = 'brand', title, icon: IconComponent }: BannerProps) {
+export function Banner({ children, color = 'brand', title, icon: IconComponent, announce = true }: BannerProps) {
   const colors = useSemanticColors();
   const t = BANNER_TOKENS[color];
   const announcement = title ? `${title}. ${children}` : children;
 
   // Intencional: el Banner es para mensajes que aparecen (error al enviar, resultado de una acción) y
   // RN no anuncia solo un `role="alert"` recién montado, así que se anuncia al montar o cambiar el
-  // texto (un único anuncio; el rol no dispara otro). Para un aviso fijo de la pantalla, usar texto común.
+  // texto (un único anuncio; el rol no dispara otro). Un aviso fijo de la pantalla va con `announce={false}`.
   useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(announcement);
-  }, [announcement]);
+    if (announce) AccessibilityInfo.announceForAccessibility(announcement);
+  }, [announce, announcement]);
 
   return (
     <XStack

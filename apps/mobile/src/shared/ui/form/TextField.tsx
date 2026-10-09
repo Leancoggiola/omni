@@ -42,6 +42,7 @@ export function TextField({
   ref,
   accessibilityLabel,
   accessibilityHint,
+  accessibilityState,
   ...inputProps
 }: TextFieldProps) {
   const colors = useSemanticColors();
@@ -92,8 +93,8 @@ export function TextField({
           disabled={disabled}
           accessibilityLabel={a11yLabel}
           accessibilityHint={a11yHint}
-          accessibilityState={{ disabled }}
           {...inputProps}
+          accessibilityState={{ ...accessibilityState, disabled }}
         />
         {LeftIcon ? (
           <YStack

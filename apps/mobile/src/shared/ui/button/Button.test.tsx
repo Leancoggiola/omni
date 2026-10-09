@@ -61,6 +61,20 @@ describe('Button', () => {
     render(<Button accessibilityLabel="Agregar a la lista">Agregar</Button>);
     expect(screen.getByRole('button', { name: 'Agregar a la lista' })).toBeTruthy();
   });
+
+  it('el sm completa el área de toque hasta 44 dp; md y lg ya llegan', () => {
+    const slop = { top: 4, bottom: 4, left: 4, right: 4 };
+    render(
+      <>
+        <Button size="sm">Chico</Button>
+        <Button size="md">Mediano</Button>
+        <Button size="lg">Grande</Button>
+      </>
+    );
+    expect(screen.getByRole('button', { name: 'Chico' })).toHaveProp('hitSlop', slop);
+    expect(screen.getByRole('button', { name: 'Mediano' }).props.hitSlop).toBeUndefined();
+    expect(screen.getByRole('button', { name: 'Grande' }).props.hitSlop).toBeUndefined();
+  });
 });
 
 describe('IconButton', () => {
