@@ -29,6 +29,9 @@ export function DeleteAccountCard({ onDelete }: DeleteAccountCardProps) {
         await onDelete();
       } catch (err) {
         notifyError(getErrorMessage(err, 'No se pudo eliminar la cuenta'));
+      } finally {
+        // Si todo salió bien la pantalla se desmonta; si la cuenta se borró pero la sesión no se cerró, el
+        // botón no puede quedar con el spinner para siempre.
         setLoading(false);
       }
     } finally {

@@ -63,7 +63,7 @@ function renderProfile(overrides: Partial<ReturnType<typeof mockProfile>> = {}) 
     updatePreferences: mockUpdatePreferences,
     ...overrides,
   });
-  render(<ProfileScreen />);
+  return render(<ProfileScreen />);
 }
 
 beforeEach(() => {
@@ -118,6 +118,24 @@ describe('ProfileScreen · información personal', () => {
 
     fireEvent.changeText(screen.getByLabelText('Teléfono', { exact: false }), '123');
     expect(screen.getByRole('button', { name: 'Guardar cambios', disabled: true })).toBeTruthy();
+  });
+
+  it('si el perfil trae otro teléfono y el campo no se tocó, el campo lo sigue y el botón queda deshabilitado', () => {
+    const { rerender } = renderProfile();
+    mockProfile.mockReturnValue({ ...mockProfile(), profile: { ...PROFILE, phone: '999' } });
+    rerender(<ProfileScreen />);
+
+    expect(screen.getByLabelText('Teléfono', { exact: false }).props.value).toBe('999');
+    expect(screen.getByRole('button', { name: 'Guardar cambios', disabled: true })).toBeTruthy();
+  });
+
+  it('si el perfil trae otro teléfono pero el usuario ya estaba escribiendo, no le pisa lo escrito', () => {
+    const { rerender } = renderProfile();
+    fireEvent.changeText(screen.getByLabelText('Teléfono', { exact: false }), '456');
+    mockProfile.mockReturnValue({ ...mockProfile(), profile: { ...PROFILE, phone: '999' } });
+    rerender(<ProfileScreen />);
+
+    expect(screen.getByLabelText('Teléfono', { exact: false }).props.value).toBe('456');
   });
 
   it('guarda solo el teléfono (sin birthDate) y avisa con un toast', async () => {
@@ -287,6 +305,8 @@ describe('ProfileScreen · eliminar cuenta', () => {
 
     expect(notifyError).not.toHaveBeenCalled();
     expect(notifyWarning).toHaveBeenCalledWith(expect.stringContaining('se eliminó'));
+    // El botón no queda con el spinner para siempre en una pantalla que no se desmonta.
+    expect(screen.getByRole('button', { name: 'Eliminar cuenta' })).toBeTruthy();
   });
 });
 
