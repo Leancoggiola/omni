@@ -132,4 +132,26 @@ describe('actionSheet', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringMatching(/ActionSheetProvider/));
     warn.mockRestore();
   });
+
+  it('avisa en dev si las opciones repiten value, y no avisa si son únicas', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    // React también avisa de las keys repetidas al renderizar: es el mismo problema, no ruido.
+    const reactError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const repeated = [
+      { value: 'a', label: 'Uno' },
+      { value: 'a', label: 'Otro' },
+    ];
+    act(() => {
+      void actionSheet({ title: 'Repetidas', options: repeated });
+    });
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/Repetidas.*values repetidos/));
+
+    warn.mockClear();
+    act(() => {
+      void actionSheet({ title: 'Únicas', options: STATUS_OPTIONS });
+    });
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+    reactError.mockRestore();
+  });
 });

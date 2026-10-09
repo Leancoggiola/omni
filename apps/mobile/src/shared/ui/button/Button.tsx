@@ -5,7 +5,7 @@ import { useSemanticColors } from '@/core/theme';
 
 import { Spinner } from '../Spinner';
 
-import { BUTTON_SIZES, buttonPalette, type ButtonSize, type ButtonVariant } from './buttonStyles';
+import { BUTTON_SIZES, buttonPalette, touchHitSlop, type ButtonSize, type ButtonVariant } from './buttonStyles';
 
 import type { InlineAlign } from '../types';
 import type { Icon } from 'phosphor-react-native';
@@ -66,6 +66,7 @@ export function Button({
       onPress={interactive ? onPress : undefined}
       // Sin feedback de toque mientras ignora los toques (loading o disabled).
       pressStyle={interactive ? { backgroundColor: palette.backgroundPress, opacity: palette.pressOpacity } : undefined}
+      hitSlop={touchHitSlop(metrics.height)}
       accessible
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? children}

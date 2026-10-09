@@ -72,6 +72,17 @@ describe('TextField', () => {
     expect(input).toHaveProp('editable', false);
     expect(input).toHaveProp('accessibilityState', { disabled: true });
   });
+
+  it('mezcla el accessibilityState del caller con el calculado, que manda en disabled', () => {
+    render(
+      <>
+        <TextField label="Notas" accessibilityState={{ busy: true }} />
+        <TextField label="Email" disabled accessibilityState={{ busy: true, disabled: false }} />
+      </>
+    );
+    expect(screen.getByLabelText('Notas')).toHaveProp('accessibilityState', { busy: true, disabled: false });
+    expect(screen.getByLabelText('Email')).toHaveProp('accessibilityState', { busy: true, disabled: true });
+  });
 });
 
 describe('PasswordField', () => {

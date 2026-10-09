@@ -92,7 +92,7 @@ Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 
 - Medidas: `RADIUS` / `SPACING` / `FONT_SIZE` de `@omni/shared/theme` como números (`padding={SPACING.md}`); sombras con `elevation('sm')` de `@/theme/elevation`. No usar tokens `$4` de Tamagui como medida (`padding="$4"`, `gap="$2"`, `borderRadius="$4"`) en código nuevo (ver `docs/design-system.md`). La prop `size` de los componentes de Tamagui (`<Button size="$4">`, `Spinner`) es otra cosa: elige una variante del componente (alto, padding y fuente juntos) y se sigue usando.
 - Colores: tokens de tema (`$accentSurface`, `$destructive`, …) en props de Tamagui; para valores crudos (íconos Phosphor, gradientes), `useSemanticColors()` de `@/core/theme`.
-- Código nuevo usa las primitivas, no `Button`/`Input`/`Switch` de Tamagui directo (las pantallas que todavía los usan se migran en #67–#69).
+- Código nuevo usa las primitivas, no `Button`/`Input`/`Switch` de Tamagui directo (las pantallas que todavía los usan se migran en #68 y #69).
 
 ## Botones de acción
 
@@ -101,7 +101,7 @@ A diferencia de web (alineados a la derecha), en mobile van **centrados y full-w
 - Un solo botón (guardar, actualizar) → `<Button fullWidth>`. El texto va como `children` (string) y la carga con `loading`, nunca un `Spinner` adentro.
 - Confirmar + cancelar: **confirmar arriba** (filled), **cancelar abajo** (`variant="outline"`). `confirm()` de `@/shared/ui` ya lo hace así.
 - Acciones destructivas standalone (ej. "Eliminar cuenta") siguen siendo filled (`color="destructive"`), igual que en web.
-- `LoginScreen`, `MediaScreen` y `ProfileScreen` todavía usan `Alert.alert`: se migran a `notify*` / `confirm` en #67, #68 y #69.
+- `MediaScreen` y `ProfileScreen` todavía usan `Alert.alert`: se migran a `notify*` / `confirm` en #68 y #69.
 
 ## Tests
 
@@ -115,6 +115,7 @@ A diferencia de web (alineados a la derecha), en mobile van **centrados y full-w
 
   Los Stacks interactivos llevan `accessible` (si no, ni TalkBack ni `getByRole` los encuentran cuando están deshabilitados).
 
+- Tests de una pantalla que mockean `tamagui`: si falla con `Cannot read properties of undefined (reading 'get')`, el compilador de Tamagui aplanó un Stack estático de esa pantalla. Se evita con `// tamagui-ignore` como **primera línea** del archivo (como `LoginScreen.tsx`).
 - Si un paquete de `node_modules` publica ESM sin build CommonJS, sumarlo a `transformIgnorePatterns` en `jest.config.js`.
 
 ## Verificación

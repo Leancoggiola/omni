@@ -42,6 +42,11 @@ export function actionSheet<T extends string>(options: ActionSheetOptions<T>): P
     return Promise.resolve(null);
   }
 
+  if (__DEV__ && new Set(options.options.map(option => option.value)).size !== options.options.length) {
+    // El value es la key de cada fila y lo que se resuelve: repetidos marcan el check dos veces.
+    console.warn(`actionSheet("${options.title}"): las opciones tienen values repetidos.`);
+  }
+
   return new Promise<T | null>(resolve => {
     openActionSheet!({
       title: options.title,

@@ -61,7 +61,7 @@ Los sub-themes reemplazan el theme entero: un token propio (`$destructive`, `$di
 
 Cada familia tiene variantes `primary`, `destructive`, `dimmed`, `disabled` y las semánticas `success` / `warning` / `info` / `error` / `accent`.
 
-En `SEMANTIC`, cada color de estado tiene su terna `{color}` (texto) / `{color}Surface` (wash) / `{color}Border`, igual que `text-*` / `surfaces-*-light` / `border-*` de web: `primary`/`primarySurface`/`primaryBorder`, `destructive`/`errorSurface`/`destructiveBorder`, y lo mismo para `success`, `warning`, `info`, `accent` y `dimmed`. Se suman `accentFill`/`onAccentFill` (Badge de tipo: el tono filled de Mantine, `TERRACOTTA[7]` en claro y `[4]` en oscuro, con el texto que elige `autoContrast`: blanco y oscuro) y `disabledSurface`/`disabledText` (= `--mantine-color-disabled*`). Son los que usan `Badge`, `Banner` y el estado deshabilitado de `Button`.
+En `SEMANTIC`, cada color de estado tiene su terna `{color}` (texto) / `{color}Surface` (wash) / `{color}Border`, igual que `text-*` / `surfaces-*-light` / `border-*` de web: `primary`/`primarySurface`/`primaryBorder`, `destructive`/`errorSurface`/`destructiveBorder`, y lo mismo para `success`, `warning`, `info`, `accent` y `dimmed`. Se suman `primaryFill`/`onPrimaryFill` (relleno del `Button` filled de marca: `BRAND[7]` en claro y `BRAND[4]` en oscuro, el `primaryShade` de web, con texto blanco en los dos esquemas; `primary` queda para texto y acentos), `accentFill`/`onAccentFill` (Badge de tipo: el tono filled de Mantine, `TERRACOTTA[7]` en claro y `[4]` en oscuro, con el texto que elige `autoContrast`: blanco y oscuro) y `disabledSurface`/`disabledText` (= `--mantine-color-disabled*`). Son los que usan `Badge`, `Banner` y el estado deshabilitado de `Button`.
 
 ### Transparencias
 
@@ -213,19 +213,20 @@ Lo que ya es automático: cualquier cambio en `tokens.ts` llega a mobile vía `S
 
 Lo que **no** es automático y hay que replicar a mano en mobile:
 
-| Web                                   | Estado en mobile                                                                |
-| ------------------------------------- | ------------------------------------------------------------------------------- |
-| Gradiente cálido del sidebar          | No aplica (mobile usa tabs, no sidebar)                                         |
-| `PageHeader` con chip de ícono        | Componente listo (`ScreenHeader`); falta usarlo en las pantallas (#66)          |
-| `NotificationCard` (4 variantes)      | Componente listo (`notify*`); falta migrar `Alert.alert` (#68, #69)             |
-| Theme de componentes de Tamagui       | Hecho — sub-themes por componente desde `SEMANTIC` (#75)                        |
-| Primitivas de formulario y acción     | Hechas (#76); falta usarlas en Login, Media y Perfil (#67–#69)                  |
-| Badges de tipo en terracota           | Componente listo (`Badge` accent filled); falta usarlo en `MediaCard` (#68)     |
-| Estados media (neutro/terracota/sage) | Componente listo (`StatusPill`); falta usarlo en `MediaCard` (#68)              |
-| Card de efemérides (gradiente)        | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                               |
-| Montserrat + íconos Phosphor          | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                          |
-| Radios y espaciado                    | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                            |
-| Tema del perfil + toggle de sesión    | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`) |
+| Web                                    | Estado en mobile                                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Gradiente cálido del sidebar           | No aplica (mobile usa tabs, no sidebar)                                                                |
+| `PageHeader` con chip de ícono         | Componente listo (`ScreenHeader`); falta usarlo en las pantallas (#66)                                 |
+| `NotificationCard` (4 variantes)       | Componente listo (`notify*`); falta migrar `Alert.alert` (#68, #69)                                    |
+| Theme de componentes de Tamagui        | Hecho — sub-themes por componente desde `SEMANTIC` (#75)                                               |
+| Primitivas de formulario y acción      | Hechas (#76); Login ya las usa (#67); falta usarlas en Media y Perfil (#68, #69)                       |
+| Login: card con logo, blobs y `Banner` | Hecho (#67) — `LoginScreen` + `AuthBackground` (blobs de reanimated, quietos con "reducir movimiento") |
+| Badges de tipo en terracota            | Componente listo (`Badge` accent filled); falta usarlo en `MediaCard` (#68)                            |
+| Estados media (neutro/terracota/sage)  | Componente listo (`StatusPill`); falta usarlo en `MediaCard` (#68)                                     |
+| Card de efemérides (gradiente)         | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                                      |
+| Montserrat + íconos Phosphor           | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                                                 |
+| Radios y espaciado                     | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                                                   |
+| Tema del perfil + toggle de sesión     | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)                        |
 
 Al tocar el design system, correr siempre:
 

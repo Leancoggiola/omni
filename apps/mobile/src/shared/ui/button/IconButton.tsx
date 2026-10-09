@@ -3,7 +3,14 @@ import { XStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 
-import { BUTTON_SIZES, buttonPalette, type ButtonColor, type ButtonSize, type ButtonVariant } from './buttonStyles';
+import {
+  BUTTON_SIZES,
+  buttonPalette,
+  touchHitSlop,
+  type ButtonColor,
+  type ButtonSize,
+  type ButtonVariant,
+} from './buttonStyles';
 
 import type { Icon } from 'phosphor-react-native';
 
@@ -32,8 +39,6 @@ export function IconButton({
   const colors = useSemanticColors();
   const metrics = BUTTON_SIZES[size];
   const palette = buttonPalette(variant, color, disabled, colors);
-  // El sm queda por debajo de los 44 dp recomendados: se completa el área de toque.
-  const slop = Math.max(0, (44 - metrics.height) / 2);
 
   return (
     <XStack
@@ -48,7 +53,7 @@ export function IconButton({
       justifyContent="center"
       onPress={disabled ? undefined : onPress}
       pressStyle={disabled ? undefined : { backgroundColor: palette.backgroundPress, opacity: palette.pressOpacity }}
-      hitSlop={slop ? { top: slop, bottom: slop, left: slop, right: slop } : undefined}
+      hitSlop={touchHitSlop(metrics.height)}
       accessible
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
