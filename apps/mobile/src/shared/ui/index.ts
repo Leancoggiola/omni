@@ -18,7 +18,7 @@ export { Badge } from './indicators/Badge';
 export type { BannerColor } from './indicators/Banner';
 export { Banner } from './indicators/Banner';
 export { getErrorMessage, notifyError, notifyInfo, notifySuccess, notifyWarning } from './notify/notify';
-export { NotificationsProvider, useNotificationsBottomOffset } from './notify/NotificationsProvider';
+export { NotificationsProvider, useSetNotificationsBottomOffset } from './notify/NotificationsProvider';
 export { Screen } from './Screen';
 export { ScreenHeader } from './ScreenHeader';
 export { SectionCard } from './SectionCard';

@@ -78,10 +78,10 @@ export function NotificationCard({ variant, title, message, onClose }: Notificat
       >
         <IconComponent size={ICON_SIZE} color={accentColor} weight="fill" />
         <YStack flex={1} gap={SPACING['3xs']}>
-          <Paragraph fontSize={FONT_SIZE.sm} lineHeight={LINE_HEIGHT.md} fontWeight="700">
+          <Paragraph fontSize={FONT_SIZE.sm} lineHeight={LINE_HEIGHT.sm} fontWeight="700">
             {title}
           </Paragraph>
-          <Paragraph fontSize={FONT_SIZE.sm} lineHeight={LINE_HEIGHT.md} color="$dimmed">
+          <Paragraph fontSize={FONT_SIZE.sm} lineHeight={LINE_HEIGHT.sm} color="$dimmed">
             {message}
           </Paragraph>
         </YStack>
