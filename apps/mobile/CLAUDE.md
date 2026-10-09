@@ -85,6 +85,7 @@ Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 | `actionSheet({ title, options, value })`                         | Elegir una opción en bottom sheet (check en la actual + "Cancelar"); resuelve el `value` o `null`. Nunca `Alert.alert` con opciones                                               |
 | `Button` / `IconButton`                                          | = `Button` / `ActionIcon`: `variant` filled · outline · light · subtle, `color`, `size` sm 36 / md 44 / lg 50, `leftSection`/`icon` (componente Phosphor), `loading`, `fullWidth` |
 | `TextField` / `PasswordField`                                    | = `TextInput` / `PasswordInput`: `label`, `description`, `error`, `required`, `leftSection`, `disabled`, `ref` para encadenar foco                                                |
+| `Select`                                                         | = `Select` de Mantine: campo de 44 dp con el valor y el caret; las opciones abren un `actionSheet()`                                                                              |
 | `Switch`                                                         | Switch de marca; con `label`/`description` arma la fila                                                                                                                           |
 | `SegmentedControl` / `Chip`                                      | Selección: segmento activo en marca (= `SegmentedControl size="sm" color="brand.6"`) / chip de filtro                                                                             |
 | `Badge` / `Banner`                                               | Indicadores: pill en mayúsculas (`accent` filled = tipo de media) / `Alert` light-custom (`color="destructive"` para errores de formulario)                                       |
@@ -92,7 +93,8 @@ Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 
 - Medidas: `RADIUS` / `SPACING` / `FONT_SIZE` de `@omni/shared/theme` como números (`padding={SPACING.md}`); sombras con `elevation('sm')` de `@/theme/elevation`. No usar tokens `$4` de Tamagui como medida (`padding="$4"`, `gap="$2"`, `borderRadius="$4"`) en código nuevo (ver `docs/design-system.md`). La prop `size` de los componentes de Tamagui (`<Button size="$4">`, `Spinner`) es otra cosa: elige una variante del componente (alto, padding y fuente juntos) y se sigue usando.
 - Colores: tokens de tema (`$accentSurface`, `$destructive`, …) en props de Tamagui; para valores crudos (íconos Phosphor, gradientes), `useSemanticColors()` de `@/core/theme`.
-- Código nuevo usa las primitivas, no `Button`/`Input`/`Switch` de Tamagui directo (las pantallas que todavía los usan se migran en #68 y #69).
+- Código nuevo usa las primitivas, no `Button`/`Input`/`Switch` de Tamagui directo (Perfil todavía los usa y se migra en #69).
+- Un formulario en bottom sheet que tiene que tapar las tabs (p. ej. `AddMediaSheet`) va dentro de un `Modal` de RN con el `Sheet` sin `modal`: el portal de Tamagui (`<Sheet modal>`) crashea en Fabric con "The specified child already has a parent". Tamagui no llama a `onAnimationComplete` al cerrar, así que el `Modal` se oculta con un tiempo fijo; mientras está visible tapa los toasts, por eso el error va en un `Banner` adentro y el éxito se avisa al cerrar.
 
 ## Botones de acción
 
@@ -101,7 +103,7 @@ A diferencia de web (alineados a la derecha), en mobile van **centrados y full-w
 - Un solo botón (guardar, actualizar) → `<Button fullWidth>`. El texto va como `children` (string) y la carga con `loading`, nunca un `Spinner` adentro.
 - Confirmar + cancelar: **confirmar arriba** (filled), **cancelar abajo** (`variant="outline"`). `confirm()` de `@/shared/ui` ya lo hace así.
 - Acciones destructivas standalone (ej. "Eliminar cuenta") siguen siendo filled (`color="destructive"`), igual que en web.
-- `MediaScreen` y `ProfileScreen` todavía usan `Alert.alert`: se migran a `notify*` / `confirm` en #68 y #69.
+- `ProfileScreen` todavía usa `Alert.alert`: se migra a `notify*` / `confirm` en #69.
 
 ## Tests
 
