@@ -8,6 +8,8 @@ export type { ConfirmOptions } from './confirm/confirm';
 export { confirm } from './confirm/confirm';
 export { ConfirmProvider } from './confirm/ConfirmProvider';
 export { PasswordField } from './form/PasswordField';
+export type { SelectItem } from './form/Select';
+export { Select } from './form/Select';
 export { Switch } from './form/Switch';
 export type { TextFieldProps } from './form/TextField';
 export { TextField } from './form/TextField';
