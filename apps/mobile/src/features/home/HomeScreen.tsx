@@ -19,20 +19,28 @@ function timeGreeting(): string {
 /** Inicio (= `HomeMainCard` de web): una card con el saludo y las efemérides adentro, sin `ScreenHeader`. */
 export function HomeScreen() {
   const { user, isLoading } = useAuth();
+  const greeting = timeGreeting();
 
   return (
     <Screen>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: SPACING.xl }}>
         <SectionCard>
-          <YStack gap={SPACING['2xs']}>
+          {/* Sin ScreenHeader, el saludo es lo primero que lee un lector de pantalla: lleva el nombre de la pantalla. */}
+          <YStack
+            gap={SPACING['2xs']}
+            accessible
+            accessibilityRole="header"
+            accessibilityLabel={`Inicio. ${greeting}, ${isLoading ? 'cargando' : (user?.name ?? '—')}`}
+          >
             <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
-              {timeGreeting()}
+              {greeting}
             </Paragraph>
             {isLoading ? (
               <YStack
                 {...NAME_SKELETON}
                 borderRadius={RADIUS.sm}
                 backgroundColor="$dimmedSurface"
+                accessible
                 accessibilityLabel="Cargando tu nombre"
               />
             ) : (

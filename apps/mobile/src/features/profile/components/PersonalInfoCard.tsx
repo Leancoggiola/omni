@@ -16,10 +16,12 @@ const PHONE_MAX_LENGTH = 30;
 type PersonalInfoCardProps = {
   profile: Pick<UserProfile, 'name' | 'email' | 'phone'>;
   onSave: (payload: UpdateProfilePayload) => Promise<unknown>;
+  /** Al enfocar el teléfono: la pantalla lo mantiene a la vista sobre el teclado. */
+  onFieldFocus?: () => void;
 };
 
 /** Información personal: nombre y email de solo lectura, teléfono editable (fecha de nacimiento: #38). */
-export function PersonalInfoCard({ profile, onSave }: PersonalInfoCardProps) {
+export function PersonalInfoCard({ profile, onSave, onFieldFocus }: PersonalInfoCardProps) {
   const [phone, setPhone] = useState(profile.phone ?? '');
   const [saving, setSaving] = useState(false);
   // `saving` es estado de React: dos toques en el mismo frame pasarían los dos antes del re-render.
@@ -34,7 +36,8 @@ export function PersonalInfoCard({ profile, onSave }: PersonalInfoCardProps) {
     setSaving(true);
     try {
       await onSave(updates);
-      setPhone(normalizePhone(phone) ?? '');
+      // Normaliza lo guardado (sin espacios) salvo que el usuario ya haya seguido escribiendo.
+      setPhone(current => (current === phone ? (normalizePhone(phone) ?? '') : current));
       notifySuccess('Cambios guardados correctamente');
     } catch (err) {
       notifyError(getErrorMessage(err, 'No se pudieron guardar los cambios'));
@@ -63,6 +66,7 @@ export function PersonalInfoCard({ profile, onSave }: PersonalInfoCardProps) {
         />
         <TextField
           label="Teléfono"
+          onFocus={onFieldFocus}
           value={phone}
           onChangeText={setPhone}
           placeholder="+34 123 456 789"

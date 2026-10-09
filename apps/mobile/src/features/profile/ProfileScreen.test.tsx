@@ -277,3 +277,50 @@ describe('ProfileScreen · eliminar cuenta', () => {
     expect(mockLogout).not.toHaveBeenCalled();
   });
 });
+
+describe('ProfileScreen · doble envío y escritura durante el guardado', () => {
+  it('dos toques en el mismo frame sobre "Guardar cambios" mandan un solo PATCH', async () => {
+    let finish!: () => void;
+    mockUpdateProfile.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));
+    renderProfile();
+    fireEvent.changeText(screen.getByLabelText('Teléfono', { exact: false }), '456');
+    const save = screen.getByRole('button', { name: 'Guardar cambios' });
+    fireEvent.press(save);
+    fireEvent.press(save);
+
+    expect(mockUpdateProfile).toHaveBeenCalledTimes(1);
+    await act(async () => finish());
+  });
+
+  it('lo que se escribe mientras se guarda no se pisa con el valor guardado', async () => {
+    let finish!: () => void;
+    mockUpdateProfile.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));
+    renderProfile();
+    fireEvent.changeText(screen.getByLabelText('Teléfono', { exact: false }), '456');
+    fireEvent.press(screen.getByRole('button', { name: 'Guardar cambios' }));
+    fireEvent.changeText(screen.getByLabelText('Teléfono', { exact: false }), '4567');
+    await act(async () => finish());
+
+    expect(screen.getByLabelText('Teléfono', { exact: false })).toHaveDisplayValue('4567');
+  });
+
+  it('dos envíos seguidos del formulario de contraseña cambian la contraseña una sola vez', async () => {
+    let finish!: () => void;
+    mockChangePassword.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));
+    renderProfile();
+    fireEvent.changeText(screen.getByLabelText('Nueva contraseña', { exact: false }), 'nueva-clave');
+    fireEvent.changeText(screen.getByLabelText('Confirmar contraseña', { exact: false }), 'nueva-clave');
+    fireEvent.press(screen.getByRole('button', { name: 'Cambiar contraseña' }));
+    fireEvent(screen.getByLabelText('Confirmar contraseña', { exact: false }), 'submitEditing');
+
+    expect(mockChangePassword).toHaveBeenCalledTimes(1);
+    await act(async () => finish());
+  });
+
+  it('un error de SWR con datos en pantalla se muestra arriba y el formulario sigue disponible', () => {
+    renderProfile({ error: new Error('revalidación fallida') });
+
+    expect(screen.getByText('No se pudo cargar tu perfil')).toBeTruthy();
+    expect(screen.getByText('Información personal')).toBeTruthy();
+  });
+});

@@ -1,4 +1,5 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
+import { ArrowLeftIcon, type Icon } from 'phosphor-react-native';
 import { Paragraph, XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
@@ -6,9 +7,6 @@ import { useSemanticColors } from '@/core/theme';
 import { IconButton } from './button/IconButton';
 import { Title } from './Title';
 
-import { ArrowLeftIcon } from 'phosphor-react-native';
-
-import type { Icon } from 'phosphor-react-native';
 import type { ReactNode } from 'react';
 
 const CHIP_SIZE = 44;

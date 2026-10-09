@@ -27,7 +27,8 @@ describe('HomeScreen', () => {
     render(<HomeScreen />);
 
     expect(screen.getByText('Buenos días')).toBeTruthy();
-    expect(screen.getByRole('header', { name: 'Admin Omni' })).toBeTruthy();
+    expect(screen.getByRole('header', { name: 'Inicio. Buenos días, Admin Omni' })).toBeTruthy();
+    expect(screen.getByText('Admin Omni')).toBeTruthy();
     expect(screen.getByText('Efemérides de hoy')).toBeTruthy();
     expect(screen.queryByText('Bienvenido a Omni')).toBeNull();
   });
@@ -49,6 +50,6 @@ describe('HomeScreen', () => {
     render(<HomeScreen />);
 
     expect(screen.getByLabelText('Cargando tu nombre')).toBeTruthy();
-    expect(screen.queryByRole('header')).toBeNull();
+    expect(screen.queryByText('Admin Omni')).toBeNull();
   });
 });

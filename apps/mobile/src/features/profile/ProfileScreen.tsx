@@ -39,15 +39,13 @@ export function ProfileScreen() {
   };
 
   const renderBody = () => {
-    // El error de SWR se muestra siempre (regla de oro 0); con datos en pantalla, una revalidación
-    // fallida (p. ej. tras guardar una preferencia) no los reemplaza.
-    if (!profile) {
-      return error ? (
-        <ErrorState message="No se pudo cargar tu perfil" onRetry={() => void refresh()} />
-      ) : (
-        <LoadingState />
-      );
-    }
+    // El error de SWR se muestra siempre (regla de oro 0): sin datos reemplaza al formulario; con datos
+    // (una revalidación que falló) va arriba y el formulario sigue disponible.
+    const errorState = error ? (
+      <ErrorState message="No se pudo cargar tu perfil" onRetry={() => void refresh()} />
+    ) : null;
+
+    if (!profile) return errorState ?? <LoadingState />;
 
     return (
       // Sin tab bar abajo: el contenido scrollea para llegar a las acciones con el teclado abierto.
@@ -60,7 +58,8 @@ export function ProfileScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ gap: SPACING.md, paddingBottom: SPACING.xl }}
         >
-          <PersonalInfoCard profile={profile} onSave={updateProfile} />
+          {errorState}
+          <PersonalInfoCard profile={profile} onSave={updateProfile} onFieldFocus={scrollIntoView} />
           <PreferencesCard
             values={{
               notifications: profile.preferences?.notifications ?? false,

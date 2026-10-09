@@ -35,7 +35,7 @@ function HolidayProgress({ duration, color }: { duration: number; color: string 
 }
 
 export function HolidaysCard() {
-  const { holidays, isLoading, error } = useTodayHolidays();
+  const { holidays, isLoading, error, retry } = useTodayHolidays();
   const { colorScheme } = useColorSchemeControl();
   const { currentIndex, currentItem, next } = useHolidayCarousel(holidays.items, HOLIDAY_DURATION);
 
@@ -43,13 +43,14 @@ export function HolidaysCard() {
   const s = SEMANTIC[colorScheme];
 
   if (error) {
-    return <ErrorState message="No se pudieron cargar las efemérides de hoy" />;
+    return <ErrorState message="No se pudieron cargar las efemérides de hoy" onRetry={retry} />;
   }
 
   if (isLoading) {
     return (
       <YStack
         minHeight={CARD_MIN_HEIGHT}
+        accessible
         borderRadius={RADIUS.lg}
         backgroundColor="$dimmedSurface"
         accessibilityLabel="Cargando efemérides"

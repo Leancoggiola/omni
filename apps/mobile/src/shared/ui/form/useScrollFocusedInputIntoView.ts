@@ -31,6 +31,8 @@ export function useScrollFocusedInputIntoView() {
     });
   }, []);
 
+  // Android re-emite `keyboardDidShow` cuando cambia la altura del teclado sin ocultarse (p. ej. numérico → texto),
+  // así que `keyboardTop` se mantiene al día sin escuchar `keyboardDidChangeFrame` (solo iOS).
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', event => {
       keyboardTop.current = event.endCoordinates.screenY;
