@@ -1,4 +1,5 @@
 import { SPACING } from '@omni/shared/theme';
+import { PHONE_MAX_LENGTH } from '@omni/shared/users';
 import { EnvelopeSimpleIcon, FloppyDiskIcon, PhoneIcon, UserIcon } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
 import { YStack } from 'tamagui';
@@ -10,8 +11,6 @@ import { buildProfileUpdates, normalizePhone } from '../utils/profileForm';
 import type { UpdateProfilePayload, UserProfile } from '@omni/shared/users';
 
 const READ_ONLY_DESCRIPTION = 'No se puede editar';
-/** Largo máximo de `updateProfileSchema.phone`. */
-const PHONE_MAX_LENGTH = 30;
 
 type PersonalInfoCardProps = {
   profile: Pick<UserProfile, 'name' | 'email' | 'phone'>;
