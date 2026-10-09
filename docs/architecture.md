@@ -97,13 +97,13 @@ Cada feature usa `modules/<nombre>/` (sub-dominios), carpetas por componente/hoo
 
 ### Convenciones Web
 
-| Elemento     | Convención                                               |
-| ------------ | -------------------------------------------------------- |
-| Feature      | `<name>.page.tsx`, `<name>.routes.tsx`, `<name>.nav.tsx` |
-| Componentes  | `Component/Component.tsx` + `index.ts`                   |
-| Hooks        | `useX/useX.ts` + `index.ts`                              |
-| Imports      | `@/shared/api`, `@/core/auth`, `@/features/media`        |
-| Dependencias | Un feature **no** importa otro feature                   |
+| Elemento     | Convención                                                                 |
+| ------------ | -------------------------------------------------------------------------- |
+| Feature      | `<name>.page.tsx`, `<name>.routes.tsx` (navbar: `@omni/shared/navigation`) |
+| Componentes  | `Component/Component.tsx` + `index.ts`                                     |
+| Hooks        | `useX/useX.ts` + `index.ts`                                                |
+| Imports      | `@/shared/api`, `@/core/auth`, `@/features/media`                          |
+| Dependencias | Un feature **no** importa otro feature                                     |
 
 ### Path aliases
 

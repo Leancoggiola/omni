@@ -2,8 +2,11 @@ import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable } from 'react-native';
 import { Button, Input, Paragraph, Spinner, XStack, YStack } from 'tamagui';
 import { mutate as globalMutate } from 'swr';
+import { FilmSlateIcon } from 'phosphor-react-native';
 
 import { ApiError, API_KEYS } from '@/shared/api';
+import { ProfileAvatarButton } from '@/shared/navigation';
+import { Screen, ScreenHeader } from '@/shared/ui';
 import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS } from '@omni/shared/media';
 
 import { MediaCard } from './components/MediaCard';
@@ -116,10 +119,14 @@ export function MediaScreen() {
   );
 
   return (
-    <YStack flex={1} backgroundColor="$background" padding="$3" gap="$3">
-      <Paragraph size="$7" fontWeight="700">
-        Media
-      </Paragraph>
+    <Screen>
+      {/* Título de la página, como el `PageHeader` de web: no es el label de navegación del registro. */}
+      <ScreenHeader
+        icon={FilmSlateIcon}
+        title="Películas y Series"
+        subtitle="Tu lista de seguimiento"
+        actions={<ProfileAvatarButton />}
+      />
 
       <Input placeholder="Buscar en tu lista" value={searchText} onChangeText={setSearchText} />
 
@@ -198,6 +205,6 @@ export function MediaScreen() {
           renderItem={({ item }) => <MediaCard item={item} onStatusPress={handleStatus} onDeletePress={handleDelete} />}
         />
       )}
-    </YStack>
+    </Screen>
   );
 }

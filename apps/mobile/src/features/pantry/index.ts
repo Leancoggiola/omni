@@ -1,3 +1,4 @@
+export { PantryScreen } from './PantryScreen';
 export {
   usePantryProduct,
   usePantryProducts,

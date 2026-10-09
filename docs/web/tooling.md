@@ -30,7 +30,7 @@ npx skills add supabase/agent-skills --skill supabase supabase-postgres-best-pra
 
 ```bash
 pnpm web:new-feature gym
-pnpm web:new-feature gym --register-route --register-nav --nav-key gym --swr-domain gym
+pnpm web:new-feature gym --register-route --swr-domain gym
 pnpm web:new-hook media library useMyMediaList
 pnpm web:new-component profile settings ProfileCard
 pnpm web:new-test src/features/.../profileForm.ts

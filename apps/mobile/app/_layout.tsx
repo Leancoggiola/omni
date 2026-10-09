@@ -1,6 +1,6 @@
 import { ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Redirect, Slot, useSegments } from 'expo-router';
+import { Redirect, Stack, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, type PropsWithChildren } from 'react';
 import { useColorScheme } from 'react-native';
@@ -8,7 +8,7 @@ import { Spinner, TamaguiProvider, Theme, YStack } from 'tamagui';
 import { StatusBar } from 'expo-status-bar';
 
 import { AuthProvider, useAuth } from '@/core/auth';
-import { ColorSchemeProvider, useColorSchemeControl } from '@/core/theme';
+import { ColorSchemeProvider, useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { NAVIGATION_THEMES } from '@/theme/navigationTheme';
 import { MONTSERRAT_FACES } from '@/theme/fonts';
 import { tamaguiConfig } from '@/theme/tamagui.config';
@@ -22,6 +22,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 function AuthGate() {
   const { isAuthenticated, isLoading } = useAuth();
+  const colors = useSemanticColors();
   const segments = useSegments();
   const onLogin = segments[0] === 'login';
 
@@ -41,7 +42,22 @@ function AuthGate() {
     return <Redirect href="/(tabs)" />;
   }
 
-  return <Slot />;
+  // Tabs y login sin header; Perfil es una ruta de stack sobre las tabs y su header solo trae el
+  // botón de volver: el título lo pone el `ScreenHeader` de la pantalla.
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.body } }}>
+      <Stack.Screen
+        name="profile"
+        options={{
+          headerShown: true,
+          title: '',
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: colors.body },
+          headerTintColor: colors.text,
+        }}
+      />
+    </Stack>
+  );
 }
 
 function ThemedRoot({ children }: PropsWithChildren) {

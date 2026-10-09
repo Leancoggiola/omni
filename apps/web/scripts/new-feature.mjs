@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
  * Scaffold a new web feature. Usage:
- *   pnpm web:new-feature gym --register-route --register-nav --nav-key gym --swr-domain gym
+ *   pnpm web:new-feature gym --register-route --swr-domain gym
+ *
+ * El ítem de navegación no se genera acá: vive en `NAV_REGISTRY` de `@omni/shared/navigation`.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,10 +18,19 @@ const args = process.argv.slice(2);
 const flags = new Set(args.filter(a => a.startsWith('--')));
 const positional = args.filter(a => !a.startsWith('--'));
 
+const removedNavFlags = ['--register-nav', '--nav-key', '--no-nav'].filter(flag => flags.has(flag));
+if (removedNavFlags.length > 0) {
+  console.error(
+    `${removedNavFlags.join(', ')} ya no existe: el ítem de navegación se registra en NAV_REGISTRY ` +
+      '(packages/shared/src/navigation/registry.ts) y su ícono en NAV_ICONS de app/navigation/nav-registry.tsx.'
+  );
+  process.exit(1);
+}
+
 const name = positional[0];
 if (!name || !/^[a-z][a-z0-9-]*$/.test(name)) {
   console.error(
-    'Usage: pnpm web:new-feature <kebab-name> [--path /x] [--module main] [--register-route] [--register-nav] [--nav-key gym] [--swr-domain gym] [--no-nav]'
+    'Usage: pnpm web:new-feature <kebab-name> [--path /x] [--module main] [--register-route] [--swr-domain gym]'
   );
   process.exit(1);
 }
@@ -33,15 +44,8 @@ if (!/^\/[a-z0-9][a-z0-9/-]*$/.test(routePath)) {
   process.exit(1);
 }
 const moduleName = getFlagValue('--module') ?? 'main';
-const navKey = getFlagValue('--nav-key') ?? name;
-if (!/^[a-z][a-z0-9-]*$/.test(navKey)) {
-  console.error(`Invalid --nav-key value: "${navKey}". Must match [a-z][a-z0-9-]*`);
-  process.exit(1);
-}
 const swrDomain = getFlagValue('--swr-domain');
 const registerRoute = flags.has('--register-route');
-const registerNav = flags.has('--register-nav');
-const noNav = flags.has('--no-nav');
 
 const featureDir = path.join(featuresRoot, name);
 if (fs.existsSync(featureDir)) {
@@ -110,35 +114,10 @@ export const ${camel}Route: RouteObject = {
 `
 );
 
-write(
-  path.join(featureDir, 'index.ts'),
-  `${noNav ? '' : `export { ${camel}NavItem } from './${name}.nav';\n`}export { ${camel}Route } from './${name}.routes';\n`
-);
-
-if (!noNav) {
-  write(
-    path.join(featureDir, `${name}.nav.tsx`),
-    `import type { NavItemConfig } from '@/layouts/navConfig';
-
-import { HouseIcon } from '@phosphor-icons/react';
-
-const iconSize = '1.25rem';
-
-export const ${camel}NavItem: NavItemConfig = {
-  label: '${pascal}',
-  path: '${routePath}',
-  disabled: true,
-  icon: <HouseIcon size={iconSize} />,
-};
-`
-  );
-}
+write(path.join(featureDir, 'index.ts'), `export { ${camel}Route } from './${name}.routes';\n`);
 
 if (registerRoute) {
   appendRoute(name, camel);
-}
-if (registerNav && !noNav) {
-  appendNavRegistry(name, camel, navKey);
 }
 if (swrDomain) {
   appendSwrStub(swrDomain);
@@ -147,10 +126,10 @@ if (swrDomain) {
 console.log(`\nCreated feature: src/features/${name}/`);
 console.log('\nNext steps:');
 if (!swrDomain) console.log('  1. Add SWR keys in shared/api/keys.ts if needed');
-console.log('  2. Update icon/label in', `${name}.nav.tsx`);
+console.log('  2. Nav: key en NAV_REGISTRY y MAIN_NAV_ORDER de packages/shared/src/navigation/registry.ts');
+console.log('     ("web" en availableOn) e ícono en NAV_ICONS de app/navigation/nav-registry.tsx y de mobile');
 if (!registerRoute) console.log('  3. Register route in app/routes.ts');
-if (!registerNav && !noNav) console.log('  4. Register nav: --register-nav --nav-key', navKey);
-console.log('  5. pnpm --filter web check-types && pnpm --filter web test && pnpm --filter web check-api-paths');
+console.log('  4. pnpm --filter web check-types && pnpm --filter web test && pnpm --filter web check-api-paths');
 
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -207,35 +186,6 @@ function appendRoute(name, camel) {
   }
   fs.writeFileSync(routesFile, content, 'utf8');
   console.log('Updated app/routes.ts');
-}
-
-function appendNavRegistry(name, camel, key) {
-  const navFile = path.join(srcRoot, 'app', 'navigation', 'nav-registry.tsx');
-  let content = fs.readFileSync(navFile, 'utf8');
-  const importLine = `import { ${camel}NavItem } from '@/features/${name}';`;
-
-  content = insertFeatureImport(content, name, importLine);
-
-  const keyInOrder = new RegExp(`^\\s*'${escapeRegExp(key)}',?\\s*$`, 'm').test(content);
-  if (!keyInOrder) {
-    // Antes de 'profile' (último ítem de MAIN_NAV_ORDER) y al final de NAV_BY_KEY, sin depender de sus vecinos.
-    const withOrder = content.replace(/^(\s*)'profile',/m, `$1'${key}',\n$1'profile',`);
-    const withEntry = withOrder.replace(
-      /(const NAV_BY_KEY[^=]*=\s*\{[\s\S]*?\n)(\};)/,
-      `$1  '${key}': ${camel}NavItem,\n$2`
-    );
-    if (withOrder === content || withEntry === withOrder) {
-      console.error('No se pudo registrar el ítem en nav-registry.tsx: revisá MAIN_NAV_ORDER y NAV_BY_KEY a mano.');
-      process.exit(1);
-    }
-    content = withEntry;
-  } else {
-    const entryPattern = new RegExp(`(['"]?${escapeRegExp(key)}['"]?:\\s*)[^,\\n]+`);
-    content = content.replace(entryPattern, `$1${camel}NavItem`);
-  }
-
-  fs.writeFileSync(navFile, content, 'utf8');
-  console.log(`Updated app/navigation/nav-registry.tsx (key: ${key})`);
 }
 
 function appendSwrStub(domain) {
