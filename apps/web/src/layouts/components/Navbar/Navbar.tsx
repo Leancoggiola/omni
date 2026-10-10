@@ -34,6 +34,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  /** En pantallas bajas la lista scrollea: el ítem de la ruta actual no puede quedar cortado. */
   const viewportRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = useCallback(async () => {
@@ -50,6 +51,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
     viewportRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' });
   }, [location.pathname]);
 
+  /** Sin destino no hay `href`: `role="link"` + `aria-disabled` es el patrón ARIA de link deshabilitado. */
   const renderNavItem = (item: NavItemConfig) => {
     const renderIcon = (active: boolean) => (
       <ThemeIcon variant={active ? 'white' : 'filled'} color="brand" size="lg" radius="md">

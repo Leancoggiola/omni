@@ -10,6 +10,10 @@ import type { UpdatePreferencesPayload, UpdateProfilePayload, UserPreferences, U
 
 import { toSessionUser } from '@omni/shared/auth';
 
+/**
+ * `SessionUser.theme` sale de las preferencias: igual que `syncAuthCache` tras `updateProfile`, al guardar el
+ * tema se refleja en la cache de auth para que `useAuth().user.theme` no quede viejo.
+ */
 export function useProfile() {
   const { mutate: globalMutate } = useSWRConfig();
   const { data, isLoading, error, mutate } = useSWRImmutable<{ user: UserProfile }>(SWR_KEYS.users.profile);

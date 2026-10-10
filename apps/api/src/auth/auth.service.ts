@@ -23,6 +23,7 @@ export async function validateUser(username: string, password: string) {
 
 export type LoginUser = Parameters<typeof toSessionUser>[0] & { id: string; role: Role };
 
+/** El usuario ya llega completo desde validateUser: los tokens se emiten recién con la sesión armada. */
 export async function login(user: LoginUser, res: Response): Promise<AuthTokensResponse> {
   const sessionUser = toSessionUser(user);
   const tokens = await issueTokens({ sub: user.id, username: user.username, role: user.role }, res);

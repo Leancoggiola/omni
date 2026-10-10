@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
   Alert,
   Button,
@@ -50,6 +50,7 @@ interface ProfileSettingsFormProps {
 
 export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isSaving, onSave }) => {
   const { setColorScheme } = useMantineColorScheme();
+  const themeLabelId = useId();
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<ProfileFormValues>({
@@ -135,11 +136,11 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
                 />
               </Group>
               <Stack gap="2xs">
-                <Text id="theme-label" fw={500} size="sm">
+                <Text id={themeLabelId} fw={500} size="sm">
                   Tema
                 </Text>
                 <SegmentedControl
-                  aria-labelledby="theme-label"
+                  aria-labelledby={themeLabelId}
                   data={[...PROFILE_THEME_OPTIONS]}
                   size="sm"
                   radius="md"
