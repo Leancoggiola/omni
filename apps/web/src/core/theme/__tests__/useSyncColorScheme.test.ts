@@ -36,18 +36,41 @@ describe('useSyncColorScheme', () => {
     expect(setColorScheme).toHaveBeenCalledWith('light');
   });
 
-  it('al cerrar sesión no toca el tema y el próximo login aplica el del perfil', () => {
-    mockUser = { theme: 'dark' };
+  it('al cerrar sesión con override no toca el tema y el próximo login aplica el del perfil', () => {
+    setSessionColorScheme('dark');
+    mockUser = { theme: 'light' };
     const { rerender } = renderHook(() => useSyncColorScheme());
     setColorScheme.mockClear();
 
     mockUser = null;
     rerender();
-    expect(setColorScheme).not.toHaveBeenCalled();
 
+    sessionStorage.clear(); // lo que hace login() antes de que se aplique el tema del perfil
     mockUser = { theme: 'light' };
     rerender();
     expect(setColorScheme).toHaveBeenLastCalledWith('light');
+  });
+
+  it('al cerrar sesión sin override vuelve al tema por defecto', () => {
+    mockUser = { theme: 'dark' };
+    const { rerender } = renderHook(() => useSyncColorScheme());
+
+    mockUser = null;
+    rerender();
+    expect(setColorScheme).toHaveBeenLastCalledWith('auto');
+  });
+
+  it('el relogin con override presente lo aplica: AuthContext debe descartarlo antes', () => {
+    setSessionColorScheme('dark');
+    mockUser = { theme: 'light' };
+    const { rerender } = renderHook(() => useSyncColorScheme());
+    mockUser = null;
+    rerender();
+    setColorScheme.mockClear();
+
+    mockUser = { theme: 'light' };
+    rerender();
+    expect(setColorScheme).toHaveBeenLastCalledWith('dark');
   });
 
   it('sin sesión previa no toca el tema', () => {

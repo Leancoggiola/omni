@@ -56,6 +56,16 @@ describe('AuthProvider: override de tema de sesión', () => {
     expect(getSessionColorScheme()).toBe('dark');
   });
 
+  it('un login fallido conserva el override', async () => {
+    setSessionColorScheme('dark');
+    vi.mocked(api.post).mockRejectedValueOnce(new Error('Credenciales inválidas'));
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(async () => {
+      await expect(result.current.login('maria', 'mala')).rejects.toThrow();
+    });
+    expect(getSessionColorScheme()).toBe('dark');
+  });
+
   it('login descarta el override para que se aplique el tema del perfil', async () => {
     setSessionColorScheme('dark');
     const { result } = renderHook(() => useAuth(), { wrapper });

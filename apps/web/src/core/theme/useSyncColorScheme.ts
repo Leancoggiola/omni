@@ -16,9 +16,12 @@ export function useSyncColorScheme() {
 
   useEffect(() => {
     if (!user) {
-      // Logout o sesión vencida: el tema y el override quedan como estaban para que /login los
-      // conserve; el próximo inicio de sesión descarta el override y aplica el del perfil.
-      syncedRef.current = false;
+      // Logout o sesión vencida: con override, /login lo conserva (se descarta en el próximo login).
+      // Sin override, vuelve al tema por defecto, igual que tras recargar.
+      if (syncedRef.current) {
+        syncedRef.current = false;
+        if (!getSessionColorScheme()) setColorScheme('auto');
+      }
       return;
     }
     if (syncedRef.current) return;

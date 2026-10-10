@@ -6,6 +6,8 @@ export class LoginPage {
   readonly username = () => this.page.getByLabel('Usuario');
   readonly password = () => this.page.getByLabel('Contraseña');
   readonly submit = () => this.page.getByRole('button', { name: 'Ingresar' });
+  /** Tarjeta del login: el ancestro `Paper` que contiene el formulario. */
+  readonly card = () => this.page.locator('.mantine-Paper-root').filter({ has: this.submit() });
   readonly error = () => this.page.getByRole('alert');
 
   async goto() {

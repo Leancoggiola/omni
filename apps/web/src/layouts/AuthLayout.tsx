@@ -11,11 +11,12 @@ export const AuthLayout: FC = () => {
       <AppShell.Main
         style={{
           display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr)',
           placeItems: 'center',
         }}
       >
         <AnimatedBackground />
-        <Container>
+        <Container w="100%">
           <Outlet />
         </Container>
       </AppShell.Main>
