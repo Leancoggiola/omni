@@ -13,7 +13,6 @@ export interface NewUser {
  * como lo haría un admin real. La suite nunca escribe en la base directamente.
  */
 export async function createUserViaAdmin(user: NewUser): Promise<NewUser> {
-  // Se pega a la web para pasar por el proxy de Vite, igual que lo haría el browser.
   const api = await request.newContext({ baseURL: WEB_URL });
 
   const adminLogin = await api.post('/api/auth/login', { data: ADMIN });

@@ -28,8 +28,6 @@ export default defineConfig({
       stdout: 'ignore',
     },
     {
-      // reuseExistingServer en false a propósito: reusar una API de desarrollo
-      // haría que la suite escriba sobre la base de dev sin avisar.
       command: 'pnpm --filter api dev:e2e',
       env: API_ENV,
       url: `${API_URL}/api/health`,
