@@ -22,14 +22,13 @@ test.describe('perfil', () => {
     await expect(profile.notificationsSwitch()).not.toBeChecked();
 
     await profile.toggleNotifications();
-    await profile.themeSelect().click();
-    await page.getByRole('option', { name: 'Oscuro', exact: true }).click();
+    await profile.selectTheme('Oscuro');
     await profile.saveButton().click();
 
     await expect(page.getByRole('alert').filter({ hasText: 'Listo' })).toBeVisible();
     await page.reload();
     await expect(profile.notificationsSwitch()).toBeChecked();
-    await expect(profile.themeSelect()).toHaveValue('Oscuro');
+    await expect(profile.themeOption('Oscuro')).toBeChecked();
   });
 
   test('rechaza una confirmación de contraseña que no coincide', async ({ page, freshUser }) => {

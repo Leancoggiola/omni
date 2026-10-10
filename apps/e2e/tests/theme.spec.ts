@@ -63,7 +63,7 @@ test.describe('tema por sesión', () => {
       await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'light');
 
       await page.reload();
-      await expect(profile.themeSelect()).toHaveValue('Sistema');
+      await expect(profile.themeOption('Sistema')).toBeChecked();
       await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'light');
 
       await page.emulateMedia({ colorScheme: 'dark' });
@@ -79,7 +79,7 @@ test.describe('tema por sesión', () => {
       await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
 
       await profile.goto();
-      await expect(profile.themeSelect()).toHaveValue('Claro');
+      await expect(profile.themeOption('Claro')).toBeChecked();
       await profile.phoneField().fill('+54 11 4444 4444');
       await profile.save();
 
@@ -109,7 +109,7 @@ test.describe('tema por sesión', () => {
 
       await page.reload();
       await expect(profile.notificationsSwitch()).toBeChecked();
-      await expect(profile.themeSelect()).toHaveValue('Claro');
+      await expect(profile.themeOption('Claro')).toBeChecked();
       await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
     });
   });
