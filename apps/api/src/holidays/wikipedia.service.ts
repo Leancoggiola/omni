@@ -12,6 +12,11 @@ function upstreamError(err: unknown, fallbackMessage: string): { status: number;
   return { status: 502, message: fallbackMessage };
 }
 
+/**
+ * Wikimedia lee `User-Agent` en server-to-server y `Api-User-Agent` cuando el request parece de navegador.
+ * El `signal` cubre también la lectura del body: un timeout en `res.json()` se rechaza con el mismo
+ * `TimeoutError`. Un 404 es un día sin celebraciones, no un error.
+ */
 export async function fetchHolidays(month: string, day: string): Promise<WikipediaHolidaysResponse> {
   const url = `${config.wikipedia.baseUrl}/feed/onthisday/holidays/${month}/${day}`;
 

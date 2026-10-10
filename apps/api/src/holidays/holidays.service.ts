@@ -48,6 +48,11 @@ function todayParts(now = new Date()): DateParts {
   };
 }
 
+/**
+ * El feed es externo y no viene validado: un `holidays` que no es array cuenta como día sin efemérides.
+ * Wikipedia repite la misma celebración en entradas distintas del día, así que se deduplica. El id es
+ * posicional porque los títulos no son identificadores estables.
+ */
 function mapHolidays(raw: WikipediaHolidaysResponse | null, parts: DateParts): TodayHolidays {
   const items: Holiday[] = [];
   const seen = new Set<string>();
@@ -84,6 +89,7 @@ function mapHolidays(raw: WikipediaHolidaysResponse | null, parts: DateParts): T
   };
 }
 
+/** Una respuesta tardía del día anterior no debe pisar el caché del día vigente. */
 export async function getTodayHolidays(): Promise<TodayHolidays> {
   const parts = todayParts();
 

@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { loadTestEnv } from './testDatabaseUrl';
 
 const [envFile = '.env.test'] = process.argv.slice(2).filter(arg => !arg.startsWith('--'));
+/** Prisma 7 ya no siembra como parte de migrate reset: el seed se corre aparte con `--seed`. */
 const withSeed = process.argv.includes('--seed');
 
 const url = loadTestEnv(envFile);
@@ -13,7 +14,6 @@ function runPrisma(args: string[]) {
   return spawnSync('prisma', args, { stdio: 'inherit', cwd, shell: true, env }).status ?? 1;
 }
 
-/** Prisma 7 ya no siembra como parte de migrate reset: el seed se corre aparte con `--seed`. */
 let status = runPrisma(['migrate', 'reset', '--force']);
 
 if (status === 0 && withSeed) {

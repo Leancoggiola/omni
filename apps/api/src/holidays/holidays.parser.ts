@@ -83,7 +83,10 @@ function stripRepeatedPrefix(text: string): { rest: string; prefix: string } | n
   return null;
 }
 
-/** `null` si el texto no arranca con un prefijo supranacional; si arranca, el texto sin él. */
+/**
+ * `null` si el texto no arranca con un prefijo supranacional; si arranca, el texto sin él. Sin dos puntos solo
+ * es prefijo si lo que sigue arranca como título: "Mundial de Clubes" no lo es.
+ */
 function stripSupranationalPrefix(text: string): string | null {
   const match = text.match(SUPRANATIONAL_PREFIX);
   if (!match) return null;
@@ -94,6 +97,10 @@ function stripSupranationalPrefix(text: string): string | null {
   return rest;
 }
 
+/**
+ * Va después de los supranacionales: "Unión Europea Unión Europea: …" tiene la misma forma que un país pero
+ * es internacional. Con bandera ajena la entrada se descarta más arriba, sin limpiar el prefijo.
+ */
 function stripCountryPrefix(text: string): {
   rest: string;
   isArgentina: boolean;
@@ -130,7 +137,10 @@ function stripSubregions(text: string): string {
   return rest;
 }
 
-/** `null` cuando la entrada se descarta (país ajeno, religiosa o vacía). */
+/**
+ * `null` cuando la entrada se descarta (país ajeno, religiosa o vacía). Un paréntesis inicial ya quitado deja
+ * sus dos puntos: "(ciertas regiones): Día del Mediterráneo".
+ */
 export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
   const normalized = rawText.replace(/\s+/g, ' ').trim();
   if (!normalized) return null;

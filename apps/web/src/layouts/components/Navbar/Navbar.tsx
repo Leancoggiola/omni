@@ -34,7 +34,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  /** En pantallas bajas la lista scrollea: el ítem de la ruta actual no puede quedar cortado. */
+  /** Viewport del scroll de la lista: en pantallas bajas el efecto de abajo mantiene visible el ítem de la ruta actual. */
   const viewportRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = useCallback(async () => {
