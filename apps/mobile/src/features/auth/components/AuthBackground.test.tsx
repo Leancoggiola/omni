@@ -7,7 +7,6 @@ const mockWithRepeat = jest.fn((animation: unknown) => animation);
 const mockReducedMotion = jest.fn();
 const mockCancelAnimation = jest.fn();
 
-// Doble mínimo de reanimated: lo que se prueba es si arranca la animación, no el motor.
 jest.mock('react-native-reanimated', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -32,7 +31,6 @@ describe('AuthBackground', () => {
     mockWithRepeat.mockClear();
     mockCancelAnimation.mockClear();
     remove.mockClear();
-    // El mock de RN acumula las llamadas y no devuelve suscripción: se reinicia por test.
     addListener.mockReset();
     addListener.mockReturnValue({ remove } as unknown as ReturnType<typeof AccessibilityInfo.addEventListener>);
   });

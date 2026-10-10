@@ -21,7 +21,6 @@ type PreferencesCardProps = {
  */
 export function PreferencesCard({ values, onChange }: PreferencesCardProps) {
   const [pending, setPending] = useState<Partial<Preferences>>({});
-  // Un PATCH por preferencia a la vez: dos en vuelo podrían resolver en otro orden y dejar el valor equivocado.
   const inFlight = useRef(new Set<keyof Preferences>());
 
   const shown = { ...values, ...pending };

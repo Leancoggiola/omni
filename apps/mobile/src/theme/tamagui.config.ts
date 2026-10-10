@@ -66,12 +66,9 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
  */
 function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'accent' = 'accent'): Theme {
   const s = SEMANTIC[scheme];
-  // `fill` es el relleno del Button de marca (primaryShade de web: 7 en claro, 4 en oscuro); `accent` el
-  // tono de texto/acento (Switch, Slider, Progress), que es más suave.
   const fill = tone === 'fill';
   const background = fill ? s.primaryFill : s.primary;
   const onPrimary = fill ? s.onPrimaryFill : s.onPrimary;
-  // Los tonos de interacción del relleno salen de SEMANTIC: con el texto encima siguen en AA (con test).
   const hover = fill ? s.primaryFillHover : scheme === 'light' ? BRAND[6] : BRAND[3];
   const press = fill ? s.primaryFillPress : scheme === 'light' ? BRAND[8] : BRAND[5];
   return {
@@ -95,8 +92,6 @@ function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'acc
 
 function destructiveTheme(scheme: 'light' | 'dark', base: Theme): Theme {
   const s = SEMANTIC[scheme];
-  // El relleno es `destructiveFill` (RED[7], como web), no el `destructive` de texto: en oscuro es RED[4]
-  // y con blanco daba 2,9:1.
   const fill = s.destructiveFill;
   const onDestructive = s.onDestructive;
   return {
@@ -170,7 +165,7 @@ export const COMPONENT_THEMES = [
   'DrawerFrame',
 ];
 
-// Existen en runtime, pero el tipo de `config.themes` de @tamagui/config no los declara.
+/** Existen en runtime, pero el tipo de `config.themes` de @tamagui/config no los declara. */
 const allThemes: Partial<Record<string, Theme>> = config.themes;
 
 /** Pista del Switch apagado (gris con contraste sobre la card) y su thumb blanco (en claro sale negro). */
@@ -216,8 +211,6 @@ function buildComponentTheme(scheme: 'light' | 'dark', component: string, parts:
       : active
         ? primaryTheme(scheme, base)
         : switchTheme(scheme, base, 'track');
-    // Checked, el Switch de Tamagui pinta la pista con `$backgroundActive` (sin `activeStyle`); la clave
-    // existe en runtime pero el tipo `Theme` de @tamagui/config no la declara, de ahí el cast.
     return { ...theme, backgroundActive: s.primary } as Theme;
   }
   if (red) return destructiveTheme(scheme, base);
@@ -259,16 +252,8 @@ const montserratFace = {
   900: { normal: 'MontserratBold' },
 };
 
-// Radios y espaciado compartidos con web: `RADIUS` / `SPACING` de `@omni/shared/theme`, como números
-// (`borderRadius={RADIUS.lg}`, `padding={SPACING.md}`). No se registran como tokens de Tamagui: sus
-// componentes (Input, Select, Popover, ListItem) recorren `space`/`radius` ordenados por valor con
-// `getSpace(token, { shift })`, y meter valores nuevos en la escala les cambia el padding.
-
 export const tamaguiConfig = createTamagui({
   ...config,
-  // En nativo el Input de Tamagui no le pasa ningún color de placeholder a RN (en web lo hace por CSS):
-  // sin esto Android usa su gris por defecto, ilegible en oscuro.
-  // Cursor y selección: sin esto Android usa su teal.
   defaultProps: {
     Input: { placeholderTextColor: '$placeholderColor', cursorColor: '$primary', selectionColor: '$primary' },
     TextArea: { placeholderTextColor: '$placeholderColor', cursorColor: '$primary', selectionColor: '$primary' },
@@ -299,8 +284,6 @@ export const tamaguiConfig = createTamagui({
   },
 });
 
-// El compilador de @tamagui/babel-plugin solo encuentra la config como `export default` (o `config`):
-// sin esto la descarta, reintenta en cada archivo y el bundle de Metro se cuelga.
 export default tamaguiConfig;
 
 export type AppConfig = typeof tamaguiConfig;

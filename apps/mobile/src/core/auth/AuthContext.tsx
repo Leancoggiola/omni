@@ -53,8 +53,6 @@ const SWR_OPTIONS: SWRConfiguration = {
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [bootstrapped, setBootstrapped] = useState(false);
   const [hasToken, setHasToken] = useState(false);
-  // AuthProvider está por encima de su propio SWRConfig, que no define `provider`: este mutate
-  // opera sobre el mismo caché global que usan todos los hooks de la app.
   const { mutate: globalMutate } = useSWRConfig();
 
   useEffect(() => {
@@ -89,8 +87,6 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     await globalMutate(() => true, undefined, { revalidate: false });
   }, [globalMutate]);
 
-  // El client avisa cuando el refresh falla (tokens ya limpios); sin esto el perfil quedaba
-  // cacheado y la app seguía "logueada" con todas las requests fallando.
   useEffect(() => {
     setOnAuthFailure(() => void clearSession());
     return clearOnAuthFailure;
@@ -106,7 +102,6 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     [mutate]
   );
 
-  // Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request.
   const logoutInFlight = useRef<Promise<void> | null>(null);
 
   const logout = useCallback(() => {
@@ -114,9 +109,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
       const refreshToken = await getRefreshToken();
       try {
         await api.post(API_KEYS.auth.logout, { refreshToken: refreshToken ?? undefined });
-      } catch {
-        // still clear local session
-      }
+      } catch {}
       await clearTokens();
       await clearSession();
     })().finally(() => {

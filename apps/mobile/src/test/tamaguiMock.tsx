@@ -13,8 +13,6 @@ import type { ReactNode } from 'react';
 type AnyProps = { children?: ReactNode; onPress?: () => void; [key: string]: unknown };
 
 function Stack({ children, onPress, ...props }: AnyProps) {
-  // Deshabilitado es un Pressable `disabled`: corta el `fireEvent.press` de RNTL, que si no sigue
-  // subiendo y dispara el `onPress` del componente (`<Button onPress>`) aunque el Stack no lo tenga.
   const disabled = (props.accessibilityState as { disabled?: boolean } | undefined)?.disabled;
   if (onPress || disabled) {
     return (

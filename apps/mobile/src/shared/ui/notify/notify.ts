@@ -38,8 +38,6 @@ export function registerNotificationHandler(handler: (request: NotificationReque
 }
 
 function show(variant: NotificationVariant, title: string, message: string) {
-  // Sin provider montado (p. ej. en un test) la notificación se descarta: no es un error de la acción.
-  // En dev se avisa, igual que confirm(), para que un provider mal montado se note.
   if (!showHandler) {
     if (__DEV__) console.warn('notify*() requiere NotificationsProvider montado en app/_layout.tsx.');
     return;

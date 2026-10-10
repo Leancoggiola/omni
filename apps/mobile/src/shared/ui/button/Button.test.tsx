@@ -43,11 +43,9 @@ describe('Button', () => {
 
     const button = screen.getByRole('button', { name: 'Ingresar', busy: true, disabled: true });
     expect(screen.getByTestId('spinner', { includeHiddenElements: true })).toBeTruthy();
-    // El botón ya anuncia busy: el Spinner no es un nodo aparte para TalkBack.
     expect(screen.queryByRole('progressbar')).toBeNull();
     fireEvent.press(button);
     expect(onPress).not.toHaveBeenCalled();
-    // Sin feedback de toque mientras ignora los toques.
     expect(button.props.pressStyle).toBeUndefined();
   });
 

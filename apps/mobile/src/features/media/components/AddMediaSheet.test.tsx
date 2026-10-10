@@ -110,7 +110,6 @@ describe('AddMediaSheet', () => {
 
     await act(async () => finish());
     expect(onOpenChange).toHaveBeenCalledWith(false);
-    // Durante la salida "Agregar" sigue bloqueado.
     fireEvent.press(screen.getByRole('button', { name: 'Agregar' }));
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
@@ -134,7 +133,6 @@ describe('AddMediaSheet', () => {
     expect(onSubmit).toHaveBeenCalledWith(90228, 'tv', 'watching');
     expect(onOpenChange).toHaveBeenCalledWith(false);
 
-    // onClosed llega cuando termina la salida del Sheet: con el Modal visible un toast quedaría tapado.
     close();
     expect(onClosed).not.toHaveBeenCalled();
     act(() => jest.advanceTimersByTime(SHEET_EXIT_MS));

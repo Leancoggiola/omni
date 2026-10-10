@@ -74,7 +74,6 @@ function BlobShape({ blob, id, animate }: { blob: Blob; id: string; animate: boo
     <Animated.View style={[styles.blob, blob.position(width, height, size), { width: size, height: size }, style]}>
       <Svg width={size} height={size} viewBox="0 0 100 100">
         <Defs>
-          {/* RN no tiene `filter: blur(60px)` en Android: la caída radial a transparente lo imita. */}
           <RadialGradient id={id} cx="50" cy="50" r="50" gradientUnits="userSpaceOnUse">
             <Stop offset="0" stopColor={blob.color} stopOpacity={OPACITY} />
             <Stop offset="0.55" stopColor={blob.color} stopOpacity={OPACITY * 0.75} />
@@ -93,7 +92,6 @@ function BlobShape({ blob, id, animate }: { blob: Blob; id: string; animate: boo
  * no recibe toques ni lo lee TalkBack.
  */
 export function AuthBackground() {
-  // `useReducedMotion` de reanimated se lee una sola vez al montar: el evento cubre el cambio posterior.
   const [reducedMotion, setReducedMotion] = useState(useReducedMotion());
   useEffect(() => {
     const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReducedMotion);
@@ -108,7 +106,6 @@ export function AuthBackground() {
       importantForAccessibility="no-hide-descendants"
     >
       {BLOBS.map((blob, index) => (
-        // La lista es fija: el índice es una key estable aunque dos manchas compartan color.
         <BlobShape key={index} blob={blob} id={`auth-blob-${index}`} animate={!reducedMotion} />
       ))}
     </View>

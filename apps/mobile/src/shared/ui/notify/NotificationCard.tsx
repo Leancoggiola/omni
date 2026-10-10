@@ -68,7 +68,6 @@ export function NotificationCard({ variant, title, message, onClose }: Notificat
         backgroundColor={accentColor}
         pointerEvents="none"
       />
-      {/* Compacta, como el `NotificationCard` de web: ícono suelto (sin chip), título y mensaje 12. */}
       <XStack
         paddingVertical={SPACING.xs}
         paddingLeft={SPACING.sm}

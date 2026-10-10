@@ -6,8 +6,6 @@ import { ConfirmProvider } from './ConfirmProvider';
 
 import { mockSheet, type SheetProps } from '@/test/tamaguiMock';
 
-// El Sheet de Tamagui es un doble que guarda sus props: lo que se prueba es la cola del provider, y
-// los cierres por overlay/gesto/animación se disparan llamando a esos callbacks.
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
 
@@ -99,7 +97,6 @@ describe('ConfirmProvider', () => {
     await flush();
     expect(first.result).toBe(true);
     expect(sheet().open).toBe(false);
-    // La segunda espera a que termine la animación de cierre.
     expect(screen.queryByText('Segunda')).toBeNull();
 
     closeAnimationDone();
@@ -178,7 +175,6 @@ describe('ConfirmProvider', () => {
     expect(first).toHaveBeenCalledTimes(1);
     expect(first).toHaveBeenCalledWith(true);
 
-    // El cierre duplicado no se "come" la siguiente request.
     closeAnimationDone();
     expect(sheet().open).toBe(true);
     expect(screen.getByText('Segunda')).toBeTruthy();

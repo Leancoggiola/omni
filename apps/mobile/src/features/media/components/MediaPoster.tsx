@@ -19,7 +19,6 @@ export function MediaPoster({ posterPath, width }: MediaPosterProps) {
   const [failed, setFailed] = useState(false);
   const height = Math.round((width * 3) / 2);
 
-  // Decorativo: el título va al lado, así que el lector de pantalla no lo anuncia.
   if (!posterPath || failed) {
     return (
       <YStack

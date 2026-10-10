@@ -44,7 +44,6 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     ['blue_Button', 'background', s.card],
     ['Button', 'primary', s.primary],
     ['active_Button', 'dimmed', s.dimmed],
-    // Tokens propios dentro de Input (TextField) y de los themes de color (primitivas anidadas).
     ['Input', 'background', s.card],
     ['Input', 'disabledSurface', s.disabledSurface],
     ['Input', 'destructive', s.destructive],

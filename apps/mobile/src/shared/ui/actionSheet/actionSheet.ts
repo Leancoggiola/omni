@@ -37,13 +37,11 @@ export function registerActionSheetHandler(handler: (request: ActionSheetRequest
  */
 export function actionSheet<T extends string>(options: ActionSheetOptions<T>): Promise<T | null> {
   if (!openActionSheet) {
-    // Mismo criterio que confirm(): sin provider no se rompe el flujo, se toma como cancelar.
     if (__DEV__) console.warn('actionSheet() requiere ActionSheetProvider montado en app/_layout.tsx.');
     return Promise.resolve(null);
   }
 
   if (__DEV__ && new Set(options.options.map(option => option.value)).size !== options.options.length) {
-    // El value es la key de cada fila y lo que se resuelve: repetidos marcan el check dos veces.
     console.warn(`actionSheet("${options.title}"): las opciones tienen values repetidos.`);
   }
 
@@ -54,7 +52,6 @@ export function actionSheet<T extends string>(options: ActionSheetOptions<T>): P
       options: options.options,
       value: options.value,
       cancelLabel: options.cancelLabel ?? DEFAULT_CANCEL_LABEL,
-      // Solo se resuelve con un `value` de `options` o con null.
       resolve: resolve as (value: string | null) => void,
     });
   });

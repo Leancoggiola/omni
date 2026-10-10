@@ -1,4 +1,3 @@
-// Import por peso: el barrel del paquete arrastra los 18 .ttf (~6 MB) al bundle.
 import { Montserrat_400Regular } from '@expo-google-fonts/montserrat/400Regular';
 import { Montserrat_500Medium } from '@expo-google-fonts/montserrat/500Medium';
 import { Montserrat_600SemiBold } from '@expo-google-fonts/montserrat/600SemiBold';

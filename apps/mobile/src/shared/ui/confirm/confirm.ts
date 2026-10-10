@@ -30,7 +30,6 @@ export function registerConfirmHandler(handler: (request: ConfirmRequest) => voi
  */
 export function confirm(options: ConfirmOptions): Promise<boolean> {
   if (!openConfirm) {
-    // Mismo criterio que notify*: sin provider no se rompe el flujo, se toma como cancelar.
     if (__DEV__) console.warn('confirm() requiere ConfirmProvider montado en app/_layout.tsx.');
     return Promise.resolve(false);
   }

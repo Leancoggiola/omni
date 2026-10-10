@@ -28,7 +28,6 @@ export function UserAvatar({ name, size = 40 }: UserAvatarProps) {
       {...BRAND_POINTS}
       style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center' }}
     >
-      {/* Blanco en los dos temas, como el Avatar gradient de web: `onPrimary` es oscuro en dark. */}
       <Paragraph color={colors.white} fontSize={size * 0.4} fontWeight="600">
         {getInitials(name)}
       </Paragraph>

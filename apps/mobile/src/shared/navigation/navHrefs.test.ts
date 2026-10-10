@@ -5,7 +5,6 @@ import type { NavKey } from '@omni/shared/navigation';
 import { NAV_HREFS } from './navHrefs';
 
 describe('NAV_HREFS', () => {
-  // Las tabs tienen ruta aunque el módulo no esté disponible (Alacena muestra un placeholder).
   const withRoute: NavKey[] = [
     ...new Set<NavKey>([...NAV_KEYS.filter(key => isNavAvailable(key, 'mobile')), ...MOBILE_TAB_KEYS]),
   ];

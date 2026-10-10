@@ -36,13 +36,11 @@ export function ProfileScreen() {
 
   const savePreferences = async (payload: UpdatePreferencesPayload) => {
     await updatePreferences(payload);
-    // Guardar el tema en el perfil descarta el override del toggle de "Más", igual que en web.
     if (payload.theme) clearOverride();
   };
 
   const handleDelete = async () => {
     await deleteAccount();
-    // La cuenta ya no existe: un fallo al limpiar la sesión local no es un fallo del borrado.
     try {
       await logout();
     } catch {
@@ -51,8 +49,6 @@ export function ProfileScreen() {
   };
 
   const renderBody = () => {
-    // El error de SWR se muestra siempre (regla de oro 0): sin datos reemplaza al formulario; con datos
-    // (una revalidación que falló) va arriba y el formulario sigue disponible.
     const errorState = error ? (
       <ErrorState message="No se pudo cargar tu perfil" onRetry={() => void refresh()} />
     ) : null;
@@ -60,7 +56,6 @@ export function ProfileScreen() {
     if (!profile) return errorState ?? <LoadingState />;
 
     return (
-      // Sin tab bar abajo: el contenido scrollea para llegar a las acciones con el teclado abierto.
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView
           ref={scrollRef}
