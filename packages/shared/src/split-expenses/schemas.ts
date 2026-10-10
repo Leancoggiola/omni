@@ -74,8 +74,6 @@ export const listGatheringsSchema = paginationSchema;
 
 export type ListGatheringsParams = z.infer<typeof listGatheringsSchema>;
 
-// ── Client form schemas ───────────────────────────────────────
-
 export const friendFormSchema: z.ZodType<FriendFormValues> = z.object({
   name: z.string().trim().min(1, 'Ingresá un nombre').max(SPLIT_FRIEND_NAME_MAX),
   alias: splitFriendAliasSchema,
