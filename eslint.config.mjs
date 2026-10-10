@@ -17,8 +17,6 @@ export default [
     },
   },
   {
-    // Registers react-hooks so per-package eslint-disable comments resolve
-    // during the root-level pre-commit lint (see apps/web/eslint.config.mjs).
     files: ['**/*.tsx'],
     plugins: { 'react-hooks': reactHooks },
     rules: {
