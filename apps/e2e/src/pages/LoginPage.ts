@@ -6,9 +6,15 @@ export class LoginPage {
   readonly username = () => this.page.getByLabel('Usuario');
   readonly password = () => this.page.getByLabel('Contraseña');
   readonly submit = () => this.page.getByRole('button', { name: 'Ingresar' });
-  /** Tarjeta del login: el ancestro `Paper` que contiene el formulario. */
-  readonly card = () => this.page.locator('.mantine-Paper-root').filter({ has: this.submit() });
+  readonly card = () => this.page.getByRole('region', { name: 'Ingreso' });
   readonly error = () => this.page.getByRole('alert');
+
+  /** Ancho del documento vs. el del viewport: si el primero es mayor hay scroll horizontal. */
+  async pageWidths() {
+    return (await this.page.evaluate(
+      '({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth })'
+    )) as { scrollWidth: number; clientWidth: number };
+  }
 
   async goto() {
     await this.page.goto('/login');

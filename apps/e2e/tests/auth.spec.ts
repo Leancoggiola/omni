@@ -26,10 +26,7 @@ test.describe('sin sesión', () => {
       await login.goto();
       await expect(login.submit()).toBeVisible();
 
-      const { scrollWidth, clientWidth } = await page.evaluate(() => ({
-        scrollWidth: document.documentElement.scrollWidth,
-        clientWidth: document.documentElement.clientWidth,
-      }));
+      const { scrollWidth, clientWidth } = await login.pageWidths();
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 0.5);
       const box = await login.submit().boundingBox();
       expect(box).not.toBeNull();
