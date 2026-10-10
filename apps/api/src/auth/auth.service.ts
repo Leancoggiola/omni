@@ -69,6 +69,10 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
   return { user: toSessionUser(user), ...tokens };
 }
 
+/**
+ * Borra el refresh token con `deleteMany` y no con `delete`: con dos logouts simultáneos el segundo ya no
+ * encuentra el registro y `delete` tiraría P2025 (500). El logout tiene que ser idempotente.
+ */
 export async function logout(userId: string, rawRefreshToken: string | undefined, res: Response) {
   if (rawRefreshToken) {
     const storedTokens = await prisma.refreshToken.findMany({

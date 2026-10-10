@@ -4,6 +4,10 @@ import { API_ENV, API_URL, EXTERNAL_STUB_URL, RUN_SUFFIX, STUB_PORT, WEB_ENV, WE
 
 const isCI = Boolean(process.env.CI);
 
+/**
+ * `reuseExistingServer` va en false a propósito: reusar una API de desarrollo haría que la suite escriba
+ * sobre la base de dev sin avisar.
+ */
 export default defineConfig({
   testDir: './tests',
   outputDir: `./test-results${RUN_SUFFIX}`,

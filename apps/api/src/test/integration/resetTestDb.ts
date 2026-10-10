@@ -13,6 +13,7 @@ function runPrisma(args: string[]) {
   return spawnSync('prisma', args, { stdio: 'inherit', cwd, shell: true, env }).status ?? 1;
 }
 
+/** Prisma 7 ya no siembra como parte de migrate reset: el seed se corre aparte con `--seed`. */
 let status = runPrisma(['migrate', 'reset', '--force']);
 
 if (status === 0 && withSeed) {

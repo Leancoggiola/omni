@@ -135,17 +135,18 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
                 />
               </Group>
               <Stack gap="2xs">
-                <Text fw={500} size="sm">
+                <Text id="theme-label" fw={500} size="sm">
                   Tema
                 </Text>
                 <SegmentedControl
-                  aria-label="Tema"
+                  aria-labelledby="theme-label"
                   data={[...PROFILE_THEME_OPTIONS]}
                   size="sm"
                   radius="md"
                   color="brand.6"
                   fullWidth
-                  {...form.getInputProps('theme')}
+                  value={form.values.theme}
+                  onChange={theme => form.setFieldValue('theme', theme as ProfileTheme)}
                 />
               </Stack>
             </Stack>
