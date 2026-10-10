@@ -6,8 +6,9 @@ import { ProfilePage } from '../src/pages/ProfilePage';
 const SCHEME_ATTR = 'data-mantine-color-scheme';
 
 /**
- * El toggle guarda el tema en sessionStorage y pisa al del perfil hasta el logout, la sesión
- * expirada o el cierre de la pestaña. Usuario propio: el tema del perfil arranca en 'light'.
+ * El toggle guarda el tema en sessionStorage y pisa al del perfil hasta el próximo login o el cierre
+ * de la pestaña; el logout y la sesión expirada lo conservan para que /login cargue con ese tema.
+ * Usuario propio: el tema del perfil arranca en 'light'.
  */
 test.describe('tema por sesión', () => {
   test('el tema elegido con el toggle sobrevive a la recarga', async ({ page, freshUser }) => {
@@ -25,7 +26,10 @@ test.describe('tema por sesión', () => {
     await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
   });
 
-  test('al cerrar sesión y volver a entrar se aplica el tema del perfil', async ({ page, freshUser }) => {
+  test('al cerrar sesión el login conserva el tema; al volver a entrar se aplica el del perfil', async ({
+    page,
+    freshUser,
+  }) => {
     const user = await freshUser('themelogout');
     const home = new HomePage(page);
     await home.goto();
@@ -34,6 +38,7 @@ test.describe('tema por sesión', () => {
 
     await home.logout();
     await expect(page).toHaveURL('/login');
+    await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
     await new LoginPage(page).login(user.username, user.password);
 
     await expect(page).toHaveURL('/');
@@ -119,7 +124,10 @@ test.describe('tema por sesión', () => {
    * vencen. El siguiente request da 401, el refresh silencioso también, y AuthContext cierra la sesión.
    */
   test.describe('sesión expirada', () => {
-    test('con la pestaña abierta: vuelve al login y descarta el override', async ({ page, freshUser }) => {
+    test('con la pestaña abierta: vuelve al login con el tema y el login descarta el override', async ({
+      page,
+      freshUser,
+    }) => {
       const user = await freshUser('themeexp');
       const home = new HomePage(page);
       await home.goto();
@@ -131,6 +139,7 @@ test.describe('tema por sesión', () => {
       await home.navigateTo('Perfil');
 
       await expect(page).toHaveURL('/login');
+      await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
       await new LoginPage(page).login(user.username, user.password);
 
       await expect(page).toHaveURL('/profile');
@@ -149,6 +158,7 @@ test.describe('tema por sesión', () => {
       await page.reload();
 
       await expect(page).toHaveURL('/login');
+      await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
       await new LoginPage(page).login(user.username, user.password);
 
       await expect(page).toHaveURL('/');

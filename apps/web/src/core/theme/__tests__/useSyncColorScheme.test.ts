@@ -36,13 +36,14 @@ describe('useSyncColorScheme', () => {
     expect(setColorScheme).toHaveBeenCalledWith('light');
   });
 
-  it('al cerrar sesión vuelve al tema por defecto y el próximo login aplica el del perfil', () => {
+  it('al cerrar sesión no toca el tema y el próximo login aplica el del perfil', () => {
     mockUser = { theme: 'dark' };
     const { rerender } = renderHook(() => useSyncColorScheme());
+    setColorScheme.mockClear();
 
     mockUser = null;
     rerender();
-    expect(setColorScheme).toHaveBeenLastCalledWith('auto');
+    expect(setColorScheme).not.toHaveBeenCalled();
 
     mockUser = { theme: 'light' };
     rerender();
