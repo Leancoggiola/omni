@@ -7,7 +7,7 @@ import { getSessionColorScheme } from './sessionColorScheme';
 
 /**
  * Aplica el tema del perfil al iniciar sesión, salvo que el usuario lo haya cambiado con el toggle
- * en esta sesión. El override se descarta en `logout` / fallo de auth (ver AuthContext).
+ * en esta sesión. El override se descarta al iniciar sesión (ver AuthContext).
  */
 export function useSyncColorScheme() {
   const { user } = useAuth();
@@ -16,11 +16,11 @@ export function useSyncColorScheme() {
 
   useEffect(() => {
     if (!user) {
-      // Logout o sesión vencida: el override ya se borró; el login vuelve al tema por defecto
-      // y el próximo inicio de sesión aplica el del perfil.
+      // Logout o sesión vencida: con override, /login lo conserva (se descarta en el próximo login).
+      // Sin override, vuelve al tema por defecto, igual que tras recargar.
       if (syncedRef.current) {
         syncedRef.current = false;
-        setColorScheme('auto');
+        if (!getSessionColorScheme()) setColorScheme('auto');
       }
       return;
     }

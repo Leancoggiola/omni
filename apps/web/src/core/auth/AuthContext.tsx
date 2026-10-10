@@ -31,6 +31,10 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const login = useCallback(
     async (username: string, password: string) => {
       const res = await api.post<ProfileResponse>(SWR_KEYS.auth.login, { username, password });
+      // El override sobrevive al logout y al vencimiento para que /login conserve el tema; se descarta
+      // acá, antes de que useSyncColorScheme aplique el del perfil. Todo flujo de entrada nuevo
+      // (registro, SSO) debe hacer lo mismo.
+      clearSessionColorScheme();
       await mutate(res, { revalidate: false });
     },
     [mutate]
@@ -38,13 +42,11 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const logout = useCallback(async () => {
     await api.post(SWR_KEYS.auth.logout);
-    clearSessionColorScheme();
     await mutate(undefined, { revalidate: false });
   }, [mutate]);
 
   useEffect(() => {
     setOnAuthFailure(() => {
-      clearSessionColorScheme();
       globalMutate(() => true, undefined, { revalidate: false });
     });
     return () => clearOnAuthFailure();

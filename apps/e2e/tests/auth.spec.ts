@@ -19,6 +19,32 @@ test.describe('sin sesión', () => {
     await expect(page).toHaveURL('/login');
   });
 
+  for (const width of [375, 320]) {
+    test(`el login no tiene scroll horizontal a ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 812 });
+      const login = new LoginPage(page);
+      await login.goto();
+      await expect(login.submit()).toBeVisible();
+
+      const { scrollWidth, clientWidth } = await login.pageWidths();
+      expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 0.5);
+      const box = await login.submit().boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width + 0.5);
+    });
+  }
+
+  test('el login conserva el ancho de 25rem en desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const login = new LoginPage(page);
+    await login.goto();
+
+    const card = await login.card().boundingBox();
+    expect(card).not.toBeNull();
+    expect(card!.width).toBeCloseTo(400, 0);
+  });
+
   test('muestra un error con credenciales inválidas', async ({ page, workerUser }) => {
     const login = new LoginPage(page);
     await login.goto();

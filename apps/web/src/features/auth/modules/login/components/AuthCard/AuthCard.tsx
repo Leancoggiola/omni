@@ -11,7 +11,7 @@ interface AuthCardProps {
 
 export const AuthCard: FC<AuthCardProps> = ({ title, children }) => {
   return (
-    <Paper miw="25rem" p="lg">
+    <Paper component="section" aria-label="Ingreso" w="25rem" maw="100%" mx="auto" p="lg">
       <Stack gap="xl" justify="center">
         <Center>
           <LogoAvatar size="xl" bg="transparent" />
