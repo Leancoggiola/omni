@@ -32,7 +32,8 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     async (username: string, password: string) => {
       const res = await api.post<ProfileResponse>(SWR_KEYS.auth.login, { username, password });
       // El override sobrevive al logout y al vencimiento para que /login conserve el tema; se descarta
-      // acá, antes de que useSyncColorScheme aplique el del perfil.
+      // acá, antes de que useSyncColorScheme aplique el del perfil. Todo flujo de entrada nuevo
+      // (registro, SSO) debe hacer lo mismo.
       clearSessionColorScheme();
       await mutate(res, { revalidate: false });
     },

@@ -60,7 +60,7 @@ describe('useSyncColorScheme', () => {
     expect(setColorScheme).toHaveBeenLastCalledWith('auto');
   });
 
-  it('el relogin con override presente lo aplica: AuthContext debe descartarlo antes', () => {
+  it('contrato: si el override sigue presente al reloguear, el hook lo aplica (por eso login() lo descarta antes)', () => {
     setSessionColorScheme('dark');
     mockUser = { theme: 'light' };
     const { rerender } = renderHook(() => useSyncColorScheme());
