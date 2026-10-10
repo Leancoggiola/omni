@@ -46,7 +46,6 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
     [location.pathname]
   );
 
-  // En pantallas bajas la lista scrollea: el ítem de la ruta actual no puede quedar cortado.
   useEffect(() => {
     viewportRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' });
   }, [location.pathname]);
@@ -58,7 +57,6 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
       </ThemeIcon>
     );
 
-    // Sin destino no hay `href`: `role="link"` + `aria-disabled` es el patrón ARIA de link deshabilitado.
     if (item.disabled || !item.path) {
       return (
         <NavLink

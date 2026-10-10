@@ -22,7 +22,6 @@ async function request<T = unknown>(url: string, method: HttpMethod, body?: unkn
     throw new ApiError((info as Record<string, string>).message || res.statusText, res.status, info);
   }
 
-  // Handle 204 No Content
   if (res.status === 204) return undefined as T;
   return res.json();
 }

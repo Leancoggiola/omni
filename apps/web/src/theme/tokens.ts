@@ -31,8 +31,10 @@ export const FONT_SIZES = toRem(FONT_SIZE_PX);
 
 export const LINE_HEIGHTS = toRem(LINE_HEIGHT_PX);
 
-// `Object.fromEntries` tipa las claves como `string`: el cast recupera `h1`…`h6`, que son las mismas
-// claves de `HEADING` porque se recorren todas.
+/**
+ * `Object.fromEntries` tipa las claves como `string`: el cast recupera `h1`…`h6`, que son las mismas
+ * claves de `HEADING` porque se recorren todas.
+ */
 export const HEADING_SIZES = Object.fromEntries(
   Object.entries(HEADING_PX).map(([order, { fontSize, lineHeight }]) => [
     order,

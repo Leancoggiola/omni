@@ -59,8 +59,6 @@ export function useProfile() {
             : current,
         { revalidate: false }
       );
-      // `SessionUser.theme` sale de las preferencias: igual que `syncAuthCache` tras `updateProfile`,
-      // se refleja en la cache de auth para que `useAuth().user.theme` no quede viejo.
       if (arg.theme !== undefined) {
         void globalMutate<ProfileResponse>(
           SWR_KEYS.auth.profile,

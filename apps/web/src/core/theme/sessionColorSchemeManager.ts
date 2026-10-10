@@ -18,9 +18,7 @@ export const LEGACY_COLOR_SCHEME_KEY = 'mantine-color-scheme-value';
 export function createSessionColorSchemeManager(): MantineColorSchemeManager {
   try {
     localStorage.removeItem(LEGACY_COLOR_SCHEME_KEY);
-  } catch {
-    // Sin acceso a storage no hay valor viejo que limpiar.
-  }
+  } catch {}
 
   return {
     get: defaultValue => getSessionColorScheme() ?? defaultValue,

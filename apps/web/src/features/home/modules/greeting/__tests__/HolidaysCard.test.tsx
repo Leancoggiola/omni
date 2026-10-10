@@ -149,7 +149,6 @@ describe('HolidaysCard', () => {
     });
     expect(screen.getByText('Segunda')).toBeInTheDocument();
 
-    // Foco en el link interno: sigue en pausa hasta que el foco sale de la card.
     const link = screen.getByRole('link', { name: 'Ver efemérides de hoy en Wikipedia' });
     fireEvent.focusIn(link);
     act(() => {

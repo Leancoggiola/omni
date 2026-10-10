@@ -54,8 +54,6 @@ function onFilledVariables(theme: MantineTheme, scheme: 'light' | 'dark'): Recor
       const fill = scale[shade];
       if (!fill || !HEX_COLOR.test(fill)) return [];
       const text = onFill(fill);
-      // El hover de Mantine siempre oscurece un tono: con texto oscuro encima (dark) bajaba de AA.
-      // Con texto oscuro se aclara, igual que `primaryFillHover` de mobile.
       const hoverShade = text === '#ffffff' ? Math.min(shade + 1, 9) : Math.max(shade - 1, 0);
       const hover = scale[hoverShade] ?? fill;
       return [
@@ -86,7 +84,6 @@ function filledTextColor(color: string, theme: MantineTheme): string | null {
   if (!parsed.isThemeColor) return HEX_COLOR.test(color) ? onFill(color) : null;
   const scale = theme.colors[parsed.color];
   if (!scale || isVirtualColor(scale)) return null;
-  // Con tono explícito (`brand.6`) el relleno es el mismo en los dos esquemas.
   if (parsed.shade !== undefined) {
     const fill = scale[parsed.shade];
     return fill && HEX_COLOR.test(fill) ? onFill(fill) : null;
@@ -103,7 +100,6 @@ export const variantResolver: VariantColorsResolver = input => {
     theme: input.theme,
   });
 
-  // Override some properties for variant
   if (input.variant === 'light-custom') {
     return {
       ...defaultResolvedColors,

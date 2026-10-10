@@ -28,7 +28,6 @@ export function HolidayProgress({ duration = 3000, running = true }: HolidayProg
       value={value}
       transitionDuration={duration}
       size="xs"
-      // Sobre el gradiente de la card: primario relleno en claro, blanco de superficie en oscuro.
       color={isDark ? 'var(--mantine-color-surfaces-white)' : 'var(--mantine-primary-color-filled)'}
       bg="transparent"
     />

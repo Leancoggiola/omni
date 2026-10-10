@@ -45,7 +45,7 @@ describe('useSyncColorScheme', () => {
     mockUser = null;
     rerender();
 
-    sessionStorage.clear(); // lo que hace login() antes de que se aplique el tema del perfil
+    sessionStorage.clear();
     mockUser = { theme: 'light' };
     rerender();
     expect(setColorScheme).toHaveBeenLastCalledWith('light');

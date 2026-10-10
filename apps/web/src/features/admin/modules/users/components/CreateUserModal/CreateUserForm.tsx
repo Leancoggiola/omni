@@ -37,7 +37,6 @@ export const CreateUserForm: FC<CreateUserFormProps> = ({ loading, onCreate, onC
     }
   };
 
-  // noValidate: los mensajes los da la validación del form, no el globo nativo del navegador.
   return (
     <form noValidate onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="md">
