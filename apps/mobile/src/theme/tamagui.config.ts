@@ -62,7 +62,9 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
 /**
  * Los themes de color (`active`, `red`, `alt*`) parten de `surfaceTheme` y pisan fondo y texto: así
  * los tokens propios (`$primarySurface`, `$disabledSurface`…) siguen resolviendo dentro de un subárbol
- * con `theme="active"` y una primitiva anidada no se queda sin color.
+ * con `theme="active"` y una primitiva anidada no se queda sin color. `fill` es el relleno del Button de marca
+ * (primaryShade de web: 7 en claro, 4 en oscuro) y `accent` el tono de texto/acento (Switch, Slider, Progress),
+ * más suave. Los tonos de interacción del relleno salen de SEMANTIC: con el texto encima siguen en AA.
  */
 function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'accent' = 'accent'): Theme {
   const s = SEMANTIC[scheme];
@@ -90,6 +92,10 @@ function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'acc
   };
 }
 
+/**
+ * El relleno es `destructiveFill` (RED[7], como web), no el `destructive` de texto: en oscuro es RED[4] y con
+ * blanco daba 2,9:1.
+ */
 function destructiveTheme(scheme: 'light' | 'dark', base: Theme): Theme {
   const s = SEMANTIC[scheme];
   const fill = s.destructiveFill;
@@ -252,6 +258,13 @@ const montserratFace = {
   900: { normal: 'MontserratBold' },
 };
 
+/**
+ * Radios y espaciado compartidos con web (`RADIUS` / `SPACING` de `@omni/shared/theme`) van como números, no como
+ * tokens de Tamagui: sus componentes (Input, Select, Popover, ListItem) recorren `space`/`radius` ordenados por
+ * valor con `getSpace(token, { shift })`, y meter valores nuevos en la escala les cambia el padding. En nativo el
+ * Input no le pasa color de placeholder a RN (sin `defaultProps` Android usa su gris, ilegible en oscuro) ni
+ * cursor y selección (usaría su teal).
+ */
 export const tamaguiConfig = createTamagui({
   ...config,
   defaultProps: {
@@ -284,6 +297,10 @@ export const tamaguiConfig = createTamagui({
   },
 });
 
+/**
+ * El compilador de @tamagui/babel-plugin solo encuentra la config como `export default` (o `config`): sin esto
+ * la descarta, reintenta en cada archivo y el bundle de Metro se cuelga.
+ */
 export default tamaguiConfig;
 
 export type AppConfig = typeof tamaguiConfig;

@@ -14,12 +14,14 @@ export function getSessionColorScheme(): ProfileTheme | null {
   }
 }
 
+/** Sin storage el override vive solo en memoria (Mantine) hasta recargar. */
 export function setSessionColorScheme(theme: ProfileTheme): void {
   try {
     sessionStorage.setItem(STORAGE_KEY, theme);
   } catch {}
 }
 
+/** Si el storage no responde no hay override que limpiar. */
 export function clearSessionColorScheme(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY);

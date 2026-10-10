@@ -14,7 +14,15 @@ import { MONTSERRAT_FACES } from '@/theme/fonts';
 import { tamaguiConfig } from '@/theme/tamagui.config';
 import { ActionSheetProvider, ConfirmProvider, NotificationsProvider, Spinner } from '@/shared/ui';
 
-SplashScreen.preventAutoHideAsync().catch(() => {});
+/**
+ * La splash nativa queda visible hasta que se resuelvan las fuentes (ver `RootLayout`). `preventAutoHideAsync`
+ * puede rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
+ */
+function holdSplash() {
+  SplashScreen.preventAutoHideAsync().catch(() => {});
+}
+
+holdSplash();
 
 function AuthGate() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -54,6 +62,10 @@ function ThemedRoot({ children }: PropsWithChildren) {
   );
 }
 
+/**
+ * Sin las fuentes, el primer render saldría con la tipografía del sistema y saltaría al cargarlas; mientras
+ * tanto se ve la splash. Si fallan se sigue con la del sistema en vez de quedar en blanco.
+ */
 export default function RootLayout() {
   const systemScheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts(MONTSERRAT_FACES);

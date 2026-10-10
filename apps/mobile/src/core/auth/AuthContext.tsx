@@ -104,6 +104,10 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const logoutInFlight = useRef<Promise<void> | null>(null);
 
+  /**
+   * Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request. Si el
+   * POST falla igual se limpia la sesión local.
+   */
   const logout = useCallback(() => {
     logoutInFlight.current ??= (async () => {
       const refreshToken = await getRefreshToken();

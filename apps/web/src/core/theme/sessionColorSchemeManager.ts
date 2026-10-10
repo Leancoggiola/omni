@@ -13,7 +13,8 @@ export const LEGACY_COLOR_SCHEME_KEY = 'mantine-color-scheme-value';
  * del usuario anterior. Acá la única fuente persistida es el override de sesión, que ya escriben
  * `setSessionColorScheme` / `clearSessionColorScheme`. `set` no escribe nada a propósito:
  * `useSyncColorScheme` también llama a `setColorScheme` con el tema del perfil, y eso no es un
- * override. Sin override, `get` cae al `defaultColorScheme` del provider.
+ * override. Sin override, `get` cae al `defaultColorScheme` del provider. Sin acceso a storage no hay valor
+ * viejo que limpiar.
  */
 export function createSessionColorSchemeManager(): MantineColorSchemeManager {
   try {

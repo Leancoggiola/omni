@@ -3,6 +3,15 @@ import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 
+/** Orden de imports: externos (react, mantine…), alias `@/`, relativos, tipos y CSS. */
+const IMPORT_GROUPS = [
+  ['^react', '^@mantine', '^[a-z]'],
+  ['^@/'],
+  ['^\.\./', '^\./'],
+  ['^.*\\u0000$'],
+  ['^.+\\.s?css$'],
+];
+
 export default [
   ...baseConfig,
 
@@ -41,7 +50,7 @@ export default [
       'simple-import-sort/imports': [
         'error',
         {
-          groups: [['^react', '^@mantine', '^[a-z]'], ['^@/'], ['^\.\./', '^\./'], ['^.*\\u0000$'], ['^.+\\.s?css$']],
+          groups: IMPORT_GROUPS,
         },
       ],
       'simple-import-sort/exports': 'error',
