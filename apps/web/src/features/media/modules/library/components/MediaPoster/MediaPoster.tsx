@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AspectRatio, Center, Image } from '@mantine/core';
 
 import { TMDB_POSTER_W185 } from '@omni/shared/media';
@@ -12,14 +12,10 @@ interface MediaPosterProps {
 
 /**
  * Póster 2:3 de TMDB (3,5 rem de ancho). Sin imagen, o si falla la carga, muestra el ícono sobre la superficie atenuada.
- * Es decorativo: el título va al lado, así que no tiene nombre accesible.
+ * Remontar con `key` al cambiar `posterPath` reinicia el fallo. Es decorativo: el título va al lado, así que no tiene nombre accesible.
  */
 export function MediaPoster({ posterPath }: MediaPosterProps) {
   const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    setFailed(false);
-  }, [posterPath]);
 
   return (
     <AspectRatio ratio={POSTER_RATIO} w="3.5rem" style={{ flexShrink: 0 }}>

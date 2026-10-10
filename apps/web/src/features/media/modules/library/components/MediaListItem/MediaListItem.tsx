@@ -27,7 +27,7 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusChange,
   return (
     <Card shadow="sm" p="sm" radius="md" withBorder>
       <Group gap="sm" wrap="nowrap" align="stretch">
-        <MediaPoster posterPath={item.posterPath} />
+        <MediaPoster key={item.posterPath ?? 'none'} posterPath={item.posterPath} />
         <Stack gap="xs" flex={1} miw={0} justify="space-between">
           <Group gap="xs" wrap="nowrap" align="flex-start" justify="space-between">
             <Text fw={600} size="md" lineClamp={2} miw={0}>
