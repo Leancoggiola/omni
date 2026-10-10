@@ -38,7 +38,6 @@ async function bootstrap() {
     })
   );
 
-  // Global rate limiter: 100 requests per 15 minutes per IP
   app.use(
     createRateLimiter({
       windowMs: 15 * 60 * 1000,

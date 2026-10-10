@@ -6,7 +6,6 @@ import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
 import { createUser, toJwtUser } from '../../test/integration/factories';
 
-// La base es real; solo se fingen las llamadas salientes a TMDB.
 vi.mock('../../media/tmdb.service');
 
 import * as tmdbService from '../../media/tmdb.service';

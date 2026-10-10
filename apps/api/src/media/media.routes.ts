@@ -17,7 +17,6 @@ const searchLimiter = createRateLimiter({
 
 const router = Router();
 
-// All media routes require authentication
 router.use(authenticateJwt);
 
 router.get(

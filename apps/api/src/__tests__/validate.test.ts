@@ -84,7 +84,6 @@ describe('validate middleware', () => {
     validate(querySchema, 'query')(req, mockRes(), next);
 
     expect(next).toHaveBeenCalledWith();
-    // Access req.query again, as a downstream route handler would.
     expect(req.query).toEqual({ page: 3, limit: 50 });
     expect(typeof (req.query as unknown as { limit: unknown }).limit).toBe('number');
   });

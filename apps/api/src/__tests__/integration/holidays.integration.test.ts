@@ -5,7 +5,6 @@ import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
 import { createUser, toJwtUser } from '../../test/integration/factories';
 
-// La base es real; solo se fingen las llamadas salientes a Wikipedia.
 vi.mock('../../holidays/wikipedia.service');
 
 import { resetHolidaysCache } from '../../holidays/holidays.service';
@@ -55,7 +54,6 @@ describe('holidays routes (integration)', () => {
   });
 
   describe('con el cliente real de Wikipedia', () => {
-    // Acá se usa el fetchHolidays de verdad y solo se finge el fetch global que sale a internet.
     const fetchMock = vi.fn<typeof fetch>();
 
     beforeEach(async () => {

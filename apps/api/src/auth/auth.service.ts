@@ -10,8 +10,6 @@ import { toSessionUser } from './auth.mappers';
 
 const BCRYPT_ROUNDS = 12;
 
-// ─── Validate (for LocalStrategy) ──────────────────────────
-
 /** Trae las preferencias junto con el usuario: login arma la sesión sin volver a la base. */
 export async function validateUser(username: string, password: string) {
   const user = await usersService.findByUsernameForLogin(username);
@@ -23,22 +21,16 @@ export async function validateUser(username: string, password: string) {
   return sanitizeUser(user);
 }
 
-// ─── Login ─────────────────────────────────────────────────
-
 export type LoginUser = Parameters<typeof toSessionUser>[0] & { id: string; role: Role };
 
 export async function login(user: LoginUser, res: Response): Promise<AuthTokensResponse> {
-  // El usuario ya llega completo desde validateUser: los tokens se emiten recién con la sesión armada.
   const sessionUser = toSessionUser(user);
   const tokens = await issueTokens({ sub: user.id, username: user.username, role: user.role }, res);
 
   return { user: sessionUser, ...tokens };
 }
 
-// ─── Refresh ───────────────────────────────────────────────
-
 export async function refresh(userId: string, rawRefreshToken: string, res: Response): Promise<AuthTokensResponse> {
-  // Clean up expired tokens for this user
   await prisma.refreshToken.deleteMany({
     where: { userId, expiresAt: { lt: new Date() } },
   });
@@ -77,8 +69,6 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
   return { user: toSessionUser(user), ...tokens };
 }
 
-// ─── Logout ────────────────────────────────────────────────
-
 export async function logout(userId: string, rawRefreshToken: string | undefined, res: Response) {
   if (rawRefreshToken) {
     const storedTokens = await prisma.refreshToken.findMany({
@@ -88,8 +78,6 @@ export async function logout(userId: string, rawRefreshToken: string | undefined
     for (const token of storedTokens) {
       const isMatch = await bcrypt.compare(rawRefreshToken, token.tokenHash);
       if (isMatch) {
-        // deleteMany y no delete: con dos logouts simultáneos el segundo ya no encuentra el registro
-        // y delete tiraría P2025 (500). El logout tiene que ser idempotente.
         await prisma.refreshToken.deleteMany({ where: { id: token.id } });
         break;
       }
@@ -103,8 +91,6 @@ export async function logout(userId: string, rawRefreshToken: string | undefined
   return { message: 'Sesión cerrada exitosamente' };
 }
 
-// ─── Profile ───────────────────────────────────────────────
-
 export async function getProfile(userId: string) {
   const user = await usersService.findById(userId);
   if (!user) {
@@ -112,8 +98,6 @@ export async function getProfile(userId: string) {
   }
   return { user: toSessionUser(user) };
 }
-
-// ─── Private helpers ──────────────────────────────────────
 
 async function issueTokens(
   payload: { sub: string; username: string; role: string },

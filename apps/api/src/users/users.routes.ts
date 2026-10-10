@@ -17,8 +17,6 @@ const passwordLimiter = createRateLimiter({
 
 const router = Router();
 
-// ─── Profile ───────────────────────────────────────────────
-
 router.get('/profile', authenticateJwt, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.user as any;
@@ -44,8 +42,6 @@ router.patch(
   }
 );
 
-// ─── Password ──────────────────────────────────────────────
-
 router.patch(
   '/password',
   authenticateJwt,
@@ -62,8 +58,6 @@ router.patch(
   }
 );
 
-// ─── Delete Account ────────────────────────────────────────
-
 router.delete('/account', authenticateJwt, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.user as any;
@@ -75,8 +69,6 @@ router.delete('/account', authenticateJwt, async (req: Request, res: Response, n
     next(err);
   }
 });
-
-// ─── Preferences ───────────────────────────────────────────
 
 router.patch(
   '/preferences',
@@ -92,8 +84,6 @@ router.patch(
     }
   }
 );
-
-// ─── Stats ─────────────────────────────────────────────────
 
 router.get('/stats', authenticateJwt, async (req: Request, res: Response, next: NextFunction) => {
   try {

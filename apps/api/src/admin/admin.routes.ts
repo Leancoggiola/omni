@@ -8,7 +8,6 @@ import * as adminService from './admin.service';
 
 const router = Router();
 
-// All admin routes require JWT + ADMIN role
 router.use(authenticateJwt, requireAdmin);
 
 router.post('/users', validate(createUserSchema), async (req: Request, res: Response, next: NextFunction) => {

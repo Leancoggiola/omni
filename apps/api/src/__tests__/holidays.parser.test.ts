@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import { parseHolidayEntry } from '../holidays/holidays.parser';
 
-// Todos los textos de abajo son entradas reales del feed de es.wikipedia.
 describe('parseHolidayEntry', () => {
   describe('título', () => {
     it('corta la descripción pegada al punto', () => {
@@ -97,7 +96,6 @@ describe('parseHolidayEntry', () => {
     });
 
     it('descarta un país cuyo nombre termina en tilde', () => {
-      // "ú" no es carácter de palabra en JS: con \b al final, "Perú Perú:" no se detectaba.
       expect(parseHolidayEntry('Perú Perú: Arequipa: Día de Arequipa')).toBeNull();
       expect(parseHolidayEntry('PanamáPanamá Panamá: Día de los Mártires')).toBeNull();
     });
@@ -116,7 +114,6 @@ describe('parseHolidayEntry', () => {
     });
 
     it('no toma una letra doble como repetición de país', () => {
-      // "Yennayer" tiene "nn": sin anclar y sin mínimo de largo, se detectaba como nombre repetido.
       expect(parseHolidayEntry('Yennayer: Celebración del Año Nuevo Bereber')).not.toBeNull();
       expect(parseHolidayEntry('Carnaval: Desfile de comparsas')).not.toBeNull();
     });
@@ -161,7 +158,6 @@ describe('parseHolidayEntry', () => {
     });
 
     it('no toma como prefijo un nombre seguido de algo que no es título', () => {
-      // Texto hipotético: protege que "Mundial" sin dos puntos no se coma el comienzo de un título.
       expect(parseHolidayEntry('Mundial de Clubes')?.title).toBe('Mundial de Clubes');
     });
 

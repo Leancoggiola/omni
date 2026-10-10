@@ -35,7 +35,6 @@ export const config = {
 
   wikipedia: {
     baseUrl: process.env.WIKIPEDIA_BASE_URL ?? 'https://es.wikipedia.org/api/rest_v1',
-    // La política de uso de Wikimedia exige identificar al cliente con un contacto.
     userAgent: process.env.WIKIPEDIA_USER_AGENT ?? 'Omni/1.0 (https://github.com/Leancoggiola/omni)',
   },
 } as const;

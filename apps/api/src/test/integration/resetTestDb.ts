@@ -15,7 +15,6 @@ function runPrisma(args: string[]) {
 
 let status = runPrisma(['migrate', 'reset', '--force']);
 
-// Prisma 7 ya no siembra como parte de migrate reset.
 if (status === 0 && withSeed) {
   status = runPrisma(['db', 'seed']);
 }
