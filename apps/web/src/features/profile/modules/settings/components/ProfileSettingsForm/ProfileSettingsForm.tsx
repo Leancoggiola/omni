@@ -5,7 +5,7 @@ import {
   Divider,
   Group,
   Paper,
-  Select,
+  SegmentedControl,
   SimpleGrid,
   Stack,
   Switch,
@@ -134,12 +134,20 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
                   aria-label="Notificaciones"
                 />
               </Group>
-              <Select
-                label="Tema"
-                data={PROFILE_THEME_OPTIONS}
-                allowDeselect={false}
-                {...form.getInputProps('theme')}
-              />
+              <Stack gap="2xs">
+                <Text fw={500} size="sm">
+                  Tema
+                </Text>
+                <SegmentedControl
+                  aria-label="Tema"
+                  data={[...PROFILE_THEME_OPTIONS]}
+                  size="sm"
+                  radius="md"
+                  color="brand.6"
+                  fullWidth
+                  {...form.getInputProps('theme')}
+                />
+              </Stack>
             </Stack>
           </ProfileSectionCard>
 

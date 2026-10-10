@@ -20,6 +20,8 @@ export const MediaPageHeader: FC<MediaPageHeaderProps> = ({ onAdd, displayMode, 
       actions={
         <Group gap="xs">
           <SegmentedControl
+            visibleFrom="sm"
+            aria-label="Vista"
             value={displayMode}
             onChange={onDisplayChange}
             radius="md"
