@@ -188,7 +188,10 @@ export function createServerWake(options: ServerWakeOptions) {
   }
 
   function abortError(signal: AbortSignal): unknown {
-    return signal.reason ?? new DOMException('The operation was aborted.', 'AbortError');
+    if (signal.reason !== undefined) return signal.reason;
+    const error = new Error('The operation was aborted.');
+    error.name = 'AbortError';
+    return error;
   }
 
   /** Espera al polling compartido, pero si el caller aborta su request deja de esperar y relanza el abort. */

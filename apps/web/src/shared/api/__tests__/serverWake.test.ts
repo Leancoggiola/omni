@@ -392,6 +392,35 @@ describe('fetchWithWake', () => {
     await vi.advanceTimersByTimeAsync(100_000);
   });
 
+  it('rethrows an AbortError without DOMException when the signal has no reason', async () => {
+    vi.stubGlobal('DOMException', undefined);
+    let onAbort: (() => void) | undefined;
+    const signal = {
+      aborted: false,
+      reason: undefined,
+      addEventListener: (_type: string, listener: () => void) => {
+        onAbort = listener;
+      },
+      removeEventListener: () => undefined,
+    } as unknown as AbortSignal;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) =>
+        url === SWR_KEYS.health ? Promise.resolve(htmlResponse(503)) : Promise.reject(new TypeError('Failed to fetch'))
+      )
+    );
+
+    const promise = fetchWithWake('/api/resource', { signal });
+    const assertion = expect(promise).rejects.toMatchObject({
+      name: 'AbortError',
+      message: 'The operation was aborted.',
+    });
+    await vi.advanceTimersByTimeAsync(1_000);
+    onAbort?.();
+    await assertion;
+    await vi.advanceTimersByTimeAsync(100_000);
+  });
+
   it('keeps the shared polling alive for other callers when one of them aborts', async () => {
     const controller = new AbortController();
     let healthCalls = 0;
