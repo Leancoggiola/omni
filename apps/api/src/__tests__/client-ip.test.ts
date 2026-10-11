@@ -1,11 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 import type { Request, Response } from 'express';
 
 import { clientIpKey, getClientIp } from '../common/utils/client-ip';
 import { createOriginGuard, ORIGIN_SECRET_HEADER } from '../common/utils/origin-guard';
-import { createRateLimiter } from '../common/utils/rate-limit';
 
 function mockReq(headers: Record<string, string>, ip = '10.0.0.1'): Request {
   const lower = Object.fromEntries(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
@@ -54,6 +53,18 @@ describe('clientIpKey', () => {
 
 describe('rate limit detrás del origin guard', () => {
   const SECRET = 'proxy-secret-de-prueba';
+  let createRateLimiter: typeof import('../common/utils/rate-limit').createRateLimiter;
+
+  beforeAll(async () => {
+    vi.stubEnv('RATE_LIMIT_DISABLED', 'false');
+    vi.resetModules();
+    ({ createRateLimiter } = await import('../common/utils/rate-limit'));
+  });
+
+  afterAll(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
 
   function buildApp(secret: string | undefined) {
     const app = express();

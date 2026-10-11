@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import express from 'express';
 import request from 'supertest';
 
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
@@ -20,6 +21,7 @@ describe('health routes (integration)', () => {
 
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.resetModules();
   });
 
   it('GET /api/health responde sin auth, sin tocar la base y sin cachear', async () => {
@@ -72,16 +74,21 @@ describe('health routes (integration)', () => {
   });
 
   it('GET /api/health/ready tiene un límite propio de 30 por minuto; /api/health no', async () => {
-    mockedCheckDatabase.checkDatabaseConnection.mockResolvedValue(true);
+    vi.stubEnv('RATE_LIMIT_DISABLED', 'false');
+    vi.resetModules();
+    const { default: healthRoutes } = await import('../../health/health.routes');
+    const freshCheckDatabase = await import('../../common/db/check-database');
+    vi.mocked(freshCheckDatabase.checkDatabaseConnection).mockResolvedValue(true);
+    const limitedApp = express().use('/api/health', healthRoutes);
 
     const statuses: number[] = [];
     for (let i = 0; i < 31; i++) {
-      statuses.push((await request(app).get('/api/health/ready')).status);
+      statuses.push((await request(limitedApp).get('/api/health/ready')).status);
     }
-    const liveness = await request(app).get('/api/health');
+    const liveness = await request(limitedApp).get('/api/health');
 
+    expect(statuses.slice(0, 30).every(status => status === 200)).toBe(true);
     expect(statuses.at(-1)).toBe(429);
-    expect(statuses.filter(status => status === 429)).toHaveLength(statuses.length - statuses.indexOf(429));
     expect(liveness.status).toBe(200);
   });
 });
