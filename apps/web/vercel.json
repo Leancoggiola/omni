@@ -16,6 +16,6 @@
       ]
     },
     { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/((?!assets/)(?!.*\\.[a-zA-Z0-9]+$).*)", "dest": "/index.html" }
   ]
 }

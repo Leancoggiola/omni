@@ -1,10 +1,11 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+const RELEASE_VERSION = /^\d+\.\d+\.\d+$/;
 
 /**
  * Lee `APP_VERSION` y `APP_VERSION_CODE`. Con `APP_VARIANT=production` son obligatorias y válidas
- * (semver y entero > 0): un build de release mal configurado falla en vez de salir con `versionCode` 1.
+ * (`X.Y.Z` sin prerelease ni build metadata, y entero > 0): un build de release mal configurado falla en vez de salir con `versionCode` 1.
  * Fuera de production, una variable ausente o inválida cae a `undefined` / 1.
  */
 function resolveRelease(env: NodeJS.ProcessEnv): { version: string | undefined; versionCode: number } {
@@ -13,8 +14,10 @@ function resolveRelease(env: NodeJS.ProcessEnv): { version: string | undefined; 
   const hasValidCode = Number.isInteger(versionCode) && versionCode > 0;
   const hasValidVersion = SEMVER.test(env.APP_VERSION ?? '');
 
-  if (isProduction && !hasValidVersion) {
-    throw new Error(`APP_VERSION debe ser un semver en APP_VARIANT=production (recibido: "${env.APP_VERSION ?? ''}")`);
+  if (isProduction && !RELEASE_VERSION.test(env.APP_VERSION ?? '')) {
+    throw new Error(
+      `APP_VERSION debe ser X.Y.Z (sin prerelease ni build metadata) en APP_VARIANT=production (recibido: "${env.APP_VERSION ?? ''}")`
+    );
   }
   if (isProduction && !hasValidCode) {
     throw new Error(
