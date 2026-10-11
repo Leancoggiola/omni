@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { updateProfileSchema, changePasswordSchema, updatePreferencesSchema } from '@omni/shared/users';
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
+import { clearCookies } from '../auth/auth.service';
 import { createRateLimiter, validate } from '../common/utils';
 import * as usersService from './users.service';
 import * as statsService from './stats.service';
@@ -62,8 +63,7 @@ router.delete('/account', authenticateJwt, async (req: Request, res: Response, n
   try {
     const { userId } = req.user as any;
     await usersService.deleteAccount(userId);
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token');
+    clearCookies(res);
     res.json({ message: 'Cuenta eliminada exitosamente' });
   } catch (err) {
     next(err);
