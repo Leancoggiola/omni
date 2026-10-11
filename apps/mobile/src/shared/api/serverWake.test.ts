@@ -228,7 +228,36 @@ describe('fetchWithWake', () => {
     expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
   });
 
-  it('devuelve tal cual lo que no es del proxy (404 texto, 304) y reintenta un 502 sin body HTML', async () => {
+  it('un 502 JSON de la API se devuelve tal cual, sin reintento', async () => {
+    const fetchMock = jest.fn().mockResolvedValue(jsonResponse({ message: 'Error de Wikipedia' }, 502));
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const res = await fetchWithWake(RESOURCE, { method: 'POST' });
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ message: 'Error de Wikipedia' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('un 200 text/html del proxy hace polling y reintenta', async () => {
+    let resourceCalls = 0;
+    global.fetch = fetchImpl((url: string) => {
+      if (url === HEALTH) return Promise.resolve(jsonResponse({ status: 'ok' }));
+      resourceCalls += 1;
+      return Promise.resolve(
+        resourceCalls === 1
+          ? { ok: true, status: 200, headers: new Headers({ 'content-type': 'text/html; charset=utf-8' }) }
+          : jsonResponse({ done: true })
+      );
+    });
+
+    const res = await fetchWithWake(RESOURCE);
+
+    expect(await res.json()).toEqual({ done: true });
+    expect(resourceCalls).toBe(2);
+  });
+
+  it('devuelve tal cual lo que no es del proxy (404 texto, 304) y reintenta un 502 text/plain', async () => {
     const plain = { ok: false, status: 404, headers: new Headers({ 'content-type': 'text/plain' }) };
     global.fetch = fetchImpl(() => Promise.resolve(plain));
     expect((await fetchWithWake(RESOURCE, { method: 'POST' })).status).toBe(404);

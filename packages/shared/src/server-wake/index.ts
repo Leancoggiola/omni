@@ -31,14 +31,16 @@ export function nextWakeDelay(attempt: number): number {
 }
 
 /**
- * `false` si la respuesta es del proxy o de la plataforma y no de nuestra API: un 502/503/504, o un
- * `content-type` `text/html` (la página de "loading" de Render, la de error de Vercel). En ese caso el
- * request no llegó a la API y reintentarlo es seguro con cualquier método, también POST/PATCH. Cualquier
- * otra respuesta (JSON, 204, 304, texto, redirect) es de la API y se devuelve tal cual.
+ * `false` si la respuesta es del proxy o de la plataforma y no de nuestra API: no es JSON y además trae un
+ * 502/503/504 o un `content-type` `text/html` (la página de "loading" de Render, la de error de Vercel).
+ * En ese caso el request no llegó a la API y reintentarlo es seguro con cualquier método, también POST/PATCH.
+ * Una respuesta JSON es siempre de la API, con cualquier status (un 502 por un fallo de Wikipedia o TMDB llega
+ * con su mensaje). Lo demás (204, 304, 404 o texto) también se devuelve tal cual.
  */
 export function isApiResponse(res: ResponseLike): boolean {
-  if (PLATFORM_STATUSES.includes(res.status)) return false;
-  return !(res.headers.get('content-type') ?? '').toLowerCase().includes('text/html');
+  const contentType = (res.headers.get('content-type') ?? '').toLowerCase();
+  if (contentType.includes('application/json')) return true;
+  return !(PLATFORM_STATUSES.includes(res.status) || contentType.includes('text/html'));
 }
 
 const IDEMPOTENT_METHODS = ['GET', 'HEAD', 'PUT', 'DELETE'];

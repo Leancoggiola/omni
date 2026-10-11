@@ -73,6 +73,8 @@ describe('fetchWithWake', () => {
     ['a 304 without content-type', 304, null],
     ['a 302 redirect without content-type', 302, null],
     ['a 429 JSON', 429, 'application/json'],
+    ['a 502 JSON from the API', 502, 'application/json'],
+    ['a 504 JSON from the API', 504, 'application/json; charset=utf-8'],
   ])('returns %s untouched, it is not a proxy response', async (_label, status, contentType) => {
     const headers = contentType ? new Headers({ 'content-type': contentType }) : new Headers();
     const fetchMock = vi.fn().mockResolvedValue({ ok: false, status, headers });
@@ -87,7 +89,7 @@ describe('fetchWithWake', () => {
   it.each([
     ['a 502 with a non-HTML body', 502, 'text/plain'],
     ['a 503 without content-type', 503, null],
-    ['a 504 with JSON', 504, 'application/json'],
+    ['a 502 with text/plain', 502, 'text/plain; charset=utf-8'],
     ['a 200 with HTML', 200, 'text/html; charset=utf-8'],
     ['a 404 with HTML', 404, 'text/html'],
   ])('treats %s as a proxy response and polls health', async (_label, status, contentType) => {
