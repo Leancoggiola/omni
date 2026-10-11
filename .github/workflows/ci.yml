@@ -204,8 +204,8 @@ jobs:
     needs: [install]
     # Solo en PR y en el nightly: levantar api + web es demasiado lento para cada push.
     if: github.event_name == 'pull_request' || github.event_name == 'schedule'
-    # Informativo hasta comprobar que la suite es estable en varias corridas.
-    continue-on-error: true
+    # Bloqueante en PRs a main; informativo en PRs a develop y en el nightly.
+    continue-on-error: ${{ github.base_ref != 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
