@@ -37,7 +37,7 @@ describe('auth routes (integration)', () => {
         .send({ username: 'logincookies', password: TEST_PASSWORD });
 
       const cookies = res.headers['set-cookie'] as unknown as string[];
-      const refresh = cookies.find(cookie => cookie.startsWith('refresh_token='));
+      const refresh = cookies.find(cookie => cookie.startsWith('refresh_token=') && cookie.includes('Path=/api/auth;'));
       const access = cookies.find(cookie => cookie.startsWith('access_token='));
       expect(refresh).toContain('Path=/api/auth;');
       expect(refresh).toContain('HttpOnly');
@@ -68,6 +68,38 @@ describe('auth routes (integration)', () => {
     });
   });
 
+  describe('POST /refresh', () => {
+    it('un cliente con la cookie legacy refresca, la cookie legacy se borra y no se revoca ninguna sesión', async () => {
+      const user = await createUser({ username: 'refreshlegacy' });
+      const credentials = { username: 'refreshlegacy', password: TEST_PASSWORD };
+      const web = await request(app).post('/api/auth/login').send(credentials);
+      const other = await request(app).post('/api/auth/login').send(credentials);
+      const legacyCookie = `refresh_token=${web.body.refreshToken as string}`;
+
+      const first = await request(app).post('/api/auth/refresh').set('Cookie', legacyCookie);
+
+      expect(first.status).toBe(200);
+      const firstCookies = first.headers['set-cookie'] as unknown as string[];
+      const legacyCleared = firstCookies.find(
+        cookie => cookie.startsWith('refresh_token=;') && cookie.includes('Path=/api/auth/refresh;')
+      );
+      const rotated = firstCookies.find(
+        cookie => cookie.startsWith('refresh_token=') && cookie.includes('Path=/api/auth;')
+      );
+      expect(legacyCleared).toBeDefined();
+      expect(rotated).toBeDefined();
+
+      const second = await request(app).post('/api/auth/refresh').set('Cookie', rotated!.split(';')[0]!);
+      expect(second.status).toBe(200);
+
+      const otherSession = await request(app)
+        .post('/api/auth/refresh')
+        .send({ refreshToken: other.body.refreshToken as string });
+      expect(otherSession.status).toBe(200);
+      expect(await prisma.refreshToken.count({ where: { userId: user.id } })).toBe(2);
+    });
+  });
+
   describe('POST /logout', () => {
     it('la web (solo cookie, sin body) cierra únicamente su sesión y deja viva la de otro dispositivo', async () => {
       const user = await createUser({ username: 'logoutcookie' });
@@ -77,7 +109,9 @@ describe('auth routes (integration)', () => {
       expect(await prisma.refreshToken.count({ where: { userId: user.id } })).toBe(2);
 
       const webCookies = web.headers['set-cookie'] as unknown as string[];
-      const refreshCookie = webCookies.find(cookie => cookie.startsWith('refresh_token='))!.split(';')[0]!;
+      const refreshCookie = webCookies
+        .find(cookie => cookie.startsWith('refresh_token=') && cookie.includes('Path=/api/auth;'))!
+        .split(';')[0]!;
       const res = await request(app)
         .post('/api/auth/logout')
         .set('Authorization', `Bearer ${web.body.accessToken as string}`)

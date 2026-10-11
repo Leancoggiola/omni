@@ -34,6 +34,18 @@ describe('cookies de sesión', () => {
     expect(clearOptions.refresh_token).toMatchObject({ path: '/api/auth', httpOnly: true, sameSite: 'strict' });
   });
 
+  it('setRefreshCookie también borra la cookie de refresh con el path viejo', () => {
+    const { res, cookie, clearCookie } = mockRes();
+
+    setRefreshCookie(res, 'refresh');
+
+    expect(clearCookie).toHaveBeenCalledWith(
+      'refresh_token',
+      expect.objectContaining({ path: '/api/auth/refresh', httpOnly: true, sameSite: 'strict' })
+    );
+    expect(cookie).toHaveBeenCalledWith('refresh_token', 'refresh', expect.objectContaining({ path: '/api/auth' }));
+  });
+
   it('clearCookies también borra la cookie de refresh con el path viejo', () => {
     const { res, clearCookie } = mockRes();
 
