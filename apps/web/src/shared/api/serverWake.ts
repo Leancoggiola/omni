@@ -3,6 +3,7 @@ import { SWR_KEYS } from './keys';
 
 import {
   isApiResponse,
+  isIdempotentMethod,
   nextWakeDelay,
   SERVER_WAKE_FAILURE_MESSAGE,
   SERVER_WAKE_FAILURE_STATUS,
@@ -80,15 +81,17 @@ async function tryFetch(url: string, init?: RequestInit): Promise<Response | nul
     const res = await fetch(url, init);
     return isApiResponse(res) ? res : null;
   } catch (err) {
-    if (init?.signal?.aborted) throw err;
+    if (init?.signal?.aborted || !isIdempotentMethod(init?.method)) throw err;
     return null;
   }
 }
 
 /**
- * `fetch` que tolera el cold start de la API. Solo reintenta si el request falló en red o la respuesta
- * no es JSON (no salió de nuestra API, así que nunca se procesó); un 500 JSON se devuelve tal cual. Si
- * el servidor no despierta a tiempo, lanza `ApiError` 503.
+ * `fetch` que tolera el cold start de la API. Reintenta en dos casos: la respuesta no es JSON (la
+ * produjo el proxy de la plataforma, el request no llegó a la API: vale para cualquier método) o el
+ * `fetch` lanzó un error de red (solo en GET/HEAD/PUT/DELETE; en POST/PATCH el error se propaga porque
+ * no se sabe si la API procesó el request). Un 500 JSON se devuelve tal cual. Si el servidor no despierta
+ * a tiempo, lanza `ApiError` 503.
  */
 export async function fetchWithWake(url: string, init?: RequestInit): Promise<Response> {
   const first = await tryFetch(url, init);

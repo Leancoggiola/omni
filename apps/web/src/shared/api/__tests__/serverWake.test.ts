@@ -106,6 +106,59 @@ describe('fetchWithWake', () => {
     expect(countCalls(fetchMock, SWR_KEYS.health)).toBe(1);
   });
 
+  it('does not retry a POST after a network error and propagates it', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(fetchWithWake('/api/resource', { method: 'POST' })).rejects.toThrow('Failed to fetch');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry a PATCH after a network error', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(fetchWithWake('/api/resource', { method: 'patch' })).rejects.toThrow('Failed to fetch');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries a PUT and a DELETE after a network error', async () => {
+    for (const method of ['PUT', 'DELETE']) {
+      let resourceCalls = 0;
+      vi.stubGlobal(
+        'fetch',
+        vi.fn((url: string) => {
+          if (url === SWR_KEYS.health) return Promise.resolve(jsonResponse({ status: 'ok' }));
+          resourceCalls += 1;
+          return resourceCalls === 1
+            ? Promise.reject(new TypeError('Failed to fetch'))
+            : Promise.resolve(jsonResponse({ done: true }));
+        })
+      );
+
+      const res = await fetchWithWake('/api/resource', { method });
+
+      expect(await res.json()).toEqual({ done: true });
+    }
+  });
+
+  it('still retries a POST when the proxy answered with HTML', async () => {
+    let resourceCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === SWR_KEYS.health) return Promise.resolve(jsonResponse({ status: 'ok' }));
+        resourceCalls += 1;
+        return Promise.resolve(resourceCalls === 1 ? htmlResponse() : jsonResponse({ created: true }));
+      })
+    );
+
+    const res = await fetchWithWake('/api/resource', { method: 'POST' });
+
+    expect(await res.json()).toEqual({ created: true });
+    expect(resourceCalls).toBe(2);
+  });
+
   it('shares a single polling between concurrent requests', async () => {
     let healthCalls = 0;
     const served = new Set<string>();

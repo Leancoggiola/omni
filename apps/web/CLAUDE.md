@@ -35,7 +35,7 @@ Todos los endpoints en `src/shared/api/keys.ts` como `SWR_KEYS`. Rutas dinámica
 
 ## Cold start de la API
 
-La API (Render free) duerme y tarda ~1 min en despertar. `fetcher`, `api` y el refresh usan `fetchWithWake` (`shared/api/serverWake.ts`), nunca `fetch` directo: reintenta solo ante error de red o respuesta sin `content-type: application/json` (la API siempre responde JSON, así que un 500 JSON no se reintenta), hace polling a `SWR_KEYS.health` con backoff y, si no despierta, lanza `ApiError` 503. `ServerWakeNotice` (`core/providers`) muestra el aviso. Constantes y decisión pura: `@omni/shared/server-wake`.
+La API (Render free) duerme y tarda ~1 min en despertar. `fetcher`, `api` y el refresh usan `fetchWithWake` (`shared/api/serverWake.ts`), nunca `fetch` directo: reintenta solo si la respuesta no trae `content-type: application/json` (la produjo el proxy, no la API, que siempre responde JSON: se reintenta con cualquier método y un 500 JSON no) o si `fetch` lanza un error de red, y esto último solo en GET/HEAD/PUT/DELETE (en POST/PATCH el error se propaga: no se sabe si la API llegó a procesarlo). Hace polling a `SWR_KEYS.health` con backoff y, si no despierta, lanza `ApiError` 503. `ServerWakeNotice` (`core/providers`) muestra el aviso. Constantes y decisión pura: `@omni/shared/server-wake`.
 
 ## SWR
 

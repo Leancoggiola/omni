@@ -94,6 +94,45 @@ describe('fetchWithWake', () => {
     expect(await res.json()).toEqual({ data: 2 });
   });
 
+  it('no reintenta un POST ni un PATCH tras un error de red y lo propaga', async () => {
+    for (const method of ['POST', 'PATCH']) {
+      const fetchMock = jest.fn().mockRejectedValue(new TypeError('Network request failed'));
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      await expect(fetchWithWake(RESOURCE, { method })).rejects.toThrow('Network request failed');
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('reintenta un DELETE tras un error de red', async () => {
+    let resourceCalls = 0;
+    global.fetch = fetchImpl((url: string) => {
+      if (url === HEALTH) return Promise.resolve(jsonResponse({ status: 'ok' }));
+      resourceCalls += 1;
+      return resourceCalls === 1
+        ? Promise.reject(new TypeError('Network request failed'))
+        : Promise.resolve(jsonResponse({ done: true }));
+    });
+
+    const res = await fetchWithWake(RESOURCE, { method: 'DELETE' });
+
+    expect(await res.json()).toEqual({ done: true });
+  });
+
+  it('un POST con respuesta HTML del proxy sí se reintenta', async () => {
+    let resourceCalls = 0;
+    global.fetch = fetchImpl((url: string) => {
+      if (url === HEALTH) return Promise.resolve(jsonResponse({ status: 'ok' }));
+      resourceCalls += 1;
+      return Promise.resolve(resourceCalls === 1 ? htmlResponse() : jsonResponse({ created: true }));
+    });
+
+    const res = await fetchWithWake(RESOURCE, { method: 'POST' });
+
+    expect(await res.json()).toEqual({ created: true });
+    expect(resourceCalls).toBe(2);
+  });
+
   it('dos requests concurrentes comparten un solo polling', async () => {
     let healthCalls = 0;
     const served = new Set<string>();

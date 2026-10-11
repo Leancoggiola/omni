@@ -32,10 +32,21 @@ export function nextWakeDelay(attempt: number): number {
 /**
  * `true` si la respuesta salió de nuestra API. La API responde siempre JSON (también en los errores),
  * así que cualquier otra cosa (502/503/504 del proxy, la página HTML de "loading" de Render) viene de
- * la plataforma y el request nunca se procesó: reintentarlo es seguro aunque sea POST/PATCH. El 204 no
- * lleva cuerpo ni `content-type`.
+ * la plataforma y el request no llegó a la API: reintentarlo es seguro con cualquier método, también
+ * POST/PATCH. El 204 no lleva cuerpo ni `content-type`.
  */
 export function isApiResponse(res: ResponseLike): boolean {
   if (res.status === 204) return true;
   return (res.headers.get('content-type') ?? '').toLowerCase().includes('application/json');
+}
+
+const IDEMPOTENT_METHODS = ['GET', 'HEAD', 'PUT', 'DELETE'];
+
+/**
+ * `true` si repetir el request con ese método no duplica efectos (default de `fetch`: GET). Un error de
+ * red no dice si la API llegó a procesar el request antes de cortarse la conexión, así que solo se
+ * reintenta en métodos idempotentes; en POST/PATCH el error se propaga.
+ */
+export function isIdempotentMethod(method?: string): boolean {
+  return IDEMPOTENT_METHODS.includes((method ?? 'GET').toUpperCase());
 }
