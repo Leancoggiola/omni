@@ -76,17 +76,18 @@ Si un hook falla, el commit/push se cancela.
 
 ## Proceso de release
 
-Los releases son **100% automáticos** al hacer push a `main`.
+Los releases son **automáticos** al mergear a `main` (workflow **Release & Deploy**, ver [deployment.md](./deployment.md)).
 
-1. GitHub Actions corre el workflow `release.yml`
-2. `semantic-release` analiza los commits desde el último tag
-3. Determina la próxima versión según los types:
+1. `semantic-release` analiza los commits desde el último tag
+2. Determina la próxima versión según los types:
    - `fix`/`perf` → patch
    - `feat` → minor
    - `BREAKING CHANGE` → major
-4. Actualiza `CHANGELOG.md` y `package.json`
-5. Crea un tag y un GitHub Release
-6. Si se creó un nuevo tag, dispara el deploy a Render automáticamente
+3. Actualiza `CHANGELOG.md` y `package.json`, crea el tag y el GitHub Release
+4. Si hubo release, deploya en orden: **API** (espera el commit nuevo sano) → **web** (con smoke) → **APK** (solo si cambió `apps/mobile` o `packages/shared`)
+5. Hace el back-merge de `main` a `develop`
+
+**Protección de ramas:** `main` y `develop` tienen rulesets (PR, CI verde, sin force-push ni borrado) con bypass de admin, que usan semantic-release (`RELEASE_TOKEN`) y los hotfix de emergencia. El guard `.husky/pre-push` rechaza pushes directos a `main`/`develop`; se saltea con `ALLOW_PROTECTED_PUSH=1` (en CI, con `CI=true`).
 
 > Commits con `chore`, `docs`, `test`, `ci` etc. **no generan release**.
 
