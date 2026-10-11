@@ -4,6 +4,8 @@ import { ApiError, fetcher } from '../fetcher';
 import { SWR_KEYS } from '../keys';
 import { clearOnAuthFailure, setOnAuthFailure } from '../refreshSession';
 
+const JSON_HEADERS = new Headers({ 'content-type': 'application/json' });
+
 describe('ApiError', () => {
   it('stores status and info', () => {
     const err = new ApiError('Not found', 404, { code: 'X' });
@@ -25,11 +27,12 @@ describe('fetcher', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ ok: true }),
+        headers: JSON_HEADERS,
+        json: () => Promise.resolve({ ok: true, headers: JSON_HEADERS }),
       })
     );
 
-    await expect(fetcher('https://example.test/resource')).resolves.toEqual({ ok: true });
+    await expect(fetcher('https://example.test/resource')).resolves.toEqual({ ok: true, headers: JSON_HEADERS });
   });
 
   it('throws ApiError on failure with message from body', async () => {
@@ -37,6 +40,7 @@ describe('fetcher', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
+        headers: JSON_HEADERS,
         status: 400,
         statusText: 'Bad Request',
         json: () => Promise.resolve({ message: 'Invalid' }),
@@ -55,6 +59,7 @@ describe('fetcher', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
+        headers: JSON_HEADERS,
         status: 500,
         statusText: 'Server Error',
         json: () => Promise.reject(new Error('no json')),
@@ -76,18 +81,19 @@ describe('fetcher', () => {
       vi.fn((url: string) => {
         calls.push(url);
         if (url === SWR_KEYS.auth.refresh) {
-          return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+          return Promise.resolve({ ok: true, headers: JSON_HEADERS, json: () => Promise.resolve({}) });
         }
         resourceCallCount += 1;
         if (resourceCallCount === 1) {
           return Promise.resolve({
             ok: false,
+            headers: JSON_HEADERS,
             status: 401,
             statusText: 'Unauthorized',
             json: () => Promise.resolve({}),
           });
         }
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ data: 'ok' }) });
+        return Promise.resolve({ ok: true, headers: JSON_HEADERS, json: () => Promise.resolve({ data: 'ok' }) });
       })
     );
 
@@ -103,10 +109,11 @@ describe('fetcher', () => {
       'fetch',
       vi.fn((url: string) => {
         if (url === SWR_KEYS.auth.refresh) {
-          return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
+          return Promise.resolve({ ok: false, headers: JSON_HEADERS, json: () => Promise.resolve({}) });
         }
         return Promise.resolve({
           ok: false,
+          headers: JSON_HEADERS,
           status: 401,
           statusText: 'Unauthorized',
           json: () => Promise.resolve({}),
@@ -123,6 +130,7 @@ describe('fetcher', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
+        headers: JSON_HEADERS,
         status: 401,
         statusText: 'Unauthorized',
         json: () => Promise.resolve({}),
@@ -141,17 +149,18 @@ describe('fetcher', () => {
       vi.fn((url: string) => {
         callCounts[url] = (callCounts[url] ?? 0) + 1;
         if (url === SWR_KEYS.auth.refresh) {
-          return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+          return Promise.resolve({ ok: true, headers: JSON_HEADERS, json: () => Promise.resolve({}) });
         }
         if (callCounts[url] === 1) {
           return Promise.resolve({
             ok: false,
+            headers: JSON_HEADERS,
             status: 401,
             statusText: 'Unauthorized',
             json: () => Promise.resolve({}),
           });
         }
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ url }) });
+        return Promise.resolve({ ok: true, headers: JSON_HEADERS, json: () => Promise.resolve({ url }) });
       })
     );
 

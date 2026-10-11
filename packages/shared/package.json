@@ -17,7 +17,8 @@
     "./notifications": "./src/notifications/index.ts",
     "./holidays": "./src/holidays/index.ts",
     "./common": "./src/common/index.ts",
-    "./navigation": "./src/navigation/index.ts"
+    "./navigation": "./src/navigation/index.ts",
+    "./server-wake": "./src/server-wake/index.ts"
   },
   "typesVersions": {
     "*": {
@@ -56,6 +57,9 @@
       ],
       "navigation": [
         "src/navigation/index.ts"
+      ],
+      "server-wake": [
+        "src/server-wake/index.ts"
       ]
     }
   },

@@ -10,3 +10,4 @@ export * from './notifications';
 export * from './holidays';
 export * from './common';
 export * from './navigation';
+export * from './server-wake';

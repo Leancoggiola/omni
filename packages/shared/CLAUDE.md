@@ -11,6 +11,7 @@ src/
   users/      profile, password, preferences
   theme/      BRAND, SEMANTIC, GRAY, success/destructive (web + mobile)
   navigation/ NAV_REGISTRY: labels, rutas y disponibilidad de módulos (navbar web, tabs y "Más" mobile)
+  server-wake/ constantes y funciones puras del cold start de la API (backoff, `isApiResponse`); el polling lo orquesta cada cliente
   index.ts    re-exports
 ```
 
