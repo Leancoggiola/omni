@@ -97,10 +97,13 @@ Solo `feat`, `fix`, `perf` o `BREAKING CHANGE` generan release. `backup.yml` es 
 
 ### Primera vez
 
-Seed del admin, una sola vez y con las variables solo en la sesión de terminal:
+Seed del admin, una sola vez. Los valores se leen sin eco, así no quedan en el historial del shell:
 
 ```bash
-NODE_ENV=production DATABASE_URL=<prod> ADMIN_USERNAME=… ADMIN_PASSWORD=… pnpm --filter api exec prisma db seed
+read -rs -p "DATABASE_URL: " DATABASE_URL; echo; export DATABASE_URL
+read -rs -p "ADMIN_PASSWORD: " ADMIN_PASSWORD; echo; export ADMIN_PASSWORD
+NODE_ENV=production ADMIN_USERNAME=<usuario> pnpm --filter api exec prisma db seed
+unset DATABASE_URL ADMIN_PASSWORD
 ```
 
 ---
@@ -182,12 +185,12 @@ GitHub deshabilita los cron de repos públicos tras 60 días sin actividad (lleg
 
 ## Riesgos y límites free
 
-| Límite                | Detalle                                                                                                                                  |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Render 750 h/mes      | Con la ventana fría se usan ≈600 h. No sumar otros servicios free 24/7: si se agotan, Render suspende todo hasta el mes próximo.         |
-| Supabase 7 días       | Pausa por inactividad; el keep-alive la evita. Si falla una semana entera, restaurar a mano.                                             |
-| Proxy de Vercel 120 s | Tope del cold start de Render (~1 min). Más allá, 504 y el cliente reintenta.                                                            |
-| `transforms` en Hobby | El header `x-origin-secret` depende de que funcione en el plan. Fallback: `rewrites` sin guard y `trust proxy` 2 (rate limit más débil). |
-| `RELEASE_TOKEN`       | Si vence, el release falla (de forma visible). Renovar antes.                                                                            |
-| Cron de GitHub        | Se deshabilita a los 60 días sin actividad.                                                                                              |
-| Migraciones           | Solo hacia adelante: corregir con hotfix, no con rollback de API.                                                                        |
+| Límite                | Detalle                                                                                                                                                                                                                |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Render 750 h/mes      | Con la ventana fría se usan ≈600 h. No sumar otros servicios free 24/7: si se agotan, Render suspende todo hasta el mes próximo.                                                                                       |
+| Supabase 7 días       | Pausa por inactividad; el keep-alive la evita. Si falla una semana entera, restaurar a mano.                                                                                                                           |
+| Proxy de Vercel 120 s | Tope del cold start de Render (~1 min). Más allá, 504 y el cliente reintenta.                                                                                                                                          |
+| `transforms` en Hobby | **Pendiente de verificar** con un deploy de preview manual antes del cutover. El header `x-origin-secret` depende de que funcione en el plan. Fallback: `rewrites` sin guard y `trust proxy` 2 (rate limit más débil). |
+| `RELEASE_TOKEN`       | Si vence, el release falla (de forma visible). Renovar antes.                                                                                                                                                          |
+| Cron de GitHub        | Se deshabilita a los 60 días sin actividad.                                                                                                                                                                            |
+| Migraciones           | Solo hacia adelante: corregir con hotfix, no con rollback de API.                                                                                                                                                      |

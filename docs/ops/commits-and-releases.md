@@ -87,7 +87,7 @@ Los releases son **automáticos** al mergear a `main` (workflow **Release & Depl
 4. Si hubo release, deploya en orden: **API** (espera el commit nuevo sano) → **web** (con smoke) → **APK** (solo si cambió `apps/mobile` o `packages/shared`)
 5. Hace el back-merge de `main` a `develop`
 
-**Protección de ramas:** `main` y `develop` tienen rulesets (PR, CI verde, sin force-push ni borrado) con bypass de admin, que usan semantic-release (`RELEASE_TOKEN`) y los hotfix de emergencia. El guard `.husky/pre-push` rechaza pushes directos a `main`/`develop`; se saltea con `ALLOW_PROTECTED_PUSH=1` (en CI, con `CI=true`).
+**Protección de ramas:** `main` y `develop` tienen rulesets (PR, CI verde, sin force-push ni borrado) con bypass de admin. Lo usa semantic-release (`RELEASE_TOKEN`) para el commit de versión y el back-merge. Un hotfix sigue el flujo normal (`fix/#N-…` → PR a `main`); el bypass manual queda solo para emergencias en las que el CI no puede correr. El guard `.husky/pre-push` rechaza pushes directos a `main`/`develop`; se saltea con `ALLOW_PROTECTED_PUSH=1` (en CI, con `CI=true`).
 
 > Commits con `chore`, `docs`, `test`, `ci` etc. **no generan release**.
 
