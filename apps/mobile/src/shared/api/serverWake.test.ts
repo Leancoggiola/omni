@@ -279,4 +279,16 @@ describe('fetchWithWake', () => {
     expect((await fetchWithWake(RESOURCE)).status).toBe(200);
     expect(resourceCalls).toBe(2);
   });
+
+  it('sin EXPO_PUBLIC_API_URL ensureServerAwake devuelve false en vez de rechazar', async () => {
+    delete process.env.EXPO_PUBLIC_API_URL;
+    const fetchMock = jest.fn();
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const result = ensureServerAwake();
+    await jest.advanceTimersByTimeAsync(95_000);
+
+    await expect(result).resolves.toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

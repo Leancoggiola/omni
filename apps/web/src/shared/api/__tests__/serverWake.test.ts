@@ -5,6 +5,8 @@ import { fetcher } from '../fetcher';
 import { SWR_KEYS } from '../keys';
 import { ensureServerAwake, fetchWithWake, subscribeServerWake } from '../serverWake';
 
+import { createServerWake } from '@omni/shared/server-wake';
+
 const JSON_HEADERS = new Headers({ 'content-type': 'application/json' });
 const HTML_HEADERS = new Headers({ 'content-type': 'text/html; charset=utf-8' });
 
@@ -348,6 +350,48 @@ describe('fetchWithWake', () => {
     await vi.advanceTimersByTimeAsync(2_000);
     await promise;
     unsubscribe();
+  });
+});
+
+describe('createServerWake', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('ensureServerAwake resolves false instead of rejecting when healthUrl throws', async () => {
+    const fetchMock = vi.fn();
+    const wake = createServerWake({
+      fetch: fetchMock,
+      healthUrl: () => {
+        throw new Error('EXPO_PUBLIC_API_URL no está definida');
+      },
+      createError: (message, status) => new Error(`${status}: ${message}`),
+    });
+
+    const result = wake.ensureServerAwake();
+    await vi.advanceTimersByTimeAsync(95_000);
+
+    await expect(result).resolves.toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('fetchWithWake throws the injected 503 error when healthUrl is misconfigured', async () => {
+    const wake = createServerWake({
+      fetch: vi.fn().mockResolvedValue(htmlResponse(502)),
+      healthUrl: () => {
+        throw new Error('sin base URL');
+      },
+      createError: (message, status) => new Error(`${status}: ${message}`),
+    });
+
+    const promise = wake.fetchWithWake('/api/resource');
+    const assertion = expect(promise).rejects.toThrow('503: El servidor no responde');
+    await vi.advanceTimersByTimeAsync(95_000);
+    await assertion;
   });
 });
 

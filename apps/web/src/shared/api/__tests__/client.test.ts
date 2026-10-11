@@ -19,11 +19,11 @@ describe('api client', () => {
         ok: true,
         headers: JSON_HEADERS,
         status: 200,
-        json: () => Promise.resolve({ ok: true, headers: JSON_HEADERS }),
+        json: () => Promise.resolve({ ok: true }),
       })
     );
 
-    await expect(api.post('/api/resource', { a: 1 })).resolves.toEqual({ ok: true, headers: JSON_HEADERS });
+    await expect(api.post('/api/resource', { a: 1 })).resolves.toEqual({ ok: true });
   });
 
   it('returns undefined on 204 No Content', async () => {

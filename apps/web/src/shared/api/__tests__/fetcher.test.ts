@@ -28,11 +28,11 @@ describe('fetcher', () => {
       vi.fn().mockResolvedValue({
         ok: true,
         headers: JSON_HEADERS,
-        json: () => Promise.resolve({ ok: true, headers: JSON_HEADERS }),
+        json: () => Promise.resolve({ ok: true }),
       })
     );
 
-    await expect(fetcher('https://example.test/resource')).resolves.toEqual({ ok: true, headers: JSON_HEADERS });
+    await expect(fetcher('https://example.test/resource')).resolves.toEqual({ ok: true });
   });
 
   it('throws ApiError on failure with message from body', async () => {

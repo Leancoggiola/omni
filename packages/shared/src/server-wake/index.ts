@@ -102,8 +102,8 @@ export function createServerWake(options: ServerWakeOptions) {
   async function probeHealth(): Promise<boolean> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), SERVER_WAKE_PROBE_TIMEOUT_MS);
-    const url = typeof options.healthUrl === 'function' ? options.healthUrl() : options.healthUrl;
     try {
+      const url = typeof options.healthUrl === 'function' ? options.healthUrl() : options.healthUrl;
       const res = await options.fetch(url, { ...options.probeInit, signal: controller.signal });
       return res.ok && isApiResponse(res);
     } catch {
