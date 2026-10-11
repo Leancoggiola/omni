@@ -13,6 +13,7 @@ apps/mobile/
     (tabs)/index|media|pantry|more.tsx
   src/
     core/auth/            # AuthProvider, SecureStore
+    core/serverWake/      # ServerWakeNotice (aviso de cold start)
     shared/api/           # API_KEYS, client Bearer, tokenStorage
     shared/ui/            # primitivas de UI (ver abajo)
     shared/navigation/    # NAV_ICONS, NAV_HREFS, TAB_ROUTES y MORE_TAB (lo que depende de auth/router; shared/ui es presentacional)
@@ -41,6 +42,10 @@ await api.get(API_KEYS.media.list);
 ```
 
 Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/api/...'` fuera de `keys.ts`.
+
+## Cold start de la API
+
+Igual que web: el client usa `fetchWithWake` (`shared/api/serverWake.ts`) en `request` y en el refresh, con `API_KEYS.health`, y `ServerWakeNotice` (`core/serverWake`, montado en `app/_layout.tsx`) muestra un `Banner` mientras la API despierta. Constantes y decisión pura: `@omni/shared/server-wake`.
 
 ## Hooks (SWR)
 
