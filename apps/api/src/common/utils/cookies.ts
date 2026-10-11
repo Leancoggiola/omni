@@ -31,10 +31,12 @@ function refreshCookieOptions(): CookieOptions {
   return { httpOnly: true, secure: config.isProduction, sameSite: 'strict', path: '/api/auth' };
 }
 
+/** Cookie del access token (web): 15 min, `httpOnly`, `sameSite: strict`, en `/api`. Mobile no la usa: manda Bearer. */
 export function setAccessCookie(res: Response, token: string) {
   res.cookie(ACCESS_COOKIE, token, { ...accessCookieOptions(), maxAge: ACCESS_COOKIE_MAX_AGE });
 }
 
+/** Cookie del refresh token (web): dura `COOKIE_REFRESH_MAX_AGE` y viaja solo a `/api/auth`. Mobile recibe el token en el body. */
 export function setRefreshCookie(res: Response, token: string) {
   res.cookie(REFRESH_COOKIE, token, { ...refreshCookieOptions(), maxAge: config.cookie.refreshMaxAge });
 }
