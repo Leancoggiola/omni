@@ -8,8 +8,6 @@ import type { ReactNode } from 'react';
 
 const mockApi = { post: jest.fn(), patch: jest.fn(), delete: jest.fn() };
 
-// Solo keys y buildQueryString reales: el client toca SecureStore. El factory corre antes de que se
-// inicialice `mockApi`, por eso delega en funciones.
 jest.mock('@/shared/api', () => ({
   ...jest.requireActual('@/shared/api/keys'),
   api: {

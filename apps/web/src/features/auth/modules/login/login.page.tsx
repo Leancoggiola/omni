@@ -55,7 +55,6 @@ export const LoginPage: FC = () => {
             key={form.key('password')}
             {...form.getInputProps('password')}
           />
-          {/* Sin `disabled` por dirty: el autocompletado del navegador puede no disparar onChange. */}
           <Button size="lg" type="submit" loading={loading}>
             Ingresar
           </Button>

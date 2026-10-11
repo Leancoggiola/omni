@@ -48,8 +48,6 @@ export async function findById(id: string) {
   });
 }
 
-// ─── Profile ───────────────────────────────────────────────
-
 export async function getProfile(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -86,8 +84,6 @@ export async function updateProfile(userId: string, dto: UpdateProfilePayload) {
   });
 }
 
-// ─── Password ──────────────────────────────────────────────
-
 export async function changePassword(userId: string, newPassword: string) {
   const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
 
@@ -97,13 +93,9 @@ export async function changePassword(userId: string, newPassword: string) {
   });
 }
 
-// ─── Delete Account ────────────────────────────────────────
-
 export async function deleteAccount(userId: string) {
   await prisma.user.delete({ where: { id: userId } });
 }
-
-// ─── Preferences ───────────────────────────────────────────
 
 export async function updatePreferences(userId: string, dto: UpdatePreferencesPayload) {
   return prisma.userPreferences.upsert({

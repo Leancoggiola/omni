@@ -34,7 +34,6 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusPress, 
     >
       <MediaPoster posterPath={item.posterPath} width={POSTER_WIDTH} />
       <YStack flex={1} gap={SPACING.xs} justifyContent="space-between">
-        {/* El tipo va a la derecha del título; un título largo baja a la segunda línea, no empuja el badge. */}
         <XStack gap={SPACING.xs} alignItems="flex-start">
           <Paragraph flex={1} fontSize={FONT_SIZE.md} fontWeight="600" numberOfLines={2}>
             {item.title}

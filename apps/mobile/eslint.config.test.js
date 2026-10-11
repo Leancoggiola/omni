@@ -87,7 +87,7 @@ const ALLOWED = [
   },
 ];
 
-// ESLint carga la config con `import()`: en un proceso aparte, fuera de la VM de jest.
+/** ESLint carga la config con `import()`: en un proceso aparte, fuera de la VM de jest. */
 const RUNNER = `
 const { ESLint } = require('eslint');
 const items = JSON.parse(process.argv[1]);

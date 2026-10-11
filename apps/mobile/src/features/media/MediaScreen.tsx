@@ -35,16 +35,11 @@ const STATUS_OPTIONS = MEDIA_STATUSES.map(value => ({ value, label: MEDIA_STATUS
 export function MediaScreen() {
   const [filters, setFilters] = useState<MediaListFilters>(DEFAULT_MEDIA_FILTERS);
   const [addOpen, setAddOpen] = useState(false);
-  // Remonta el sheet en cada apertura: arranca sin búsqueda ni selección (como el modal de web).
   const [addKey, setAddKey] = useState(0);
-  // Alta pendiente de avisar: el toast espera a que se oculte el Modal del sheet (si no, queda tapado).
-  // Vive acá y no en el sheet porque reabrirlo durante la salida lo remonta y cortaría su cierre.
   const pendingAddNotice = useRef(false);
 
   const { data, error, isLoading, mutate } = useMyMediaList();
   const { addToList, updateStatus, removeFromList } = useMediaMutations();
-  // Ítems con un sheet de acción abierto o una mutación en curso: un doble toque en la pill o el tacho
-  // encolaría un segundo sheet (y un segundo DELETE, que daría 404).
   const busy = useRef(new Set<string>());
 
   const withItemLock = useCallback(async (item: MediaItem, action: () => Promise<void>) => {
@@ -83,10 +78,8 @@ export function MediaScreen() {
     notifySuccess('Agregado a tu lista');
   }, []);
 
-  // Si la pantalla se desmonta con el sheet cerrándose (p. ej. logout), el aviso no se pierde.
   useEffect(() => flushAddNotice, [flushAddNotice]);
 
-  // El cambio se ve en la pill (optimista); solo avisa si falla, como acordamos para mobile.
   const handleStatusPress = useCallback(
     (item: MediaItem) =>
       withItemLock(item, async () => {
@@ -125,7 +118,6 @@ export function MediaScreen() {
     [removeFromList, withItemLock]
   );
 
-  // Handlers y renderItem estables: el `memo` de MediaListItem evita re-render de las filas al tipear.
   const onStatusPress = useCallback((item: MediaItem) => void handleStatusPress(item), [handleStatusPress]);
   const onDeletePress = useCallback((item: MediaItem) => void handleDeletePress(item), [handleDeletePress]);
   const renderItem = useCallback<ListRenderItem<MediaItem>>(
@@ -150,7 +142,6 @@ export function MediaScreen() {
     );
   };
 
-  // Con error, la lista que quedó en cache no se muestra: el error se ve siempre (regla de oro 0).
   const listData = error ? [] : items;
 
   return (
@@ -161,7 +152,6 @@ export function MediaScreen() {
         renderItem={renderItem}
         ListHeaderComponent={
           <YStack gap={SPACING.md} paddingBottom={SPACING.md}>
-            {/* Título de la página, como el `PageHeader` de web: no es el label de navegación del registro. */}
             <ScreenHeader icon={FilmSlateIcon} title="Películas y Series" subtitle="Tu lista de seguimiento" />
             <MediaToolbar filters={filters} onChange={setFilters} />
           </YStack>

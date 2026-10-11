@@ -6,9 +6,6 @@ import * as bcrypt from 'bcrypt';
 const BCRYPT_ROUNDS = 12;
 
 async function main() {
-  // ============================================
-  // INITIALIZATION
-  // ============================================
   const isProduction = process.env.NODE_ENV === 'production';
   const isDevelopment = !isProduction;
 
@@ -31,10 +28,6 @@ async function main() {
 
   console.log(`\n🌍 Environment: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
 
-  // ============================================
-  // SECTION 1: USERS
-  // ============================================
-  // Create or get admin user (both dev and prod)
   let adminUser = await prisma.user.findUnique({
     where: { username: adminUsername.toLowerCase() },
   });
@@ -56,7 +49,6 @@ async function main() {
 
   const createdUsers = [adminUser];
 
-  // Create test users only in development
   if (isDevelopment) {
     const testUsers = [
       { username: 'user1', name: 'Juan Pérez', email: 'juan@example.com' },
@@ -87,9 +79,6 @@ async function main() {
     console.log('ℹ️  Skipping test users (production environment).');
   }
 
-  // ============================================
-  // SECTION 2: USER PREFERENCES
-  // ============================================
   for (const user of createdUsers) {
     const existingPrefs = await prisma.userPreferences.findUnique({
       where: { userId: user.id },
@@ -106,11 +95,7 @@ async function main() {
   }
   console.log('✅ User preferences created/verified.');
 
-  // ============================================
-  // SECTION 3: SAMPLE MEDIA ITEMS (Development only)
-  // ============================================
   if (isDevelopment) {
-    // posterPath values change when TMDB rotates assets — refresh via API if images 404.
     const sampleMedia = [
       {
         tmdbId: 550,
@@ -180,9 +165,6 @@ async function main() {
     console.log('ℹ️  Skipping sample media items (production environment).');
   }
 
-  // ============================================
-  // SECTION 4: USER STATISTICS
-  // ============================================
   for (const user of createdUsers) {
     const existingStats = await prisma.userStats.findUnique({
       where: { userId: user.id },
@@ -203,9 +185,6 @@ async function main() {
   }
   console.log('✅ User stats created/verified.');
 
-  // ============================================
-  // COMPLETION
-  // ============================================
   console.log('\n🎉 Seed completed successfully!');
   await prisma.$disconnect();
 }

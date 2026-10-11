@@ -71,7 +71,6 @@ test.describe('juntadas', () => {
     await expect(page.getByText('Carne')).toBeVisible();
     await expect(page.getByText('Total: $10.000,00')).toBeVisible();
 
-    // Ana pagó todo, así que Bruno le debe la mitad.
     const settlements = page.getByText('¿Quién le debe a quién?').locator('..');
     await expect(settlements).toContainText('Bruno');
     await expect(settlements).toContainText('Ana');
@@ -88,7 +87,6 @@ test.describe('juntadas', () => {
     await split.settleButton().click();
 
     await expect(page.getByText('Saldado')).toBeVisible();
-    // Al saldarla, la juntada se contrae sola.
     await split.expandButton().click();
     await expect(page.getByRole('button', { name: 'Marcar como pendiente' })).toBeVisible();
   });

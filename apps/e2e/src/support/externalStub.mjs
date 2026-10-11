@@ -1,6 +1,3 @@
-// Stub de las APIs externas: TMDB y el feed de efemérides de Wikipedia. La API las llama desde el
-// servidor, así que interceptar en el browser no alcanza: se levanta este servidor y se apunta la API
-// con TMDB_BASE_URL y WIKIPEDIA_BASE_URL (ver apps/api/.env.e2e).
 import { createServer } from 'node:http';
 
 const PORT = Number(process.env.EXTERNAL_STUB_PORT ?? 3199);

@@ -48,8 +48,6 @@ test.describe('tema por sesión', () => {
   test.describe('guardado del perfil', () => {
     test('guardar el tema en el perfil descarta el override del toggle', async ({ page, freshUser }) => {
       await freshUser('themesave');
-      // 'Sistema' resuelve contra el esquema del SO: se fija en claro para que el resultado sea
-      // distinto del override (oscuro) y el test no dependa de la máquina.
       await page.emulateMedia({ colorScheme: 'light' });
       const home = new HomePage(page);
       const profile = new ProfilePage(page);
@@ -64,12 +62,10 @@ test.describe('tema por sesión', () => {
       await expect(profile.savedNotification()).toBeVisible();
       await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'light');
 
-      // Si el override siguiera en sessionStorage, la recarga volvería a oscuro.
       await page.reload();
-      await expect(profile.themeSelect()).toHaveValue('Sistema');
+      await expect(profile.themeOption('Sistema')).toBeChecked();
       await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'light');
 
-      // Y es 'Sistema' de verdad, no un claro fijo: sigue al esquema del SO.
       await page.emulateMedia({ colorScheme: 'dark' });
       await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
     });
@@ -83,7 +79,7 @@ test.describe('tema por sesión', () => {
       await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
 
       await profile.goto();
-      await expect(profile.themeSelect()).toHaveValue('Claro');
+      await expect(profile.themeOption('Claro')).toBeChecked();
       await profile.phoneField().fill('+54 11 4444 4444');
       await profile.save();
 
@@ -96,7 +92,6 @@ test.describe('tema por sesión', () => {
     });
 
     test('guardar las notificaciones no toca el override del toggle', async ({ page, freshUser }) => {
-      // Pasa por PATCH /api/users/preferences, el mismo endpoint que guarda el tema.
       await freshUser('themenotif');
       const home = new HomePage(page);
       const profile = new ProfilePage(page);
@@ -114,7 +109,7 @@ test.describe('tema por sesión', () => {
 
       await page.reload();
       await expect(profile.notificationsSwitch()).toBeChecked();
-      await expect(profile.themeSelect()).toHaveValue('Claro');
+      await expect(profile.themeOption('Claro')).toBeChecked();
       await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
     });
   });
@@ -135,7 +130,6 @@ test.describe('tema por sesión', () => {
       await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
 
       await page.context().clearCookies();
-      // Navegación del lado del cliente: el estado en memoria sigue en oscuro, solo cambia el request.
       await home.navigateTo('Perfil');
 
       await expect(page).toHaveURL('/login');
@@ -169,7 +163,6 @@ test.describe('tema por sesión', () => {
 
   test('el toggle de una pestaña no cambia el tema de otra', async ({ page, freshUser }) => {
     await freshUser('themetabs');
-    // Mismo context = mismas cookies y mismo localStorage; sessionStorage es propio de cada pestaña.
     const other = await page.context().newPage();
     const home = new HomePage(page);
     const otherHome = new HomePage(other);
@@ -181,16 +174,13 @@ test.describe('tema por sesión', () => {
     await home.toggleTheme();
     await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');
 
-    // Sin recargar: no hay evento de storage que la sincronice.
     await expect(otherHome.themeToggle()).toHaveAccessibleName('Cambiar a tema oscuro');
     await expect(otherHome.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'light');
 
-    // Recargada: no hay nada persistido fuera del sessionStorage de la primera pestaña.
     await other.reload();
     await expect(otherHome.themeToggle()).toHaveAccessibleName('Cambiar a tema oscuro');
     await expect(otherHome.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'light');
 
-    // Y la primera conserva su override.
     await page.reload();
     await expect(home.themeToggle()).toHaveAccessibleName('Cambiar a tema claro');
     await expect(home.documentRoot()).toHaveAttribute(SCHEME_ATTR, 'dark');

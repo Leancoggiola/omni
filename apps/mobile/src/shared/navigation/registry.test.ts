@@ -2,7 +2,6 @@ import { ADMIN_NAV_ORDER, MAIN_NAV_ORDER, MOBILE_TAB_KEYS, NAV_KEYS } from '@omn
 
 import type { NavKey } from '@omni/shared/navigation';
 
-// `packages/shared` no tiene test runner: las invariantes del registro se prueban acá.
 describe('registro de navegación', () => {
   const ordered: readonly NavKey[] = [...MAIN_NAV_ORDER, ...ADMIN_NAV_ORDER];
 

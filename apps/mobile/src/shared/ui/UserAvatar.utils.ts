@@ -5,7 +5,6 @@
  */
 export function getInitials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
-  // Por code points (`Array.from`), no por unidades UTF-16: un emoji no queda partido a la mitad.
   if (words.length === 1) return Array.from(words[0]).slice(0, 2).join('').toUpperCase();
   return words
     .slice(0, 2)

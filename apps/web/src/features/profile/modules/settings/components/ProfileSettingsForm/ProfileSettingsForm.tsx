@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
   Alert,
   Button,
   Divider,
   Group,
   Paper,
-  Select,
+  SegmentedControl,
   SimpleGrid,
   Stack,
   Switch,
@@ -50,6 +50,7 @@ interface ProfileSettingsFormProps {
 
 export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isSaving, onSave }) => {
   const { setColorScheme } = useMantineColorScheme();
+  const themeLabelId = useId();
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<ProfileFormValues>({
@@ -68,13 +69,10 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
 
     try {
       await onSave({ profile: profileUpdates, preferences: preferencesUpdates, theme: values.theme });
-      // Solo un cambio de tema guardado en el perfil reemplaza al override del toggle de la sesión.
       if ('theme' in preferencesUpdates) {
         clearSessionColorScheme();
         setColorScheme(values.theme);
       }
-      // Guardar solo preferencias no cambia `profile.updatedAt` (la `key` que remonta el form):
-      // los valores guardados pasan a ser la nueva base para `isDirty`.
       form.resetDirty(values);
       notifySuccess('Cambios guardados correctamente');
     } catch (err) {
@@ -137,12 +135,21 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
                   aria-label="Notificaciones"
                 />
               </Group>
-              <Select
-                label="Tema"
-                data={PROFILE_THEME_OPTIONS}
-                allowDeselect={false}
-                {...form.getInputProps('theme')}
-              />
+              <Stack gap="2xs">
+                <Text id={themeLabelId} fw={500} size="sm">
+                  Tema
+                </Text>
+                <SegmentedControl
+                  aria-labelledby={themeLabelId}
+                  data={[...PROFILE_THEME_OPTIONS]}
+                  size="sm"
+                  radius="md"
+                  color="brand.6"
+                  fullWidth
+                  value={form.values.theme}
+                  onChange={theme => form.setFieldValue('theme', theme as ProfileTheme)}
+                />
+              </Stack>
             </Stack>
           </ProfileSectionCard>
 

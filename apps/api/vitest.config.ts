@@ -20,7 +20,6 @@ export default defineConfig({
           environment: 'node',
           setupFiles: ['src/test/integration/setupIntegrationEnv.ts', 'src/test/integration/setupIntegrationDb.ts'],
           include: ['src/**/__tests__/integration/**/*.test.ts'],
-          // El override de prisma que acota cada test a una transacción es estado de módulo.
           fileParallelism: false,
           pool: 'forks',
           maxWorkers: 1,

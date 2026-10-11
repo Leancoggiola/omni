@@ -25,7 +25,6 @@ export function HomeScreen() {
     <Screen>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: SPACING.xl }}>
         <SectionCard>
-          {/* Sin ScreenHeader, el saludo es lo primero que lee un lector de pantalla: lleva el nombre de la pantalla. */}
           <YStack
             gap={SPACING['2xs']}
             accessible

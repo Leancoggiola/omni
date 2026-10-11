@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fetchHolidays } from '../holidays/wikipedia.service';
 
-// Lo único que sale a internet es el fetch global: se reemplaza por un mock en cada caso.
+/** Lo único que sale a internet es el fetch global: se reemplaza por un mock en cada caso. */
 const fetchMock = vi.fn<typeof fetch>();
 
 function timeoutError(): DOMException {

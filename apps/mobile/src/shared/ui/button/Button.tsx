@@ -64,7 +64,6 @@ export function Button({
       alignItems="center"
       justifyContent="center"
       onPress={interactive ? onPress : undefined}
-      // Sin feedback de toque mientras ignora los toques (loading o disabled).
       pressStyle={interactive ? { backgroundColor: palette.backgroundPress, opacity: palette.pressOpacity } : undefined}
       hitSlop={touchHitSlop(metrics.height)}
       accessible
@@ -86,7 +85,6 @@ export function Button({
       </XStack>
       {loading ? (
         <YStack position="absolute" top={0} right={0} bottom={0} left={0} alignItems="center" justifyContent="center">
-          {/* El botón ya anuncia `busy`: el Spinner no es un nodo aparte para TalkBack. */}
           <Spinner
             size="small"
             color={palette.color}

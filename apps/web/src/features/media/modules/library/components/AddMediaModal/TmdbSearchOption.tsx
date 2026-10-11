@@ -17,7 +17,6 @@ export const TmdbSearchOption = memo(function TmdbSearchOption({ item, alreadyAd
   const title = getTmdbResultTitle(item);
   const key = getTmdbResultKey(item);
 
-  // TODO: CHECK
   return (
     <Combobox.Option value={key} disabled={alreadyAdded}>
       <Group gap="sm" wrap="nowrap">

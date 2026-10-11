@@ -12,8 +12,6 @@ beforeAll(async () => {
   await basePrisma.$connect();
 });
 
-// Cada test corre dentro de una transacción que nunca se commitea, así la base queda
-// idéntica antes y después. Requiere fileParallelism: false — el override es estado de módulo.
 beforeEach(async () => {
   resetRecordedCalls();
 

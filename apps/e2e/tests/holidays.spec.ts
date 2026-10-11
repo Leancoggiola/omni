@@ -1,9 +1,9 @@
 import { expect, test } from '../src/fixtures/test';
 import { HomePage } from '../src/pages/HomePage';
 
-// Títulos ya parseados por la API a partir del feed fijo de src/support/externalStub.mjs, en orden.
+/** Títulos ya parseados por la API a partir del feed fijo de src/support/externalStub.mjs, en orden. */
 const ANIMALS_DAY = 'Día Mundial de los Animales';
-// En el feed viene con prefijo "Argentina Argentina:", así que la card le agrega el sufijo.
+/** En el feed viene con prefijo "Argentina Argentina:", así que la card le agrega el sufijo. */
 const ROAD_DAY_AR = 'Día Nacional del Camino y la Educación Vial · en Argentina';
 const TEACHERS_DAY = 'Día Mundial de los Docentes';
 
@@ -12,8 +12,6 @@ const MONTHS = 'enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|oct
 test.describe('efemérides de hoy', () => {
   test.describe('con el feed del stub', () => {
     test.beforeEach(async ({ page }) => {
-      // El carrusel avanza solo cada 3 s. Con el reloj pausado desde antes de cargar la página
-      // ese timer nunca corre, y el ítem visible cambia únicamente con el click.
       await page.clock.install();
       await page.clock.pauseAt(new Date());
       await new HomePage(page).goto();
@@ -43,7 +41,6 @@ test.describe('efemérides de hoy', () => {
 
     test('marca la efeméride argentina con el sufijo "en Argentina"', async ({ page }) => {
       const home = new HomePage(page);
-      // exact: sin el sufijo, así que confirma que las internacionales no lo llevan.
       await expect(home.holiday(ANIMALS_DAY)).toBeVisible();
 
       await home.nextHoliday();
@@ -63,7 +60,6 @@ test.describe('efemérides de hoy', () => {
   });
 
   test('muestra el estado de error cuando la API falla', async ({ page }) => {
-    // La API cachea el feed del día en memoria: el error se fuerza en el browser, no en el stub.
     await page.route('**/api/holidays/today**', route =>
       route.fulfill({ status: 500, contentType: 'application/json', body: '{"message":"boom"}' })
     );

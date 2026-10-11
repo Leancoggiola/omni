@@ -7,7 +7,8 @@ export class ProfilePage {
   constructor(private readonly page: Page) {}
 
   readonly phoneField = () => this.page.getByRole('textbox', { name: 'Teléfono' });
-  readonly themeSelect = () => this.page.getByRole('combobox', { name: 'Tema' });
+  readonly themeControl = () => this.page.getByRole('radiogroup', { name: 'Tema' });
+  readonly themeOption = (option: ThemeOption) => this.themeControl().getByRole('radio', { name: option });
   readonly notificationsSwitch = () => this.page.getByRole('switch', { name: 'Notificaciones' });
   readonly saveButton = () => this.page.getByRole('button', { name: 'Guardar Cambios' });
   readonly savedNotification = () => this.page.getByRole('alert').filter({ hasText: 'Listo' });
@@ -25,9 +26,9 @@ export class ProfilePage {
     await this.notificationsSwitch().click({ force: true });
   }
 
+  /** El radio de Mantine está oculto visualmente: se clickea su etiqueta. */
   async selectTheme(option: ThemeOption) {
-    await this.themeSelect().click();
-    await this.page.getByRole('option', { name: option, exact: true }).click();
+    await this.themeControl().getByText(option, { exact: true }).click();
   }
 
   async save() {

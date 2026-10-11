@@ -53,7 +53,7 @@ const renderTabBar = (props: BottomTabBarProps) => <MeasuredTabBar {...props} />
 
 const tabLabel = (key: NavKey) => NAV_REGISTRY[key].shortLabel ?? NAV_REGISTRY[key].label;
 
-// No dependen del tema (el color llega por props): se arman una vez y no en cada render del layout.
+/** No dependen del tema (el color llega por props): se arman una vez y no en cada render del layout. */
 const TAB_SCREENS = MOBILE_TAB_KEYS.map(key => ({
   name: TAB_ROUTES[key],
   options: tabOptions(tabLabel(key), NAV_ICONS[key]),
@@ -64,7 +64,6 @@ export default function TabsLayout() {
   const colors = useSemanticColors();
 
   return (
-    // Sin header de navegación: cada pantalla trae su `ScreenHeader` (evita el título duplicado).
     <Tabs
       tabBar={renderTabBar}
       screenOptions={{

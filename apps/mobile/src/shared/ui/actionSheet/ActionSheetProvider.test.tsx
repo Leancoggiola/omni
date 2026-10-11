@@ -135,7 +135,6 @@ describe('actionSheet', () => {
 
   it('avisa en dev si las opciones repiten value, y no avisa si son únicas', () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    // React también avisa de las keys repetidas al renderizar: es el mismo problema, no ruido.
     const reactError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const repeated = [
       { value: 'a', label: 'Uno' },

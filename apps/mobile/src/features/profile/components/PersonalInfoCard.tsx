@@ -25,13 +25,10 @@ export function PersonalInfoCard({ profile, onSave, onFieldFocus }: PersonalInfo
   const [serverPhone, setServerPhone] = useState(profile.phone);
   const [saving, setSaving] = useState(false);
 
-  // Si el perfil trae otro teléfono (p. ej. tras `refresh()`), el campo lo sigue, salvo que el usuario ya
-  // lo haya editado: lo que escribió no se pisa. Ajuste de estado durante el render, sin remontar la card.
   if (profile.phone !== serverPhone) {
     setServerPhone(profile.phone);
     if (phone === (serverPhone ?? '')) setPhone(profile.phone ?? '');
   }
-  // `saving` es estado de React: dos toques en el mismo frame pasarían los dos antes del re-render.
   const submitting = useRef(false);
 
   const updates = buildProfileUpdates(profile, phone);
@@ -43,7 +40,6 @@ export function PersonalInfoCard({ profile, onSave, onFieldFocus }: PersonalInfo
     setSaving(true);
     try {
       await onSave(updates);
-      // Normaliza lo guardado (sin espacios) salvo que el usuario ya haya seguido escribiendo.
       setPhone(current => (current === phone ? (normalizePhone(phone) ?? '') : current));
       notifySuccess('Cambios guardados correctamente');
     } catch (err) {

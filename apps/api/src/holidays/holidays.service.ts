@@ -48,11 +48,15 @@ function todayParts(now = new Date()): DateParts {
   };
 }
 
+/**
+ * El feed es externo y no viene validado: un `holidays` que no es array cuenta como día sin efemérides.
+ * Wikipedia repite la misma celebración en entradas distintas del día, así que se deduplica. El id es
+ * posicional porque los títulos no son identificadores estables.
+ */
 function mapHolidays(raw: WikipediaHolidaysResponse | null, parts: DateParts): TodayHolidays {
   const items: Holiday[] = [];
   const seen = new Set<string>();
 
-  // El feed es externo y no viene validado: un `holidays` que no es array cuenta como día sin efemérides.
   const entries: unknown[] = Array.isArray(raw?.holidays) ? raw.holidays : [];
 
   for (const [index, entry] of entries.entries()) {
@@ -62,13 +66,11 @@ function mapHolidays(raw: WikipediaHolidaysResponse | null, parts: DateParts): T
     const parsed = parseHolidayEntry(text);
     if (!parsed) continue;
 
-    // Wikipedia repite la misma celebración en entradas distintas dentro del mismo día.
     const key = parsed.title.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
 
     items.push({
-      // El id es posicional porque los títulos no son identificadores estables.
       id: `${parts.dateKey}-${index}`,
       title: parsed.title,
       isArgentina: parsed.isArgentina,
@@ -87,6 +89,7 @@ function mapHolidays(raw: WikipediaHolidaysResponse | null, parts: DateParts): T
   };
 }
 
+/** Una respuesta tardía del día anterior no debe pisar el caché del día vigente. */
 export async function getTodayHolidays(): Promise<TodayHolidays> {
   const parts = todayParts();
 
@@ -97,7 +100,6 @@ export async function getTodayHolidays(): Promise<TodayHolidays> {
     .fetchHolidays(parts.month, parts.day)
     .then(raw => {
       const data = mapHolidays(raw, parts);
-      // Una respuesta tardía del día anterior no debe pisar el caché del día vigente.
       if (!cache || cache.dateKey <= parts.dateKey) {
         cache = { dateKey: parts.dateKey, data };
       }

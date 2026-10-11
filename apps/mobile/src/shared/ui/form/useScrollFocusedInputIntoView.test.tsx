@@ -23,7 +23,6 @@ function setup() {
 
 const showKeyboard = async (screenY: number) => {
   await act(async () => listeners.keyboardDidShow({ endCoordinates: { screenY } }));
-  // `scrollIntoView` espera un frame.
   await act(async () => jest.advanceTimersByTime(50));
 };
 
@@ -47,7 +46,6 @@ describe('useScrollFocusedInputIntoView', () => {
     focusInputAt(1000);
     await showKeyboard(900);
 
-    // bottom del campo 1044 + 96 de aire − 900 de teclado = 240
     expect(scrollTo).toHaveBeenCalledWith({ y: 240, animated: true });
   });
 

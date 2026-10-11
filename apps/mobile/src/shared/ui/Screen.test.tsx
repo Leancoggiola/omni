@@ -17,7 +17,6 @@ describe('Screen', () => {
     );
 
     expect(screen.getByText('contenido')).toBeTruthy();
-    // 30 de inset + 16 de margen (SPACING.md).
     expect(screen.UNSAFE_getByProps({ paddingTop: 46 })).toBeTruthy();
   });
 

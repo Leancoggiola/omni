@@ -35,7 +35,6 @@ export function Select<T extends string>({
   const colors = useSemanticColors();
   const name = accessibilityLabel ?? label ?? '';
   const current = data.find(item => item.value === value)?.label ?? '';
-  // Dos toques rápidos abrirían dos sheets en cola.
   const opening = useRef(false);
 
   const open = async () => {

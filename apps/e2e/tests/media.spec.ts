@@ -78,4 +78,27 @@ test.describe('media', () => {
     await page.keyboard.press('Escape');
     await expect(lightbox).toBeHidden();
   });
+
+  test('por debajo de sm muestra la lista, sin toggle de vista', async ({ page }) => {
+    const media = new MediaPage(page);
+    await page.setViewportSize({ width: 375, height: 812 });
+    await media.goto();
+    await media.addViaApi(603, 'movie');
+
+    await expect(page.getByText('The Matrix')).toBeVisible();
+    await expect(media.deleteButtonOf('The Matrix')).toBeVisible();
+    await expect(media.posterOf('The Matrix')).toBeHidden();
+    await expect(media.viewToggle()).toBeHidden();
+  });
+
+  test('desde sm muestra la grilla con el toggle de vista', async ({ page }) => {
+    const media = new MediaPage(page);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await media.goto();
+    await media.addViaApi(603, 'movie');
+
+    await expect(media.viewToggle()).toBeVisible();
+    await expect(media.posterOf('The Matrix')).toBeVisible();
+    await expect(media.deleteButtonOf('The Matrix')).toBeHidden();
+  });
 });

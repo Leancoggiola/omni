@@ -56,8 +56,7 @@ describe('ProfileSettingsForm', () => {
     setSessionColorScheme('light');
     renderWithProviders(<ProfileSettingsForm profile={profile} isSaving={false} onSave={onSave} />);
 
-    fireEvent.click(screen.getByLabelText('Tema', { selector: 'input' }));
-    fireEvent.click(await screen.findByRole('option', { name: 'Oscuro' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Oscuro' }));
     fireEvent.click(saveButton());
 
     await waitFor(() => expect(onSave).toHaveBeenCalled());

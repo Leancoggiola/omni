@@ -84,7 +84,6 @@ describe('useProfile · updatePreferences', () => {
 
     expect(mockPatch).toHaveBeenCalledWith(API_KEYS.users.preferences, { notifications: true });
     expect(result.current.profile.profile?.preferences?.notifications).toBe(true);
-    // El valor sale de la respuesta del PATCH: no hace falta (ni se depende de) volver a pedir el perfil.
     expect(failingFetcher).not.toHaveBeenCalled();
   });
 
@@ -101,7 +100,6 @@ describe('useProfile · updatePreferences', () => {
   });
 
   it('dos PATCH en paralelo: la respuesta más vieja no revierte el otro campo', async () => {
-    // Cada respuesta trae el otro campo con el valor que tenía al procesarse.
     let finishTheme!: (value: { preferences: UserPreferences }) => void;
     mockPatch
       .mockImplementationOnce(() => new Promise(resolve => (finishTheme = resolve as typeof finishTheme)))

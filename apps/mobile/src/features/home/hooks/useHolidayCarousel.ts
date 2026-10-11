@@ -23,8 +23,6 @@ export function useHolidayCarousel<T>(items: T[], duration = 3000) {
     return () => clearTimeout(timeout);
   }, [currentIndex, items.length, duration, next]);
 
-  // Si la lista se achica (ej. llega el día nuevo con menos efemérides), el índice guardado puede
-  // quedar fuera de rango hasta el próximo `next`: se normaliza al leerlo.
   const safeIndex = items.length ? currentIndex % items.length : 0;
 
   return {

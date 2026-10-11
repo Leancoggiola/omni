@@ -53,9 +53,6 @@ export function Banner({ children, color = 'brand', title, icon: IconComponent, 
   const t = BANNER_TOKENS[color];
   const announcement = title ? `${title}. ${children}` : children;
 
-  // Intencional: el Banner es para mensajes que aparecen (error al enviar, resultado de una acción) y
-  // RN no anuncia solo un `role="alert"` recién montado, así que se anuncia al montar o cambiar el
-  // texto (un único anuncio; el rol no dispara otro). Un aviso fijo de la pantalla va con `announce={false}`.
   useEffect(() => {
     if (announce) AccessibilityInfo.announceForAccessibility(announcement);
   }, [announce, announcement]);

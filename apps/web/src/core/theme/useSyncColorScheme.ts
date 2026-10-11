@@ -16,8 +16,6 @@ export function useSyncColorScheme() {
 
   useEffect(() => {
     if (!user) {
-      // Logout o sesión vencida: con override, /login lo conserva (se descarta en el próximo login).
-      // Sin override, vuelve al tema por defecto, igual que tras recargar.
       if (syncedRef.current) {
         syncedRef.current = false;
         if (!getSessionColorScheme()) setColorScheme('auto');

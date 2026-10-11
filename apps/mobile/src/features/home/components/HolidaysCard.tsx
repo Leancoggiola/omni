@@ -13,7 +13,7 @@ import { useHolidayCarousel, useTodayHolidays } from '../hooks';
 
 const HOLIDAY_DURATION = 3000;
 const CARD_MIN_HEIGHT = 60;
-// `activate` es el doble toque de VoiceOver/TalkBack sobre el elemento enfocado.
+/** `activate` es el doble toque de VoiceOver/TalkBack sobre el elemento enfocado. */
 const CAROUSEL_A11Y_ACTIONS = [{ name: 'activate', label: 'Siguiente efeméride' }];
 
 function HolidayProgress({ duration, color }: { duration: number; color: string }) {
@@ -69,16 +69,9 @@ export function HolidaysCard() {
   };
 
   const openSource = () => {
-    // Sin app que abra el link (o URL inválida): no hay nada útil que mostrar, solo evitar el
-    // unhandled rejection.
-    Linking.openURL(holidays.sourceUrl).catch(() => {
-      // noop
-    });
+    Linking.openURL(holidays.sourceUrl).catch(() => {});
   };
 
-  // Lectores de pantalla: el Pressable externo no es accesible (si agrupara a sus hijos,
-  // VoiceOver nunca llegaría al link de Wikipedia). La acción de avanzar vive en el bloque de
-  // texto, que no contiene el link; con un solo ítem ese bloque es solo texto, no botón.
   return (
     <Pressable onPress={next} disabled={!hasCarousel} accessible={false}>
       <YStack borderWidth={1} borderColor="$borderColor" borderRadius={RADIUS.lg} overflow="hidden">

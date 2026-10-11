@@ -12,6 +12,11 @@ function upstreamError(err: unknown, fallbackMessage: string): { status: number;
   return { status: 502, message: fallbackMessage };
 }
 
+/**
+ * Wikimedia lee `User-Agent` en server-to-server y `Api-User-Agent` cuando el request parece de navegador.
+ * El `signal` cubre también la lectura del body: un timeout en `res.json()` se rechaza con el mismo
+ * `TimeoutError`. Un 404 es un día sin celebraciones, no un error.
+ */
 export async function fetchHolidays(month: string, day: string): Promise<WikipediaHolidaysResponse> {
   const url = `${config.wikipedia.baseUrl}/feed/onthisday/holidays/${month}/${day}`;
 
@@ -19,19 +24,16 @@ export async function fetchHolidays(month: string, day: string): Promise<Wikiped
   try {
     res = await fetch(url, {
       headers: {
-        // Wikimedia lee User-Agent en server-to-server y Api-User-Agent cuando el request parece de navegador.
         'User-Agent': config.wikipedia.userAgent,
         'Api-User-Agent': config.wikipedia.userAgent,
         Accept: 'application/json',
       },
-      // Cubre también la lectura del body: un timeout en res.json() se rechaza con el mismo TimeoutError.
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   } catch (err) {
     throw upstreamError(err, 'No se pudo contactar a Wikipedia');
   }
 
-  // Wikipedia responde 404 cuando la fecha no tiene celebraciones: es un día sin efemérides, no un error.
   if (res.status === 404) {
     return { holidays: [] };
   }

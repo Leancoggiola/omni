@@ -34,6 +34,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  /** Viewport del scroll de la lista: en pantallas bajas el efecto de abajo mantiene visible el ítem de la ruta actual. */
   const viewportRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = useCallback(async () => {
@@ -46,11 +47,11 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
     [location.pathname]
   );
 
-  // En pantallas bajas la lista scrollea: el ítem de la ruta actual no puede quedar cortado.
   useEffect(() => {
     viewportRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' });
   }, [location.pathname]);
 
+  /** Sin destino no hay `href`: `role="link"` + `aria-disabled` es el patrón ARIA de link deshabilitado. */
   const renderNavItem = (item: NavItemConfig) => {
     const renderIcon = (active: boolean) => (
       <ThemeIcon variant={active ? 'white' : 'filled'} color="brand" size="lg" radius="md">
@@ -58,7 +59,6 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
       </ThemeIcon>
     );
 
-    // Sin destino no hay `href`: `role="link"` + `aria-disabled` es el patrón ARIA de link deshabilitado.
     if (item.disabled || !item.path) {
       return (
         <NavLink

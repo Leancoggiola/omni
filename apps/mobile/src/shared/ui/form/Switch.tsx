@@ -38,7 +38,6 @@ export function Switch({
       onCheckedChange={onCheckedChange}
       disabled={disabled}
       opacity={disabled ? 0.5 : 1}
-      // Con label el nodo accesible es la fila: el control no se anuncia dos veces.
       {...(label ? { accessible: false, importantForAccessibility: 'no-hide-descendants' as const } : a11y)}
     >
       <TamaguiSwitch.Thumb />

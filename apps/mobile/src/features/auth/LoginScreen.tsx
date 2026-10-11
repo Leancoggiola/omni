@@ -1,7 +1,4 @@
 // tamagui-ignore
-// Sin extracción del compilador de Tamagui: aplana el YStack estático del contenedor y el test (que mockea
-// `tamagui`) lo recibe sin config. Solo se pierde la optimización de esos Stacks: no replicar el ignore sin
-// el mismo motivo (ver Tests en apps/mobile/CLAUDE.md).
 import { loginSchema } from '@omni/shared/auth';
 import { BRAND, RADIUS, SPACING } from '@omni/shared/theme';
 import { useRef, useState } from 'react';
@@ -32,12 +29,10 @@ export function LoginScreen() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // `loading` es estado de React: Enter y toque en el mismo frame pasarían los dos antes del re-render.
   const submitting = useRef(false);
 
   const onSubmit = async () => {
     if (submitting.current) return;
-    // Como web: "Ingresar" siempre habilitado y validación al enviar con el schema compartido.
     const parsed = loginSchema.safeParse({ username: username.trim(), password });
     if (!parsed.success) {
       const errors: FieldErrors = {};
@@ -46,7 +41,6 @@ export function LoginScreen() {
         if ((field === 'username' || field === 'password') && !errors[field]) errors[field] = issue.message;
       }
       setFieldErrors(errors);
-      // El error del servidor de un intento anterior ya no corresponde a lo que hay en los campos.
       setError(null);
       return;
     }
@@ -120,7 +114,6 @@ export function LoginScreen() {
                   autoComplete="username"
                   returnKeyType="next"
                   submitBehavior="submit"
-                  // Tamagui tipa el ref de Input como TamaguiElement; en nativo es el TextInput de RN.
                   onSubmitEditing={() => (passwordRef.current as TextInput | null)?.focus()}
                 />
                 <PasswordField
@@ -134,7 +127,6 @@ export function LoginScreen() {
                   error={fieldErrors.password}
                   autoComplete="current-password"
                   returnKeyType="go"
-                  // Sin cerrar el teclado: al desenfocar, Android pasa el foco al primer campo (Usuario).
                   submitBehavior="submit"
                   onSubmitEditing={() => void onSubmit()}
                 />

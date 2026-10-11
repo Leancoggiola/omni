@@ -3,10 +3,18 @@ import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 
+/** Orden de imports: externos (react, mantine…), alias `@/`, relativos, tipos y CSS. */
+const IMPORT_GROUPS = [
+  ['^react', '^@mantine', '^[a-z]'],
+  ['^@/'],
+  ['^\.\./', '^\./'],
+  ['^.*\\u0000$'],
+  ['^.+\\.s?css$'],
+];
+
 export default [
   ...baseConfig,
 
-  // ── React & Hooks ──────────────────────────────────────────
   {
     files: ['**/*.tsx'],
     plugins: {
@@ -17,17 +25,14 @@ export default [
       react: { version: 'detect' },
     },
     rules: {
-      // React 19+: no need to import React
       'react/react-in-jsx-scope': 'off',
       'react/jsx-uses-react': 'off',
       'react/prop-types': 'off',
       'react/self-closing-comp': 'error',
 
-      // Hooks
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
 
-      // No default exports in components
       'no-restricted-syntax': [
         'error',
         {
@@ -38,7 +43,6 @@ export default [
     },
   },
 
-  // ── Import sort ────────────────────────────────────────────
   {
     files: ['**/*.ts', '**/*.tsx'],
     plugins: { 'simple-import-sort': simpleImportSort },
@@ -46,25 +50,13 @@ export default [
       'simple-import-sort/imports': [
         'error',
         {
-          groups: [
-            // 1. Externals (react, react-dom, mantine, etc.)
-            ['^react', '^@mantine', '^[a-z]'],
-            // 2. Internal aliases (@/...)
-            ['^@/'],
-            // 3. Relative imports
-            ['^\.\./', '^\./'],
-            // 4. Type imports
-            ['^.*\\u0000$'],
-            // 5. CSS / SCSS
-            ['^.+\\.s?css$'],
-          ],
+          groups: IMPORT_GROUPS,
         },
       ],
       'simple-import-sort/exports': 'error',
     },
   },
 
-  // ── TypeScript rules ───────────────────────────────────────
   {
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
@@ -81,7 +73,6 @@ export default [
     },
   },
 
-  // ── Ignores ────────────────────────────────────────────────
   {
     ignores: ['node_modules/', 'dist/', 'coverage/', '.vite/'],
   },

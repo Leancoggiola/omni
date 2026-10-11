@@ -37,17 +37,14 @@ function toTuple(scale: ColorScale10): MantineColorsTuple {
 export const COLOR_PALETTE = {
   brand: toTuple(BRAND),
 
-  // Neutral
   dark: toTuple(DARK),
   gray: toTuple(GRAY),
 
-  // Semantic
   blue: toTuple(BLUE),
   green: toTuple(GREEN),
   red: toTuple(RED),
   orange: toTuple(ORANGE),
 
-  // Extended
   indigo: toTuple(INDIGO),
   lime: toTuple(LIME),
   yellow: toTuple(YELLOW),
@@ -55,7 +52,6 @@ export const COLOR_PALETTE = {
   terracotta: toTuple(TERRACOTTA),
   sage: toTuple(SAGE),
 
-  // Aliases (single-shade virtual palettes)
   success: colorsTuple(SAGE[6]),
   info: colorsTuple(BLUE[6]),
   warning: colorsTuple(ORANGE[8]),

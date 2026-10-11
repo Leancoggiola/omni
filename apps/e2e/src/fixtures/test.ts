@@ -9,7 +9,7 @@ export type WorkerUser = NewUser;
 
 const AUTH_DIR = new URL(`../../.auth${RUN_SUFFIX}/`, import.meta.url);
 
-// PNG de 1x1 transparente.
+/** PNG de 1x1 transparente. */
 const PIXEL = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
   'base64'
@@ -82,8 +82,6 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
     });
   },
 
-  // Los posters salen a image.tmdb.org. Sin esto la suite depende de internet y, peor,
-  // MediaCard reemplaza la imagen por un ícono cuando falla y el lightbox deja de abrirse.
   page: async ({ page }, use) => {
     await page.route('https://image.tmdb.org/**', route => route.fulfill({ contentType: 'image/png', body: PIXEL }));
     await use(page);

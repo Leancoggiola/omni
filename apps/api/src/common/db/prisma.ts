@@ -30,7 +30,7 @@ export function getPrismaOverride(): PrismaTransactionClient | null {
   return override;
 }
 
-// Prisma saca $transaction del cliente interactivo, así las llamadas anidadas corren sobre la misma tx.
+/** Prisma saca $transaction del cliente interactivo, así las llamadas anidadas corren sobre la misma tx. */
 function flattenTransaction(tx: PrismaTransactionClient) {
   return (arg: unknown) =>
     typeof arg === 'function'

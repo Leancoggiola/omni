@@ -48,6 +48,7 @@ Flujo: `develop` → branch `feat/#N-…` / `fix/#N-…` → PR a `develop` → 
 6. **Auth** — web: cookies; mobile: Bearer + SecureStore. Mismos endpoints; login/refresh también devuelven tokens en el body.
 7. **Referencias** — web: `home` / `media` / `profile`; mobile: mismas features bajo `apps/mobile/src/features/`.
 8. **Exploración transversal** — flujo o impacto cruzando `api`/`shared`/`web`/`mobile`: `codegraph_explore` (una sola llamada), nunca `sync` manual. Referencias de un símbolo dentro de un proyecto → Grep.
+9. **Comentarios** — solo JSDoc (`/** */`) sobre declaraciones; nada de `//` ni `/* */` entre líneas (salvo directivas: `eslint-disable`, `@ts-expect-error`, `tamagui-ignore`).
 
 ---
 

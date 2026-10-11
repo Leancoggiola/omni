@@ -81,13 +81,11 @@ describe('useTodayHolidays', () => {
     });
     expect(mutate).toHaveBeenCalledTimes(1);
 
-    // La respuesta repite el día anterior: se sigue reintentando.
     act(() => {
       vi.advanceTimersByTime(STALE_DAY_RETRY_MS);
     });
     expect(mutate).toHaveBeenCalledTimes(2);
 
-    // El servidor ya cambió de día: no hay más reintentos.
     useSWRImmutable.mockReturnValue(swrState({ data: holidays('2026-10-07') }));
     rerender();
     act(() => {

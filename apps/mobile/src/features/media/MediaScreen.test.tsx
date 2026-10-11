@@ -16,7 +16,6 @@ jest.mock(
   'react-native-safe-area-context',
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default
 );
-// `Select` importa actionSheet por ruta relativa: se mockea el módulo, no solo el índice.
 jest.mock('@/shared/ui/actionSheet/actionSheet', () => ({ actionSheet: jest.fn() }));
 jest.mock('@/shared/ui', () => ({
   ...jest.requireActual('@/shared/ui'),
@@ -234,7 +233,6 @@ describe('MediaScreen · agregar', () => {
     await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));
     expect(mockMutations.addToList).toHaveBeenCalledWith(438631, 'movie', 'to_watch');
 
-    // Antes de que termine la salida, se vuelve a abrir: el sheet se remonta y su Modal sigue visible.
     fireEvent.press(fab);
     act(() => jest.advanceTimersByTime(SHEET_EXIT_MS));
     expect(notifySuccess).not.toHaveBeenCalled();

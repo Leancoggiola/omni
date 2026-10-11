@@ -41,7 +41,6 @@ export const HolidaysCard: FC = () => {
   }
 
   if (isLoading) {
-    // Skeleton propio (no LoadingState): conserva el alto de la card dentro del grid de la home.
     return <Skeleton w="100%" h="3.75rem" role="status" aria-busy="true" aria-label="Cargando efemérides" />;
   }
 
@@ -74,13 +73,10 @@ export const HolidaysCard: FC = () => {
       onBlur={handleBlur}
     >
       <Group align="flex-start" wrap="nowrap" gap="sm" p="md">
-        {/* El chip es blanco en ambos esquemas: el ícono usa el primario relleno, que contrasta sobre blanco. */}
         <ThemeIcon variant="white" c="var(--mantine-primary-color-filled)" size="lg" radius="md">
           <ConfettiIcon size="1.25rem" />
         </ThemeIcon>
 
-        {/* El Paper avanza con el mouse en cualquier parte; para teclado/lectores el control es solo
-            el bloque de texto, así el link a Wikipedia queda como hermano y no anidado en el botón. */}
         <Stack
           gap="2xs"
           flex={1}

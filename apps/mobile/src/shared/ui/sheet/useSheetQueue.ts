@@ -33,13 +33,8 @@ export function useSheetQueue<T, R extends SheetRequest<T>>(
 ): SheetQueue<T, R> {
   const [pending, setPending] = useState<R[]>([]);
   const [current, setCurrent] = useState<R | null>(null);
-  // El Sheet de Tamagui solo se resincroniza con `open` cuando la prop cambia: si la siguiente
-  // request entrara sin pasar por `open=false`, un cierre por overlay/gesto dejaría la cola trabada.
-  // Por eso `current` vuelve a null entre requests y la siguiente entra al terminar el cierre.
   const [closing, setClosing] = useState(false);
   const [shown, setShown] = useState<R | null>(null);
-  // Ref además del estado: el botón y el `onOpenChange(false)` del cierre pueden llegar en el mismo
-  // tick, y la request tiene que resolverse una sola vez. Solo se escribe en efectos y handlers.
   const currentRef = useRef<R | null>(null);
 
   const pendingRef = useRef<R[]>([]);
@@ -58,8 +53,6 @@ export function useSheetQueue<T, R extends SheetRequest<T>>(
     const unregister = registerRef.current(request => setPending(queue => [...queue, request]));
     return () => {
       unregister();
-      // Si el provider se desmonta con requests abiertas, el `await` no queda colgado. Se lee el
-      // `cancelValue` vigente al desmontar, a propósito.
       const cancel = cancelRef.current;
       currentRef.current?.resolve(cancel);
       pendingRef.current.forEach(request => request.resolve(cancel));
@@ -84,14 +77,12 @@ export function useSheetQueue<T, R extends SheetRequest<T>>(
     setClosing(true);
   }, []);
 
-  // Respaldo por si `onAnimationComplete` no llega (p. ej. sin driver de animación): la cola no se traba.
   useEffect(() => {
     if (!closing) return;
     const timer = setTimeout(() => setClosing(false), SHEET_EXIT_MS);
     return () => clearTimeout(timer);
   }, [closing]);
 
-  // `@tamagui/sheet` no escucha el botón Atrás de Android: sin esto navegaría la pantalla de abajo.
   useEffect(() => {
     if (!current) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {

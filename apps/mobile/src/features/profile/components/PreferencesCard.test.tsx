@@ -33,7 +33,6 @@ describe('PreferencesCard', () => {
     const { rerender } = render(<PreferencesCard values={VALUES} onChange={onChange} />);
 
     await act(async () => fireEvent.press(screen.getByRole('radio', { name: 'Oscuro' })));
-    // El padre (cache de SWR) ya trae el valor guardado.
     rerender(<PreferencesCard values={{ ...VALUES, theme: 'dark' }} onChange={onChange} />);
 
     expect(onChange).toHaveBeenCalledWith({ theme: 'dark' });
@@ -62,7 +61,6 @@ describe('PreferencesCard', () => {
     expect(onChange).toHaveBeenNthCalledWith(1, { theme: 'dark' });
     expect(onChange).toHaveBeenNthCalledWith(2, { notifications: true });
 
-    // Falla solo el tema: vuelve ese; notificaciones sigue mostrando el valor nuevo mientras está en vuelo.
     await act(async () => theme.reject(new Error('No hay red')));
     expect(screen.getByRole('radio', { name: 'Claro', checked: true })).toBeTruthy();
     expect(screen.getByRole('switch', { name: 'Notificaciones' })).toHaveProp('accessibilityState', {

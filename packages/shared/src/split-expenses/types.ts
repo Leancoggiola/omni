@@ -60,8 +60,6 @@ export interface GatheringSummary {
   totalAmount: number;
 }
 
-// ── Client form state ─────────────────────────────────────────
-
 /** Client form state for adding a saved friend. */
 export interface FriendFormValues {
   name: string;

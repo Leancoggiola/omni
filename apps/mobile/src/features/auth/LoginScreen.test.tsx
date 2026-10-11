@@ -72,7 +72,6 @@ describe('LoginScreen', () => {
     submit();
 
     expect(screen.getByRole('button', { name: 'Ingresar', busy: true })).toBeTruthy();
-    // El botón ocupado ignora el toque; el guard también cubre Enter en la contraseña.
     submit();
     fireEvent(screen.getByLabelText('Contraseña'), 'submitEditing');
     expect(mockLogin).toHaveBeenCalledTimes(1);

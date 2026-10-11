@@ -11,6 +11,7 @@ export class MediaPage {
   readonly saveButton = () => this.page.getByRole('button', { name: 'Guardar' });
   readonly statusOf = (title: string) => this.page.getByRole('combobox', { name: `Estado de ${title}` });
   readonly deleteButtonOf = (title: string) => this.page.getByRole('button', { name: `Eliminar ${title}` });
+  readonly viewToggle = () => this.page.getByRole('radiogroup', { name: 'Vista' });
   readonly posterOf = (title: string) => this.page.getByRole('img', { name: title });
 
   async goto() {

@@ -23,7 +23,6 @@ export function MoreScreen() {
     if (loggingOut) return;
     setLoggingOut(true);
     try {
-      // Al quedar sin sesión, AuthGate redirige a /login.
       await logout();
     } catch (err) {
       notifyError(getErrorMessage(err, 'No se pudo cerrar la sesión'));
@@ -48,8 +47,6 @@ export function MoreScreen() {
         </SectionCard>
         {user?.role === 'ADMIN' ? (
           <SectionCard>
-            {/* Sin título: la única fila ya dice "Administración". En mobile sale como "Próximamente"
-                (`availableOn: ['web']`) hasta que exista la pantalla. */}
             {ADMIN_NAV_ORDER.map(key => (
               <NavRow key={key} navKey={key} />
             ))}

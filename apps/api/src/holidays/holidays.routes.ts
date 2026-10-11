@@ -5,7 +5,7 @@ import { authenticateJwt } from '../auth/middleware/auth.middleware';
 import { createRateLimiter } from '../common/utils';
 import * as holidaysService from './holidays.service';
 
-// El caché diario ya protege a Wikipedia; este límite protege a la API.
+/** El caché diario ya protege a Wikipedia; este límite protege a la API. */
 const holidaysLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 60,

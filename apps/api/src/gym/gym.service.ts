@@ -236,7 +236,6 @@ export async function deleteExercise(userId: string, exerciseId: string) {
     where: { day: { planId } },
   });
 
-  // Cascade: borrar el plan si queda vacío (sin días ni ejercicios).
   if (remainingInPlan === 0) {
     await prisma.gymPlan.delete({ where: { id: planId } });
   }

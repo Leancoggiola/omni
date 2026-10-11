@@ -58,7 +58,6 @@ export const API_ENV: Record<string, string> = {
   CORS_ORIGIN: WEB_URL,
   TMDB_BASE_URL: EXTERNAL_STUB_URL,
   WIKIPEDIA_BASE_URL: EXTERNAL_STUB_URL,
-  // Con override de la base, el archivo .env.e2e se pisa; sin él manda el archivo.
   ...(DB_E2E_PORT
     ? {
         DATABASE_URL: withDbPort(readApiEnvE2e('DATABASE_URL')),

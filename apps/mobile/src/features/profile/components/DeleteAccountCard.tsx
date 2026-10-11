@@ -10,7 +10,6 @@ type DeleteAccountCardProps = {
 /** Zona de peligro (= `DeleteAccountButton` de web): advertencia + botón destructivo + `confirm()`. */
 export function DeleteAccountCard({ onDelete }: DeleteAccountCardProps) {
   const [loading, setLoading] = useState(false);
-  // La cuenta ya no existe: si la pantalla sigue montada (falló el cierre de sesión local) el botón no se reactiva.
   const [deleted, setDeleted] = useState(false);
   const busy = useRef(false);
 

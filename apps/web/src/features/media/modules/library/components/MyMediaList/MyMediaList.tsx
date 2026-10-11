@@ -1,5 +1,6 @@
 import { FC, useMemo } from 'react';
-import { Button, SimpleGrid, Stack } from '@mantine/core';
+import { Button, SimpleGrid, Stack, useMantineTheme } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 
 import { EmptyState, ErrorState, LoadingState } from '@/shared/ui';
 
@@ -31,6 +32,10 @@ export const MyMediaList: FC<MyMediaListProps> = ({
   onStatusChange,
   onDelete,
 }) => {
+  const theme = useMantineTheme();
+  const isWide = useMediaQuery(`(min-width: ${theme.breakpoints.sm})`, undefined, {
+    getInitialValueInEffect: false,
+  });
   const filteredItems = useMemo(() => {
     if (!items) return [];
     const q = searchText.trim().toLowerCase();
@@ -66,8 +71,8 @@ export const MyMediaList: FC<MyMediaListProps> = ({
 
   return (
     <Stack gap="md">
-      {displayMode === 'grid' ? (
-        <SimpleGrid cols={{ base: 2, sm: 3, lg: 4 }} spacing="md">
+      {isWide && displayMode === 'grid' ? (
+        <SimpleGrid cols={{ base: 3, lg: 4 }} spacing="md">
           {filteredItems.map(item => (
             <MediaCard key={item.id} item={item} onStatusChange={onStatusChange} onDelete={onDelete} />
           ))}

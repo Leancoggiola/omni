@@ -58,10 +58,8 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
   const [status, setStatus] = useState<MediaStatus>('to_watch');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  // El Modal sigue visible hasta que termina la animación de cierre del Sheet.
   const [visible, setVisible] = useState(open);
   if (open && !visible) setVisible(true);
-  // El estado de React llega tarde para cortar un doble toque en "Agregar".
   const submittingRef = useRef(false);
   const { results, error, isLoading, tooShort, retry } = useMediaSearch(query);
 
@@ -86,7 +84,6 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
     setSubmitError(null);
     try {
       await onSubmit(selection.tmdbId, selection.mediaType, status);
-      // Se cierra sin liberar el envío: durante la salida "Agregar" sigue bloqueado y no reenvía.
       onOpenChange(false);
     } catch (err) {
       setSubmitError(getErrorMessage(err, 'No se pudo agregar'));
@@ -133,7 +130,6 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
         />
       );
     });
-    // Con una búsqueda nueva en curso, los resultados anteriores siguen a la vista con el spinner arriba.
     return (
       <>
         {isLoading ? (

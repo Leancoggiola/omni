@@ -83,24 +83,29 @@ function stripRepeatedPrefix(text: string): { rest: string; prefix: string } | n
   return null;
 }
 
-/** `null` si el texto no arranca con un prefijo supranacional; si arranca, el texto sin él. */
+/**
+ * `null` si el texto no arranca con un prefijo supranacional; si arranca, el texto sin él. Sin dos puntos solo
+ * es prefijo si lo que sigue arranca como título: "Mundial de Clubes" no lo es.
+ */
 function stripSupranationalPrefix(text: string): string | null {
   const match = text.match(SUPRANATIONAL_PREFIX);
   if (!match) return null;
 
   const rest = text.slice(match[0].length).trim();
-  // Sin dos puntos solo es prefijo si lo que sigue arranca como título: "Mundial de Clubes" no lo es.
   if (!match[2] && !TITLE_START.test(rest)) return null;
 
   return rest;
 }
 
+/**
+ * Va después de los supranacionales: "Unión Europea Unión Europea: …" tiene la misma forma que un país pero
+ * es internacional. Con bandera ajena la entrada se descarta más arriba, sin limpiar el prefijo.
+ */
 function stripCountryPrefix(text: string): {
   rest: string;
   isArgentina: boolean;
   hadCountry: boolean;
 } {
-  // Antes que los países: "Unión Europea Unión Europea: …" tiene la misma forma pero es internacional.
   const supranational = stripSupranationalPrefix(text);
   if (supranational !== null) return { rest: supranational, isArgentina: false, hadCountry: false };
 
@@ -110,7 +115,6 @@ function stripCountryPrefix(text: string): {
     const isArgentina = flagMatch[0].trim() === ARGENTINA_FLAG;
     const withoutFlag = text.slice(flagMatch[0].length).trim();
 
-    // Bandera ajena: la entrada se descarta más arriba, no hace falta limpiar el prefijo.
     if (!isArgentina) return { rest: withoutFlag, isArgentina: false, hadCountry: true };
 
     return { rest: stripRepeatedPrefix(withoutFlag)?.rest ?? withoutFlag, isArgentina: true, hadCountry: true };
@@ -133,7 +137,10 @@ function stripSubregions(text: string): string {
   return rest;
 }
 
-/** `null` cuando la entrada se descarta (país ajeno, religiosa o vacía). */
+/**
+ * `null` cuando la entrada se descarta (país ajeno, religiosa o vacía). Un paréntesis inicial ya quitado deja
+ * sus dos puntos: "(ciertas regiones): Día del Mediterráneo".
+ */
 export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
   const normalized = rawText.replace(/\s+/g, ' ').trim();
   if (!normalized) return null;
@@ -149,7 +156,6 @@ export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
   const title = (split?.[1] ?? cleaned)
     .replace(/[.:]$/, '')
     .replace(/\([^)]*\)/g, '')
-    // Un paréntesis inicial ya quitado deja sus dos puntos: "(ciertas regiones): Día del Mediterráneo".
     .replace(/^[:\s]+/, '')
     .trim();
   if (!title) return null;

@@ -14,13 +14,13 @@ describe('useToday', () => {
   });
 
   it('usa el día de APP_TIMEZONE, no el UTC', () => {
-    vi.setSystemTime(new Date('2026-10-08T01:00:00Z')); // 22:00 del 7 en Buenos Aires
+    vi.setSystemTime(new Date('2026-10-08T01:00:00Z'));
     const { result } = renderHook(() => useToday());
     expect(result.current).toBe('2026-10-07');
   });
 
   it('cambia al cruzar la medianoche', () => {
-    vi.setSystemTime(new Date('2026-10-08T02:59:30Z')); // 23:59:30 del 7
+    vi.setSystemTime(new Date('2026-10-08T02:59:30Z'));
     const { result } = renderHook(() => useToday());
     expect(result.current).toBe('2026-10-07');
     act(() => {
@@ -32,7 +32,7 @@ describe('useToday', () => {
   it('se actualiza al volver a la pestaña', () => {
     vi.setSystemTime(new Date('2026-10-08T02:00:00Z'));
     const { result } = renderHook(() => useToday());
-    vi.setSystemTime(new Date('2026-10-08T04:00:00Z')); // timers frenados: pasó la medianoche
+    vi.setSystemTime(new Date('2026-10-08T04:00:00Z'));
     act(() => {
       document.dispatchEvent(new Event('visibilitychange'));
     });

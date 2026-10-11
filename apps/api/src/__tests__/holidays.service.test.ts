@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { WikipediaHolidaysResponse } from '@omni/shared/holidays';
 
-// Lo único que sale a internet.
 vi.mock('../holidays/wikipedia.service');
 
 import { getTodayHolidays, resetHolidaysCache } from '../holidays/holidays.service';
@@ -37,7 +36,6 @@ describe('holidays.service', () => {
     });
 
     it('usa el día de APP_TIMEZONE, no el UTC', async () => {
-      // 02:00 UTC del 6 de enero es todavía el 5 de enero 23:00 en Buenos Aires.
       vi.setSystemTime(new Date('2026-01-06T02:00:00Z'));
       mockedWikipedia.fetchHolidays.mockResolvedValue(rawResponse('Día de Reyes'));
 

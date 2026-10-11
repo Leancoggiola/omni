@@ -14,11 +14,15 @@ import { MONTSERRAT_FACES } from '@/theme/fonts';
 import { tamaguiConfig } from '@/theme/tamagui.config';
 import { ActionSheetProvider, ConfirmProvider, NotificationsProvider, Spinner } from '@/shared/ui';
 
-// La splash nativa queda visible hasta que se resuelvan las fuentes (ver RootLayout). Puede
-// rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
-SplashScreen.preventAutoHideAsync().catch(() => {
-  // noop
-});
+/**
+ * La splash nativa queda visible hasta que se resuelvan las fuentes (ver `RootLayout`). `preventAutoHideAsync`
+ * puede rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
+ */
+function holdSplash() {
+  SplashScreen.preventAutoHideAsync().catch(() => {});
+}
+
+holdSplash();
 
 function AuthGate() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -42,7 +46,6 @@ function AuthGate() {
     return <Redirect href="/(tabs)" />;
   }
 
-  // Sin header nativo en ninguna ruta: cada pantalla trae su `ScreenHeader` (Perfil, con el botón de volver).
   return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.body } }} />;
 }
 
@@ -59,8 +62,11 @@ function ThemedRoot({ children }: PropsWithChildren) {
   );
 }
 
+/**
+ * Sin las fuentes, el primer render saldría con la tipografía del sistema y saltaría al cargarlas; mientras
+ * tanto se ve la splash. Si fallan se sigue con la del sistema en vez de quedar en blanco.
+ */
 export default function RootLayout() {
-  // Solo para el primer render: el tema efectivo lo fija ThemedRoot.
   const systemScheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts(MONTSERRAT_FACES);
   const fontsSettled = fontsLoaded || !!fontError;
@@ -69,8 +75,6 @@ export default function RootLayout() {
     if (fontsSettled) void SplashScreen.hideAsync();
   }, [fontsSettled]);
 
-  // Sin las fuentes, el primer render saldría con la tipografía del sistema y saltaría al cargarlas;
-  // mientras tanto se ve la splash. Si fallan se sigue con la del sistema en vez de quedar en blanco.
   if (!fontsSettled) return null;
 
   return (

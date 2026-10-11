@@ -24,8 +24,6 @@ export const createUserSchema = z.object({
 });
 export type CreateUserPayload = z.infer<typeof createUserSchema>;
 
-// ── Client form schema ────────────────────────────────────────
-
 /** Valores crudos del form "Crear usuario" de web: strings (el email vacío es "sin email") + confirmación. */
 export interface CreateUserFormValues {
   username: string;

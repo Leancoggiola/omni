@@ -4,8 +4,10 @@ export class SplitExpensesPage {
   constructor(private readonly page: Page) {}
 
   readonly friendsButton = () => this.page.getByRole('button', { name: 'Amigos' });
-  // Sin juntadas, el estado vacío suma su propio "Nueva juntada" (abre el mismo modal): se usa el de la cabecera,
-  // que siempre está, para no depender de si el usuario del worker ya tiene juntadas.
+  /**
+   * Sin juntadas, el estado vacío suma su propio "Nueva juntada" (abre el mismo modal): se usa el de la cabecera,
+   * que siempre está, para no depender de si el usuario del worker ya tiene juntadas.
+   */
   readonly newGatheringButton = () => this.page.getByRole('button', { name: 'Nueva juntada' }).first();
 
   readonly friendNameField = () => this.page.getByPlaceholder('Nombre', { exact: true });

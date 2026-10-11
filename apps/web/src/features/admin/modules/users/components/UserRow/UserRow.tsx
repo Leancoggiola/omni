@@ -22,7 +22,6 @@ function formatCreatedAt(createdAt: string): string {
 export const UserRow: FC<UserRowProps> = ({ user, onDelete }) => {
   const [deleting, setDeleting] = useState(false);
 
-  // Los administradores no se pueden eliminar (la API también lo rechaza).
   const canDelete = user.role === 'USER';
 
   const handleDelete = async () => {

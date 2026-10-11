@@ -20,7 +20,6 @@ export function PasswordCard({ onSubmit, onFieldFocus }: PasswordCardProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<PasswordFormErrors>({});
   const [loading, setLoading] = useState(false);
-  // `loading` es estado de React: Enter y toque en el mismo frame pasarían los dos antes del re-render.
   const submitting = useRef(false);
 
   const dirty = newPassword !== '' || confirmPassword !== '';
@@ -61,7 +60,6 @@ export function PasswordCard({ onSubmit, onFieldFocus }: PasswordCardProps) {
           autoComplete="new-password"
           returnKeyType="next"
           submitBehavior="submit"
-          // Tamagui tipa el ref de Input como TamaguiElement; en nativo es el TextInput de RN.
           onSubmitEditing={() => (confirmRef.current as TextInput | null)?.focus()}
         />
         <PasswordField
@@ -76,7 +74,6 @@ export function PasswordCard({ onSubmit, onFieldFocus }: PasswordCardProps) {
           error={errors.confirmPassword}
           autoComplete="new-password"
           returnKeyType="go"
-          // Sin cerrar el teclado: al desenfocar, Android pasa el foco al primer campo.
           submitBehavior="submit"
           onSubmitEditing={() => void handleSubmit()}
         />

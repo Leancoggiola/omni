@@ -8,13 +8,13 @@ export const BRAND = {
   3: '#D29A76',
   4: '#BD7C57',
   5: '#9C5F42',
-  6: '#7A4530', // base
+  6: '#7A4530',
   7: '#5C3222',
   8: '#452416',
   9: '#2F180E',
 } as const;
 
-// Neutral Colors
+/** Neutral Colors */
 export const DARK = {
   0: '#DDDDDD',
   1: '#CACACA',
@@ -22,23 +22,23 @@ export const DARK = {
   3: '#5E5E5E',
   4: '#3B3B3B',
   5: '#353535',
-  6: '#292929', // base
+  6: '#292929',
   7: '#202020',
   8: '#1B1B1B',
   9: '#121212',
 } as const;
 
 export const GRAY = {
-  0: '#F5F5F5', // 0
-  1: '#E0E0E0', // 1
-  2: '#CCCCCC', // 2
-  3: '#B3B3B3', // 3
-  4: '#939393', // 4
-  5: '#707070', // 5
-  6: '#606060', // 6
-  7: '#4D4D4D', // 7
-  8: '#232323', // 8 (base)
-  9: '#161515', // 9
+  0: '#F5F5F5',
+  1: '#E0E0E0',
+  2: '#CCCCCC',
+  3: '#B3B3B3',
+  4: '#939393',
+  5: '#707070',
+  6: '#606060',
+  7: '#4D4D4D',
+  8: '#232323',
+  9: '#161515',
 } as const;
 
 /** App canvas — warm off-white / deep neutral, tuned to sit under the terracotta brand. */
@@ -60,7 +60,7 @@ export const SURFACE = {
  */
 export const onFill = (fill: string): string => pickOnFill(fill, ['#ffffff', CANVAS.dark]);
 
-// Semantic Colors
+/** Semantic Colors */
 export const BLUE = {
   0: '#E7F5FF',
   1: '#D0EBFF',
@@ -68,7 +68,7 @@ export const BLUE = {
   3: '#68ACE2',
   4: '#4599DE',
   5: '#2D8AD8',
-  6: '#1878CB', // base
+  6: '#1878CB',
   7: '#1971C0',
   8: '#1665AE',
   9: '#155999',
@@ -82,7 +82,7 @@ export const GREEN = {
   4: '#489856',
   5: '#348641',
   6: '#277635',
-  7: '#1F682C', // base
+  7: '#1F682C',
   8: '#1B5B27',
   9: '#185023',
 } as const;
@@ -95,7 +95,7 @@ export const RED = {
   4: '#E57979',
   5: '#E56060',
   6: '#E14949',
-  7: '#D83737', // base
+  7: '#D83737',
   8: '#C92C2C',
   9: '#B41E25',
 } as const;
@@ -109,11 +109,11 @@ export const ORANGE = {
   5: '#E58326',
   6: '#E37111',
   7: '#DE5C06',
-  8: '#D3450D', // base
+  8: '#D3450D',
   9: '#C3400D',
 } as const;
 
-// Extended Colors
+/** Extended Colors */
 export const INDIGO = {
   0: '#FAF2FF',
   1: '#F6EFFF',
@@ -121,7 +121,7 @@ export const INDIGO = {
   3: '#E7D5FF',
   4: '#DAC1FF',
   5: '#CEACFF',
-  6: '#A97DF4', // base
+  6: '#A97DF4',
   7: '#976AEC',
   8: '#7F51E2',
   9: '#6B3BD9',
@@ -136,7 +136,7 @@ export const LIME = {
   4: '#CCEE4E',
   5: '#BBE813',
   6: '#9FD10F',
-  7: '#89BF0C', // base
+  7: '#89BF0C',
   8: '#71AB08',
   9: '#51830B',
   10: '#3B7F00',
@@ -151,7 +151,7 @@ export const YELLOW = {
   5: '#FFDE21',
   6: '#FFC722',
   7: '#FFB122',
-  8: '#FF9723', // base
+  8: '#FF9723',
   9: '#FF8123',
   10: '#FF6D24',
 } as const;
@@ -163,7 +163,7 @@ export const PINK = {
   3: '#E566B6',
   4: '#DF40A3',
   5: '#D40085',
-  6: '#BE017A', // base
+  6: '#BE017A',
   7: '#AC0171',
   8: '#970266',
   9: '#85025D',
@@ -178,7 +178,7 @@ export const TERRACOTTA = {
   3: '#EC9A70',
   4: '#E2794C',
   5: '#D66435',
-  6: '#C1440E', // base
+  6: '#C1440E',
   7: '#A83A0C',
   8: '#8A2F0A',
   9: '#6E2508',
@@ -193,7 +193,7 @@ export const SAGE = {
   3: '#A3BC98',
   4: '#87A67A',
   5: '#6C8F5F',
-  6: '#57764B', // base
+  6: '#57764B',
   7: '#46603C',
   8: '#374B2F',
   9: '#2A3A24',
@@ -207,7 +207,6 @@ const withAlpha = (hex: string, alphaHex: string) => `${hex}${alphaHex}`;
  * Semantic color tokens — Light mode
  */
 export const semanticLight = {
-  // Text
   '--mantine-color-text-title': GRAY[9],
   '--mantine-color-text-default': GRAY[8],
   '--mantine-color-text-dimmed': GRAY[5],
@@ -232,7 +231,6 @@ export const semanticLight = {
   '--mantine-color-text-white': '#ffffff',
   '--mantine-color-text-black': '#000000',
 
-  // Surfaces
   '--mantine-color-surfaces-primary': BRAND[5],
   '--mantine-color-surfaces-primary-hover': BRAND[8],
   '--mantine-color-surfaces-primary-disabled': withAlpha(BRAND[7], '4d'),
@@ -266,7 +264,6 @@ export const semanticLight = {
   '--mantine-color-surfaces-info-high': BLUE[6],
   '--mantine-color-surfaces-warning-high': ORANGE[6],
 
-  // Border
   '--mantine-color-border-primary': BRAND[5],
   '--mantine-color-border-primary-hover': BRAND[8],
   '--mantine-color-border-primary-disabled': withAlpha(BRAND[7], '4d'),
@@ -287,7 +284,6 @@ export const semanticLight = {
   '--mantine-color-border-focus-tab': '#000000',
   '--mantine-color-border-white': '#ffffff',
 
-  // Icons
   '--mantine-color-icons-primary': BRAND[5],
   '--mantine-color-icons-primary-hover': BRAND[8],
   '--mantine-color-icons-primary-disabled': withAlpha(BRAND[7], '4d'),
@@ -312,7 +308,6 @@ export const semanticLight = {
  * Semantic color tokens — Dark mode
  */
 export const semanticDark = {
-  // Text
   '--mantine-color-text-title': DARK[0],
   '--mantine-color-text-default': '#ffffff',
   '--mantine-color-text-dimmed': GRAY[2],
@@ -336,7 +331,6 @@ export const semanticDark = {
 
   '--mantine-color-text-link-default': BRAND[3],
 
-  // Surfaces
   '--mantine-color-surfaces-primary': BRAND[3],
   '--mantine-color-surfaces-primary-hover': BRAND[2],
   '--mantine-color-surfaces-primary-disabled': withAlpha(BRAND[3], '4d'),
@@ -371,7 +365,6 @@ export const semanticDark = {
   '--mantine-color-surfaces-info-high': BLUE[3],
   '--mantine-color-surfaces-warning-high': ORANGE[6],
 
-  // Border
   '--mantine-color-border-primary': BRAND[3],
   '--mantine-color-border-primary-hover': BRAND[2],
   '--mantine-color-border-primary-disabled': withAlpha(BRAND[3], '4d'),
@@ -392,7 +385,6 @@ export const semanticDark = {
   '--mantine-color-border-focus-tab': GRAY[3],
   '--mantine-color-border-white': GRAY[3],
 
-  // Icons
   '--mantine-color-icons-primary': BRAND[3],
   '--mantine-color-icons-primary-hover': BRAND[2],
   '--mantine-color-icons-primary-disabled': withAlpha(BRAND[3], '4d'),
@@ -449,11 +441,8 @@ export const SEMANTIC = {
     destructiveBorder: semanticLight['--mantine-color-border-destructive'],
     warningBorder: semanticLight['--mantine-color-border-warning'],
     infoBorder: semanticLight['--mantine-color-border-info'],
-    // Rellenos `filled` de Mantine (primaryShade 7) y su texto (`onFill`): Button de marca, Badge
-    // terracota y Button/Badge destructivo (la paleta `destructive` de web es RED[7] en todos los tonos).
     primaryFill: BRAND[7],
     onPrimaryFill: onFill(BRAND[7]),
-    // Hover y presionado del relleno de marca: con texto blanco, más oscuros.
     primaryFillHover: BRAND[8],
     primaryFillPress: BRAND[9],
     accentFill: TERRACOTTA[7],
@@ -462,7 +451,6 @@ export const SEMANTIC = {
     disabledSurface: semanticLight['--mantine-color-surfaces-disabled'],
     disabledText: semanticLight['--mantine-color-text-disabled'],
     hover: semanticLight['--mantine-color-surfaces-hover'],
-    // Texto sobre `primary` (segmento activo, Badge brand), `destructiveFill`, `success` y `dimmed`.
     onPrimary: onFill(semanticLight['--mantine-color-text-primary']),
     onDestructive: onFill(RED[7]),
     onSuccess: onFill(semanticLight['--mantine-color-text-success']),
@@ -503,12 +491,8 @@ export const SEMANTIC = {
     destructiveBorder: semanticDark['--mantine-color-border-destructive'],
     warningBorder: semanticDark['--mantine-color-border-warning'],
     infoBorder: semanticDark['--mantine-color-border-info'],
-    // primaryShade 4 en dark. Sobre BRAND[4] y TERRACOTTA[4] el texto que más contrasta es el oscuro
-    // (5,5:1 y 6,3:1; el blanco daba 3,4:1 y 3:1). El destructivo es RED[7], como en web: RED[4] (el
-    // `destructive` de texto) con blanco daba 2,9:1.
     primaryFill: BRAND[4],
     onPrimaryFill: onFill(BRAND[4]),
-    // Con texto oscuro, hover y presionado van más claros: oscurecer (BRAND[5]/[6]) bajaba a 3,7:1 y 2,4:1.
     primaryFillHover: BRAND[3],
     primaryFillPress: BRAND[2],
     accentFill: TERRACOTTA[4],
@@ -517,7 +501,6 @@ export const SEMANTIC = {
     disabledSurface: semanticDark['--mantine-color-surfaces-disabled'],
     disabledText: semanticDark['--mantine-color-text-disabled'],
     hover: semanticDark['--mantine-color-surfaces-hover'],
-    // El primario de dark es claro (BRAND[3]): el texto encima va con el fondo de página, no blanco.
     onPrimary: onFill(semanticDark['--mantine-color-text-primary']),
     onDestructive: onFill(RED[7]),
     onSuccess: onFill(semanticDark['--mantine-color-text-success']),
