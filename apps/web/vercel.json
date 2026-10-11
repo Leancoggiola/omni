@@ -14,7 +14,8 @@
           "env": ["ORIGIN_SECRET"]
         }
       ]
-    }
-  ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+    },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }

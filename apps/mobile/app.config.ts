@@ -1,24 +1,21 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 /**
- * Extiende `app.json` con los valores de release inyectados por CI.
- * `APP_VARIANT=production` desactiva el tráfico HTTP sin cifrar.
+ * Extiende `app.json` con la versión de release inyectada por CI:
+ * `APP_VERSION` (semver) y `APP_VERSION_CODE` (major·10000 + minor·100 + patch).
+ * Sin variables conserva la versión de `app.json` y `versionCode` 1.
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
-  const isProduction = process.env.APP_VARIANT === 'production';
   const versionCode = Number(process.env.APP_VERSION_CODE);
-
-  const android = {
-    ...config.android,
-    versionCode: Number.isInteger(versionCode) && versionCode > 0 ? versionCode : 1,
-    usesCleartextTraffic: !isProduction,
-  };
 
   return {
     ...config,
     name: config.name ?? 'Omni',
     slug: config.slug ?? 'omni',
     version: process.env.APP_VERSION || config.version,
-    android,
+    android: {
+      ...config.android,
+      versionCode: Number.isInteger(versionCode) && versionCode > 0 ? versionCode : 1,
+    },
   };
 };
