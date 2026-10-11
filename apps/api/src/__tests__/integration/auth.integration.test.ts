@@ -29,6 +29,21 @@ describe('auth routes (integration)', () => {
       expect(await prisma.refreshToken.count({ where: { userId: user.id } })).toBe(1);
     });
 
+    it('setea la cookie de refresh con path /api/auth, que cubre refresh y logout', async () => {
+      await createUser({ username: 'logincookies' });
+
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ username: 'logincookies', password: TEST_PASSWORD });
+
+      const cookies = res.headers['set-cookie'] as unknown as string[];
+      const refresh = cookies.find(cookie => cookie.startsWith('refresh_token='));
+      const access = cookies.find(cookie => cookie.startsWith('access_token='));
+      expect(refresh).toContain('Path=/api/auth;');
+      expect(refresh).toContain('HttpOnly');
+      expect(access).toContain('Path=/api;');
+    });
+
     it('usa el tema por defecto cuando el usuario no tiene preferencias', async () => {
       await createUser({ username: 'loginnoprefs' });
 
@@ -54,6 +69,31 @@ describe('auth routes (integration)', () => {
   });
 
   describe('POST /logout', () => {
+    it('la web (solo cookie, sin body) cierra únicamente su sesión y deja viva la de otro dispositivo', async () => {
+      const user = await createUser({ username: 'logoutcookie' });
+      const credentials = { username: 'logoutcookie', password: TEST_PASSWORD };
+      const web = await request(app).post('/api/auth/login').send(credentials);
+      const mobile = await request(app).post('/api/auth/login').send(credentials);
+      expect(await prisma.refreshToken.count({ where: { userId: user.id } })).toBe(2);
+
+      const webCookies = web.headers['set-cookie'] as unknown as string[];
+      const refreshCookie = webCookies.find(cookie => cookie.startsWith('refresh_token='))!.split(';')[0]!;
+      const res = await request(app)
+        .post('/api/auth/logout')
+        .set('Authorization', `Bearer ${web.body.accessToken as string}`)
+        .set('Cookie', refreshCookie);
+
+      expect(res.status).toBe(200);
+      const remaining = await prisma.refreshToken.findMany({ where: { userId: user.id } });
+      expect(remaining).toHaveLength(1);
+      const stillValid = await request(app)
+        .post('/api/auth/refresh')
+        .send({ refreshToken: mobile.body.refreshToken as string });
+      expect(stillValid.status).toBe(200);
+      const clearing = res.headers['set-cookie'] as unknown as string[];
+      expect(clearing.filter(cookie => cookie.startsWith('refresh_token=;'))).toHaveLength(2);
+    });
+
     it('es idempotente: dos logouts simultáneos con el mismo refresh token responden 200', async () => {
       const user = await createUser({ username: 'logouttwice' });
       const login = await request(app)
