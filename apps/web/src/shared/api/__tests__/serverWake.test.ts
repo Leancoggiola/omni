@@ -30,8 +30,11 @@ const countCalls = (fetchMock: ReturnType<typeof vi.fn>, url: string) =>
   fetchMock.mock.calls.filter(([calledUrl]) => calledUrl === url).length;
 
 describe('fetchWithWake', () => {
+  let startedAt = 0;
+
   beforeEach(() => {
     vi.useFakeTimers();
+    startedAt = Date.now();
   });
 
   afterEach(() => {
@@ -294,19 +297,124 @@ describe('fetchWithWake', () => {
     expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false, true, false]);
   });
 
-  it('fails fast with the original error and no notice when the probe also hits a network error', async () => {
+  it('gives up with the original error and no notice after two consecutive network errors on the probe', async () => {
     const networkError = new TypeError('Failed to fetch');
     const fetchMock = vi.fn().mockRejectedValue(networkError);
     vi.stubGlobal('fetch', fetchMock);
     const listener = vi.fn();
     const unsubscribe = subscribeServerWake(listener);
 
-    await expect(fetchWithWake('/api/resource')).rejects.toBe(networkError);
+    const promise = fetchWithWake('/api/resource');
+    const assertion = expect(promise).rejects.toBe(networkError);
+    await vi.advanceTimersByTimeAsync(2_000);
+    await assertion;
     unsubscribe();
 
     expect(countCalls(fetchMock, '/api/resource')).toBe(1);
-    expect(countCalls(fetchMock, SWR_KEYS.health)).toBe(1);
+    expect(countCalls(fetchMock, SWR_KEYS.health)).toBe(2);
     expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
+  });
+
+  it('does not give up after a single network error on the probe', async () => {
+    let healthCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url !== SWR_KEYS.health) return Promise.reject(new TypeError('Failed to fetch'));
+        healthCalls += 1;
+        return healthCalls === 1
+          ? Promise.reject(new TypeError('Failed to fetch'))
+          : Promise.resolve(jsonResponse({ status: 'ok' }));
+      })
+    );
+
+    const promise = ensureServerAwake();
+    await vi.advanceTimersByTimeAsync(2_000);
+
+    await expect(promise).resolves.toBe(true);
+    expect(healthCalls).toBe(2);
+  });
+
+  it('cuts straight away without probing when the browser reports it is offline', async () => {
+    const networkError = new TypeError('Failed to fetch');
+    const fetchMock = vi.fn().mockRejectedValue(networkError);
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('navigator', { onLine: false });
+    const listener = vi.fn();
+    const unsubscribe = subscribeServerWake(listener);
+
+    await expect(fetchWithWake('/api/resource')).rejects.toBe(networkError);
+    unsubscribe();
+
+    expect(countCalls(fetchMock, SWR_KEYS.health)).toBe(0);
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
+  });
+
+  it('caps the total wait at 90 s: the last probe is bounded and there is no extra probe', async () => {
+    const probeSignals: AbortSignal[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) => {
+        if (url !== SWR_KEYS.health) return Promise.resolve(htmlResponse());
+        const signal = init?.signal as AbortSignal;
+        probeSignals.push(signal);
+        return new Promise((_resolve, reject) => {
+          signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+        });
+      })
+    );
+
+    const result = ensureServerAwake();
+    await vi.advanceTimersByTimeAsync(90_000);
+
+    await expect(result).resolves.toBe(false);
+    expect(Date.now() - startedAt).toBeLessThanOrEqual(90_000);
+    expect(probeSignals.every(signal => signal.aborted)).toBe(true);
+  });
+
+  it('stops waiting for the polling and rethrows the abort when the caller aborts the request', async () => {
+    const controller = new AbortController();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) => {
+        if (url !== SWR_KEYS.health) return Promise.reject(new TypeError('Failed to fetch'));
+        return new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+        });
+      })
+    );
+
+    const promise = fetchWithWake('/api/resource', { signal: controller.signal });
+    const assertion = expect(promise).rejects.toMatchObject({ name: 'AbortError' });
+    await vi.advanceTimersByTimeAsync(1_000);
+    controller.abort();
+    await assertion;
+    await vi.advanceTimersByTimeAsync(100_000);
+  });
+
+  it('keeps the shared polling alive for other callers when one of them aborts', async () => {
+    const controller = new AbortController();
+    let healthCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === SWR_KEYS.health) {
+          healthCalls += 1;
+          return Promise.resolve(healthCalls < 2 ? htmlResponse(503) : jsonResponse({ status: 'ok' }));
+        }
+        return Promise.resolve(htmlResponse());
+      })
+    );
+
+    const aborted = fetchWithWake('/api/a', { signal: controller.signal });
+    const abortedAssertion = expect(aborted).rejects.toMatchObject({ name: 'AbortError' });
+    const other = ensureServerAwake();
+    await vi.advanceTimersByTimeAsync(500);
+    controller.abort();
+    await abortedAssertion;
+    await vi.advanceTimersByTimeAsync(2_000);
+
+    await expect(other).resolves.toBe(true);
   });
 
   it('keeps polling when a GET network error is followed by a proxy 502 on the probe', async () => {

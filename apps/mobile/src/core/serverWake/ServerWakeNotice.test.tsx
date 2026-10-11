@@ -26,7 +26,7 @@ describe('ServerWakeNotice', () => {
     render(<ServerWakeNotice />);
 
     act(() => emit(true));
-    expect(screen.getByText('Despertando el servidor, puede tardar un par de minutos…')).toBeTruthy();
+    expect(screen.getByText('Despertando el servidor, puede tardar hasta un minuto y medio…')).toBeTruthy();
 
     act(() => emit(false));
     expect(screen.queryByTestId('server-wake-notice')).toBeNull();

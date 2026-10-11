@@ -191,19 +191,59 @@ describe('fetchWithWake', () => {
 
     expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false, true, false]);
   });
-  it('sin conexión corta enseguida con el error original y sin aviso', async () => {
+  it('sin conexión corta tras dos sondeos seguidos con error de red, con el error original y sin aviso', async () => {
     const networkError = new TypeError('Network request failed');
     const fetchMock = jest.fn().mockRejectedValue(networkError);
     global.fetch = fetchMock as unknown as typeof fetch;
     const listener = jest.fn();
     const unsubscribe = subscribeServerWake(listener);
 
-    await expect(fetchWithWake(RESOURCE)).rejects.toBe(networkError);
+    const assertion = expect(fetchWithWake(RESOURCE)).rejects.toBe(networkError);
+    await jest.advanceTimersByTimeAsync(2_000);
+    await assertion;
     unsubscribe();
 
     expect(countCalls(fetchMock, RESOURCE)).toBe(1);
-    expect(countCalls(fetchMock, HEALTH)).toBe(1);
+    expect(countCalls(fetchMock, HEALTH)).toBe(2);
     expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
+  });
+
+  it('un solo error de red en el sondeo no alcanza para concluir que no hay conexión', async () => {
+    let healthCalls = 0;
+    global.fetch = fetchImpl((url: string) => {
+      if (url !== HEALTH) return Promise.reject(new TypeError('Network request failed'));
+      healthCalls += 1;
+      return healthCalls === 1
+        ? Promise.reject(new TypeError('Network request failed'))
+        : Promise.resolve(jsonResponse({ status: 'ok' }));
+    });
+
+    const result = ensureServerAwake();
+    await jest.advanceTimersByTimeAsync(2_000);
+
+    await expect(result).resolves.toBe(true);
+    expect(healthCalls).toBe(2);
+  });
+
+  it('el tope es de 90 s con el último sondeo incluido y un abort del caller corta la espera', async () => {
+    const controller = new AbortController();
+    global.fetch = fetchImpl((url: string, init?: RequestInit) =>
+      url === HEALTH
+        ? new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+          })
+        : Promise.reject(new TypeError('Network request failed'))
+    );
+
+    const aborted = fetchWithWake(RESOURCE, { signal: controller.signal });
+    const abortedAssertion = expect(aborted).rejects.toBeDefined();
+    const wake = ensureServerAwake();
+    await jest.advanceTimersByTimeAsync(1_000);
+    controller.abort();
+    await abortedAssertion;
+
+    await jest.advanceTimersByTimeAsync(89_000);
+    await expect(wake).resolves.toBe(false);
   });
 
   it('un error de red en un GET con el sondeo respondiendo 502 HTML sigue con el polling', async () => {

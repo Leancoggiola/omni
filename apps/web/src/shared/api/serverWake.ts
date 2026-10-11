@@ -11,6 +11,7 @@ const serverWake = createServerWake({
   fetch: (url, init) => fetch(url, init),
   healthUrl: SWR_KEYS.health,
   probeInit: { cache: 'no-store' },
+  isOffline: () => typeof navigator !== 'undefined' && navigator.onLine === false,
   createError: (message, status) => new ApiError(message, status),
 });
 
