@@ -67,6 +67,51 @@ describe('fetchWithWake', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    ['a 404 with text/plain', 404, 'text/plain'],
+    ['a 401 with text/plain', 401, 'text/plain; charset=utf-8'],
+    ['a 304 without content-type', 304, null],
+    ['a 302 redirect without content-type', 302, null],
+    ['a 429 JSON', 429, 'application/json'],
+  ])('returns %s untouched, it is not a proxy response', async (_label, status, contentType) => {
+    const headers = contentType ? new Headers({ 'content-type': contentType }) : new Headers();
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status, headers });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await fetchWithWake('/api/resource', { method: 'POST' });
+
+    expect(res.status).toBe(status);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['a 502 with a non-HTML body', 502, 'text/plain'],
+    ['a 503 without content-type', 503, null],
+    ['a 504 with JSON', 504, 'application/json'],
+    ['a 200 with HTML', 200, 'text/html; charset=utf-8'],
+    ['a 404 with HTML', 404, 'text/html'],
+  ])('treats %s as a proxy response and polls health', async (_label, status, contentType) => {
+    let resourceCalls = 0;
+    const platform = {
+      ok: status < 400,
+      status,
+      headers: contentType ? new Headers({ 'content-type': contentType }) : new Headers(),
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === SWR_KEYS.health) return Promise.resolve(jsonResponse({ status: 'ok' }));
+        resourceCalls += 1;
+        return Promise.resolve(resourceCalls === 1 ? platform : jsonResponse({ done: true }));
+      })
+    );
+
+    const res = await fetchWithWake('/api/resource');
+
+    expect(await res.json()).toEqual({ done: true });
+    expect(resourceCalls).toBe(2);
+  });
+
   it('polls health after an HTML 502 and retries the original request', async () => {
     let healthCalls = 0;
     const fetchMock = vi.fn((url: string) => {
@@ -243,6 +288,64 @@ describe('fetchWithWake', () => {
     unsubscribe();
 
     expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false, true, false]);
+  });
+
+  it('shows the notice after 1.5 s when the first probe has not answered yet', async () => {
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (url !== SWR_KEYS.health) return Promise.resolve(htmlResponse());
+      return new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const listener = vi.fn();
+    const unsubscribe = subscribeServerWake(listener);
+
+    const promise = ensureServerAwake();
+    await vi.advanceTimersByTimeAsync(1_400);
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
+
+    await vi.advanceTimersByTimeAsync(200);
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false, true]);
+
+    await vi.advanceTimersByTimeAsync(100_000);
+    await promise;
+    unsubscribe();
+
+    expect(listener).toHaveBeenLastCalledWith(false);
+  });
+
+  it('never shows the notice when the first probe answers right away', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ status: 'ok' })));
+    const listener = vi.fn();
+    const unsubscribe = subscribeServerWake(listener);
+
+    await ensureServerAwake();
+    await vi.advanceTimersByTimeAsync(5_000);
+    unsubscribe();
+
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
+  });
+
+  it('shows the notice as soon as the first probe fails, without waiting 1.5 s', async () => {
+    let healthCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => {
+        healthCalls += 1;
+        return Promise.resolve(healthCalls < 2 ? htmlResponse(503) : jsonResponse({ status: 'ok' }));
+      })
+    );
+    const listener = vi.fn();
+    const unsubscribe = subscribeServerWake(listener);
+
+    const promise = ensureServerAwake();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false, true]);
+
+    await vi.advanceTimersByTimeAsync(2_000);
+    await promise;
+    unsubscribe();
   });
 });
 

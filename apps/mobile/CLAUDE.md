@@ -45,7 +45,7 @@ Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/a
 
 ## Cold start de la API
 
-Igual que web: el client usa `fetchWithWake` (`shared/api/serverWake.ts`) en `request` y en el refresh, con `API_KEYS.health`. Reintenta si la respuesta no es JSON (la produjo el proxy: cualquier método) o si `fetch` lanza un error de red solo en GET/HEAD/PUT/DELETE; en POST/PATCH el error se propaga porque no se sabe si la API procesó el request. Además, `ServerWakeNotice` (`core/serverWake`, montado en `app/_layout.tsx`) muestra un `Banner` mientras la API despierta. Constantes y decisión pura: `@omni/shared/server-wake`.
+Igual que web: el client usa `fetchWithWake` (`shared/api/serverWake.ts`) en `request` y en el refresh, con `API_KEYS.health`. Reintenta si la respuesta es del proxy o de la plataforma (502/503/504 o `text/html`: cualquier método) o si `fetch` lanza un error de red solo en GET/HEAD/PUT/DELETE; en POST/PATCH el error se propaga porque no se sabe si la API procesó el request. Además, `ServerWakeNotice` (`core/serverWake`, montado en `app/_layout.tsx`) muestra un `Banner` mientras la API despierta (aparece cuando falla el primer sondeo o pasan ~1,5 s sin respuesta). `serverWake.ts` es una instancia de `createServerWake` de `@omni/shared/server-wake`, que tiene la orquestación compartida con web, las constantes y la decisión pura.
 
 ## Hooks (SWR)
 

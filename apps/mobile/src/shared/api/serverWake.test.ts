@@ -22,7 +22,8 @@ const htmlResponse = (status = 502) => ({
 const countCalls = (fetchMock: jest.Mock, url: string) =>
   fetchMock.mock.calls.filter(([calledUrl]) => calledUrl === url).length;
 
-const fetchImpl = (impl: (url: string) => Promise<unknown>) => jest.fn(impl) as unknown as typeof fetch;
+const fetchImpl = (impl: (url: string, init?: RequestInit) => Promise<unknown>) =>
+  jest.fn(impl) as unknown as typeof fetch;
 
 describe('fetchWithWake', () => {
   const originalFetch = global.fetch;
@@ -189,5 +190,64 @@ describe('fetchWithWake', () => {
     unsubscribe();
 
     expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false, true, false]);
+  });
+  it('muestra el aviso a los 1,5 s si el primer sondeo todavía no respondió', async () => {
+    global.fetch = fetchImpl((url: string, init?: RequestInit) =>
+      url === HEALTH
+        ? new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+          })
+        : Promise.resolve(htmlResponse())
+    );
+    const listener = jest.fn();
+    const unsubscribe = subscribeServerWake(listener);
+
+    const promise = ensureServerAwake();
+    await jest.advanceTimersByTimeAsync(1_400);
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
+
+    await jest.advanceTimersByTimeAsync(200);
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false, true]);
+
+    await jest.advanceTimersByTimeAsync(100_000);
+    await promise;
+    unsubscribe();
+
+    expect(listener).toHaveBeenLastCalledWith(false);
+  });
+
+  it('no muestra el aviso si el primer sondeo responde enseguida', async () => {
+    global.fetch = fetchImpl(() => Promise.resolve(jsonResponse({ status: 'ok' })));
+    const listener = jest.fn();
+    const unsubscribe = subscribeServerWake(listener);
+
+    await ensureServerAwake();
+    await jest.advanceTimersByTimeAsync(5_000);
+    unsubscribe();
+
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
+  });
+
+  it('devuelve tal cual lo que no es del proxy (404 texto, 304) y reintenta un 502 sin body HTML', async () => {
+    const plain = { ok: false, status: 404, headers: new Headers({ 'content-type': 'text/plain' }) };
+    global.fetch = fetchImpl(() => Promise.resolve(plain));
+    expect((await fetchWithWake(RESOURCE, { method: 'POST' })).status).toBe(404);
+
+    const notModified = { ok: false, status: 304, headers: new Headers() };
+    global.fetch = fetchImpl(() => Promise.resolve(notModified));
+    expect((await fetchWithWake(RESOURCE)).status).toBe(304);
+
+    let resourceCalls = 0;
+    global.fetch = fetchImpl((url: string) => {
+      if (url === HEALTH) return Promise.resolve(jsonResponse({ status: 'ok' }));
+      resourceCalls += 1;
+      return Promise.resolve(
+        resourceCalls === 1
+          ? { ok: false, status: 502, headers: new Headers({ 'content-type': 'text/plain' }) }
+          : jsonResponse({ done: true })
+      );
+    });
+    expect((await fetchWithWake(RESOURCE)).status).toBe(200);
+    expect(resourceCalls).toBe(2);
   });
 });
