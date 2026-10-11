@@ -22,21 +22,20 @@ function resolveRelease(env: NodeJS.ProcessEnv): { version: string | undefined; 
     );
   }
 
-  return { version: env.APP_VERSION || undefined, versionCode: hasValidCode ? versionCode : 1 };
+  return { version: hasValidVersion ? env.APP_VERSION : undefined, versionCode: hasValidCode ? versionCode : 1 };
 }
 
 /**
  * Extiende `app.json` con la versión de release inyectada por CI:
  * `APP_VERSION` (semver) y `APP_VERSION_CODE` (major·10000 + minor·100 + patch).
  * Sin variables conserva la versión de `app.json` y `versionCode` 1, salvo con `APP_VARIANT=production`, donde fallan.
+ * `name` y `slug` los define `app.json`: el tipo de `config` los marca opcionales, por eso el cast.
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
   const release = resolveRelease(process.env);
 
   return {
-    ...config,
-    name: config.name ?? 'Omni',
-    slug: config.slug ?? 'omni',
+    ...(config as ExpoConfig),
     version: release.version ?? config.version,
     android: {
       ...config.android,
