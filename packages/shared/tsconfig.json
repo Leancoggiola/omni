@@ -2,7 +2,6 @@
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "lib": ["es2022", "dom"],
     "verbatimModuleSyntax": false,
     "module": "preserve",
     "moduleResolution": "bundler",

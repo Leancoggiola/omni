@@ -191,6 +191,43 @@ describe('fetchWithWake', () => {
 
     expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false, true, false]);
   });
+  it('sin conexión corta enseguida con el error original y sin aviso', async () => {
+    const networkError = new TypeError('Network request failed');
+    const fetchMock = jest.fn().mockRejectedValue(networkError);
+    global.fetch = fetchMock as unknown as typeof fetch;
+    const listener = jest.fn();
+    const unsubscribe = subscribeServerWake(listener);
+
+    await expect(fetchWithWake(RESOURCE)).rejects.toBe(networkError);
+    unsubscribe();
+
+    expect(countCalls(fetchMock, RESOURCE)).toBe(1);
+    expect(countCalls(fetchMock, HEALTH)).toBe(1);
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
+  });
+
+  it('un error de red en un GET con el sondeo respondiendo 502 HTML sigue con el polling', async () => {
+    let healthCalls = 0;
+    let resourceCalls = 0;
+    global.fetch = fetchImpl((url: string) => {
+      if (url === HEALTH) {
+        healthCalls += 1;
+        return Promise.resolve(healthCalls < 3 ? htmlResponse(502) : jsonResponse({ status: 'ok' }));
+      }
+      resourceCalls += 1;
+      return resourceCalls === 1
+        ? Promise.reject(new TypeError('Network request failed'))
+        : Promise.resolve(jsonResponse({ data: 3 }));
+    });
+
+    const promise = fetchWithWake(RESOURCE);
+    await jest.advanceTimersByTimeAsync(2_000 + 4_000);
+    const res = await promise;
+
+    expect(await res.json()).toEqual({ data: 3 });
+    expect(healthCalls).toBe(3);
+  });
+
   it('muestra el aviso a los 1,5 s si el primer sondeo todavía no respondió', async () => {
     global.fetch = fetchImpl((url: string, init?: RequestInit) =>
       url === HEALTH

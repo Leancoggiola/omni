@@ -294,6 +294,66 @@ describe('fetchWithWake', () => {
     expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false, true, false]);
   });
 
+  it('fails fast with the original error and no notice when the probe also hits a network error', async () => {
+    const networkError = new TypeError('Failed to fetch');
+    const fetchMock = vi.fn().mockRejectedValue(networkError);
+    vi.stubGlobal('fetch', fetchMock);
+    const listener = vi.fn();
+    const unsubscribe = subscribeServerWake(listener);
+
+    await expect(fetchWithWake('/api/resource')).rejects.toBe(networkError);
+    unsubscribe();
+
+    expect(countCalls(fetchMock, '/api/resource')).toBe(1);
+    expect(countCalls(fetchMock, SWR_KEYS.health)).toBe(1);
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
+  });
+
+  it('keeps polling when a GET network error is followed by a proxy 502 on the probe', async () => {
+    let healthCalls = 0;
+    let resourceCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === SWR_KEYS.health) {
+          healthCalls += 1;
+          return Promise.resolve(healthCalls < 3 ? htmlResponse(502) : jsonResponse({ status: 'ok' }));
+        }
+        resourceCalls += 1;
+        return resourceCalls === 1
+          ? Promise.reject(new TypeError('Failed to fetch'))
+          : Promise.resolve(jsonResponse({ data: 3 }));
+      })
+    );
+
+    const promise = fetchWithWake('/api/resource');
+    await vi.advanceTimersByTimeAsync(2_000 + 4_000);
+    const res = await promise;
+
+    expect(await res.json()).toEqual({ data: 3 });
+    expect(healthCalls).toBe(3);
+  });
+
+  it('keeps polling when the probe network-errors after the proxy already answered', async () => {
+    let healthCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url !== SWR_KEYS.health) return Promise.resolve(htmlResponse());
+        healthCalls += 1;
+        if (healthCalls === 1) return Promise.resolve(htmlResponse(503));
+        if (healthCalls === 2) return Promise.reject(new TypeError('Failed to fetch'));
+        return Promise.resolve(jsonResponse({ status: 'ok' }));
+      })
+    );
+
+    const promise = ensureServerAwake();
+    await vi.advanceTimersByTimeAsync(2_000 + 4_000);
+
+    await expect(promise).resolves.toBe(true);
+    expect(healthCalls).toBe(3);
+  });
+
   it('shows the notice after 1.5 s when the first probe has not answered yet', async () => {
     const fetchMock = vi.fn((url: string, init?: RequestInit) => {
       if (url !== SWR_KEYS.health) return Promise.resolve(htmlResponse());

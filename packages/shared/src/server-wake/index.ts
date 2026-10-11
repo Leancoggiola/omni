@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 /** Pausa máxima entre sondeos del health. */
 export const SERVER_WAKE_MAX_BACKOFF_MS = 8_000;
 
@@ -13,7 +15,7 @@ export const SERVER_WAKE_NOTICE_DELAY_MS = 1_500;
 /** Tope de cada sondeo al health: un proxy dormido puede dejar la conexión colgada. */
 export const SERVER_WAKE_PROBE_TIMEOUT_MS = 10_000;
 
-export const SERVER_WAKE_MESSAGE = 'Despertando el servidor, puede tardar hasta un minuto…';
+export const SERVER_WAKE_MESSAGE = 'Despertando el servidor, puede tardar un par de minutos…';
 export const SERVER_WAKE_FAILURE_MESSAGE = 'El servidor no responde. Probá de nuevo en unos minutos.';
 export const SERVER_WAKE_FAILURE_STATUS = 503;
 
@@ -56,6 +58,12 @@ export function isIdempotentMethod(method?: string): boolean {
 
 type WakeListener = (waking: boolean) => void;
 
+/** `awake`: el health respondió; `timeout`: se agotó el tope; `offline`: el sondeo falló por red sin respuesta previa. */
+type WakeOutcome = 'awake' | 'timeout' | 'offline';
+
+/** `asleep` cubre respuesta del proxy, timeout del sondeo y URL mal configurada; `offline`, el error de red. */
+type ProbeResult = 'awake' | 'asleep' | 'offline';
+
 /** Dependencias de `createServerWake`: lo único que cambia entre web y mobile. */
 export type ServerWakeOptions = {
   /** Se resuelve en cada llamada, así un `fetch` reemplazado (tests) o una base URL que cambia se respetan. */
@@ -74,9 +82,13 @@ export type ServerWakeOptions = {
  * una instancia con su `fetch`, su URL de health y su `ApiError`, y le suma su propia UI del aviso.
  * El aviso (`subscribeServerWake`) se enciende cuando falla el primer sondeo o pasan
  * `SERVER_WAKE_NOTICE_DELAY_MS` sin respuesta, lo que ocurra primero.
+ * Sin conexión no se espera: si el sondeo falla por un error de red (no por su propio timeout) y ninguno
+ * recibió todavía una respuesta HTTP, el polling se corta enseguida, sin aviso, y `fetchWithWake` relanza
+ * el error de red del request. Una respuesta del proxy (502/503/504, HTML) o un timeout del sondeo
+ * significan "servidor dormido" y siguen el polling.
  */
 export function createServerWake(options: ServerWakeOptions) {
-  let wakePromise: Promise<boolean> | null = null;
+  let wakePromise: Promise<WakeOutcome> | null = null;
   let waking = false;
   const listeners = new Set<WakeListener>();
 
@@ -99,27 +111,36 @@ export function createServerWake(options: ServerWakeOptions) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async function probeHealth(): Promise<boolean> {
+  async function probeHealth(): Promise<{ result: ProbeResult; gotResponse: boolean }> {
+    let url: string;
+    try {
+      url = typeof options.healthUrl === 'function' ? options.healthUrl() : options.healthUrl;
+    } catch {
+      return { result: 'asleep', gotResponse: false };
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), SERVER_WAKE_PROBE_TIMEOUT_MS);
     try {
-      const url = typeof options.healthUrl === 'function' ? options.healthUrl() : options.healthUrl;
       const res = await options.fetch(url, { ...options.probeInit, signal: controller.signal });
-      return res.ok && isApiResponse(res);
+      return { result: res.ok && isApiResponse(res) ? 'awake' : 'asleep', gotResponse: true };
     } catch {
-      return false;
+      return { result: controller.signal.aborted ? 'asleep' : 'offline', gotResponse: false };
     } finally {
       clearTimeout(timer);
     }
   }
 
-  async function pollUntilAwake(): Promise<boolean> {
+  async function pollUntilAwake(): Promise<WakeOutcome> {
     const deadline = Date.now() + SERVER_WAKE_TIMEOUT_MS;
     const noticeTimer = setTimeout(() => setWaking(true), SERVER_WAKE_NOTICE_DELAY_MS);
+    let heardFromServer = false;
     try {
       for (let attempt = 0; ; attempt += 1) {
-        if (await probeHealth()) return true;
-        if (Date.now() >= deadline) return false;
+        const probe = await probeHealth();
+        if (probe.result === 'awake') return 'awake';
+        if (probe.result === 'offline' && !heardFromServer) return 'offline';
+        heardFromServer ||= probe.gotResponse;
+        if (Date.now() >= deadline) return 'timeout';
         setWaking(true);
         await sleep(Math.min(nextWakeDelay(attempt), Math.max(deadline - Date.now(), 0)));
       }
@@ -130,7 +151,7 @@ export function createServerWake(options: ServerWakeOptions) {
   }
 
   /** Single-flight: todos los requests que fallan mientras la API duerme comparten el mismo polling. */
-  function ensureServerAwake(): Promise<boolean> {
+  function awaitServer(): Promise<WakeOutcome> {
     if (!wakePromise) {
       wakePromise = pollUntilAwake().finally(() => {
         wakePromise = null;
@@ -139,13 +160,19 @@ export function createServerWake(options: ServerWakeOptions) {
     return wakePromise;
   }
 
-  async function tryFetch(url: string, init?: RequestInit): Promise<Response | null> {
+  /** `true` si la API despertó; `false` si se agotó el tope o no hay conexión. */
+  async function ensureServerAwake(): Promise<boolean> {
+    return (await awaitServer()) === 'awake';
+  }
+
+  /** `response` es `null` si hay que esperar al servidor; `error` guarda el error de red que lo causó. */
+  async function tryRequest(url: string, init?: RequestInit): Promise<{ response: Response | null; error?: unknown }> {
     try {
       const res = await options.fetch(url, init);
-      return isApiResponse(res) ? res : null;
+      return { response: isApiResponse(res) ? res : null };
     } catch (err) {
       if (init?.signal?.aborted || !isIdempotentMethod(init?.method)) throw err;
-      return null;
+      return { response: null, error: err };
     }
   }
 
@@ -154,15 +181,18 @@ export function createServerWake(options: ServerWakeOptions) {
    * plataforma (`isApiResponse`: el request no llegó a la API, vale para cualquier método) o el `fetch`
    * lanzó un error de red (solo en GET/HEAD/PUT/DELETE; en POST/PATCH el error se propaga porque no se
    * sabe si la API procesó el request). Cualquier otra respuesta, un 500 JSON incluido, se devuelve tal
-   * cual. Si el servidor no despierta a tiempo, lanza el error de `createError` con status 503.
+   * cual. Si el servidor no despierta a tiempo, lanza el error de `createError` con status 503. Si el
+   * sondeo detecta que no hay conexión, relanza el error de red original del request sin esperar.
    */
   async function fetchWithWake(url: string, init?: RequestInit): Promise<Response> {
-    const first = await tryFetch(url, init);
-    if (first) return first;
+    const first = await tryRequest(url, init);
+    if (first.response) return first.response;
 
-    if (await ensureServerAwake()) {
-      const retry = await tryFetch(url, init);
-      if (retry) return retry;
+    const outcome = await awaitServer();
+    if (outcome === 'offline' && first.error !== undefined) throw first.error;
+    if (outcome === 'awake') {
+      const retry = await tryRequest(url, init);
+      if (retry.response) return retry.response;
     }
     throw options.createError(SERVER_WAKE_FAILURE_MESSAGE, SERVER_WAKE_FAILURE_STATUS);
   }

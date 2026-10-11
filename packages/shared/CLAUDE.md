@@ -11,7 +11,7 @@ src/
   users/      profile, password, preferences
   theme/      BRAND, SEMANTIC, GRAY, success/destructive (web + mobile)
   navigation/ NAV_REGISTRY: labels, rutas y disponibilidad de módulos (navbar web, tabs y "Más" mobile)
-  server-wake/ cold start de la API: constantes, funciones puras (backoff, `isApiResponse`, `isIdempotentMethod`) y la fábrica `createServerWake({ fetch, healthUrl, createError, probeInit? })` con la orquestación (single-flight, polling, tope, reintento); cada cliente crea su instancia y pone la UI del aviso. Sin runner: los tests viven en web
+  server-wake/ cold start de la API: constantes, funciones puras (backoff, `isApiResponse`, `isIdempotentMethod`) y la fábrica `createServerWake({ fetch, healthUrl, createError, probeInit? })` con la orquestación (single-flight, polling, tope, reintento); cada cliente crea su instancia y pone la UI del aviso. Sin conexión (el sondeo falla por red, no por timeout, sin respuesta previa) el polling se corta y se relanza el error de red del request. Los tipos DOM (`fetch`, `Response`) entran con `/// <reference lib="dom" />` solo en ese archivo. Sin runner: los tests viven en web
   index.ts    re-exports
 ```
 
