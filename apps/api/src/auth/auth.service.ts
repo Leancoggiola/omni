@@ -5,6 +5,7 @@ import { Response } from 'express';
 import { config } from '../config';
 import * as usersService from '../users/users.service';
 import { prisma } from '../common/db';
+import { clearCookies, setAccessCookie, setRefreshCookie } from '../common/utils/cookies';
 import type { AuthTokensResponse, Role } from '@omni/shared/auth';
 import { toSessionUser } from './auth.mappers';
 
@@ -126,42 +127,6 @@ async function issueTokens(
   setRefreshCookie(res, refreshToken);
 
   return { accessToken, refreshToken };
-}
-
-function setAccessCookie(res: Response, token: string) {
-  res.cookie('access_token', token, {
-    httpOnly: true,
-    secure: config.isProduction,
-    sameSite: 'strict',
-    path: '/api',
-    maxAge: 15 * 60 * 1000,
-  });
-}
-
-function setRefreshCookie(res: Response, token: string) {
-  res.cookie('refresh_token', token, {
-    httpOnly: true,
-    secure: config.isProduction,
-    sameSite: 'strict',
-    path: '/api/auth/refresh',
-    maxAge: config.cookie.refreshMaxAge,
-  });
-}
-
-/** `clearCookie` solo borra si `path` y opciones coinciden con las del `set`: todo borrado de sesión pasa por acá. */
-export function clearCookies(res: Response) {
-  res.clearCookie('access_token', {
-    httpOnly: true,
-    secure: config.isProduction,
-    sameSite: 'strict',
-    path: '/api',
-  });
-  res.clearCookie('refresh_token', {
-    httpOnly: true,
-    secure: config.isProduction,
-    sameSite: 'strict',
-    path: '/api/auth/refresh',
-  });
 }
 
 function sanitizeUser<T extends { password: string }>(user: T): Omit<T, 'password'> {

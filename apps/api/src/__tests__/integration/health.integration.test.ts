@@ -62,4 +62,26 @@ describe('health routes (integration)', () => {
     expect(res.status).toBe(401);
     expect(res.headers['cache-control']).toBe('no-store');
   });
+
+  it('una ruta inexistente bajo /api responde 404 en JSON, no HTML', async () => {
+    const res = await request(app).get('/api/no-existe');
+
+    expect(res.status).toBe(404);
+    expect(res.headers['content-type']).toMatch(/application\/json/);
+    expect(res.body).toEqual({ statusCode: 404, message: 'Ruta no encontrada' });
+  });
+
+  it('GET /api/health/ready tiene un límite propio de 30 por minuto; /api/health no', async () => {
+    mockedCheckDatabase.checkDatabaseConnection.mockResolvedValue(true);
+
+    const statuses: number[] = [];
+    for (let i = 0; i < 31; i++) {
+      statuses.push((await request(app).get('/api/health/ready')).status);
+    }
+    const liveness = await request(app).get('/api/health');
+
+    expect(statuses.at(-1)).toBe(429);
+    expect(statuses.filter(status => status === 429)).toHaveLength(statuses.length - statuses.indexOf(429));
+    expect(liveness.status).toBe(200);
+  });
 });

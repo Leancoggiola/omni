@@ -6,3 +6,5 @@ export { createRateLimiter } from './rate-limit';
 export { clientIpKey, getClientIp } from './client-ip';
 export { createOriginGuard, originGuard, ORIGIN_SECRET_HEADER } from './origin-guard';
 export { noStore } from './no-store';
+export { clearCookies, setAccessCookie, setRefreshCookie } from './cookies';
+export { apiNotFound } from './not-found';

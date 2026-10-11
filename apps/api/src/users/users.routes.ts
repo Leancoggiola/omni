@@ -2,8 +2,7 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { updateProfileSchema, changePasswordSchema, updatePreferencesSchema } from '@omni/shared/users';
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
-import { clearCookies } from '../auth/auth.service';
-import { createRateLimiter, validate } from '../common/utils';
+import { clearCookies, createRateLimiter, validate } from '../common/utils';
 import * as usersService from './users.service';
 import * as statsService from './stats.service';
 

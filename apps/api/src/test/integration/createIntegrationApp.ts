@@ -8,7 +8,7 @@ import '../../auth/strategies/local.strategy';
 
 import router from '../../router';
 import healthRoutes from '../../health/health.routes';
-import { errorHandler, noStore, originGuard } from '../../common/utils';
+import { apiNotFound, errorHandler, noStore, originGuard } from '../../common/utils';
 
 /**
  * Replica el stack de middleware de main.ts, sin helmet, CORS, rate limiter ni logging:
@@ -25,6 +25,7 @@ export function createIntegrationApp() {
   app.use(cookieParser());
   app.use(passport.initialize());
   app.use('/api', router);
+  app.use('/api', apiNotFound);
   app.use(errorHandler);
   return app;
 }

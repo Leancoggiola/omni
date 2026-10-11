@@ -12,13 +12,14 @@ import './auth/strategies/local.strategy';
 
 import router from './router';
 import healthRoutes from './health/health.routes';
-import { createRateLimiter, errorHandler, logger, noStore, originGuard } from './common/utils';
+import { apiNotFound, createRateLimiter, errorHandler, logger, noStore, originGuard } from './common/utils';
 import { checkDatabaseConnection, prisma } from './common/db';
 
 /**
  * `trust proxy = 1` porque Render pone un balanceador delante: `req.ip` sale de su `X-Forwarded-For`.
  * El orden en `/api` importa: health queda exento del guard (Render pega directo), y el guard corre
  * antes que cualquier rate limiter para que la clave por IP ya sepa si puede confiar en `x-real-ip`.
+ * `apiNotFound` cierra `/api` para que ninguna respuesta de la API salga en HTML.
  */
 async function bootstrap() {
   await prisma.$connect();
@@ -69,6 +70,7 @@ async function bootstrap() {
   app.use(pinoHttp({ logger }));
 
   app.use('/api', router);
+  app.use('/api', apiNotFound);
 
   app.use(errorHandler);
 
