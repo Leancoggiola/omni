@@ -1,6 +1,7 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+const POSITIVE_INTEGER = /^[1-9]\d*$/;
 const RELEASE_VERSION = /^\d+\.\d+\.\d+$/;
 
 /**
@@ -10,8 +11,8 @@ const RELEASE_VERSION = /^\d+\.\d+\.\d+$/;
  */
 function resolveRelease(env: NodeJS.ProcessEnv): { version: string | undefined; versionCode: number } {
   const isProduction = env.APP_VARIANT === 'production';
-  const versionCode = Number(env.APP_VERSION_CODE);
-  const hasValidCode = Number.isInteger(versionCode) && versionCode > 0;
+  const hasValidCode = POSITIVE_INTEGER.test(env.APP_VERSION_CODE ?? '');
+  const versionCode = hasValidCode ? Number(env.APP_VERSION_CODE) : 1;
   const hasValidVersion = SEMVER.test(env.APP_VERSION ?? '');
 
   if (isProduction && !RELEASE_VERSION.test(env.APP_VERSION ?? '')) {
@@ -25,7 +26,7 @@ function resolveRelease(env: NodeJS.ProcessEnv): { version: string | undefined; 
     );
   }
 
-  return { version: hasValidVersion ? env.APP_VERSION : undefined, versionCode: hasValidCode ? versionCode : 1 };
+  return { version: hasValidVersion ? env.APP_VERSION : undefined, versionCode };
 }
 
 /**
