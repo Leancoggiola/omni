@@ -148,7 +148,8 @@ function setRefreshCookie(res: Response, token: string) {
   });
 }
 
-function clearCookies(res: Response) {
+/** `clearCookie` solo borra si `path` y opciones coinciden con las del `set`: todo borrado de sesión pasa por acá. */
+export function clearCookies(res: Response) {
   res.clearCookie('access_token', {
     httpOnly: true,
     secure: config.isProduction,

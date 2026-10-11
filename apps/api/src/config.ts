@@ -24,8 +24,13 @@ export const config = {
     refreshMaxAge: parseInt(process.env.COOKIE_REFRESH_MAX_AGE ?? '604800', 10) * 1000,
   },
 
+  /** Secreto que agrega el proxy de Vercel en `x-origin-secret`. Sin definir, el origin guard no actúa. */
+  originSecret: process.env.ORIGIN_SECRET || undefined,
+
+  /** `globalMax` es por ventana de 15 min: 300 por defecto para que la revalidación de SWR no lo agote en una sesión normal. */
   rateLimit: {
     disabled: process.env.RATE_LIMIT_DISABLED === 'true' && process.env.NODE_ENV !== 'production',
+    globalMax: parseInt(process.env.RATE_LIMIT_GLOBAL_MAX ?? '300', 10),
   },
 
   tmdb: {
