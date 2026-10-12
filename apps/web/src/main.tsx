@@ -7,7 +7,7 @@ import { Notifications } from '@mantine/notifications';
 
 import { router } from '@/app/router';
 import { AuthProvider } from '@/core/auth';
-import { SWRProvider } from '@/core/providers';
+import { ServerWakeNotice, SWRProvider } from '@/core/providers';
 import { createSessionColorSchemeManager } from '@/core/theme';
 import { ConfirmProvider, LightboxProvider } from '@/shared/ui';
 import { THEME } from '@/theme/config';
@@ -36,6 +36,7 @@ createRoot(document.getElementById('app')!).render(
         <LightboxProvider />
         <ConfirmProvider>
           <SWRProvider>
+            <ServerWakeNotice />
             <AuthProvider>
               <RouterProvider router={router} />
             </AuthProvider>
