@@ -1,0 +1,60 @@
+name: Backup
+
+on:
+  # Domingos 07:00 UTC (04:00 en Argentina).
+  schedule:
+    - cron: '0 7 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  backup:
+    name: Backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Production
+    permissions: {}
+    steps:
+      # El pg_dump tiene que ser de la misma major que el Postgres de Supabase (17), y Ubuntu no la trae.
+      - name: Install postgresql-client-17 and age
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17 age
+
+      # El dump va directo por pipe a age: la copia sin cifrar nunca toca el disco.
+      - name: Dump and encrypt
+        env:
+          PROD_DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+          BACKUP_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+        run: |
+          set -o pipefail
+          if [ -z "$PROD_DIRECT_URL" ] || [ -z "$BACKUP_AGE_RECIPIENT" ]; then
+            echo "::error::Faltan PROD_DIRECT_URL (secret) o BACKUP_AGE_RECIPIENT (variable) en el environment Production."
+            exit 1
+          fi
+
+          NAME="omni-$(date -u +%Y%m%dT%H%MZ).dump.age"
+          mkdir -p backup
+          /usr/lib/postgresql/17/bin/pg_dump "$PROD_DIRECT_URL" -Fc --no-owner --no-privileges --schema=public \
+            | age -r "$BACKUP_AGE_RECIPIENT" -o "backup/$NAME"
+
+          if [ ! -s "backup/$NAME" ]; then
+            echo "::error::El backup cifrado quedó vacío."
+            exit 1
+          fi
+          echo "NAME=$NAME" >> "$GITHUB_ENV"
+          ls -lh backup
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NAME }}
+          path: backup/${{ env.NAME }}
+          if-no-files-found: error
+          retention-days: 90

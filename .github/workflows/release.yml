@@ -1,18 +1,53 @@
-name: Release
+name: Release & Deploy
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      redeploy:
+        description: 'Deployar API y web desde el HEAD de main, sin release'
+        type: boolean
+        default: false
+      build_apk:
+        description: 'Buildear el APK con la última versión taggeada'
+        type: boolean
+        default: false
+      upload_apk:
+        description: 'Publicar el APK en omni-apk (si no, queda como artifact de 7 días)'
+        type: boolean
+        default: true
 
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+# Un run a la vez: no se cancela el que está desplegando. GitHub deja como máximo un run pendiente y descarta
+# los intermedios; es inocuo porque el semantic-release del último cubre todos los commits.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10.11.0'
+  VERCEL_CLI_VERSION: '60.1.3'
+  API_URL: 'https://omni-api-gwer.onrender.com'
+  APK_REPO: 'Leancoggiola/omni-apk'
+
+permissions: {}
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # semantic-release y el push usan RELEASE_TOKEN, no el GITHUB_TOKEN.
+    permissions:
+      contents: read
+    outputs:
+      new_release: ${{ steps.meta.outputs.new_release }}
+      version: ${{ steps.meta.outputs.version }}
+      tag: ${{ steps.meta.outputs.tag }}
+      sha: ${{ steps.meta.outputs.sha }}
+      prev_tag: ${{ steps.meta.outputs.prev_tag }}
+      mobile_changed: ${{ steps.meta.outputs.mobile_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,19 +55,24 @@ jobs:
           persist-credentials: true
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      - uses: pnpm/action-setup@v4
+      # Por dispatch no se versiona: solo se redeploya o se buildea el APK del último tag.
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        if: github.event_name == 'push'
         with:
-          version: '10.11.0'
+          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
+        if: github.event_name == 'push'
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - run: pnpm install --frozen-lockfile
+      - if: github.event_name == 'push'
+        run: pnpm install --frozen-lockfile
 
       - name: Release
         id: release
+        if: github.event_name == 'push'
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
@@ -41,16 +81,308 @@ jobs:
           git fetch --tags origin
           AFTER=$(git tag --list 'v*' | wc -l)
           if [ "$AFTER" -gt "$BEFORE" ]; then
-            echo "new_release=true" >> $GITHUB_OUTPUT
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Deploy API
-        if: steps.release.outputs.new_release == 'true'
+      - name: Release metadata
+        id: meta
+        env:
+          NEW_RELEASE: ${{ steps.release.outputs.new_release == 'true' }}
         run: |
-          curl -s "${{ secrets.RENDER_DEPLOY_HOOK_PROD }}"
+          SHA=$(git rev-parse HEAD)
+          TAG=$(git describe --tags --abbrev=0 --match 'v*' HEAD 2>/dev/null || true)
+          PREV_TAG=""
+          if [ -n "$TAG" ]; then
+            PREV_TAG=$(git describe --tags --abbrev=0 --match 'v*' "$TAG^" 2>/dev/null || true)
+          fi
+
+          MOBILE_CHANGED=false
+          if [ -z "$PREV_TAG" ] || ! git diff --quiet "$PREV_TAG" "$TAG" -- apps/mobile packages/shared; then
+            MOBILE_CHANGED=true
+          fi
+
+          {
+            echo "new_release=$NEW_RELEASE"
+            echo "version=${TAG#v}"
+            echo "tag=$TAG"
+            echo "sha=$SHA"
+            echo "prev_tag=$PREV_TAG"
+            echo "mobile_changed=$MOBILE_CHANGED"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Release: $NEW_RELEASE | tag: ${TAG:-ninguno} | anterior: ${PREV_TAG:-ninguno} | sha: $SHA | mobile/shared cambió: $MOBILE_CHANGED"
+
+  deploy-api:
+    name: Deploy API
+    needs: [release]
+    # Prod sale solo de main, aunque el dispatch se lance desde otra rama.
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (needs.release.outputs.new_release == 'true' || inputs.redeploy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: Production
+    permissions: {}
+    steps:
+      - name: Trigger Render deploy
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_PROD }}
+        run: curl -fsS -X POST -o /dev/null "$DEPLOY_HOOK"
+
+      # Render solo deja de servir la versión vieja cuando la nueva pasa su health check.
+      - name: Wait for new commit
+        env:
+          SHA: ${{ needs.release.outputs.sha }}
+        run: |
+          DEADLINE=$(( $(date +%s) + 20 * 60 ))
+          while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+            COMMIT=$(curl -fsS --max-time 30 "$API_URL/api/health" 2>/dev/null | jq -r '.commit // empty' 2>/dev/null || true)
+            if [ "$COMMIT" = "$SHA" ]; then
+              echo "La API ya corre $SHA."
+              exit 0
+            fi
+            echo "La API corre ${COMMIT:-?}, esperando $SHA..."
+            sleep 20
+          done
+          echo "::error::La API no llegó a $SHA en 20 minutos. Revisá el deploy en Render."
+          exit 1
+
+  deploy-web:
+    name: Deploy Web
+    needs: [release, deploy-api]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Production
+    permissions:
+      contents: read
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.sha }}
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - run: npm install --global "vercel@$VERCEL_CLI_VERSION"
+
+      - name: Verificar ORIGIN_SECRET en Vercel
+        run: |
+          VARS=$(vercel env ls production --token="$VERCEL_TOKEN")
+          if ! grep -qw 'ORIGIN_SECRET' <<< "$VARS"; then
+            echo "::error::Falta ORIGIN_SECRET en el environment production del proyecto de Vercel: sin él vercel.json enviaría el texto literal y la API rechazaría todo /api con 403."
+            exit 1
+          fi
+
+      # Desde la raíz: el proyecto de Vercel tiene Root Directory = apps/web y la CLI lo resuelve sola.
+      - run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      - name: Smoke test
+        env:
+          WEB_URL: ${{ vars.PROD_WEB_URL }}
+          SHA: ${{ needs.release.outputs.sha }}
+        run: |
+          if [ -z "$WEB_URL" ]; then
+            echo "::error::Falta la variable PROD_WEB_URL en el environment Production."
+            exit 1
+          fi
+
+          COMMIT=""
+          for _ in 1 2 3 4 5 6; do
+            STATUS=$(curl -sS -o ready.json -w '%{http_code}' --max-time 60 "$WEB_URL/api/health/ready" || true)
+            COMMIT=$(jq -r '.commit // empty' ready.json 2>/dev/null || true)
+            if [ "$STATUS" = "200" ] && [ "$COMMIT" = "$SHA" ]; then
+              break
+            fi
+            echo "/api/health/ready respondió $STATUS con commit ${COMMIT:-?}, reintentando..."
+            sleep 10
+          done
+          if [ "$STATUS" != "200" ] || [ "$COMMIT" != "$SHA" ]; then
+            echo "::error::$WEB_URL/api/health/ready no respondió 200 con el commit $SHA."
+            exit 1
+          fi
+
+          STATUS=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "$WEB_URL/profile")
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::$WEB_URL/profile respondió $STATUS; el fallback de la SPA no anda."
+            exit 1
+          fi
+
+          echo "Web OK: la API responde con $SHA y /profile da 200."
+
+  build-apk:
+    name: Build APK
+    # En push espera a que la web esté desplegada: el APK apunta a esa prod. En dispatch con build_apk no hace falta deploy.
+    needs: [release, deploy-web]
+    if: >-
+      !cancelled() && needs.release.result == 'success' && (
+        (github.event_name == 'push' && needs.release.outputs.new_release == 'true' &&
+          needs.release.outputs.mobile_changed == 'true' && needs.deploy-web.result == 'success') ||
+        (github.event_name == 'workflow_dispatch' && inputs.build_apk)
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: Production
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.release.outputs.tag }}
+      APP_VARIANT: production
+      APP_VERSION: ${{ needs.release.outputs.version }}
+      EXPO_PUBLIC_API_URL: ${{ vars.PROD_WEB_URL }}
+      # Desde una rama que no es main el APK nunca se publica: queda como artifact.
+      PUBLISH_APK: ${{ github.event_name == 'push' || (inputs.upload_apk && github.ref == 'refs/heads/main') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'push' && needs.release.outputs.sha || needs.release.outputs.tag }}
+
+      - name: Version code
+        run: |
+          if ! [[ "$APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::No hay un tag vX.Y.Z del que sacar la versión (llegó '${APP_VERSION}')."
+            exit 1
+          fi
+          if [ -z "$EXPO_PUBLIC_API_URL" ]; then
+            echo "::error::Falta la variable PROD_WEB_URL en el environment Production."
+            exit 1
+          fi
+          IFS=. read -r MAJOR MINOR PATCH <<< "$APP_VERSION"
+          APP_VERSION_CODE=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
+          echo "APP_VERSION_CODE=$APP_VERSION_CODE" >> "$GITHUB_ENV"
+          echo "Versión $APP_VERSION (versionCode $APP_VERSION_CODE)"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@48b5f213c81028ace310571dc5ec0fbbca0b2947 # v4
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter mobile exec expo prebuild --platform android --clean --no-install
+
+      - name: Decode keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::Falta el secret ANDROID_KEYSTORE_BASE64 en el environment Production."
+            exit 1
+          fi
+          KEYSTORE_PATH="$RUNNER_TEMP/omni-release.jks"
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          echo "KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+
+      - name: Assemble release
+        working-directory: apps/mobile/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          ./gradlew assembleRelease \
+            -PreactNativeArchitectures=arm64-v8a \
+            -Pandroid.injected.signing.store.file="$KEYSTORE_PATH" \
+            -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD"
+
+      - name: Verify APK
+        run: |
+          APK=apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+
+          CERTS=$("$BUILD_TOOLS/apksigner" verify --print-certs "$APK")
+          echo "$CERTS"
+          if grep -q 'CN=Android Debug' <<< "$CERTS"; then
+            echo "::error::El APK está firmado con la keystore de debug, no con la de release."
+            exit 1
+          fi
+
+          MANIFEST=$("$BUILD_TOOLS/aapt2" dump xmltree --file AndroidManifest.xml "$APK")
+          if grep -Eq 'usesCleartextTraffic\([^)]*\)=(true|\(type 0x12\)0xffffffff)' <<< "$MANIFEST"; then
+            echo "::error::El manifest del APK tiene usesCleartextTraffic=true. En producción tiene que estar apagado (APP_VARIANT=production en app.config.ts)."
+            exit 1
+          fi
+
+          BADGING=$("$BUILD_TOOLS/aapt2" dump badging "$APK" | head -n 1)
+          echo "$BADGING"
+          if ! grep -q "versionCode='$APP_VERSION_CODE' versionName='$APP_VERSION'" <<< "$BADGING"; then
+            echo "::error::El APK no tiene versionCode $APP_VERSION_CODE / versionName $APP_VERSION."
+            exit 1
+          fi
+
+          cp "$APK" "$RUNNER_TEMP/omni-$TAG.apk"
+          echo "APK_FILE=$RUNNER_TEMP/omni-$TAG.apk" >> "$GITHUB_ENV"
+
+      - name: Publish to omni-apk
+        if: env.PUBLISH_APK == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.APK_REPO_TOKEN }}
+        run: |
+          if gh release view "$TAG" --repo "$APK_REPO" > /dev/null 2>&1; then
+            echo "::error::Ya existe el release $TAG en $APK_REPO. Borralo o corré el dispatch con upload_apk=false."
+            exit 1
+          fi
+          gh release create "$TAG" "$APK_FILE" \
+            --repo "$APK_REPO" \
+            --title "Omni $TAG" \
+            --notes "APK de Omni $TAG. Cambios: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG"
+
+      - uses: actions/upload-artifact@v4
+        if: env.PUBLISH_APK != 'true'
+        with:
+          name: omni-${{ env.TAG }}-apk
+          path: ${{ env.APK_FILE }}
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/omni-release.jks"
+
+  sync-develop:
+    name: Sync develop
+    needs: [release]
+    if: needs.release.outputs.new_release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # El push a develop usa RELEASE_TOKEN, no el GITHUB_TOKEN.
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Sync develop with main
-        if: steps.release.outputs.new_release == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
