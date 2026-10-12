@@ -4,6 +4,8 @@ import { api } from '../client';
 import { SWR_KEYS } from '../keys';
 import { clearOnAuthFailure, setOnAuthFailure } from '../refreshSession';
 
+const JSON_HEADERS = new Headers({ 'content-type': 'application/json' });
+
 describe('api client', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -15,6 +17,7 @@ describe('api client', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
+        headers: JSON_HEADERS,
         status: 200,
         json: () => Promise.resolve({ ok: true }),
       })
@@ -28,6 +31,7 @@ describe('api client', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
+        headers: JSON_HEADERS,
         status: 204,
       })
     );
@@ -40,6 +44,7 @@ describe('api client', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
+        headers: JSON_HEADERS,
         status: 400,
         statusText: 'Bad Request',
         json: () => Promise.resolve({ message: 'Invalid' }),
@@ -62,18 +67,24 @@ describe('api client', () => {
       vi.fn((url: string) => {
         calls.push(url);
         if (url === SWR_KEYS.auth.refresh) {
-          return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+          return Promise.resolve({ ok: true, headers: JSON_HEADERS, json: () => Promise.resolve({}) });
         }
         resourceCallCount += 1;
         if (resourceCallCount === 1) {
           return Promise.resolve({
             ok: false,
+            headers: JSON_HEADERS,
             status: 401,
             statusText: 'Unauthorized',
             json: () => Promise.resolve({}),
           });
         }
-        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ data: 'ok' }) });
+        return Promise.resolve({
+          ok: true,
+          headers: JSON_HEADERS,
+          status: 200,
+          json: () => Promise.resolve({ data: 'ok' }),
+        });
       })
     );
 
@@ -89,10 +100,11 @@ describe('api client', () => {
       'fetch',
       vi.fn((url: string) => {
         if (url === SWR_KEYS.auth.refresh) {
-          return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
+          return Promise.resolve({ ok: false, headers: JSON_HEADERS, json: () => Promise.resolve({}) });
         }
         return Promise.resolve({
           ok: false,
+          headers: JSON_HEADERS,
           status: 401,
           statusText: 'Unauthorized',
           json: () => Promise.resolve({}),
@@ -109,6 +121,7 @@ describe('api client', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
+        headers: JSON_HEADERS,
         status: 401,
         statusText: 'Unauthorized',
         json: () => Promise.resolve({ message: 'Credenciales inválidas' }),

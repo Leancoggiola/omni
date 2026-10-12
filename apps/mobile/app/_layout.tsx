@@ -8,6 +8,7 @@ import { TamaguiProvider, Theme, YStack } from 'tamagui';
 import { StatusBar } from 'expo-status-bar';
 
 import { AuthProvider, useAuth } from '@/core/auth';
+import { ServerWakeNotice } from '@/core/serverWake';
 import { ColorSchemeProvider, useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { NAVIGATION_THEMES } from '@/theme/navigationTheme';
 import { MONTSERRAT_FACES } from '@/theme/fonts';
@@ -86,6 +87,7 @@ export default function RootLayout() {
               <ConfirmProvider>
                 <ActionSheetProvider>
                   <AuthGate />
+                  <ServerWakeNotice />
                 </ActionSheetProvider>
               </ConfirmProvider>
             </NotificationsProvider>

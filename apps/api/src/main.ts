@@ -11,9 +11,16 @@ import './auth/strategies/jwt-refresh.strategy';
 import './auth/strategies/local.strategy';
 
 import router from './router';
-import { createRateLimiter, errorHandler, logger } from './common/utils';
+import healthRoutes from './health/health.routes';
+import { apiNotFound, createRateLimiter, errorHandler, logger, noStore, originGuard } from './common/utils';
 import { checkDatabaseConnection, prisma } from './common/db';
 
+/**
+ * `trust proxy = 1` porque Render pone un balanceador delante: `req.ip` sale de su `X-Forwarded-For`.
+ * El orden en `/api` importa: health queda exento del guard (Render pega directo), y el guard corre
+ * antes que cualquier rate limiter para que la clave por IP ya sepa si puede confiar en `x-real-ip`.
+ * `apiNotFound` cierra `/api` para que ninguna respuesta de la API salga en HTML.
+ */
 async function bootstrap() {
   await prisma.$connect();
 
@@ -30,6 +37,8 @@ async function bootstrap() {
 
   const app = express();
 
+  app.set('trust proxy', 1);
+
   app.use(helmet());
   app.use(
     cors({
@@ -38,10 +47,14 @@ async function bootstrap() {
     })
   );
 
+  app.use('/api', noStore);
+  app.use('/api/health', healthRoutes);
+  app.use('/api', originGuard);
+
   app.use(
     createRateLimiter({
       windowMs: 15 * 60 * 1000,
-      max: 100,
+      max: config.rateLimit.globalMax,
       standardHeaders: true,
       legacyHeaders: false,
       message: {
@@ -56,11 +69,8 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(pinoHttp({ logger }));
 
-  app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok' });
-  });
-
   app.use('/api', router);
+  app.use('/api', apiNotFound);
 
   app.use(errorHandler);
 

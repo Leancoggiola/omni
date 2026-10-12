@@ -1,32 +1,12 @@
+import { ApiError } from './ApiError';
+import { toUrl } from './baseUrl';
 import { API_KEYS } from './keys';
+import { fetchWithWake } from './serverWake';
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from './tokenStorage';
 
 import type { AuthTokensResponse } from '@omni/shared/auth';
 
-export class ApiError extends Error {
-  status: number;
-  info: unknown;
-
-  constructor(message: string, status: number, info?: unknown) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.info = info;
-  }
-}
-
-function getBaseUrl(): string {
-  const base = (typeof process !== 'undefined' ? process.env.EXPO_PUBLIC_API_URL : undefined)?.replace(/\/$/, '');
-  if (!base) {
-    throw new ApiError('Falta EXPO_PUBLIC_API_URL (ej. http://192.168.x.x:3000). Ver apps/mobile/README.md', 0);
-  }
-  return base;
-}
-
-function toUrl(path: string): string {
-  if (path.startsWith('http')) return path;
-  return `${getBaseUrl()}${path}`;
-}
+export { ApiError };
 
 let refreshPromise: Promise<boolean> | null = null;
 let onAuthFailure: (() => void) | null = null;
@@ -56,7 +36,7 @@ async function refreshAccessToken(): Promise<boolean> {
     return false;
   }
 
-  const res = await fetch(toUrl(API_KEYS.auth.refresh), {
+  const res = await fetchWithWake(toUrl(API_KEYS.auth.refresh), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
@@ -93,7 +73,7 @@ async function request<T = unknown>(path: string, method: HttpMethod, body?: unk
     headers.Authorization = `Bearer ${accessToken}`;
   }
 
-  const res = await fetch(toUrl(path), {
+  const res = await fetchWithWake(toUrl(path), {
     method,
     headers,
     body: body != null ? JSON.stringify(body) : undefined,

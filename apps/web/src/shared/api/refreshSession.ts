@@ -1,4 +1,5 @@
 import { SWR_KEYS } from './keys';
+import { fetchWithWake } from './serverWake';
 
 let refreshPromise: Promise<boolean> | null = null;
 let onAuthFailure: (() => void) | null = null;
@@ -24,7 +25,7 @@ export function shouldSkipRefresh(url: string): boolean {
 }
 
 async function refreshAccessToken(): Promise<boolean> {
-  const res = await fetch(SWR_KEYS.auth.refresh, {
+  const res = await fetchWithWake(SWR_KEYS.auth.refresh, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },

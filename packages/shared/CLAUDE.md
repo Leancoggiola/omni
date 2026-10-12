@@ -11,6 +11,7 @@ src/
   users/      profile, password, preferences
   theme/      BRAND, SEMANTIC, GRAY, success/destructive (web + mobile)
   navigation/ NAV_REGISTRY: labels, rutas y disponibilidad de módulos (navbar web, tabs y "Más" mobile)
+  server-wake/ cold start de la API: constantes, funciones puras (backoff, `isApiResponse`, `isIdempotentMethod`) y la fábrica `createServerWake({ fetch, healthUrl, createError, probeInit?, isOffline? })` con la orquestación (single-flight, polling, tope, reintento); cada cliente crea su instancia y pone la UI del aviso. Sin conexión (`isOffline()` del cliente, o 2 sondeos seguidos que fallan por red, no por timeout, sin respuesta previa) el polling se corta y se relanza el error de red del request; el tope de 90 s incluye al último sondeo y un request abortado por el caller deja de esperar. La fábrica no se re-exporta desde el barrel: se importa por el subpath `@omni/shared/server-wake`. Los tipos DOM (`fetch`, `Response`) entran con `/// <reference lib="dom" />` solo en ese archivo. Sin runner: los tests viven en web
   index.ts    re-exports
 ```
 
