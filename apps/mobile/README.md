@@ -20,7 +20,7 @@ EXPO_PUBLIC_API_URL=http://192.168.x.x:3000
 Reemplazá por la IP LAN de tu máquina (`ipconfig` en Windows).
 
 3. La API ya puede bind a `0.0.0.0` en prod; en local asegurate de poder alcanzar el puerto 3000 desde el device.
-4. `app.json` habilita `usesCleartextTraffic` para HTTP en desarrollo.
+4. El HTTP sin cifrar para desarrollo lo habilitan los manifests de `debug` que genera el prebuild; el build release solo admite HTTPS. Por eso en desarrollo se usa el dev-client con `expo run:android` (variant debug); un release o preview apuntando a `http://` no es un caso soportado.
 
 ## Scripts
 

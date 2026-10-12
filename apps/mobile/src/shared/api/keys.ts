@@ -1,4 +1,5 @@
 export const API_KEYS = {
+  health: '/api/health',
   auth: {
     profile: '/api/auth/profile',
     login: '/api/auth/login',

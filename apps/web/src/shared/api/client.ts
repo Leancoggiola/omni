@@ -1,10 +1,11 @@
-import { ApiError } from './fetcher';
+import { ApiError } from './ApiError';
 import { ensureRefreshed, notifyAuthFailure, shouldSkipRefresh } from './refreshSession';
+import { fetchWithWake } from './serverWake';
 
 type HttpMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 async function request<T = unknown>(url: string, method: HttpMethod, body?: unknown, retried = false): Promise<T> {
-  const res = await fetch(url, {
+  const res = await fetchWithWake(url, {
     method,
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },

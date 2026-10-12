@@ -1,19 +1,11 @@
+import { ApiError } from './ApiError';
 import { ensureRefreshed, notifyAuthFailure, shouldSkipRefresh } from './refreshSession';
+import { fetchWithWake } from './serverWake';
 
-export class ApiError extends Error {
-  status: number;
-  info: unknown;
-
-  constructor(message: string, status: number, info?: unknown) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.info = info;
-  }
-}
+export { ApiError };
 
 async function request<T = unknown>(url: string, retried = false): Promise<T> {
-  const res = await fetch(url, { credentials: 'include' });
+  const res = await fetchWithWake(url, { credentials: 'include' });
 
   if (res.status === 401 && !retried && !shouldSkipRefresh(url)) {
     const ok = await ensureRefreshed();
