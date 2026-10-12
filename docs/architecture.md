@@ -133,6 +133,7 @@ Cada feature usa `modules/<nombre>/` (sub-dominios), carpetas por componente/hoo
 - Rutas protegidas: Passport acepta cookie `access_token` **o** header `Authorization: Bearer`.
 - Refresh: cookie `refresh_token`, Bearer, o body `{ refreshToken }` (`refreshTokenBodySchema`).
 - Logout: access por cookie/Bearer; refresh a revocar por cookie o body.
+- La cookie de refresh viaja a `/api/auth/*` (no solo a `/refresh`) para que el logout de la web identifique la sesión que cierra.
 
 Web ignora los tokens del body. Mobile los guarda (SecureStore) y no depende de cookies.
 
