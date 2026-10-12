@@ -64,3 +64,12 @@ Paths HTTP solo en `src/shared/api/keys.ts` (`API_KEYS`).
 ## Tooling agentes
 
 Ver [docs/mobile/tooling.md](../../docs/mobile/tooling.md) y [CLAUDE.md](../../CLAUDE.md).
+
+## Instalar el APK de producción
+
+1. En el celular, abrir los releases de `Leancoggiola/omni-apk` (repo privado) e iniciar sesión.
+2. Bajar `omni-vX.Y.Z.apk`.
+3. Permitir la instalación desde **orígenes desconocidos** para la app desde la que lo abrís.
+4. Instalar. Las versiones nuevas se instalan encima.
+
+Detalle y runbooks en [docs/ops/deployment.md](../../docs/ops/deployment.md).

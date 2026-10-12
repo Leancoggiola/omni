@@ -10,20 +10,22 @@ cp apps/api/.env.example apps/api/.env
 
 ### Variables
 
-| Variable                 | Requerida | Descripción                                                                                                            |
-| ------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`           | Sí        | URL de Supabase con pgbouncer. Usada por la app en runtime.                                                            |
-| `DIRECT_URL`             | Sí        | URL de Supabase sin pooler. Usada por la CLI de Prisma (migraciones, seed).                                            |
-| `JWT_ACCESS_SECRET`      | Sí        | Secret para firmar access tokens. Generar con `openssl rand -base64 32`.                                               |
-| `JWT_REFRESH_SECRET`     | Sí        | Secret para firmar refresh tokens. Generar con `openssl rand -base64 32`.                                              |
-| `JWT_ACCESS_EXPIRES_IN`  | —         | Expiración del access token. Default: `15m`.                                                                           |
-| `JWT_REFRESH_EXPIRES_IN` | —         | Expiración del refresh token. Default: `7d`.                                                                           |
-| `COOKIE_REFRESH_MAX_AGE` | —         | Max-age de la cookie del refresh token en **segundos**. Default: `604800` (7 días).                                    |
-| `PORT`                   | —         | Puerto del servidor. Default: `3000`.                                                                                  |
-| `CORS_ORIGIN`            | —         | Origen permitido (ej: `http://localhost:5173`). Si no se define, permite `localhost:5173`.                             |
-| `TMDB_API_KEY`           | Sí        | API key de TMDB (JWT Bearer token). Obtener en [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api). |
-| `ADMIN_USERNAME`         | Sí        | Username del usuario admin inicial. Usado por `prisma db seed`.                                                        |
-| `ADMIN_PASSWORD`         | Sí        | Password del usuario admin inicial. Usado por `prisma db seed`.                                                        |
+| Variable                 | Requerida | Descripción                                                                                                               |
+| ------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`           | Sí        | URL de Supabase con pgbouncer. Usada por la app en runtime.                                                               |
+| `DIRECT_URL`             | Sí        | URL de Supabase sin pooler. Usada por la CLI de Prisma (migraciones, seed).                                               |
+| `JWT_ACCESS_SECRET`      | Sí        | Secret para firmar access tokens. Generar con `openssl rand -base64 32`.                                                  |
+| `JWT_REFRESH_SECRET`     | Sí        | Secret para firmar refresh tokens. Generar con `openssl rand -base64 32`.                                                 |
+| `JWT_ACCESS_EXPIRES_IN`  | —         | Expiración del access token. Default: `15m`.                                                                              |
+| `JWT_REFRESH_EXPIRES_IN` | —         | Expiración del refresh token. Default: `7d`.                                                                              |
+| `COOKIE_REFRESH_MAX_AGE` | —         | Max-age de la cookie del refresh token en **segundos**. Default: `604800` (7 días).                                       |
+| `PORT`                   | —         | Puerto del servidor. Default: `3000`.                                                                                     |
+| `CORS_ORIGIN`            | —         | Origen permitido (ej: `http://localhost:5173`). Si no se define, permite `localhost:5173`.                                |
+| `TMDB_API_KEY`           | Sí        | API key de TMDB (JWT Bearer token). Obtener en [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api).    |
+| `ADMIN_USERNAME`         | Sí        | Username del usuario admin inicial. Usado por `prisma db seed`.                                                           |
+| `ADMIN_PASSWORD`         | Sí        | Password del usuario admin inicial. Usado por `prisma db seed`.                                                           |
+| `ORIGIN_SECRET`          | Prod      | Secret que Vercel envía como `x-origin-secret`. En producción la API no arranca sin él; en dev, vacío desactiva el guard. |
+| `RATE_LIMIT_GLOBAL_MAX`  | —         | Máximo de requests por IP cada 15 min. Default: `300`.                                                                    |
 
 ### Cómo obtener las URLs de Supabase
 
@@ -36,13 +38,22 @@ cp apps/api/.env.example apps/api/.env
 
 ## `apps/web`
 
-El frontend no tiene `.env` propio en desarrollo. Vite usa el proxy configurado en `vite.config.ts` para redirigir `/api/*` al backend en `localhost:3000`.
-
-En producción (Vercel: `omni-nest`), si el cliente llama a la API en otro origen, configurar `VITE_API_URL` (ej. `https://omni-api-gwer.onrender.com`) y asegurar `CORS_ORIGIN` en Render.
+El frontend no tiene `.env`. En desarrollo Vite redirige `/api/*` a `localhost:3000` (`vite.config.ts`); en producción Vercel hace el proxy de `/api/*` a Render (`apps/web/vercel.json`) con `ORIGIN_SECRET`. No hay `VITE_API_URL`: la web siempre usa `/api` relativo.
 
 ## `apps/mobile`
 
-Copiar `apps/mobile/.env.example` → `.env` y setear `EXPO_PUBLIC_API_URL` (sin slash final), apuntando a la API local o a Render.
+Copiar `apps/mobile/.env.example` → `.env` y setear `EXPO_PUBLIC_API_URL` (sin slash final).
+
+- **Dev:** la IP LAN de la PC (ej. `http://192.168.1.10:3000`).
+- **Prod:** la inyecta CI (`PROD_WEB_URL`, `https://omni-nest.vercel.app`); no se define a mano.
+
+Variables de build que lee `app.config.ts` (las setea CI en el release):
+
+| Variable           | Descripción                                                               |
+| ------------------ | ------------------------------------------------------------------------- |
+| `APP_VERSION`      | `version` de la app (ej. `1.1.0`). Default: la de `app.json`.             |
+| `APP_VERSION_CODE` | `android.versionCode`: major·10000 + minor·100 + patch (1.1.0 → `10100`). |
+| `APP_VARIANT`      | `production` en el APK de release.                                        |
 
 ---
 

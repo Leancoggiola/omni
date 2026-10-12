@@ -53,7 +53,7 @@
 
 | Doc                                                      | Contenido                               |
 | -------------------------------------------------------- | --------------------------------------- |
-| [deployment.md](./ops/deployment.md)                     | Deploy Render/Vercel                    |
+| [deployment.md](./ops/deployment.md)                     | Producción, pipeline y runbooks         |
 | [commits-and-releases.md](./ops/commits-and-releases.md) | Conventional commits / semantic-release |
 
 ### Tooling
