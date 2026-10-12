@@ -13,6 +13,7 @@ apps/mobile/
     (tabs)/index|media|pantry|more.tsx
   src/
     core/auth/            # AuthProvider, SecureStore
+    core/serverWake/      # ServerWakeNotice (aviso de cold start)
     shared/api/           # API_KEYS, client Bearer, tokenStorage
     shared/ui/            # primitivas de UI (ver abajo)
     shared/navigation/    # NAV_ICONS, NAV_HREFS, TAB_ROUTES y MORE_TAB (lo que depende de auth/router; shared/ui es presentacional)
@@ -41,6 +42,10 @@ await api.get(API_KEYS.media.list);
 ```
 
 Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/api/...'` fuera de `keys.ts`.
+
+## Cold start de la API
+
+Igual que web: el client usa `fetchWithWake` (`shared/api/serverWake.ts`) en `request` y en el refresh, con `API_KEYS.health`. Reintenta si la respuesta es del proxy o de la plataforma (no es JSON y trae 502/503/504 o `text/html`: cualquier método; un JSON, aunque sea 502, se devuelve tal cual) o si `fetch` lanza un error de red solo en GET/HEAD/PUT/DELETE; en POST/PATCH el error se propaga porque no se sabe si la API procesó el request. Sin conexión no espera 90 s: tras 2 sondeos seguidos al health con error de red (no por su timeout) y sin ninguna respuesta HTTP previa, corta, sin banner, y relanza el error de red del request (no hay NetInfo: no se consulta el estado de red del dispositivo); una respuesta del proxy (502/503/504, HTML) o un timeout del sondeo siguen el polling. Además, `ServerWakeNotice` (`core/serverWake`, montado en `app/_layout.tsx`) muestra un `Banner` mientras la API despierta (aparece cuando falla el primer sondeo o pasan ~1,5 s sin respuesta). `serverWake.ts` es una instancia de `createServerWake` de `@omni/shared/server-wake`, que tiene la orquestación compartida con web, las constantes y la decisión pura.
 
 ## Hooks (SWR)
 

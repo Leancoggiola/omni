@@ -33,6 +33,10 @@ Todos los endpoints en `src/shared/api/keys.ts` como `SWR_KEYS`. Rutas dinámica
 
 **Prohibido:** literales `'/api/...'` fuera de `keys.ts`. Verificación: `pnpm --filter web check-api-paths`.
 
+## Cold start de la API
+
+La API (Render free) duerme y tarda ~1 min en despertar (tope de espera: 90 s, el último sondeo incluido). `fetcher`, `api` y el refresh usan `fetchWithWake` (`shared/api/serverWake.ts`), nunca `fetch` directo: reintenta solo si la respuesta es del proxy o de la plataforma (no es JSON y trae status 502/503/504 o `content-type: text/html`: el request no llegó a la API, se reintenta con cualquier método; cualquier JSON, aunque sea un 502 de la API, un 404 o un 304 se devuelven tal cual) o si `fetch` lanza un error de red, y esto último solo en GET/HEAD/PUT/DELETE (en POST/PATCH el error se propaga: no se sabe si la API llegó a procesarlo). Hace polling a `SWR_KEYS.health` con backoff y, si no despierta, lanza `ApiError` 503. Sin conexión no espera 90 s: con `navigator.onLine === false` corta enseguida, y si no, tras 2 sondeos seguidos con error de red (no por su timeout) sin ninguna respuesta HTTP previa; en ambos casos sin aviso y relanzando el error de red del request (el `ErrorState` aparece casi al instante); una respuesta del proxy (502/503/504, HTML) o un timeout del sondeo siguen el polling. `ServerWakeNotice` (`core/providers`) muestra el aviso, que aparece cuando falla el primer sondeo o pasan ~1,5 s sin respuesta, lo que ocurra primero. `serverWake.ts` es solo una instancia de `createServerWake` de `@omni/shared/server-wake` (que tiene la orquestación, las constantes y la decisión pura); los tests de esa lógica viven en `shared/api/__tests__/serverWake.test.ts` porque `packages/shared` no tiene runner.
+
 ## SWR
 
 | Caso                             | Hook                                                        |

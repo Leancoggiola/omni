@@ -29,6 +29,7 @@ export default defineConfig({
         'src/shared/api/fetcher.ts',
         'src/shared/api/client.ts',
         'src/shared/api/refreshSession.ts',
+        'src/shared/api/serverWake.ts',
         'src/**/utils/**/*.ts',
       ],
       exclude: ['src/**/utils/**/index.ts', 'src/**/*.{test,spec}.{ts,tsx}', 'src/**/__tests__/**'],

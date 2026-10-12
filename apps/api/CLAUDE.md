@@ -7,7 +7,9 @@ Nueva feature: `/new-feature`. Contratos: `packages/shared/CLAUDE.md`.
 ```
 apps/api/src/
   common/db/          prisma singleton
-  common/utils/       validate, logger, error-handler, rate-limit
+  common/utils/       validate, logger, error-handler, rate-limit, client-ip, origin-guard, no-store,
+                      cookies (set/clear de la sesión), not-found (404 JSON bajo /api)
+  health/             /api/health (liveness) y /api/health/ready (SELECT 1); públicos, antes del guard
   <feature>/
     <feature>.routes.ts   HTTP, validate, middleware auth, res.json, next(err)
     <feature>.service.ts  Prisma, TMDB, reglas de negocio — sin req/res
@@ -23,6 +25,12 @@ import { someSchema } from '@omni/shared/<domain>';
 ```
 
 No redefinir schemas Zod si ya existen en `@omni/shared`.
+
+## Detrás del proxy de Vercel
+
+- `ORIGIN_SECRET` es **obligatorio en producción** (el arranque falla sin él). El origin guard exige el header `x-origin-secret` en `/api/*` y solo confía en `x-real-ip` si el request lo pasó; fuera de producción, sin secreto, el guard no actúa.
+- `/api/health` y `/api/health/ready` se montan antes del guard y del rate limit global: Render y el keep-alive pegan directo. `/ready` tiene su propio limiter.
+- Las cookies de sesión se emiten y borran siempre con `setAccessCookie`/`setRefreshCookie`/`clearCookies` de `common/utils`: el borrado solo funciona si `path` y opciones coinciden.
 
 ## Prisma
 
