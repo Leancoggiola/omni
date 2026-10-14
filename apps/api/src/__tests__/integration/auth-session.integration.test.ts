@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
-import { MAX_SESSIONS_PER_USER, hashRefreshToken } from '../../auth/auth.service';
+import { MAX_SESSIONS_PER_USER, ROTATION_GRACE_MS, hashRefreshToken } from '../../auth/auth.service';
 import { prisma } from '../../common/db';
 import { basePrisma, clearPrismaOverride } from '../../common/db/prisma';
 import { config } from '../../config';
@@ -130,6 +130,21 @@ describe('sesión de la API (integración)', () => {
       expect(await activeSessionCount(user.id)).toBe(0);
     });
 
+    it('fuera de la ventana de gracia, un token rotado no cierra la sesión que lo reemplazó', async () => {
+      const user = await createUser();
+      const first = await seedSession(user);
+      const successor = await refresh(first);
+      await prisma.refreshToken.update({
+        where: { tokenHash: hashRefreshToken(first) },
+        data: { rotatedAt: new Date(Date.now() - ROTATION_GRACE_MS - 1000) },
+      });
+
+      await request(app).post('/api/auth/logout').send({ refreshToken: first });
+
+      expect(await activeSessionCount(user.id)).toBe(1);
+      expect((await refresh(successor.body.refreshToken as string)).status).toBe(200);
+    });
+
     it('borra la cadena entera: un token viejo de esa sesión da 401 sin revocar las otras', async () => {
       const user = await createUser();
       const first = await seedSession(user);
@@ -152,6 +167,22 @@ describe('sesión de la API (integración)', () => {
   });
 
   describe('refresh con un token que ya no está en la base', () => {
+    it('un token rotado cuyo sucesor fue expulsado da 401 sin revocar las otras sesiones', async () => {
+      const user = await createUser();
+      const first = await seedSession(user);
+      const otherDevice = await seedSession(user);
+      const successor = await refresh(first);
+      await prisma.refreshToken.delete({
+        where: { tokenHash: hashRefreshToken(successor.body.refreshToken as string) },
+      });
+
+      const res = await refresh(first);
+
+      expect(res.status).toBe(401);
+      expect(res.body.message).toBe('La sesión ya no es válida');
+      expect((await refresh(otherDevice)).status).toBe(200);
+    });
+
     it('un token que ya no está en la base da 401 sin revocar las otras sesiones', async () => {
       const user = await createUser();
       const evicted = await seedSession(user);

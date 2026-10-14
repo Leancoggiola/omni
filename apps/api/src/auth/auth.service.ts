@@ -63,6 +63,7 @@ type RotationOutcome = 'rotated' | 'grace' | 'graceExhausted' | 'unknown' | 'reu
  * - token rotado hace menos de `ROTATION_GRACE_MS` cuyo sucesor sigue sin usarse: recibe una sesión hermana, hasta
  *   `MAX_GRACE_SIBLINGS`. Después da 401 sin revocar nada ni borrar las cookies, que ya tienen el token nuevo;
  * - token rotado fuera de esa ventana, o con el sucesor ya usado: es un reuso y se revocan todas las sesiones;
+ * - token rotado cuyo sucesor ya no está (expulsado por el tope o cerrado): 401 sin tocar las otras sesiones;
  * - token que no está en la base (cerrado, expulsado por el tope, revocado): 401 sin tocar las otras sesiones.
  * La ventana se mide desde la rotación, así ni las hermanas ni los reintentos la extienden, y las hermanas no pasan
  * por el tope de sesiones: no pueden expulsar a las del usuario.
@@ -98,8 +99,9 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       select: { rotatedAt: true },
     });
+    if (!successor) return 'unknown';
     const withinGrace = stored.rotatedAt.getTime() >= now.getTime() - ROTATION_GRACE_MS;
-    if (!withinGrace || !successor || successor.rotatedAt) {
+    if (!withinGrace || successor.rotatedAt) {
       await tx.refreshToken.deleteMany({ where: { userId } });
       return 'reused';
     }
@@ -130,8 +132,9 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
 /**
  * Se identifica con el refresh token y no con el access token, para que funcione aunque este haya vencido: la firma
  * se verifica sin mirar el vencimiento solo para saber de qué usuario es. Borra la cadena entera del token (su fila y
- * todas las rotadas que lo precedieron) y sus sucesores sin usar, por si la respuesta de la última rotación no llegó
- * al cliente. Sin esas filas, un refresh posterior con cualquier token de la cadena da 401 sin revocar las otras
+ * todas las rotadas que lo precedieron). Si el token se rotó dentro de `ROTATION_GRACE_MS`, borra también sus sucesores
+ * sin usar, por si la respuesta de esa rotación no llegó al cliente; fuera de la ventana, un token viejo no cierra la
+ * sesión que lo reemplazó. Sin esas filas, un refresh posterior con cualquier token de la cadena da 401 sin revocar las otras
  * sesiones, en vez de parecer un reuso. Las cookies se borran antes de tocar la base y la respuesta es siempre la
  * misma: sin token, con uno inválido o ya revocado, o con dos logouts simultáneos.
  */
@@ -143,7 +146,13 @@ export async function logout(rawRefreshToken: string | undefined, res: Response)
     const tokenHash = hashRefreshToken(rawRefreshToken);
     await prisma.$transaction(async tx => {
       await lockUserSessions(tx, userId);
-      await tx.refreshToken.deleteMany({ where: { userId, previousTokenHash: tokenHash, rotatedAt: null } });
+      const graceStart = new Date(Date.now() - ROTATION_GRACE_MS);
+      const recentlyRotated = await tx.refreshToken.count({
+        where: { userId, tokenHash, rotatedAt: { gte: graceStart } },
+      });
+      if (recentlyRotated > 0) {
+        await tx.refreshToken.deleteMany({ where: { userId, previousTokenHash: tokenHash, rotatedAt: null } });
+      }
       await deleteTokenChain(tx, userId, tokenHash);
     });
   }
