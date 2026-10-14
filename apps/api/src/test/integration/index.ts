@@ -6,3 +6,4 @@ export { findRecordedCall, getRecordedCalls, resetRecordedCalls } from './queryR
 export type { RecordedCall } from './queryRecorder';
 export { assertTestDatabaseUrl, loadTestEnv } from './testDatabaseUrl';
 export { withSavepoint } from './withSavepoint';
+export { activeSessionCount, seedSession } from './session';

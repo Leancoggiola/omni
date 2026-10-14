@@ -3,6 +3,7 @@ import type { CreateUserPayload } from '@omni/shared/auth';
 import type { UpdateProfilePayload, UpdatePreferencesPayload } from '@omni/shared/users';
 import * as bcrypt from 'bcrypt';
 import { prisma } from '../common/db';
+import { lockUserSessions } from '../auth/session-lock';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -84,12 +85,17 @@ export async function updateProfile(userId: string, dto: UpdateProfilePayload) {
   });
 }
 
+/** Revoca todas las sesiones en la misma transacción: ningún refresh token emitido antes del cambio sigue valiendo. */
 export async function changePassword(userId: string, newPassword: string) {
   const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { password: hashedPassword },
+  await prisma.$transaction(async tx => {
+    await lockUserSessions(tx, userId);
+    await tx.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+    await tx.refreshToken.deleteMany({ where: { userId } });
   });
 }
 
