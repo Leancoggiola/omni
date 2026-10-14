@@ -7,7 +7,7 @@ Nueva feature: `/new-feature`. Contratos: `packages/shared/CLAUDE.md`.
 ```
 apps/api/src/
   common/db/          prisma singleton
-  common/utils/       validate, logger, error-handler, rate-limit, client-ip, origin-guard, no-store,
+  common/utils/       validate, logger, http-logger (pino-http con redact), error-handler, rate-limit, client-ip, origin-guard, no-store,
                       cookies (set/clear de la sesión), not-found (404 JSON bajo /api)
   health/             /api/health (liveness) y /api/health/ready (SELECT 1); públicos, antes del guard
   <feature>/
@@ -51,6 +51,9 @@ router.post('/list', validate(addMediaItemSchema), async (req, res, next) => { .
 - Rutas protegidas: `authenticateJwt` (cookie `access_token` **o** `Authorization: Bearer`).
 - Login/refresh: setean cookies (web) **y** devuelven `accessToken` + `refreshToken` en el JSON (mobile).
 - Refresh acepta token por cookie, Bearer o body `{ refreshToken }`.
+- Logout no usa `authenticateJwt`: se identifica con el refresh token (body, si no cookie), es idempotente y siempre llama a `clearCookies`.
+- Refresh tokens: en la base va el sha256 (`hashRefreshToken`), nunca bcrypt. Toda escritura de `RefreshToken` va en una transacción que empieza con `lockUserSessions(tx, userId)`. Ver "Auth dual" en `docs/architecture.md`.
+- El logger HTTP (`createHttpLogger`) redacta los headers con credenciales: no montar `pino-http` directo.
 - Admin: `authenticateJwt` + `requireAdmin`.
 - Tipos: `AuthTokensResponse`, `refreshTokenBodySchema` en `@omni/shared/auth`.
 
