@@ -112,11 +112,12 @@ jobs:
       - name: Excepciones solo en mobile (bloqueante)
         shell: bash
         run: |
-          out="$(pnpm --filter api --filter web why node-forge braces --prod)"
-          if [ -n "$out" ]; then
-            echo "$out"
-            exit 1
-          fi
+          pnpm --filter '!mobile' why node-forge braces --prod --json | node -e "
+            const r = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+            if (!r.length) { console.error('sin proyectos evaluados'); process.exit(1); }
+            const h = r.filter((p) => p.dependencies || p.devDependencies || p.optionalDependencies);
+            if (h.length) { console.error('excepciones fuera de mobile: ' + h.map((p) => p.name).join(', ')); process.exit(1); }
+          "
 
       - name: Audit de producción (bloqueante)
         run: pnpm audit --prod --audit-level=high
