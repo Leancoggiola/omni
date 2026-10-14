@@ -49,14 +49,14 @@ model UserPreferences {
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash         String   @unique
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash         String    @unique
   previousTokenHash String?
   rotatedAt         DateTime?
   expiresAt         DateTime
-  createdAt         DateTime @default(now())
+  createdAt         DateTime  @default(now())
 
   @@index([userId])
   @@index([previousTokenHash])
