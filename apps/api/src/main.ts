@@ -7,6 +7,7 @@ import passport from 'passport';
 
 import './auth/strategies/jwt.strategy';
 import './auth/strategies/jwt-refresh.strategy';
+import './auth/strategies/logout.strategy';
 import './auth/strategies/local.strategy';
 
 import router from './router';

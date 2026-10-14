@@ -24,3 +24,4 @@ function authenticate(strategy: string) {
 export const authenticateLocal = authenticate('local');
 export const authenticateJwt = authenticate('jwt');
 export const authenticateJwtRefresh = authenticate('jwt-refresh');
+export const authenticateLogout = authenticate('logout');
