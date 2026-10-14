@@ -49,7 +49,10 @@ export const createUserFormSchema: z.ZodType<CreateUserFormValues> = z
     error: 'Las contraseñas no coinciden',
   });
 
-/** Body opcional para refresh/logout desde clientes mobile (Bearer). */
+/**
+ * Body opcional de refresh y logout. Mobile manda acá su refresh token; la web no manda body y usa la cookie.
+ * En el logout, el token del body tiene prioridad sobre la cookie.
+ */
 export const refreshTokenBodySchema = z
   .object({
     refreshToken: z.string().min(1).optional(),

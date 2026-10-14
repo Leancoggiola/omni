@@ -96,7 +96,7 @@ describe('auth routes (integration)', () => {
         .post('/api/auth/refresh')
         .send({ refreshToken: other.body.refreshToken as string });
       expect(otherSession.status).toBe(200);
-      expect(await prisma.refreshToken.count({ where: { userId: user.id } })).toBe(2);
+      expect(await prisma.refreshToken.count({ where: { userId: user.id, rotatedAt: null } })).toBe(2);
     });
   });
 
@@ -112,10 +112,7 @@ describe('auth routes (integration)', () => {
       const refreshCookie = webCookies
         .find(cookie => cookie.startsWith('refresh_token=') && cookie.includes('Path=/api/auth;'))!
         .split(';')[0]!;
-      const res = await request(app)
-        .post('/api/auth/logout')
-        .set('Authorization', `Bearer ${web.body.accessToken as string}`)
-        .set('Cookie', refreshCookie);
+      const res = await request(app).post('/api/auth/logout').set('Cookie', refreshCookie);
 
       expect(res.status).toBe(200);
       const remaining = await prisma.refreshToken.findMany({ where: { userId: user.id } });
@@ -133,10 +130,9 @@ describe('auth routes (integration)', () => {
       const login = await request(app)
         .post('/api/auth/login')
         .send({ username: 'logouttwice', password: TEST_PASSWORD });
-      const { accessToken, refreshToken } = login.body as { accessToken: string; refreshToken: string };
+      const { refreshToken } = login.body as { refreshToken: string };
 
-      const logout = () =>
-        request(app).post('/api/auth/logout').set('Authorization', `Bearer ${accessToken}`).send({ refreshToken });
+      const logout = () => request(app).post('/api/auth/logout').send({ refreshToken });
       const [first, second] = await Promise.all([logout(), logout()]);
 
       expect(first.status).toBe(200);
