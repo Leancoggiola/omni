@@ -4,7 +4,7 @@ App Android con **Expo Router**, **Tamagui**, **SWR** y `@omni/shared`. Paridad 
 
 ## Requisitos
 
-- Node ≥ 18, pnpm
+- Node ≥ 22.12 (ver `.nvmrc` de la raíz), pnpm
 - API corriendo (`pnpm dev:api`) escuchando en la red local
 - Development Build (no Expo Go): Tamagui + SecureStore
 

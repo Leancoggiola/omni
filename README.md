@@ -35,7 +35,7 @@ CLAUDE.md    → contexto raíz para Claude Code (cada app tiene el suyo)
 
 ## Requisitos
 
-- Node.js ≥ 18
+- Node.js ≥ 22.12 (ver `.nvmrc`)
 - pnpm ≥ 10 (`corepack enable`)
 - PostgreSQL (Supabase recomendado)
 - TMDB API key — [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api)
