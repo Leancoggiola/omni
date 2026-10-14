@@ -6,7 +6,7 @@ Nueva feature: `/new-feature`. Contratos: `packages/shared/CLAUDE.md`.
 
 ```
 apps/api/src/
-  common/db/          prisma singleton
+  common/db/          prisma singleton, lockUserSessions (advisory lock de sesiones)
   common/utils/       validate, logger, http-logger (pino-http con redact), error-handler, rate-limit, client-ip, origin-guard, no-store,
                       cookies (set/clear de la sesión), not-found (404 JSON bajo /api)
   health/             /api/health (liveness) y /api/health/ready (SELECT 1); públicos, antes del guard

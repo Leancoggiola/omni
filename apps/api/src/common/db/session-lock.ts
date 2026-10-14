@@ -1,4 +1,4 @@
-import type { PrismaTransactionClient } from '../common/db/prisma';
+import type { PrismaTransactionClient } from './prisma';
 
 /**
  * Serializa por usuario toda transacción que escribe sus refresh tokens (login, refresh, logout, cambio de

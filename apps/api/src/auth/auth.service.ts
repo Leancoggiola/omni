@@ -5,12 +5,11 @@ import { Response } from 'express';
 
 import { config } from '../config';
 import * as usersService from '../users/users.service';
-import { prisma } from '../common/db';
+import { lockUserSessions, prisma } from '../common/db';
 import type { PrismaTransactionClient } from '../common/db/prisma';
 import { clearCookies, setAccessCookie, setRefreshCookie } from '../common/utils/cookies';
 import type { AuthTokensResponse, Role } from '@omni/shared/auth';
 import { toSessionUser } from './auth.mappers';
-import { lockUserSessions } from './session-lock';
 
 /** Al pasar este tope, cada sesión nueva borra las más viejas del usuario. */
 export const MAX_SESSIONS_PER_USER = 10;
@@ -130,10 +129,11 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
 
 /**
  * Se identifica con el refresh token y no con el access token, para que funcione aunque este haya vencido: la firma
- * se verifica sin mirar el vencimiento solo para saber de qué usuario es. Borra la fila del token y la de su sucesor
- * sin usar, por si la respuesta de la última rotación no llegó al cliente; sin la fila, un refresh posterior con ese
- * token da 401 sin revocar las otras sesiones. Las cookies se borran antes de tocar la base y la respuesta es siempre
- * la misma: sin token, con uno inválido o ya revocado, o con dos logouts simultáneos.
+ * se verifica sin mirar el vencimiento solo para saber de qué usuario es. Borra la cadena entera del token (su fila y
+ * todas las rotadas que lo precedieron) y sus sucesores sin usar, por si la respuesta de la última rotación no llegó
+ * al cliente. Sin esas filas, un refresh posterior con cualquier token de la cadena da 401 sin revocar las otras
+ * sesiones, en vez de parecer un reuso. Las cookies se borran antes de tocar la base y la respuesta es siempre la
+ * misma: sin token, con uno inválido o ya revocado, o con dos logouts simultáneos.
  */
 export async function logout(rawRefreshToken: string | undefined, res: Response) {
   clearCookies(res);
@@ -143,9 +143,8 @@ export async function logout(rawRefreshToken: string | undefined, res: Response)
     const tokenHash = hashRefreshToken(rawRefreshToken);
     await prisma.$transaction(async tx => {
       await lockUserSessions(tx, userId);
-      await tx.refreshToken.deleteMany({
-        where: { userId, OR: [{ tokenHash }, { previousTokenHash: tokenHash, rotatedAt: null }] },
-      });
+      await tx.refreshToken.deleteMany({ where: { userId, previousTokenHash: tokenHash, rotatedAt: null } });
+      await deleteTokenChain(tx, userId, tokenHash);
     });
   }
 
@@ -158,6 +157,20 @@ export async function getProfile(userId: string) {
     throw { status: 401, message: 'Usuario no encontrado' };
   }
   return { user: toSessionUser(user) };
+}
+
+/** Borra la fila del token y, recorriendo `previousTokenHash` hacia atrás, todas las rotadas de su cadena. */
+async function deleteTokenChain(tx: PrismaTransactionClient, userId: string, tokenHash: string) {
+  await tx.$executeRaw`
+    WITH RECURSIVE chain AS (
+      SELECT "id", "previousTokenHash" FROM "RefreshToken" WHERE "tokenHash" = ${tokenHash} AND "userId" = ${userId}
+      UNION
+      SELECT parent."id", parent."previousTokenHash"
+      FROM "RefreshToken" parent
+      JOIN chain ON parent."tokenHash" = chain."previousTokenHash"
+      WHERE parent."userId" = ${userId}
+    )
+    DELETE FROM "RefreshToken" WHERE "id" IN (SELECT "id" FROM chain)`;
 }
 
 function refreshTokenOwner(rawRefreshToken: string): string | null {

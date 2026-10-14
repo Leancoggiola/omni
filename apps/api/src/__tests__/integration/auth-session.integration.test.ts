@@ -129,6 +129,26 @@ describe('sesión de la API (integración)', () => {
       expect(res.status).toBe(200);
       expect(await activeSessionCount(user.id)).toBe(0);
     });
+
+    it('borra la cadena entera: un token viejo de esa sesión da 401 sin revocar las otras', async () => {
+      const user = await createUser();
+      const first = await seedSession(user);
+      const otherDevice = await seedSession(user);
+      const second = await refresh(first);
+      const third = await refresh(second.body.refreshToken as string);
+
+      await request(app)
+        .post('/api/auth/logout')
+        .send({ refreshToken: third.body.refreshToken as string });
+
+      expect(await prisma.refreshToken.count({ where: { userId: user.id } })).toBe(1);
+      for (const stale of [first, second.body.refreshToken as string]) {
+        const res = await refresh(stale);
+        expect(res.status).toBe(401);
+        expect(res.body.message).toBe('La sesión ya no es válida');
+      }
+      expect((await refresh(otherDevice)).status).toBe(200);
+    });
   });
 
   describe('refresh con un token que ya no está en la base', () => {

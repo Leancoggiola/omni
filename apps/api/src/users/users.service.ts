@@ -2,8 +2,7 @@ import type { User } from '../generated/prisma/client';
 import type { CreateUserPayload } from '@omni/shared/auth';
 import type { UpdateProfilePayload, UpdatePreferencesPayload } from '@omni/shared/users';
 import * as bcrypt from 'bcrypt';
-import { prisma } from '../common/db';
-import { lockUserSessions } from '../auth/session-lock';
+import { lockUserSessions, prisma } from '../common/db';
 
 const BCRYPT_ROUNDS = 12;
 
