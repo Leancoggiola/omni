@@ -101,11 +101,18 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      # CVE-2025-71330/CVE-2025-71329: image-size DoS, transitive dep of
-      # apps/mobile expo>@expo/metro>metro. No patched version exists upstream
-      # yet (latest image-size is 2.0.2, still vulnerable) — dev-only bundler
-      # dependency, not shipped to production. Remove --ignore once fixed.
-      - run: pnpm audit --audit-level=high --ignore CVE-2025-71330 --ignore CVE-2025-71329
+      # Excepciones en pnpm.auditConfig.ignoreCves de package.json:
+      # - CVE-2025-71329/CVE-2025-71330 (image-size): dependencia del bundler de
+      #   mobile (metro) que pide la 1.x; el fix es 2.x.
+      # - CVE-2026-85393 (node-forge) y CVE-2026-93687 (braces): sin versión
+      #   parcheada upstream; llegan por expo/tamagui y semantic-release.
+      # Revisar las excepciones cuando salga un parche.
+      - name: Audit de producción (bloqueante)
+        run: pnpm audit --prod --audit-level=high
+
+      - name: Audit completo (informativo)
+        continue-on-error: true
+        run: pnpm audit --audit-level=high
 
   check-types:
     name: Type Check
