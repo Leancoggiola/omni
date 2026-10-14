@@ -51,7 +51,7 @@ router.post('/list', validate(addMediaItemSchema), async (req, res, next) => { .
 - Rutas protegidas: `authenticateJwt` (cookie `access_token` **o** `Authorization: Bearer`).
 - Login/refresh: setean cookies (web) **y** devuelven `accessToken` + `refreshToken` en el JSON (mobile).
 - Refresh acepta token por cookie, Bearer o body `{ refreshToken }`.
-- Logout no usa `authenticateJwt`: se identifica con el refresh token (body, si no cookie), es idempotente y siempre llama a `clearCookies`.
+- Logout no usa `authenticateJwt`: `authenticateLogout` (estrategia `logout`, nunca rechaza) extrae el refresh token del body o, si no, de la cookie. El handler no lee `req.cookies` directo: las rutas que mutan y usan cookies van detrás de `passport.authenticate` con `session: false`, que CodeQL reconoce. Es idempotente y siempre llama a `clearCookies`.
 - Refresh tokens: en la base va el sha256 (`hashRefreshToken`), nunca bcrypt. Toda escritura de `RefreshToken` va en una transacción que empieza con `lockUserSessions(tx, userId)`. Ver "Auth dual" en `docs/architecture.md`.
 - El logger HTTP (`createHttpLogger`) redacta los headers con credenciales: no montar `pino-http` directo.
 - Admin: `authenticateJwt` + `requireAdmin`.
