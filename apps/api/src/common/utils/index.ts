@@ -1,4 +1,5 @@
 export { logger } from './logger';
+export { createHttpLogger } from './http-logger';
 export { errorHandler } from './error-handler';
 export type { AppError } from './error-handler';
 export { validate } from './validate';

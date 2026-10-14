@@ -4,7 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
-import pinoHttp from 'pino-http';
 
 import './auth/strategies/jwt.strategy';
 import './auth/strategies/jwt-refresh.strategy';
@@ -12,7 +11,15 @@ import './auth/strategies/local.strategy';
 
 import router from './router';
 import healthRoutes from './health/health.routes';
-import { apiNotFound, createRateLimiter, errorHandler, logger, noStore, originGuard } from './common/utils';
+import {
+  apiNotFound,
+  createHttpLogger,
+  createRateLimiter,
+  errorHandler,
+  logger,
+  noStore,
+  originGuard,
+} from './common/utils';
 import { checkDatabaseConnection, prisma } from './common/db';
 
 /**
@@ -67,7 +74,7 @@ async function bootstrap() {
   app.use(express.json());
   app.use(cookieParser());
   app.use(passport.initialize());
-  app.use(pinoHttp({ logger }));
+  app.use(createHttpLogger(logger));
 
   app.use('/api', router);
   app.use('/api', apiNotFound);
