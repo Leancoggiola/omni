@@ -114,7 +114,8 @@ jobs:
 
       - name: Audit completo (informativo)
         continue-on-error: true
-        run: pnpm audit --audit-level=high
+        shell: bash
+        run: pnpm audit --audit-level=high | tee -a "$GITHUB_STEP_SUMMARY"
 
   check-types:
     name: Type Check
