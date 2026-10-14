@@ -16,10 +16,13 @@ import { lockUserSessions } from './session-lock';
 export const MAX_SESSIONS_PER_USER = 10;
 
 /**
- * Tiempo durante el que un refresh token recién rotado se sigue aceptando mientras su sucesor no se haya usado:
- * cubre dos pestañas refrescando a la vez y una respuesta de rotación que no llegó al cliente.
+ * Tiempo, desde la rotación, durante el que un refresh token recién rotado se sigue aceptando mientras su sucesor no
+ * se haya usado: cubre varias pestañas refrescando a la vez y una respuesta de rotación que no llegó al cliente.
  */
 export const ROTATION_GRACE_MS = 30 * 1000;
+
+/** Sesiones hermanas que puede recibir un token rotado dentro de la gracia, además de su sucesor. */
+export const MAX_GRACE_SIBLINGS = 2;
 
 /** Trae las preferencias junto con el usuario: login arma la sesión sin volver a la base. */
 export async function validateUser(username: string, password: string) {
@@ -53,15 +56,17 @@ export async function login(user: LoginUser, res: Response): Promise<AuthTokensR
   return { user: toSessionUser(user), ...sendTokens(res, tokens) };
 }
 
-type RotationOutcome = 'rotated' | 'grace' | 'unknown' | 'reused';
+type RotationOutcome = 'rotated' | 'grace' | 'graceExhausted' | 'unknown' | 'reused';
 
 /**
  * Rota el refresh token: lo marca con `rotatedAt` (atómico, solo uno de dos refresh simultáneos lo logra) y emite el
  * sucesor. La fila rotada queda hasta que vence para reconocer un reuso:
- * - token ya rotado cuyo sucesor sigue sin usarse y tiene menos de `ROTATION_GRACE_MS`: recibe una sesión hermana.
- *   La hermana no hereda el linaje, así la ventana no se renueva;
- * - token ya rotado fuera de esa ventana: es un reuso y se revocan todas las sesiones del usuario;
+ * - token rotado hace menos de `ROTATION_GRACE_MS` cuyo sucesor sigue sin usarse: recibe una sesión hermana, hasta
+ *   `MAX_GRACE_SIBLINGS`. Después da 401 sin revocar nada ni borrar las cookies, que ya tienen el token nuevo;
+ * - token rotado fuera de esa ventana, o con el sucesor ya usado: es un reuso y se revocan todas las sesiones;
  * - token que no está en la base (cerrado, expulsado por el tope, revocado): 401 sin tocar las otras sesiones.
+ * La ventana se mide desde la rotación, así ni las hermanas ni los reintentos la extienden, y las hermanas no pasan
+ * por el tope de sesiones: no pueden expulsar a las del usuario.
  */
 export async function refresh(userId: string, rawRefreshToken: string, res: Response): Promise<AuthTokensResponse> {
   const user = await usersService.findById(userId);
@@ -86,28 +91,28 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
       return 'rotated';
     }
 
-    const stored = await tx.refreshToken.findFirst({ where: { tokenHash, userId }, select: { id: true } });
-    if (!stored) return 'unknown';
+    const stored = await tx.refreshToken.findFirst({ where: { tokenHash, userId }, select: { rotatedAt: true } });
+    if (!stored?.rotatedAt) return 'unknown';
 
-    const successor = await tx.refreshToken.findFirst({
-      where: {
-        userId,
-        previousTokenHash: tokenHash,
-        rotatedAt: null,
-        createdAt: { gte: new Date(now.getTime() - ROTATION_GRACE_MS) },
-      },
-      select: { id: true },
+    const [successor, ...siblings] = await tx.refreshToken.findMany({
+      where: { userId, previousTokenHash: tokenHash },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      select: { rotatedAt: true },
     });
-    if (successor) {
-      await storeRefreshToken(tx, userId, tokens, null);
-      await enforceSessionCap(tx, userId);
-      return 'grace';
+    const withinGrace = stored.rotatedAt.getTime() >= now.getTime() - ROTATION_GRACE_MS;
+    if (!withinGrace || !successor || successor.rotatedAt) {
+      await tx.refreshToken.deleteMany({ where: { userId } });
+      return 'reused';
     }
+    if (siblings.length >= MAX_GRACE_SIBLINGS) return 'graceExhausted';
 
-    await tx.refreshToken.deleteMany({ where: { userId } });
-    return 'reused';
+    await storeRefreshToken(tx, userId, tokens, tokenHash);
+    return 'grace';
   });
 
+  if (outcome === 'graceExhausted') {
+    throw { status: 401, message: 'La sesión ya no es válida' };
+  }
   if (outcome === 'unknown') {
     clearCookies(res);
     throw { status: 401, message: 'La sesión ya no es válida' };
@@ -201,8 +206,9 @@ async function storeRefreshToken(
 }
 
 /**
- * Solo login y la gracia suman sesiones: la rotación reemplaza una sesión por otra y no necesita el tope. Cuenta
- * solo las sesiones vigentes: las filas rotadas quedan para detectar reusos y `login` y `refresh` las podan al vencer.
+ * Solo lo aplica login: la rotación reemplaza una sesión por otra y las hermanas de la gracia están acotadas por
+ * `MAX_GRACE_SIBLINGS`. Cuenta solo las sesiones vigentes: las filas rotadas quedan para detectar reusos y `login` y
+ * `refresh` las podan al vencer.
  */
 async function enforceSessionCap(tx: PrismaTransactionClient, userId: string) {
   const overflow = await tx.refreshToken.findMany({

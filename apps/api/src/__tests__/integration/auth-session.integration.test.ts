@@ -131,6 +131,33 @@ describe('sesión de la API (integración)', () => {
     });
   });
 
+  describe('refresh con un token que ya no está en la base', () => {
+    it('un token que ya no está en la base da 401 sin revocar las otras sesiones', async () => {
+      const user = await createUser();
+      const evicted = await seedSession(user);
+      const other = await seedSession(user);
+      await prisma.refreshToken.delete({ where: { tokenHash: hashRefreshToken(evicted) } });
+
+      const res = await refresh(evicted);
+
+      expect(res.status).toBe(401);
+      expect(res.body.message).toBe('La sesión ya no es válida');
+      expect((await refresh(other)).status).toBe(200);
+    });
+
+    it('un refresh en vuelo después del logout de otra pestaña no revoca las otras sesiones', async () => {
+      const user = await createUser();
+      const tab = await seedSession(user);
+      const otherDevice = await seedSession(user);
+      await request(app).post('/api/auth/logout').send({ refreshToken: tab });
+
+      const res = await refresh(tab);
+
+      expect(res.status).toBe(401);
+      expect((await refresh(otherDevice)).status).toBe(200);
+    });
+  });
+
   /**
    * Fuera de la transacción de test: con ella, todas las requests comparten una conexión y nunca compiten por un
    * lock. Acá cada request usa su propia conexión, así que los datos se commitean y se borran a mano.
