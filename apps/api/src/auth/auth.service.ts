@@ -55,7 +55,7 @@ export async function login(user: LoginUser, res: Response): Promise<AuthTokensR
   return { user: toSessionUser(user), ...sendTokens(res, tokens) };
 }
 
-type RotationOutcome = 'rotated' | 'grace' | 'graceExhausted' | 'unknown' | 'reused';
+type RotationOutcome = { issued: SignedTokens } | { rejected: 'graceExhausted' | 'unknown' | 'reused' };
 
 /**
  * Rota el refresh token: lo marca con `rotatedAt` (atómico, solo uno de dos refresh simultáneos lo logra) y emite el
@@ -66,7 +66,9 @@ type RotationOutcome = 'rotated' | 'grace' | 'graceExhausted' | 'unknown' | 'reu
  * - token rotado cuyo sucesor ya no está (expulsado por el tope o cerrado): 401 sin tocar las otras sesiones;
  * - token que no está en la base (cerrado, expulsado por el tope, revocado): 401 sin tocar las otras sesiones.
  * La ventana se mide desde la rotación, así ni las hermanas ni los reintentos la extienden, y las hermanas no pasan
- * por el tope de sesiones: no pueden expulsar a las del usuario.
+ * por el tope de sesiones: no pueden expulsar a las del usuario. "Sucesor" es siempre el original (el más antiguo con
+ * ese `previousTokenHash`): usar una hermana no cierra la gracia, que igual queda acotada por `MAX_GRACE_SIBLINGS`.
+ * Los tokens se firman recién cuando se van a emitir.
  */
 export async function refresh(userId: string, rawRefreshToken: string, res: Response): Promise<AuthTokensResponse> {
   const user = await usersService.findById(userId);
@@ -75,9 +77,14 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
   }
 
   const tokenHash = hashRefreshToken(rawRefreshToken);
-  const tokens = signTokens({ sub: userId, username: user.username, role: user.role });
 
   const outcome = await prisma.$transaction(async (tx): Promise<RotationOutcome> => {
+    const issue = async () => {
+      const tokens = signTokens({ sub: userId, username: user.username, role: user.role });
+      await storeRefreshToken(tx, userId, tokens, tokenHash);
+      return { issued: tokens };
+    };
+
     await lockUserSessions(tx, userId);
     const now = new Date();
     await tx.refreshToken.deleteMany({ where: { userId, expiresAt: { lt: now } } });
@@ -86,47 +93,42 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
       where: { tokenHash, userId, rotatedAt: null },
       data: { rotatedAt: now },
     });
-    if (count === 1) {
-      await storeRefreshToken(tx, userId, tokens, tokenHash);
-      return 'rotated';
-    }
+    if (count === 1) return issue();
 
-    const stored = await tx.refreshToken.findFirst({ where: { tokenHash, userId }, select: { rotatedAt: true } });
-    if (!stored?.rotatedAt) return 'unknown';
+    const stored = await tx.refreshToken.findUnique({ where: { tokenHash, userId }, select: { rotatedAt: true } });
+    if (!stored?.rotatedAt) return { rejected: 'unknown' };
 
     const [successor, ...siblings] = await tx.refreshToken.findMany({
       where: { userId, previousTokenHash: tokenHash },
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       select: { rotatedAt: true },
     });
-    if (!successor) return 'unknown';
+    if (!successor) return { rejected: 'unknown' };
     const withinGrace = stored.rotatedAt.getTime() >= now.getTime() - ROTATION_GRACE_MS;
     if (!withinGrace || successor.rotatedAt) {
       await tx.refreshToken.deleteMany({ where: { userId } });
-      return 'reused';
+      return { rejected: 'reused' };
     }
-    if (siblings.length >= MAX_GRACE_SIBLINGS) return 'graceExhausted';
+    if (siblings.length >= MAX_GRACE_SIBLINGS) return { rejected: 'graceExhausted' };
 
-    await storeRefreshToken(tx, userId, tokens, tokenHash);
-    return 'grace';
+    return issue();
   });
 
-  if (outcome === 'graceExhausted') {
+  if ('issued' in outcome) {
+    return { user: toSessionUser(user), ...sendTokens(res, outcome.issued) };
+  }
+  if (outcome.rejected === 'graceExhausted') {
     throw { status: 401, message: 'La sesión ya no es válida' };
   }
-  if (outcome === 'unknown') {
+  if (outcome.rejected === 'unknown') {
     clearCookies(res);
     throw { status: 401, message: 'La sesión ya no es válida' };
   }
-  if (outcome === 'reused') {
-    clearCookies(res);
-    throw {
-      status: 401,
-      message: 'Token de refresco no reconocido. Todas las sesiones han sido revocadas.',
-    };
-  }
-
-  return { user: toSessionUser(user), ...sendTokens(res, tokens) };
+  clearCookies(res);
+  throw {
+    status: 401,
+    message: 'Token de refresco no reconocido. Todas las sesiones han sido revocadas.',
+  };
 }
 
 /**
