@@ -10,6 +10,17 @@ node_modules
 .env.local
 .env.development.local
 .env.test.local
+.env.*
+!.env.example
+!.env.test
+!.env.e2e
+
+# Claves y backups
+*.jks
+*.keystore
+age-key*
+*.age
+*.dump
 .env.production.local
 
 # Testing
