@@ -4,7 +4,7 @@ Convenciones de `apps/web`: [apps/web/CLAUDE.md](../../apps/web/CLAUDE.md) (Clau
 
 ## Mantine (web)
 
-- Paquetes `@mantine/*` en **9.6.1** (`apps/web`), incluido `@mantine/lightbox`.
+- Paquetes `@mantine/*` en **9.7.2** (`apps/web`), incluido `@mantine/lightbox`.
 - `MantineProvider` usa `deduplicateInlineStyles` (React 19; no cubre `SimpleGrid`/`Grid`).
 - Defaults de inputs vía `Input.extend` en `theme/components.tsx`.
 - React Compiler: **no activado**. Spike diferido: [#29](https://github.com/Leancoggiola/omni/issues/29).
