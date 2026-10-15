@@ -23,14 +23,18 @@ updates:
     schedule:
       interval: monthly
       day: monday
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 3
     groups:
       security-actions:
         applies-to: security-updates
         patterns:
           - '*'
+      actions:
+        applies-to: version-updates
+        patterns:
+          - '*'
     labels:
       - ci
-      - security
+      - dependencies
     commit-message:
-      prefix: 'fix(ci)'
+      prefix: 'ci'
