@@ -68,22 +68,23 @@ jobs:
           echo "NAME=$NAME" >> "$GITHUB_ENV"
           ls -lh backup
 
-      # Bucket privado S3-compatible (Cloudflare R2). El dump cifrado no se publica como artifact del repo.
+      # Bucket S3 privado. El dump cifrado no se publica como artifact del repo. BACKUP_S3_ENDPOINT es opcional
+      # (solo para S3-compatibles que no son AWS). El usuario de este step solo tiene permiso de escritura.
       - name: Upload to private bucket
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: auto
+          AWS_DEFAULT_REGION: ${{ vars.BACKUP_S3_REGION }}
           BACKUP_S3_ENDPOINT: ${{ vars.BACKUP_S3_ENDPOINT }}
           BACKUP_S3_BUCKET: ${{ vars.BACKUP_S3_BUCKET }}
         run: |
-          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$BACKUP_S3_ENDPOINT" ] || [ -z "$BACKUP_S3_BUCKET" ]; then
-            echo "::error::Faltan los secrets o variables BACKUP_S3_* en el environment Production."
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_DEFAULT_REGION" ] || [ -z "$BACKUP_S3_BUCKET" ]; then
+            echo "::error::Faltan los secrets o variables BACKUP_S3_* (credenciales, BACKUP_S3_REGION y BACKUP_S3_BUCKET) en el environment Production."
             exit 1
           fi
+          if [ -n "$BACKUP_S3_ENDPOINT" ]; then export AWS_ENDPOINT_URL="$BACKUP_S3_ENDPOINT"; fi
           KEY="${BACKUP_PREFIX}${NAME}"
-          aws s3 cp "backup/$NAME" "s3://$BACKUP_S3_BUCKET/$KEY" --endpoint-url "$BACKUP_S3_ENDPOINT"
-          aws s3api head-object --bucket "$BACKUP_S3_BUCKET" --key "$KEY" --endpoint-url "$BACKUP_S3_ENDPOINT" > /dev/null
+          aws s3 cp "backup/$NAME" "s3://$BACKUP_S3_BUCKET/$KEY"
           echo "Subido: $KEY"
 
   restore-test:
@@ -119,16 +120,16 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_READ_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_READ_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: auto
+          AWS_DEFAULT_REGION: ${{ vars.BACKUP_S3_REGION }}
           BACKUP_S3_ENDPOINT: ${{ vars.BACKUP_S3_ENDPOINT }}
           BACKUP_S3_BUCKET: ${{ vars.BACKUP_S3_BUCKET }}
         run: |
-          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$BACKUP_S3_ENDPOINT" ] || [ -z "$BACKUP_S3_BUCKET" ]; then
-            echo "::error::Faltan los secrets o variables BACKUP_S3_* en el environment Production."
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_DEFAULT_REGION" ] || [ -z "$BACKUP_S3_BUCKET" ]; then
+            echo "::error::Faltan los secrets o variables BACKUP_S3_* (credenciales de lectura, BACKUP_S3_REGION y BACKUP_S3_BUCKET) en el environment Production."
             exit 1
           fi
+          if [ -n "$BACKUP_S3_ENDPOINT" ]; then export AWS_ENDPOINT_URL="$BACKUP_S3_ENDPOINT"; fi
           LATEST=$(aws s3api list-objects-v2 --bucket "$BACKUP_S3_BUCKET" --prefix "$BACKUP_PREFIX" \
-            --endpoint-url "$BACKUP_S3_ENDPOINT" \
             --query 'sort_by(Contents[?ends_with(Key, `.dump.age`)], &LastModified)[-1].[Key, LastModified]' --output text)
           read -r KEY MODIFIED <<< "$LATEST"
           if [ -z "$KEY" ] || [ "$KEY" = "None" ]; then
@@ -141,7 +142,7 @@ jobs:
             echo "::error::El último backup tiene más de 8 días: el backup semanal no está corriendo."
             exit 1
           fi
-          aws s3 cp "s3://$BACKUP_S3_BUCKET/$KEY" "$RUNNER_TEMP/restore.dump.age" --endpoint-url "$BACKUP_S3_ENDPOINT"
+          aws s3 cp "s3://$BACKUP_S3_BUCKET/$KEY" "$RUNNER_TEMP/restore.dump.age"
 
       - name: Decrypt
         env:

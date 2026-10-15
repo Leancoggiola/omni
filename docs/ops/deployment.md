@@ -60,29 +60,30 @@ Solo `feat`, `fix`, `perf` o `BREAKING CHANGE` generan release. `backup.yml` es 
 
 ### GitHub (environment `Production`)
 
-| Nombre                             | Tipo     | De dónde sale                                                                                  |
-| ---------------------------------- | -------- | ---------------------------------------------------------------------------------------------- |
-| `RELEASE_TOKEN`                    | secret   | PAT de GitHub (`repo`); renovar antes de que venza.                                            |
-| `RENDER_DEPLOY_HOOK_PROD`          | secret   | Render → Settings → Deploy Hook.                                                               |
-| `VERCEL_TOKEN`                     | secret   | Vercel → Account Settings → Tokens.                                                            |
-| `VERCEL_ORG_ID`                    | secret   | `.vercel/project.json` tras `vercel link`.                                                     |
-| `VERCEL_PROJECT_ID`                | secret   | Ídem.                                                                                          |
-| `ANDROID_KEYSTORE_BASE64`          | secret   | `base64` de `omni-release.jks` (generada con `keytool`).                                       |
-| `ANDROID_KEYSTORE_PASSWORD`        | secret   | Elegida al generar la keystore.                                                                |
-| `ANDROID_KEY_ALIAS`                | secret   | Alias de la keystore (`omni`).                                                                 |
-| `ANDROID_KEY_PASSWORD`             | secret   | Elegida al generar la keystore.                                                                |
-| `APK_REPO_TOKEN`                   | secret   | PAT fine-grained, Contents: write solo sobre `omni-apk`.                                       |
-| `PROD_DIRECT_URL`                  | secret   | Supabase `omni-prod` → **session pooler** (5432).                                              |
-| `BACKUP_S3_ACCESS_KEY_ID`          | secret   | Token del bucket de backups con permiso **solo de escritura** (sin borrar). Lo usa `backup`.   |
-| `BACKUP_S3_SECRET_ACCESS_KEY`      | secret   | Par del anterior.                                                                              |
-| `BACKUP_S3_READ_ACCESS_KEY_ID`     | secret   | Token del mismo bucket con permiso **solo de lectura**. Lo usa `restore-test`.                 |
-| `BACKUP_S3_READ_SECRET_ACCESS_KEY` | secret   | Par del anterior.                                                                              |
-| `BACKUP_AGE_IDENTITY`              | secret   | Clave privada `age` **A** (CI): solo la línea `AGE-SECRET-KEY-…`. La usa la prueba de restore. |
-| `BACKUP_S3_ENDPOINT`               | variable | Endpoint S3 del bucket privado (R2: `https://<account>.r2.cloudflarestorage.com`).             |
-| `BACKUP_S3_BUCKET`                 | variable | Nombre del bucket privado de backups.                                                          |
-| `BACKUP_AGE_RECIPIENT`             | variable | Clave pública de la clave **A**.                                                               |
-| `BACKUP_AGE_RECIPIENT_RECOVERY`    | variable | Clave pública de la clave **B** de recuperación (la privada vive solo fuera de GitHub).        |
-| `PROD_WEB_URL`                     | variable | `https://omni-nest.vercel.app`; también es la `EXPO_PUBLIC_API_URL` del APK.                   |
+| Nombre                             | Tipo     | De dónde sale                                                                                                  |
+| ---------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `RELEASE_TOKEN`                    | secret   | PAT de GitHub (`repo`); renovar antes de que venza.                                                            |
+| `RENDER_DEPLOY_HOOK_PROD`          | secret   | Render → Settings → Deploy Hook.                                                                               |
+| `VERCEL_TOKEN`                     | secret   | Vercel → Account Settings → Tokens.                                                                            |
+| `VERCEL_ORG_ID`                    | secret   | `.vercel/project.json` tras `vercel link`.                                                                     |
+| `VERCEL_PROJECT_ID`                | secret   | Ídem.                                                                                                          |
+| `ANDROID_KEYSTORE_BASE64`          | secret   | `base64` de `omni-release.jks` (generada con `keytool`).                                                       |
+| `ANDROID_KEYSTORE_PASSWORD`        | secret   | Elegida al generar la keystore.                                                                                |
+| `ANDROID_KEY_ALIAS`                | secret   | Alias de la keystore (`omni`).                                                                                 |
+| `ANDROID_KEY_PASSWORD`             | secret   | Elegida al generar la keystore.                                                                                |
+| `APK_REPO_TOKEN`                   | secret   | PAT fine-grained, Contents: write solo sobre `omni-apk`.                                                       |
+| `PROD_DIRECT_URL`                  | secret   | Supabase `omni-prod` → **session pooler** (5432).                                                              |
+| `BACKUP_S3_ACCESS_KEY_ID`          | secret   | Access key del usuario IAM `omni-backup-writer`: solo `s3:PutObject` sobre `omni/*`. Lo usa `backup`.          |
+| `BACKUP_S3_SECRET_ACCESS_KEY`      | secret   | Par del anterior.                                                                                              |
+| `BACKUP_S3_READ_ACCESS_KEY_ID`     | secret   | Access key del usuario IAM `omni-backup-reader`: solo `s3:GetObject` y `s3:ListBucket`. Lo usa `restore-test`. |
+| `BACKUP_S3_READ_SECRET_ACCESS_KEY` | secret   | Par del anterior.                                                                                              |
+| `BACKUP_AGE_IDENTITY`              | secret   | Clave privada `age` **A** (CI): solo la línea `AGE-SECRET-KEY-…`. La usa la prueba de restore.                 |
+| `BACKUP_S3_ENDPOINT`               | variable | Opcional: solo para un S3-compatible que no sea AWS (p. ej. R2). En AWS S3 se deja sin definir.                |
+| `BACKUP_S3_REGION`                 | variable | Región del bucket (p. ej. `us-east-1`).                                                                        |
+| `BACKUP_S3_BUCKET`                 | variable | Nombre del bucket privado de backups.                                                                          |
+| `BACKUP_AGE_RECIPIENT`             | variable | Clave pública de la clave **A**.                                                                               |
+| `BACKUP_AGE_RECIPIENT_RECOVERY`    | variable | Clave pública de la clave **B** de recuperación (la privada vive solo fuera de GitHub).                        |
+| `PROD_WEB_URL`                     | variable | `https://omni-nest.vercel.app`; también es la `EXPO_PUBLIC_API_URL` del APK.                                   |
 
 Todos los secrets y variables del release y de los backups viven en el environment `Production`, que limita los deploys a `main` y `develop`, y cada job que los usa declara `environment: Production`. El único secret a nivel de repo es `CLAUDE_CODE_OAUTH_TOKEN` (revisión automática de PRs). `VERCEL_TOKEN` se pasa solo a los steps que lo usan (`vercel pull`, `deploy` y la verificación de `ORIGIN_SECRET`), no al build.
 
@@ -135,7 +136,7 @@ cron-job.org deshabilita un job tras más de 25 fallas seguidas; el mail avisa a
 
 ## Backups
 
-`backup.yml` corre los domingos 07:00 UTC (y por `workflow_dispatch`): `pg_dump -Fc` sobre `PROD_DIRECT_URL`, cifrado con `age` para **dos destinatarios** (clave A de CI y clave B de recuperación) y subido a un **bucket privado** S3-compatible (Cloudflare R2), prefijo `omni/`. No se publica como artifact del repo, que es público. En el bucket hay que configurar a mano la retención de 90 días (regla de ciclo de vida) y activar el versionado o un bloqueo de objetos, para que un token comprometido no pueda borrar los backups. `backup` usa un token sin permiso de borrado y `restore-test` uno de solo lectura. `restore-test` también falla si el último backup tiene más de 8 días.
+`backup.yml` corre los domingos 07:00 UTC (y por `workflow_dispatch`): `pg_dump -Fc` sobre `PROD_DIRECT_URL`, cifrado con `age` para **dos destinatarios** (clave A de CI y clave B de recuperación) y subido a un **bucket privado de AWS S3**, prefijo `omni/`. No se publica como artifact del repo, que es público. El bucket tiene bloqueado todo acceso público, cifrado por defecto, versionado activado y una regla de ciclo de vida que borra a los 90 días (se configura a mano en AWS). `backup` usa un usuario IAM que solo puede subir y `restore-test` uno que solo puede leer, así que un token comprometido no borra backups. `restore-test` también falla si el último backup tiene más de 8 días.
 
 El día 1 de cada mes 08:00 UTC (o con `workflow_dispatch` y `restore_test=true`) corre `restore-test`: baja el último backup, lo descifra con la clave A, lo restaura en un Postgres 17 efímero del job y verifica que el schema y `_prisma_migrations` tengan datos. Si falla, el backup no es confiable.
 
@@ -160,7 +161,7 @@ El día 1 de cada mes 08:00 UTC (o con `workflow_dispatch` y `restore_test=true`
 
 ### Restore de backup
 
-1. Bajar el `.age` deseado del bucket privado (prefijo `omni/`): `aws s3 cp s3://<bucket>/omni/<archivo>.dump.age . --endpoint-url <BACKUP_S3_ENDPOINT>`.
+1. Bajar el `.age` deseado del bucket privado (prefijo `omni/`): `aws s3 cp s3://<bucket>/omni/<archivo>.dump.age .`.
 2. Descifrar con la clave privada de recuperación (B): `age -d -i age-key-recovery.txt -o omni.dump omni.dump.age`
 3. Restaurar (probar antes contra el `db` local de docker-compose):
    ```bash
