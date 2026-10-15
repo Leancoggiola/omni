@@ -1,20 +1,34 @@
 name: Backup
 
 on:
-  # Domingos 07:00 UTC (04:00 en Argentina).
+  # Domingos 07:00 UTC (04:00 en Argentina): backup. Día 1 de cada mes 08:00 UTC: prueba de restore.
   schedule:
     - cron: '0 7 * * 0'
+    - cron: '0 8 1 * *'
   workflow_dispatch:
+    inputs:
+      restore_test:
+        description: 'Probar el restore del último backup en vez de generar uno nuevo'
+        type: boolean
+        default: false
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.event.schedule || github.run_id }}
   cancel-in-progress: false
 
 permissions: {}
 
+env:
+  BACKUP_PREFIX: omni/
+  AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+  AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+
 jobs:
   backup:
     name: Backup
+    if: >-
+      github.event.schedule == '0 7 * * 0' ||
+      (github.event_name == 'workflow_dispatch' && !inputs.restore_test)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: Production
@@ -28,22 +42,24 @@ jobs:
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y postgresql-client-17 age
 
-      # El dump va directo por pipe a age: la copia sin cifrar nunca toca el disco.
+      # El dump va directo por pipe a age: la copia sin cifrar nunca toca el disco. Dos destinatarios:
+      # la clave de CI (la usa restore-test) y la de recuperación, que vive solo fuera de GitHub.
       - name: Dump and encrypt
         env:
           PROD_DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
           BACKUP_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+          BACKUP_AGE_RECIPIENT_RECOVERY: ${{ vars.BACKUP_AGE_RECIPIENT_RECOVERY }}
         run: |
           set -o pipefail
-          if [ -z "$PROD_DIRECT_URL" ] || [ -z "$BACKUP_AGE_RECIPIENT" ]; then
-            echo "::error::Faltan PROD_DIRECT_URL (secret) o BACKUP_AGE_RECIPIENT (variable) en el environment Production."
+          if [ -z "$PROD_DIRECT_URL" ] || [ -z "$BACKUP_AGE_RECIPIENT" ] || [ -z "$BACKUP_AGE_RECIPIENT_RECOVERY" ]; then
+            echo "::error::Faltan PROD_DIRECT_URL (secret) o BACKUP_AGE_RECIPIENT / BACKUP_AGE_RECIPIENT_RECOVERY (variables) en el environment Production."
             exit 1
           fi
 
           NAME="omni-$(date -u +%Y%m%dT%H%MZ).dump.age"
           mkdir -p backup
           /usr/lib/postgresql/17/bin/pg_dump "$PROD_DIRECT_URL" -Fc --no-owner --no-privileges --schema=public \
-            | age -r "$BACKUP_AGE_RECIPIENT" -o "backup/$NAME"
+            | age -r "$BACKUP_AGE_RECIPIENT" -r "$BACKUP_AGE_RECIPIENT_RECOVERY" -o "backup/$NAME"
 
           if [ ! -s "backup/$NAME" ]; then
             echo "::error::El backup cifrado quedó vacío."
@@ -52,9 +68,121 @@ jobs:
           echo "NAME=$NAME" >> "$GITHUB_ENV"
           ls -lh backup
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.NAME }}
-          path: backup/${{ env.NAME }}
-          if-no-files-found: error
-          retention-days: 90
+      # Bucket privado S3-compatible (Cloudflare R2). El dump cifrado no se publica como artifact del repo.
+      - name: Upload to private bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          BACKUP_S3_ENDPOINT: ${{ vars.BACKUP_S3_ENDPOINT }}
+          BACKUP_S3_BUCKET: ${{ vars.BACKUP_S3_BUCKET }}
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$BACKUP_S3_ENDPOINT" ] || [ -z "$BACKUP_S3_BUCKET" ]; then
+            echo "::error::Faltan los secrets o variables BACKUP_S3_* en el environment Production."
+            exit 1
+          fi
+          KEY="${BACKUP_PREFIX}${NAME}"
+          aws s3 cp "backup/$NAME" "s3://$BACKUP_S3_BUCKET/$KEY" --endpoint-url "$BACKUP_S3_ENDPOINT"
+          aws s3api head-object --bucket "$BACKUP_S3_BUCKET" --key "$KEY" --endpoint-url "$BACKUP_S3_ENDPOINT" > /dev/null
+          echo "Subido: $KEY"
+
+  restore-test:
+    name: Restore test
+    if: >-
+      github.event.schedule == '0 8 1 * *' ||
+      (github.event_name == 'workflow_dispatch' && inputs.restore_test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: Production
+    permissions: {}
+    services:
+      db:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: restore-test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Install postgresql-client-17 and age
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17 age
+
+      - name: Download latest backup
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_READ_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_READ_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          BACKUP_S3_ENDPOINT: ${{ vars.BACKUP_S3_ENDPOINT }}
+          BACKUP_S3_BUCKET: ${{ vars.BACKUP_S3_BUCKET }}
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$BACKUP_S3_ENDPOINT" ] || [ -z "$BACKUP_S3_BUCKET" ]; then
+            echo "::error::Faltan los secrets o variables BACKUP_S3_* en el environment Production."
+            exit 1
+          fi
+          LATEST=$(aws s3api list-objects-v2 --bucket "$BACKUP_S3_BUCKET" --prefix "$BACKUP_PREFIX" \
+            --endpoint-url "$BACKUP_S3_ENDPOINT" \
+            --query 'sort_by(Contents[?ends_with(Key, `.dump.age`)], &LastModified)[-1].[Key, LastModified]' --output text)
+          read -r KEY MODIFIED <<< "$LATEST"
+          if [ -z "$KEY" ] || [ "$KEY" = "None" ]; then
+            echo "::error::No hay backups en el bucket."
+            exit 1
+          fi
+          AGE_SECONDS=$(( $(date +%s) - $(date -d "$MODIFIED" +%s) ))
+          echo "Último backup: $KEY ($MODIFIED)"
+          if [ "$AGE_SECONDS" -gt 691200 ]; then
+            echo "::error::El último backup tiene más de 8 días: el backup semanal no está corriendo."
+            exit 1
+          fi
+          aws s3 cp "s3://$BACKUP_S3_BUCKET/$KEY" "$RUNNER_TEMP/restore.dump.age" --endpoint-url "$BACKUP_S3_ENDPOINT"
+
+      - name: Decrypt
+        env:
+          BACKUP_AGE_IDENTITY: ${{ secrets.BACKUP_AGE_IDENTITY }}
+        run: |
+          if [ -z "$BACKUP_AGE_IDENTITY" ]; then
+            echo "::error::Falta el secret BACKUP_AGE_IDENTITY en el environment Production."
+            exit 1
+          fi
+          umask 077
+          printf '%s\n' "$BACKUP_AGE_IDENTITY" > "$RUNNER_TEMP/age-identity.txt"
+          age -d -i "$RUNNER_TEMP/age-identity.txt" -o "$RUNNER_TEMP/restore.dump" "$RUNNER_TEMP/restore.dump.age" || {
+            rm -f "$RUNNER_TEMP/age-identity.txt"
+            echo "::error::No se pudo descifrar el backup con BACKUP_AGE_IDENTITY."
+            exit 1
+          }
+          rm -f "$RUNNER_TEMP/age-identity.txt"
+
+      # pg_restore puede avisar por objetos de Supabase que no existen en el Postgres vacío: lo que decide
+      # si el backup sirve es la verificación de después.
+      - name: Restore into ephemeral db
+        env:
+          PGPASSWORD: restore-test
+        run: |
+          /usr/lib/postgresql/17/bin/pg_restore --no-owner --no-privileges --clean --if-exists \
+            -h localhost -U postgres -d postgres "$RUNNER_TEMP/restore.dump" || echo "::warning::pg_restore terminó con avisos"
+
+      - name: Verify restored data
+        env:
+          PGPASSWORD: restore-test
+        run: |
+          PSQL="/usr/lib/postgresql/17/bin/psql -h localhost -U postgres -d postgres -tA"
+          TABLES=$($PSQL -c "select count(*) from information_schema.tables where table_schema = 'public'")
+          MIGRATIONS=$($PSQL -c 'select count(*) from public._prisma_migrations')
+          USERS=$($PSQL -c 'select count(*) from public."User"')
+          echo "Tablas en public: $TABLES | migraciones aplicadas: $MIGRATIONS | usuarios: $USERS"
+          if [ "$TABLES" -lt 1 ] || [ "$MIGRATIONS" -lt 1 ] || [ "$USERS" -lt 1 ]; then
+            echo "::error::El restore no dejó el schema esperado."
+            exit 1
+          fi
+
+      - name: Remove local copies
+        if: always()
+        run: rm -f "$RUNNER_TEMP/restore.dump" "$RUNNER_TEMP/restore.dump.age" "$RUNNER_TEMP/age-identity.txt"
