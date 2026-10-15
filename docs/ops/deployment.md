@@ -177,6 +177,25 @@ El día 1 de cada mes 08:00 UTC (o con `workflow_dispatch` y `restore_test=true`
 4. **Tokens** (`RELEASE_TOKEN`, `APK_REPO_TOKEN`, `VERCEL_TOKEN`, `BACKUP_S3_*`): regenerar y actualizar el secret en el environment `Production`. Con PAT, usar vencimiento y revocar el anterior cuando el primer run con el nuevo pase.
 5. **Claves `age`:** al rotar la clave A, actualizar `BACKUP_AGE_IDENTITY` y `BACKUP_AGE_RECIPIENT` a la vez; los backups viejos solo se abren con la clave con la que se cifraron. La B (recuperación) se rota igual con `BACKUP_AGE_RECIPIENT_RECOVERY`.
 
+### Calendario de credenciales
+
+Qué vence y cuándo hay que renovarlo. Los PAT de GitHub y los tokens de Vercel vencen solos; las claves de AWS no, pero se rotan igual. Anotar en la columna "Vence" la fecha real al crear o renovar.
+
+| Credencial                                  | Dónde se crea                                            | Vence                              | Renovar                         | Si no se renueva                                  |
+| ------------------------------------------- | -------------------------------------------------------- | ---------------------------------- | ------------------------------- | ------------------------------------------------- |
+| `RELEASE_TOKEN` (PAT)                       | github.com/settings/tokens                               | Al vencimiento elegido (≤ 90 días) | 1 semana antes                  | El release falla en `release` y `sync-develop`    |
+| `APK_REPO_TOKEN` (PAT fine-grained)         | github.com/settings/personal-access-tokens               | Al vencimiento elegido (≤ 90 días) | 1 semana antes                  | `build-apk` no publica en `omni-apk`              |
+| `VERCEL_TOKEN`                              | vercel.com/account/tokens                                | Al vencimiento elegido             | 1 semana antes                  | `deploy-web` falla                                |
+| `BACKUP_S3_*` (claves IAM, writer y reader) | AWS → IAM → Users → Security credentials → Access keys   | No vencen                          | Cada 12 meses, o si se filtran  | Nada hasta que se filtren; rotar es higiene       |
+| `BACKUP_AGE_*` (claves `age` A y B)         | `age-keygen`                                             | No vencen                          | Solo si se pierde o expone una  | No se puede descifrar un backup si se pierde la B |
+| `PROD_DIRECT_URL` (password de la DB)       | Supabase → Database → Settings → Reset database password | No vence                           | Si se filtra; actualizar Render | Backup y restore fallan si el password cambia     |
+| `ANDROID_KEYSTORE_*`                        | `keytool`                                                | No vence (validez de 10000 días)   | Nunca (ver Rotación)            | Sin la keystore no hay actualizaciones del APK    |
+| `RENDER_DEPLOY_HOOK_PROD`                   | Render → Settings → Deploy Hook                          | No vence                           | Si se filtra                    | —                                                 |
+
+Rotar una clave IAM sin cortar el servicio: crear la segunda access key del mismo usuario, cargarla en GitHub, correr `Backup` a mano, y recién entonces desactivar y borrar la anterior. Cada usuario admite dos claves a la vez.
+
+El borrado a los 90 días de los **backups** es una regla del bucket (`expirar-90-dias`), no una credencial: no hay que repetirla ni renovarla.
+
 ### Instalar el APK
 
 1. En el celular, abrir los releases de `Leancoggiola/omni-apk` (repo privado: iniciar sesión con la cuenta con acceso).
