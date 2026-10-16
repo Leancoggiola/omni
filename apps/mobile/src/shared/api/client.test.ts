@@ -355,13 +355,13 @@ describe('api client', () => {
       }
     });
 
-    it('sin sesión manda el body sin refresh token', async () => {
+    it('sin sesión no hace ningún request', async () => {
       await storage.clearTokens();
       respondWith(() => logoutOk());
 
-      await client.logoutSession();
+      await expect(client.logoutSession()).resolves.toBeUndefined();
 
-      expect(callsTo(LOGOUT_URL)[0][1].body).toBe('{}');
+      expect(fetchMock).not.toHaveBeenCalled();
     });
 
     it('no reintenta con refresh si el servidor responde 401', async () => {

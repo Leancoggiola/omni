@@ -50,7 +50,8 @@ async function sessionChangedDuringRefresh(
  * Pide un par nuevo con el refresh token guardado. Solo un 401/403 significa que la sesión ya no es válida:
  * limpia los tokens y avisa. Un 5xx, un 429 o un error de red no dicen nada de la sesión, así que se propagan
  * (el `ApiError` es el del refresh, no el 401 original) y los tokens se conservan para reintentar después.
- * Si mientras tanto la sesión cambió, el resultado del refresh se descarta.
+ * Si mientras tanto la sesión cambió, el resultado del refresh se descarta. La comprobación y la escritura no son
+ * atómicas: un logout o login que caiga entre las dos lecturas y escrituras de SecureStore puede quedar pisado.
  */
 async function refreshAccessToken(): Promise<boolean> {
   const tokens = await getTokens();
@@ -164,12 +165,13 @@ async function waitForRefreshToSettle(): Promise<void> {
 /**
  * Cierra la sesión en el servidor con el refresh token vigente al momento de enviar. Espera un refresh en curso
  * (con tope) para no mandar un token que ya se rotó, y no pasa por el refresh por 401: el logout de la API no
- * devuelve 401.
+ * devuelve 401. Sin refresh token guardado no hay sesión que cerrar en el servidor y no hace ningún request.
  */
 export async function logoutSession(): Promise<void> {
   await waitForRefreshToSettle();
   const refreshToken = await getRefreshToken();
-  await request(API_KEYS.auth.logout, 'POST', { refreshToken: refreshToken ?? undefined });
+  if (!refreshToken) return;
+  await request(API_KEYS.auth.logout, 'POST', { refreshToken });
 }
 
 export const api = {

@@ -9,6 +9,7 @@ export interface StoredTokens {
   refreshToken: string;
 }
 
+/** Un valor ausente, que no es JSON o que no tiene la forma esperada se trata como "sin sesión". */
 function parseTokens(raw: string | null): StoredTokens | null {
   if (!raw) return null;
   try {
