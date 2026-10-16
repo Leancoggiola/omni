@@ -12,7 +12,7 @@ import {
 import useSWRImmutable from 'swr/immutable';
 import { useSWRConfig } from 'swr';
 
-import { SWR_RETRY_OPTIONS } from '@/core/providers';
+import { isClientError, SWR_RETRY_OPTIONS } from '@/core/providers';
 
 import {
   api,
@@ -44,14 +44,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-/**
- * Un 4xx que llega al hook no se arregla reintentando: un 401/403 ya pasó por el refresh del client y dice que la
- * sesión no vale, y cualquier otro deja la sesión sin poder usarse. AuthGate manda al login. Lo que no prueba que la
- * sesión se haya perdido (red, timeout, 5xx, y los 4xx transitorios 408 y 429) deja la sesión sin verificar.
- */
-const isSessionRejected = (err: unknown): boolean =>
-  err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 408 && err.status !== 429;
 
 const LOGOUT_SERVER_WAIT_MS = 8_000;
 
@@ -101,7 +93,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const user = data?.user ?? null;
   const isAuthenticated = !!data?.user;
-  const isSessionUnverified = hasToken && !isAuthenticated && !!error && !isSessionRejected(error);
+  const isSessionUnverified = hasToken && !isAuthenticated && !!error && !isClientError(error);
 
   const retrySession = useCallback(() => void mutate(), [mutate]);
 

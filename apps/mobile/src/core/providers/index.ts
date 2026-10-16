@@ -1,1 +1,1 @@
-export { initAppStateFocus, SWR_RETRY_OPTIONS, SWRProvider } from './SWRProvider';
+export { initAppStateFocus, isClientError, SWR_RETRY_OPTIONS, SWRProvider } from './SWRProvider';
