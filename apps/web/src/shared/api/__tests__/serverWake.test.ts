@@ -631,7 +631,6 @@ describe('fetchWithWake request timeout', () => {
     vi.unstubAllGlobals();
   });
 
-  /** Request que la API acepta y nunca contesta: solo se corta si se aborta su `signal`. */
   const hangUntilAborted = (init?: RequestInit) =>
     new Promise<never>((_resolve, reject) => {
       init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));

@@ -176,6 +176,8 @@ Referencia: `ProfileSectionCard` acepta este caso vía su prop de borde cuando s
 
 Helpers en `@/shared/ui`. Mutaciones en hooks del módulo; las pages orquestan, no llaman `api.*`.
 
+`getErrorMessage(err, fallback)` muestra `err.message` solo si es un `ApiError` (el mensaje de la API, en español); cualquier otro error (red, parseo, un `new Error('…')` propio) muestra el fallback. Un mensaje propio para el usuario va en el fallback o en un `ApiError`.
+
 ## Imágenes ampliables
 
 ```tsx
