@@ -132,10 +132,11 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
    * Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request. Un error
    * del POST se ignora a propósito: igual se limpia la sesión local. Al POST se lo espera hasta
    * `LOGOUT_SERVER_WAIT_MS` (8 s, más que los 3 s que `logoutSession` espera a un refresh en curso): con la API
-   * colgada (su tope es de 100 s) la sesión local se cierra igual y el request
-   * sigue en segundo plano con el refresh token que ya leyó. Si lo que falla es el borrado de los tokens en
-   * SecureStore, la UI igual sale de la sesión y el error se relanza para que quien llama avise a la persona, porque
-   * al reabrir la app los tokens guardados la volverían a loguear.
+   * colgada (su tope es de 100 s) la sesión local se cierra igual y el request sigue en segundo plano con el refresh
+   * token que ya leyó. No puede volver a guardar tokens: el logout no pasa por el refresh, y un refresh que termine
+   * después ve que la sesión cambió y no escribe. Si lo que falla es el borrado de los tokens en SecureStore, la UI
+   * igual sale de la sesión y el error se relanza para que quien llama avise a la persona, porque al reabrir la app
+   * los tokens guardados la volverían a loguear.
    */
   const logout = useCallback(() => {
     logoutInFlight.current ??= (async () => {

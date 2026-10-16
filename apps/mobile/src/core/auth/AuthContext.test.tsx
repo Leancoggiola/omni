@@ -3,7 +3,7 @@ import useSWR, { SWRConfig, useSWRConfig } from 'swr';
 import type { FC, PropsWithChildren } from 'react';
 
 import { SWRProvider } from '@/core/providers';
-import { API_KEYS } from '@/shared/api';
+import { api, API_KEYS } from '@/shared/api';
 import { getTokens, setTokens } from '@/shared/api/tokenStorage';
 import { deleteItemAsync, getItemAsync, store } from '@/test/secureStoreMock';
 
@@ -285,6 +285,28 @@ describe('AuthProvider', () => {
       await act(async () => {
         await jest.advanceTimersByTimeAsync(1_500);
         await logout;
+      });
+
+      expect(result.current.auth.isAuthenticated).toBe(false);
+      expect(await getTokens()).toBeNull();
+      expect(callsTo(API_KEYS.auth.logout)).toHaveLength(1);
+    });
+
+    it('lo que sigue en segundo plano después del tope no vuelve a guardar tokens', async () => {
+      const { result } = await signIn();
+      const later = <T,>(ms: number, value: T) => new Promise<T>(resolve => setTimeout(() => resolve(value), ms));
+      routes['/api/recurso'] = () => jsonResponse({ message: 'No' }, 401);
+      routes[API_KEYS.auth.refresh] = () =>
+        later(10_000, jsonResponse({ accessToken: 'access-2', refreshToken: 'refresh-2' }));
+      routes[API_KEYS.auth.logout] = () => later(12_000, jsonResponse({ message: 'Sesión cerrada exitosamente' }));
+
+      const request = api.get('/api/recurso').catch(() => undefined);
+      await waitFor(() => expect(callsTo(API_KEYS.auth.refresh)).toHaveLength(1));
+      const logout = result.current.auth.logout();
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(20_000);
+        await logout;
+        await request;
       });
 
       expect(result.current.auth.isAuthenticated).toBe(false);
