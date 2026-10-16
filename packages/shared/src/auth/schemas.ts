@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { newPasswordSchema } from '../users/schemas';
+
 export const usernameSchema = z
   .string()
   .min(6, { error: 'Debe tener al menos 6 caracteres' })
@@ -18,7 +20,7 @@ export type LoginPayload = z.infer<typeof loginSchema>;
 export const createUserSchema = z.object({
   username: usernameSchema,
   name: z.string().min(2, { error: 'Debe tener al menos 2 caracteres' }),
-  password: z.string().min(8, { error: 'La contraseña debe tener al menos 8 caracteres' }),
+  password: newPasswordSchema,
   email: z.email({ error: 'Email inválido' }).optional(),
   role: z.enum(['ADMIN', 'USER']).default('USER').optional(),
 });
