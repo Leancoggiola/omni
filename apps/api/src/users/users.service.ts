@@ -88,6 +88,8 @@ export async function updateProfile(userId: string, dto: UpdateProfilePayload) {
  * Exige la contraseña actual (400 si no coincide: un 401 haría que los clientes intenten renovar la sesión) y la
  * verifica dentro del lock de sesiones, contra la contraseña vigente.
  * Revoca todas las sesiones en la misma transacción: ningún refresh token emitido antes del cambio sigue valiendo.
+ * La contraseña nueva (`newPasswordSchema`, compartida con el alta de usuario) tiene tope de 72 caracteres porque bcrypt
+ * trunca en silencio lo que pasa de ese largo.
  */
 export async function changePassword(userId: string, { currentPassword, newPassword }: ChangePasswordPayload) {
   const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
