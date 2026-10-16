@@ -230,7 +230,8 @@ export function createServerWake(options: ServerWakeOptions) {
    * Un intento del request con tope de `timeoutMs` hasta recibir los headers. Al vencer aborta el `fetch` y lanza el
    * error de `createError` con `SERVER_TIMEOUT_STATUS` (0: no hubo respuesta HTTP), aunque el `fetch` ignore el
    * abort. El abort del caller llega al `fetch` y su error se propaga tal cual. Si el intento responde, el listener
-   * (`once`) queda conectado a propósito para que el abort del caller corte también la lectura del body.
+   * (`once`) queda conectado a propósito para que el abort del caller corte también la lectura del body. Por eso el
+   * `signal` esperado es uno por request: uno compartido por muchos (por ejemplo, por pantalla) acumula listeners.
    */
   async function fetchWithTimeout(url: string, init: RequestInit | undefined, timeoutMs: number): Promise<Response> {
     const controller = new AbortController();
