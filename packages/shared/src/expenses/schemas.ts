@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isoDateStringSchema } from '../common/dates';
+import { AMOUNT_MAX_12_2 } from '../common/limits';
 import { paginationSchema } from '../common/pagination';
 import {
   EXPENSE_CATEGORIES,
@@ -18,7 +19,7 @@ export type ListExpensesParams = z.infer<typeof listExpensesSchema>;
 
 export const createPersonalExpenseSchema = z.object({
   concept: z.string().trim().min(1).max(200),
-  amount: z.number().positive(),
+  amount: z.number().positive().max(AMOUNT_MAX_12_2),
   category: z.enum(EXPENSE_CATEGORIES),
   date: isoDateStringSchema,
   notes: z.string().trim().max(500).nullable().optional(),
@@ -29,7 +30,7 @@ export type CreatePersonalExpensePayload = z.infer<typeof createPersonalExpenseS
 export const updatePersonalExpenseSchema = z
   .object({
     concept: z.string().trim().min(1).max(200).optional(),
-    amount: z.number().positive().optional(),
+    amount: z.number().positive().max(AMOUNT_MAX_12_2).optional(),
     category: z.enum(EXPENSE_CATEGORIES).optional(),
     date: isoDateStringSchema.optional(),
     notes: z.string().trim().max(500).nullable().optional(),
@@ -61,7 +62,7 @@ export const updateExpenseReminderSchema = z
 export type UpdateExpenseReminderPayload = z.infer<typeof updateExpenseReminderSchema>;
 
 export const completeExpenseReminderSchema = z.object({
-  amount: z.number().positive(),
+  amount: z.number().positive().max(AMOUNT_MAX_12_2),
   category: z.enum(EXPENSE_CATEGORIES),
   expenseDate: isoDateStringSchema.optional(),
 });

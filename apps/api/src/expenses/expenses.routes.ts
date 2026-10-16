@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { idParamsSchema } from '@omni/shared/common';
 import {
   completeExpenseReminderSchema,
   createExpenseReminderSchema,
@@ -45,34 +46,49 @@ router.post('/reminders', validate(createExpenseReminderSchema), async (req, res
   }
 });
 
-router.patch('/reminders/:reminderId', validate(updateExpenseReminderSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await expensesService.updateReminder(userId, req.params.reminderId as string, req.body));
-  } catch (err) {
-    next(err);
+router.patch(
+  '/reminders/:reminderId',
+  validate(idParamsSchema('reminderId'), 'params'),
+  validate(updateExpenseReminderSchema),
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      res.json(await expensesService.updateReminder(userId, req.params.reminderId as string, req.body));
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
-router.post('/reminders/:reminderId/complete', validate(completeExpenseReminderSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await expensesService.completeReminder(userId, req.params.reminderId as string, req.body));
-  } catch (err) {
-    next(err);
+router.post(
+  '/reminders/:reminderId/complete',
+  validate(idParamsSchema('reminderId'), 'params'),
+  validate(completeExpenseReminderSchema),
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      res.json(await expensesService.completeReminder(userId, req.params.reminderId as string, req.body));
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
-router.post('/reminders/:reminderId/snooze', validate(snoozeExpenseReminderSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await expensesService.snoozeReminder(userId, req.params.reminderId as string, req.body));
-  } catch (err) {
-    next(err);
+router.post(
+  '/reminders/:reminderId/snooze',
+  validate(idParamsSchema('reminderId'), 'params'),
+  validate(snoozeExpenseReminderSchema),
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      res.json(await expensesService.snoozeReminder(userId, req.params.reminderId as string, req.body));
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
-router.delete('/reminders/:reminderId', async (req, res, next) => {
+router.delete('/reminders/:reminderId', validate(idParamsSchema('reminderId'), 'params'), async (req, res, next) => {
   try {
     const { userId } = req.user as { userId: string };
     await expensesService.deleteReminder(userId, req.params.reminderId as string);
@@ -100,16 +116,21 @@ router.post('/', validate(createPersonalExpenseSchema), async (req, res, next) =
   }
 });
 
-router.patch('/:expenseId', validate(updatePersonalExpenseSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await expensesService.updateExpense(userId, req.params.expenseId as string, req.body));
-  } catch (err) {
-    next(err);
+router.patch(
+  '/:expenseId',
+  validate(idParamsSchema('expenseId'), 'params'),
+  validate(updatePersonalExpenseSchema),
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      res.json(await expensesService.updateExpense(userId, req.params.expenseId as string, req.body));
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
-router.delete('/:expenseId', async (req, res, next) => {
+router.delete('/:expenseId', validate(idParamsSchema('expenseId'), 'params'), async (req, res, next) => {
   try {
     const { userId } = req.user as { userId: string };
     await expensesService.deleteExpense(userId, req.params.expenseId as string);

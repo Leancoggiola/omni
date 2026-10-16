@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { TOKEN_MAX_LENGTH } from '../common/limits';
+
 export const usernameSchema = z
   .string()
   .min(6, { error: 'Debe tener al menos 6 caracteres' })
@@ -55,7 +57,7 @@ export const createUserFormSchema: z.ZodType<CreateUserFormValues> = z
  */
 export const refreshTokenBodySchema = z
   .object({
-    refreshToken: z.string().min(1).optional(),
+    refreshToken: z.string().min(1).max(TOKEN_MAX_LENGTH).optional(),
   })
   .default({});
 export type RefreshTokenBody = z.infer<typeof refreshTokenBodySchema>;

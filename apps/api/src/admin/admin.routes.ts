@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { idParamsSchema } from '@omni/shared/common';
 import type { Request, Response, NextFunction } from 'express';
 import { createUserSchema } from '@omni/shared/auth';
 import { validate } from '../common/utils';
@@ -28,14 +29,18 @@ router.get('/users', async (_req: Request, res: Response, next: NextFunction) =>
   }
 });
 
-router.delete('/users/:id', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    const result = await adminService.deleteUser(req.params.id as string, userId);
-    res.json(result);
-  } catch (err) {
-    next(err);
+router.delete(
+  '/users/:id',
+  validate(idParamsSchema('id'), 'params'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      const result = await adminService.deleteUser(req.params.id as string, userId);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 export default router;

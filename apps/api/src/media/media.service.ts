@@ -1,4 +1,4 @@
-import type { MediaType, AddMediaItemPayload, FilterMediaParams, UpdateMediaItemPayload } from '@omni/shared/media';
+import type { AddMediaItemPayload, FilterMediaParams, UpdateMediaItemPayload } from '@omni/shared/media';
 
 import { prisma } from '../common/db';
 import * as tmdbService from './tmdb.service';
@@ -13,13 +13,6 @@ export async function search(query: string, page: number, type: string) {
     default:
       return tmdbService.searchMulti(query, page);
   }
-}
-
-export async function getTmdbDetail(type: MediaType, tmdbId: number) {
-  if (type === 'movie') {
-    return tmdbService.getMovieDetail(tmdbId);
-  }
-  return tmdbService.getTvDetail(tmdbId);
 }
 
 export async function addToList(userId: string, dto: AddMediaItemPayload) {

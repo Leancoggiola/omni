@@ -141,30 +141,23 @@ export async function registerDevice(userId: string, dto: RegisterNotificationDe
 
   const tokenHash = hashToken(rawToken);
 
-  try {
-    const device = await prisma.notificationDevice.create({
-      data: {
-        userId,
-        platform: dto.platform,
-        token: tokenHash,
-        label: dto.label ?? null,
-        isActive: true,
-        lastSeenAt: new Date(),
-      },
-    });
+  const device = await prisma.notificationDevice.create({
+    data: {
+      userId,
+      platform: dto.platform,
+      token: tokenHash,
+      label: dto.label ?? null,
+      isActive: true,
+      lastSeenAt: new Date(),
+    },
+  });
 
-    return {
-      id: device.id,
-      platform: device.platform,
-      label: device.label,
-      ...(apiKey && { apiKey }),
-    };
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
-      throw { status: 409, message: 'Este dispositivo ya está registrado' };
-    }
-    throw error;
-  }
+  return {
+    id: device.id,
+    platform: device.platform,
+    label: device.label,
+    ...(apiKey && { apiKey }),
+  };
 }
 
 export async function deleteDevice(userId: string, deviceId: string) {
