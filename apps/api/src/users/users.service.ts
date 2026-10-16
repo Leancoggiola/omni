@@ -1,6 +1,6 @@
 import type { User } from '../generated/prisma/client';
 import type { CreateUserPayload } from '@omni/shared/auth';
-import type { UpdateProfilePayload, UpdatePreferencesPayload } from '@omni/shared/users';
+import type { ChangePasswordPayload, UpdateProfilePayload, UpdatePreferencesPayload } from '@omni/shared/users';
 import * as bcrypt from 'bcrypt';
 import { lockUserSessions, prisma } from '../common/db';
 
@@ -84,8 +84,18 @@ export async function updateProfile(userId: string, dto: UpdateProfilePayload) {
   });
 }
 
-/** Revoca todas las sesiones en la misma transacción: ningún refresh token emitido antes del cambio sigue valiendo. */
-export async function changePassword(userId: string, newPassword: string) {
+/**
+ * Exige la contraseña actual (400 si no coincide: un 401 haría que los clientes intenten renovar la sesión).
+ * Revoca todas las sesiones en la misma transacción: ningún refresh token emitido antes del cambio sigue valiendo.
+ */
+export async function changePassword(userId: string, { currentPassword, newPassword }: ChangePasswordPayload) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { password: true } });
+  if (!user) throw { status: 401, message: 'Usuario no encontrado' };
+
+  if (!(await bcrypt.compare(currentPassword, user.password))) {
+    throw { status: 400, message: 'La contraseña actual es incorrecta' };
+  }
+
   const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
 
   await prisma.$transaction(async tx => {
