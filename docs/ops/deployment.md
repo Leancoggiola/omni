@@ -179,6 +179,8 @@ El día 1 de cada mes 08:00 UTC (o con `workflow_dispatch` y `restore_test=true`
 
 ### Calendario de credenciales
 
+Para reconstruir todo desde cero (otra PC, cuenta nueva) ver [setup-desde-cero.md](./setup-desde-cero.md).
+
 Qué vence y cuándo hay que renovarlo. Los PAT de GitHub y los tokens de Vercel vencen solos; las claves de AWS no, pero se rotan igual. Anotar en la columna "Vence" la fecha real al crear o renovar.
 
 | Credencial                                  | Dónde se crea                                            | Vence                              | Renovar                         | Si no se renueva                                  |
