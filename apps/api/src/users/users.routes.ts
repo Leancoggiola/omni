@@ -50,7 +50,7 @@ router.patch(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId } = req.user as any;
-      await usersService.changePassword(userId, req.body.newPassword);
+      await usersService.changePassword(userId, req.body);
       res.json({ message: 'Contraseña actualizada exitosamente' });
     } catch (err) {
       next(err);

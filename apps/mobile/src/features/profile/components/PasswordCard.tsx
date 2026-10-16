@@ -7,33 +7,38 @@ import { Button, getErrorMessage, notifyError, notifySuccess, PasswordField, Sec
 
 import { validatePasswordForm, type PasswordFormErrors } from '../utils/profileForm';
 
+import type { ChangePasswordPayload } from '@omni/shared/users';
+
 type PasswordCardProps = {
-  onSubmit: (newPassword: string) => Promise<void>;
+  onSubmit: (payload: ChangePasswordPayload) => Promise<void>;
   /** Al enfocar un campo (el teclado puede estar ya abierto): la pantalla lo mantiene a la vista. */
   onFieldFocus?: () => void;
 };
 
-/** Cambiar contraseña: nueva + confirmar, con validación al enviar y botón deshabilitado hasta que haya cambios. */
+/** Cambiar contraseña: actual + nueva + confirmar, con validación al enviar y botón deshabilitado hasta que haya cambios. */
 export function PasswordCard({ onSubmit, onFieldFocus }: PasswordCardProps) {
+  const newRef = useRef<TamaguiElement>(null);
   const confirmRef = useRef<TamaguiElement>(null);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<PasswordFormErrors>({});
   const [loading, setLoading] = useState(false);
   const submitting = useRef(false);
 
-  const dirty = newPassword !== '' || confirmPassword !== '';
+  const dirty = currentPassword !== '' || newPassword !== '' || confirmPassword !== '';
 
   const handleSubmit = async () => {
     if (submitting.current || !dirty) return;
-    const found = validatePasswordForm(newPassword, confirmPassword);
+    const found = validatePasswordForm(currentPassword, newPassword, confirmPassword);
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
     submitting.current = true;
     setLoading(true);
     try {
-      await onSubmit(newPassword);
+      await onSubmit({ currentPassword, newPassword });
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       notifySuccess('Contraseña actualizada correctamente');
@@ -49,6 +54,21 @@ export function PasswordCard({ onSubmit, onFieldFocus }: PasswordCardProps) {
     <SectionCard title="Cambiar contraseña" subtitle="Actualiza la contraseña de tu cuenta">
       <YStack gap={SPACING.md}>
         <PasswordField
+          label="Contraseña actual"
+          onFocus={onFieldFocus}
+          value={currentPassword}
+          onChangeText={value => {
+            setCurrentPassword(value);
+            setErrors(prev => ({ ...prev, currentPassword: undefined }));
+          }}
+          error={errors.currentPassword}
+          autoComplete="current-password"
+          returnKeyType="next"
+          submitBehavior="submit"
+          onSubmitEditing={() => (newRef.current as TextInput | null)?.focus()}
+        />
+        <PasswordField
+          ref={newRef}
           label="Nueva contraseña"
           onFocus={onFieldFocus}
           value={newPassword}

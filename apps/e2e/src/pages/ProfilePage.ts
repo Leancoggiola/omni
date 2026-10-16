@@ -14,6 +14,7 @@ export class ProfilePage {
   readonly saveButton = () => this.page.getByRole('button', { name: 'Guardar Cambios' });
   readonly savedNotification = () => this.page.getByRole('alert').filter({ hasText: 'Listo' });
 
+  readonly currentPasswordField = () => this.page.getByLabel('Contraseña actual');
   readonly newPasswordField = () => this.page.getByLabel('Nueva contraseña');
   readonly confirmPasswordField = () => this.page.getByLabel('Confirmar contraseña');
   readonly changePasswordButton = () => this.page.getByRole('button', { name: 'Cambiar contraseña' });
@@ -44,7 +45,8 @@ export class ProfilePage {
     await this.confirmDeleteButton().click();
   }
 
-  async changePassword(newPassword: string, confirmation = newPassword) {
+  async changePassword(currentPassword: string, newPassword: string, confirmation = newPassword) {
+    await this.currentPasswordField().fill(currentPassword);
     await this.newPasswordField().fill(newPassword);
     await this.confirmPasswordField().fill(confirmation);
     await this.changePasswordButton().click();

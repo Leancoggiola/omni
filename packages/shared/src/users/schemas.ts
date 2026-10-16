@@ -12,8 +12,17 @@ export const updateProfileSchema = z
   .strict();
 export type UpdateProfilePayload = z.infer<typeof updateProfileSchema>;
 
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MAX_LENGTH = 72;
+
+export const newPasswordSchema = z
+  .string()
+  .min(PASSWORD_MIN_LENGTH, { error: `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres` })
+  .max(PASSWORD_MAX_LENGTH, { error: `La contraseña no puede tener más de ${PASSWORD_MAX_LENGTH} caracteres` });
+
 export const changePasswordSchema = z.object({
-  newPassword: z.string().min(8),
+  currentPassword: z.string().min(1, { error: 'La contraseña actual es requerida' }),
+  newPassword: newPasswordSchema,
 });
 export type ChangePasswordPayload = z.infer<typeof changePasswordSchema>;
 

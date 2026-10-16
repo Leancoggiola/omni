@@ -22,24 +22,33 @@ describe('buildProfileUpdates', () => {
 });
 
 describe('validatePasswordForm', () => {
-  it('acepta dos contraseñas iguales de 8 o más caracteres', () => {
-    expect(validatePasswordForm('12345678', '12345678')).toEqual({});
+  it('acepta la contraseña actual y dos contraseñas nuevas iguales de 8 a 72 caracteres', () => {
+    expect(validatePasswordForm('actual', '12345678', '12345678')).toEqual({});
+    expect(validatePasswordForm('actual', 'x'.repeat(72), 'x'.repeat(72))).toEqual({});
   });
 
-  it('marca la nueva contraseña corta y la confirmación vacía', () => {
-    expect(validatePasswordForm('1234567', '')).toEqual({
+  it('exige la contraseña actual con el mensaje del schema', () => {
+    expect(validatePasswordForm('', '12345678', '12345678')).toEqual({
+      currentPassword: 'La contraseña actual es requerida',
+    });
+  });
+
+  it('marca la nueva contraseña corta con el mensaje del schema', () => {
+    expect(validatePasswordForm('actual', '1234567', '1234567')).toEqual({
       newPassword: 'La contraseña debe tener al menos 8 caracteres',
-      confirmPassword: 'La contraseña debe tener al menos 8 caracteres',
     });
   });
 
-  it('una confirmación de 8+ caracteres pasa por la misma regla del schema y solo se compara', () => {
-    expect(validatePasswordForm('12345678', '1234567')).toEqual({
-      confirmPassword: 'La contraseña debe tener al menos 8 caracteres',
+  it('marca la nueva contraseña de más de 72 caracteres con el mensaje del schema', () => {
+    expect(validatePasswordForm('actual', 'x'.repeat(73), 'x'.repeat(73))).toEqual({
+      newPassword: 'La contraseña no puede tener más de 72 caracteres',
     });
   });
 
-  it('marca que las contraseñas no coinciden en la confirmación', () => {
-    expect(validatePasswordForm('12345678', '87654321')).toEqual({ confirmPassword: 'Las contraseñas no coinciden' });
+  it('marca que las contraseñas no coinciden en la confirmación, también si está vacía', () => {
+    expect(validatePasswordForm('actual', '12345678', '87654321')).toEqual({
+      confirmPassword: 'Las contraseñas no coinciden',
+    });
+    expect(validatePasswordForm('actual', '12345678', '')).toEqual({ confirmPassword: 'Las contraseñas no coinciden' });
   });
 });

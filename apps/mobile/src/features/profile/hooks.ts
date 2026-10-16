@@ -5,7 +5,13 @@ import { api, API_KEYS } from '@/shared/api';
 import { toSessionUser } from '@omni/shared/auth';
 
 import type { ProfileResponse } from '@omni/shared/auth';
-import type { UpdatePreferencesPayload, UpdateProfilePayload, UserPreferences, UserProfile } from '@omni/shared/users';
+import type {
+  ChangePasswordPayload,
+  UpdatePreferencesPayload,
+  UpdateProfilePayload,
+  UserPreferences,
+  UserProfile,
+} from '@omni/shared/users';
 
 export function useProfile() {
   const { mutate: globalMutate } = useSWRConfig();
@@ -49,8 +55,8 @@ export function useProfile() {
 }
 
 export function useAccountActions() {
-  const changePassword = async (newPassword: string) => {
-    await api.patch(API_KEYS.users.password, { newPassword });
+  const changePassword = async (payload: ChangePasswordPayload) => {
+    await api.patch(API_KEYS.users.password, payload);
   };
 
   const deleteAccount = async () => {

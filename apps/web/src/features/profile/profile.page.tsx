@@ -15,6 +15,8 @@ import {
   useProfile,
 } from './modules';
 
+import type { ChangePasswordPayload } from '@omni/shared/users';
+
 import { UserIcon } from '@phosphor-icons/react';
 
 export const ProfilePage: FC = () => {
@@ -24,8 +26,8 @@ export const ProfilePage: FC = () => {
   const navigate = useNavigate();
 
   const handleChangePassword = useCallback(
-    async (newPassword: string) => {
-      await changePassword(newPassword);
+    async (payload: ChangePasswordPayload) => {
+      await changePassword(payload);
     },
     [changePassword]
   );

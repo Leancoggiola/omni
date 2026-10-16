@@ -32,11 +32,11 @@ test.describe('perfil', () => {
   });
 
   test('rechaza una confirmación de contraseña que no coincide', async ({ page, freshUser }) => {
-    await freshUser('pwbad');
+    const user = await freshUser('pwbad');
     const profile = new ProfilePage(page);
     await profile.goto();
 
-    await profile.changePassword('contrasena-nueva-1', 'otra-cosa-distinta');
+    await profile.changePassword(user.password, 'contrasena-nueva-1', 'otra-cosa-distinta');
 
     await expect(page.getByText('Las contraseñas no coinciden')).toBeVisible();
   });
@@ -47,12 +47,26 @@ test.describe('perfil', () => {
     await profile.goto();
     const newPassword = 'contrasena-nueva-1';
 
-    await profile.changePassword(newPassword);
+    await profile.changePassword(user.password, newPassword);
 
     await expect(page.getByRole('alert').filter({ hasText: 'Listo' })).toBeVisible();
 
     const login = await page.request.post('/api/auth/login', {
       data: { username: user.username, password: newPassword },
+    });
+    expect(login.ok()).toBeTruthy();
+  });
+
+  test('rechaza una contraseña actual incorrecta y conserva la contraseña vigente', async ({ page, freshUser }) => {
+    const user = await freshUser('pwwrong');
+    const profile = new ProfilePage(page);
+    await profile.goto();
+
+    await profile.changePassword('no-es-la-actual-1', 'contrasena-nueva-1');
+
+    await expect(page.getByText('La contraseña actual es incorrecta')).toBeVisible();
+    const login = await page.request.post('/api/auth/login', {
+      data: { username: user.username, password: user.password },
     });
     expect(login.ok()).toBeTruthy();
   });

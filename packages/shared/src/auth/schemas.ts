@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { TOKEN_MAX_LENGTH } from '../common/limits';
+import { newPasswordSchema } from '../users/schemas';
 
 export const usernameSchema = z
   .string()
@@ -20,7 +21,7 @@ export type LoginPayload = z.infer<typeof loginSchema>;
 export const createUserSchema = z.object({
   username: usernameSchema,
   name: z.string().min(2, { error: 'Debe tener al menos 2 caracteres' }),
-  password: z.string().min(8, { error: 'La contraseña debe tener al menos 8 caracteres' }),
+  password: newPasswordSchema,
   email: z.email({ error: 'Email inválido' }).optional(),
   role: z.enum(['ADMIN', 'USER']).default('USER').optional(),
 });
