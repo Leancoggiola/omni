@@ -12,6 +12,7 @@ import {
   notifyWarning,
   Screen,
   ScreenHeader,
+  usePullToRefresh,
   useScrollFocusedInputIntoView,
 } from '@/shared/ui';
 
@@ -31,6 +32,7 @@ export function ProfileScreen() {
   const { logout } = useAuth();
   const { clearOverride } = useColorSchemeControl();
   const { scrollRef, onScroll, scrollIntoView } = useScrollFocusedInputIntoView();
+  const refreshControl = usePullToRefresh(refresh);
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/more'));
 
@@ -61,6 +63,7 @@ export function ProfileScreen() {
           ref={scrollRef}
           onScroll={onScroll}
           scrollEventThrottle={16}
+          refreshControl={refreshControl}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ gap: SPACING.md, paddingBottom: SPACING.xl }}

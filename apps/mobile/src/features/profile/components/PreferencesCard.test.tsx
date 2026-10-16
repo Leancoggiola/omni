@@ -61,13 +61,13 @@ describe('PreferencesCard', () => {
     expect(onChange).toHaveBeenNthCalledWith(1, { theme: 'dark' });
     expect(onChange).toHaveBeenNthCalledWith(2, { notifications: true });
 
-    await act(async () => theme.reject(new Error('No hay red')));
+    await act(async () => theme.reject(new TypeError('Network request failed')));
     expect(screen.getByRole('radio', { name: 'Claro', checked: true })).toBeTruthy();
     expect(screen.getByRole('switch', { name: 'Notificaciones' })).toHaveProp('accessibilityState', {
       checked: true,
       disabled: false,
     });
-    expect(notifyError).toHaveBeenCalledWith('No hay red');
+    expect(notifyError).toHaveBeenCalledWith('No se pudo guardar la preferencia');
 
     await act(async () => notifications.resolve());
   });

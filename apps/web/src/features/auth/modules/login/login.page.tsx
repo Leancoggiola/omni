@@ -4,6 +4,7 @@ import { Alert, Button, PasswordInput, Stack, TextInput } from '@mantine/core';
 import { schemaResolver, useForm } from '@mantine/form';
 
 import { useAuth } from '@/core/auth';
+import { getErrorMessage } from '@/shared/ui';
 
 import { AuthCard } from './components/AuthCard';
 
@@ -36,7 +37,7 @@ export const LoginPage: FC = () => {
       const from = (location.state as { from?: string })?.from ?? '/';
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
+      setError(getErrorMessage(err, 'Error al iniciar sesión'));
     } finally {
       setLoading(false);
     }

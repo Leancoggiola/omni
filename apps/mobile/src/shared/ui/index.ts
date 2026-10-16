@@ -31,4 +31,5 @@ export { Spinner } from './Spinner';
 export { EmptyState, ErrorState, LoadingState } from './states';
 export { StatusPill } from './StatusPill';
 export { Title } from './Title';
+export { usePullToRefresh } from './usePullToRefresh';
 export { UserAvatar } from './UserAvatar';

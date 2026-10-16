@@ -1,4 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { RefreshControl } from 'react-native';
+
+import { ApiError } from '@/shared/api/ApiError';
 
 import { confirm, notifyError, notifySuccess, notifyWarning } from '@/shared/ui';
 
@@ -71,6 +74,15 @@ beforeEach(() => {
 });
 
 describe('ProfileScreen · carga y error', () => {
+  it('tirar para actualizar vuelve a pedir el perfil', async () => {
+    mockRefresh.mockResolvedValue(undefined);
+    renderProfile();
+
+    await act(async () => screen.UNSAFE_getByType(RefreshControl).props.onRefresh());
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
   it('muestra el spinner mientras carga, sin formulario', () => {
     renderProfile({ profile: null, isLoading: true });
 
@@ -149,12 +161,12 @@ describe('ProfileScreen · información personal', () => {
   });
 
   it('si falla el guardado avisa con notifyError y deja el botón habilitado', async () => {
-    mockUpdateProfile.mockRejectedValue(new Error('Sin conexión'));
+    mockUpdateProfile.mockRejectedValue(new TypeError('Network request failed'));
     renderProfile();
     fireEvent.changeText(screen.getByLabelText('Teléfono', { exact: false }), '456');
     await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Guardar cambios' })));
 
-    expect(notifyError).toHaveBeenCalledWith('Sin conexión');
+    expect(notifyError).toHaveBeenCalledWith('No se pudieron guardar los cambios');
     expect(notifySuccess).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Guardar cambios', disabled: false })).toBeTruthy();
   });
@@ -197,10 +209,10 @@ describe('ProfileScreen · preferencias', () => {
 
     expect(screen.getByRole('radio', { name: 'Oscuro', checked: true })).toBeTruthy();
 
-    await act(async () => fail(new Error('No hay red')));
+    await act(async () => fail(new TypeError('Network request failed')));
 
     expect(screen.getByRole('radio', { name: 'Claro', checked: true })).toBeTruthy();
-    expect(notifyError).toHaveBeenCalledWith('No hay red');
+    expect(notifyError).toHaveBeenCalledWith('No se pudo guardar la preferencia');
     expect(mockClearOverride).not.toHaveBeenCalled();
   });
 
@@ -251,7 +263,7 @@ describe('ProfileScreen · cambiar contraseña', () => {
   });
 
   it('si el servidor rechaza, avisa con notifyError y conserva lo escrito', async () => {
-    mockChangePassword.mockRejectedValue(new Error('Contraseña reciente'));
+    mockChangePassword.mockRejectedValue(new ApiError('Contraseña reciente', 400));
     renderProfile();
     fireEvent.changeText(screen.getByLabelText('Nueva contraseña', { exact: false }), 'nueva-clave');
     fireEvent.changeText(screen.getByLabelText('Confirmar contraseña', { exact: false }), 'nueva-clave');
@@ -288,7 +300,7 @@ describe('ProfileScreen · eliminar cuenta', () => {
 
   it('si el borrado falla avisa con notifyError y no cierra la sesión', async () => {
     jest.mocked(confirm).mockResolvedValue(true);
-    mockDeleteAccount.mockRejectedValue(new Error('No se pudo'));
+    mockDeleteAccount.mockRejectedValue(new ApiError('No se pudo', 503));
     renderProfile();
     await act(async () => press());
 

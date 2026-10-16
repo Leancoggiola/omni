@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@/__tests__/helpers';
+import { ApiError } from '@/shared/api';
 
 import { DeleteAccountButton } from '../DeleteAccountButton';
 
@@ -49,7 +50,7 @@ describe('DeleteAccountButton', () => {
   });
 
   it('muestra el error del servidor y vuelve a habilitar el botón si falla', async () => {
-    const onDelete = vi.fn().mockRejectedValue(new Error('Servicio no disponible'));
+    const onDelete = vi.fn().mockRejectedValue(new ApiError('Servicio no disponible', 503));
     renderWithProviders(<DeleteAccountButton onDelete={onDelete} />);
 
     await clickDelete();
@@ -58,8 +59,11 @@ describe('DeleteAccountButton', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Eliminar cuenta' })).toBeEnabled());
   });
 
-  it('usa un mensaje genérico si el rechazo no es un Error', async () => {
-    const onDelete = vi.fn().mockRejectedValue('boom');
+  it.each([
+    ['no es un Error', 'boom'],
+    ['es un error de red', new TypeError('Failed to fetch')],
+  ])('usa un mensaje genérico si el rechazo %s', async (_label, reason) => {
+    const onDelete = vi.fn().mockRejectedValue(reason);
     renderWithProviders(<DeleteAccountButton onDelete={onDelete} />);
 
     await clickDelete();

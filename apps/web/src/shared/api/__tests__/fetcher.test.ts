@@ -162,7 +162,9 @@ describe('fetcher', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn((url: string) => {
-        if (url === SWR_KEYS.auth.refresh) return Promise.reject(new TypeError('Failed to fetch'));
+        if (url === SWR_KEYS.auth.refresh || url === SWR_KEYS.health) {
+          return Promise.reject(new TypeError('Failed to fetch'));
+        }
         return Promise.resolve({
           ok: false,
           headers: JSON_HEADERS,
@@ -173,7 +175,12 @@ describe('fetcher', () => {
       })
     );
 
-    await expect(fetcher('/api/resource')).rejects.toThrow('Failed to fetch');
+    vi.useFakeTimers();
+    const promise = fetcher('/api/resource');
+    const assertion = expect(promise).rejects.toThrow('Failed to fetch');
+    await vi.advanceTimersByTimeAsync(2_000);
+    await assertion;
+    vi.useRealTimers();
     expect(onAuthFailure).not.toHaveBeenCalled();
   });
 

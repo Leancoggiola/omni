@@ -18,6 +18,7 @@ import {
   notifySuccess,
   Screen,
   ScreenHeader,
+  usePullToRefresh,
 } from '@/shared/ui';
 
 import { AddMediaFab, FAB_SIZE } from './components/AddMediaFab';
@@ -40,6 +41,7 @@ export function MediaScreen() {
 
   const { data, error, isLoading, mutate } = useMyMediaList();
   const { addToList, updateStatus, removeFromList } = useMediaMutations();
+  const refreshControl = usePullToRefresh(mutate);
   const busy = useRef(new Set<string>());
 
   const withItemLock = useCallback(async (item: MediaItem, action: () => Promise<void>) => {
@@ -158,6 +160,7 @@ export function MediaScreen() {
         }
         ListEmptyComponent={renderEmpty()}
         ItemSeparatorComponent={Separator}
+        refreshControl={refreshControl}
         contentContainerStyle={{ paddingBottom: FAB_SIZE + SPACING.md * 2 }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"

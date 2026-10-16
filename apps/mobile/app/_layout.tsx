@@ -1,19 +1,20 @@
 import { ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Redirect, Stack, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, type PropsWithChildren } from 'react';
 import { useColorScheme } from 'react-native';
-import { TamaguiProvider, Theme, YStack } from 'tamagui';
+import { TamaguiProvider, Theme } from 'tamagui';
 import { StatusBar } from 'expo-status-bar';
 
-import { AuthProvider, useAuth } from '@/core/auth';
+import { AuthProvider } from '@/core/auth';
+import { AuthGate } from '@/core/authGate';
+import { SWRProvider } from '@/core/providers';
 import { ServerWakeNotice } from '@/core/serverWake';
-import { ColorSchemeProvider, useColorSchemeControl, useSemanticColors } from '@/core/theme';
+import { ColorSchemeProvider, useColorSchemeControl } from '@/core/theme';
 import { NAVIGATION_THEMES } from '@/theme/navigationTheme';
 import { MONTSERRAT_FACES } from '@/theme/fonts';
 import { tamaguiConfig } from '@/theme/tamagui.config';
-import { ActionSheetProvider, ConfirmProvider, NotificationsProvider, Spinner } from '@/shared/ui';
+import { ActionSheetProvider, ConfirmProvider, NotificationsProvider } from '@/shared/ui';
 
 /**
  * La splash nativa queda visible hasta que se resuelvan las fuentes (ver `RootLayout`). `preventAutoHideAsync`
@@ -24,31 +25,6 @@ function holdSplash() {
 }
 
 holdSplash();
-
-function AuthGate() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const colors = useSemanticColors();
-  const segments = useSegments();
-  const onLogin = segments[0] === 'login';
-
-  if (isLoading) {
-    return (
-      <YStack flex={1} justifyContent="center" alignItems="center">
-        <Spinner size="large" />
-      </YStack>
-    );
-  }
-
-  if (!isAuthenticated && !onLogin) {
-    return <Redirect href="/login" />;
-  }
-
-  if (isAuthenticated && onLogin) {
-    return <Redirect href="/(tabs)" />;
-  }
-
-  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.body } }} />;
-}
 
 function ThemedRoot({ children }: PropsWithChildren) {
   const { colorScheme } = useColorSchemeControl();
@@ -80,20 +56,22 @@ export default function RootLayout() {
 
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme={systemScheme === 'dark' ? 'dark' : 'light'}>
-      <AuthProvider>
-        <ColorSchemeProvider>
-          <ThemedRoot>
-            <NotificationsProvider>
-              <ConfirmProvider>
-                <ActionSheetProvider>
-                  <AuthGate />
-                  <ServerWakeNotice />
-                </ActionSheetProvider>
-              </ConfirmProvider>
-            </NotificationsProvider>
-          </ThemedRoot>
-        </ColorSchemeProvider>
-      </AuthProvider>
+      <SWRProvider>
+        <AuthProvider>
+          <ColorSchemeProvider>
+            <ThemedRoot>
+              <NotificationsProvider>
+                <ConfirmProvider>
+                  <ActionSheetProvider>
+                    <AuthGate />
+                    <ServerWakeNotice />
+                  </ActionSheetProvider>
+                </ConfirmProvider>
+              </NotificationsProvider>
+            </ThemedRoot>
+          </ColorSchemeProvider>
+        </AuthProvider>
+      </SWRProvider>
     </TamaguiProvider>
   );
 }
