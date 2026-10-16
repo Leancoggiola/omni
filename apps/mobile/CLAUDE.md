@@ -65,11 +65,12 @@ Return: dominio + `isLoading` + `error` (+ `isMutating` si aplica). Paridad de p
 
 ## Auth
 
-- **No cookies.** Tokens en `expo-secure-store` vía `tokenStorage`.
+- **No cookies.** Tokens en `expo-secure-store` vía `tokenStorage`, en **una sola clave** (`omni.session`, JSON con access y refresh): `setTokens` los escribe juntos o no escribe nada. `tokenStorage` migra una vez por proceso las claves anteriores (`omni.accessToken` / `omni.refreshToken`) sin cerrar la sesión; los tests de `tokenStorage` cubren que sea idempotente. Los tokens se leen siempre por `tokenStorage`, nunca con `SecureStore` directo.
 - Login/refresh devuelven `accessToken` + `refreshToken` en el body (`AuthTokensResponse`).
 - Cada request: `Authorization: Bearer <access>` (`src/shared/api/client.ts`).
-- 401 → refresh con `{ refreshToken }` → reintento; si falla, limpiar tokens. Lo maneja el client: no reimplementar en cada hook.
-- Logout: POST con body `{ refreshToken }` + clear SecureStore.
+- 401 → refresh con `{ refreshToken }` → reintento. Lo maneja el client: no reimplementar en cada hook. Un solo refresh a la vez; si el access ya cambió cuando llega el 401 (otro request refrescó antes), reintenta sin rotar de nuevo.
+- Solo un **401/403 del refresh** limpia los tokens y avisa (`setOnAuthFailure` → `AuthProvider.clearSession`). Un 5xx, un 429 o un error de red propagan el error y conservan la sesión: el `ApiError` que llega al hook es el del refresh, no el 401 original. Si la sesión cambió mientras el refresh volaba (logout, login nuevo), su resultado se descarta. Los hooks de datos reintentan un 429 y no los demás 4xx.
+- Logout: `logoutSession()` del client espera un refresh en curso, lee el refresh token vigente al enviar y hace `POST` con `{ refreshToken }` sin pasar por el refresh por 401 (la API no responde 401 al logout). `AuthProvider.logout` limpia tokens y caché de SWR aunque el POST (o el borrado en SecureStore) falle.
 - Web usa cookies; no mezclar estrategias en el mismo client.
 
 ## UI compartida (`@/shared/ui`)
@@ -124,6 +125,7 @@ A diferencia de web (alineados a la derecha), en mobile van **centrados y full-w
   Los Stacks interactivos llevan `accessible` (si no, ni TalkBack ni `getByRole` los encuentran cuando están deshabilitados).
 
 - Tests de una pantalla que mockean `tamagui`: si falla con `Cannot read properties of undefined (reading 'get')`, el compilador de Tamagui aplanó un Stack estático de esa pantalla. Se evita con `// tamagui-ignore` como **primera línea** del archivo (como `LoginScreen.tsx`).
+- Tests que tocan tokens (`tokenStorage`, client, `AuthProvider`): `jest.mock('expo-secure-store', () => jest.requireActual('@/test/secureStoreMock'))` (store en memoria; `store` para sembrar y verificar claves) y `global.fetch` mockeado. `tokenStorage` y el client guardan estado de módulo: en tests que lo necesiten, `jest.resetModules()` + `require`.
 - Si un paquete de `node_modules` publica ESM sin build CommonJS, sumarlo a `transformIgnorePatterns` en `jest.config.js`.
 
 ## Verificación

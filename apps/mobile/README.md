@@ -44,9 +44,10 @@ Primera vez en device/emulador: `pnpm prebuild` y luego build del dev client (`n
 ## Auth
 
 - Login/refresh devuelven `accessToken` + `refreshToken` (además de cookies para web).
-- Tokens en `expo-secure-store`.
+- Tokens en `expo-secure-store`, access y refresh en una sola clave.
 - Requests: `Authorization: Bearer <access>`.
-- 401 → refresh automático → reintento.
+- 401 → refresh automático → reintento. Solo un 401/403 del refresh cierra la sesión; un error transitorio la conserva.
+- Logout: manda el refresh token vigente en el body y limpia la sesión local.
 
 ## Estructura
 
