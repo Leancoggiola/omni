@@ -1,4 +1,4 @@
-import { ApiError } from '@/shared/api/ApiError';
+import { ApiError } from '@/shared/api';
 
 export type NotificationVariant = 'success' | 'error' | 'warning' | 'info';
 
