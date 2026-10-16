@@ -43,8 +43,8 @@ router.post(
 
 router.delete(
   '/devices/:deviceId',
-  validate(idParamsSchema('deviceId'), 'params'),
   authenticateJwt,
+  validate(idParamsSchema('deviceId'), 'params'),
   async (req, res, next) => {
     try {
       const { userId } = req.user as { userId: string };

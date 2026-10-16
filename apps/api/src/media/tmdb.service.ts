@@ -1,5 +1,6 @@
 import type { TmdbMediaResult, TmdbMovieDetail, TmdbSearchResponse, TmdbTvDetail } from '@omni/shared/media';
 import { config } from '../config';
+import { logger } from '../common/utils/logger';
 
 export type { TmdbMediaResult, TmdbMovieDetail, TmdbSearchResponse, TmdbTvDetail };
 
@@ -10,6 +11,7 @@ const REQUEST_TIMEOUT_MS = 8_000;
  * API hacia TMDB, no de la sesión del usuario: se reenvía como 502 para que los clientes no lo lean como sesión vencida.
  */
 function upstreamError(err: unknown): { status: number; message: string } {
+  logger.warn({ err }, 'TMDB inalcanzable');
   if (err instanceof Error && err.name === 'TimeoutError') {
     return { status: 504, message: 'TMDB no respondió a tiempo' };
   }
@@ -17,6 +19,7 @@ function upstreamError(err: unknown): { status: number; message: string } {
 }
 
 function upstreamStatusError(status: number): { status: number; message: string } {
+  if (status !== 404) logger.warn({ upstreamStatus: status }, 'TMDB respondió con error');
   if (status === 404) return { status: 404, message: 'No se encontró el título en TMDB' };
   return { status: 502, message: 'Error de TMDB' };
 }

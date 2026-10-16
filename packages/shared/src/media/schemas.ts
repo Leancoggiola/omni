@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { SEARCH_QUERY_MAX_LENGTH } from '../common/limits';
+import { INT4_MAX, SEARCH_QUERY_MAX_LENGTH } from '../common/limits';
 import { MEDIA_TYPES, MEDIA_STATUSES, SEARCH_TYPES } from './constants';
 import type { AddMediaFormValues } from './types';
 
 export const addMediaItemSchema = z.object({
-  tmdbId: z.number().int().positive(),
+  tmdbId: z.number().int().positive().max(INT4_MAX),
   mediaType: z.enum(MEDIA_TYPES),
   status: z.enum(MEDIA_STATUSES).default('to_watch'),
 });
@@ -16,6 +16,7 @@ export const addMediaFormSchema: z.ZodType<AddMediaFormValues> = z.object({
     .number()
     .int()
     .positive()
+    .max(INT4_MAX)
     .nullable()
     .refine(value => value != null, 'Seleccioná un título desde TMDB'),
   mediaType: z.enum(MEDIA_TYPES),

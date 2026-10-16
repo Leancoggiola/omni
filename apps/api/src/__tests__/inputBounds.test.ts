@@ -14,7 +14,8 @@ import {
   createPersonalExpenseSchema,
   updatePersonalExpenseSchema,
 } from '@omni/shared/expenses';
-import { updateGymExerciseWeightSchema } from '@omni/shared/gym';
+import { paginationSchema } from '@omni/shared/common';
+import { addGymExerciseSchema, updateGymExerciseWeightSchema } from '@omni/shared/gym';
 import { addMediaFormSchema, addMediaItemSchema, searchMediaSchema } from '@omni/shared/media';
 import { registerNotificationDeviceSchema } from '@omni/shared/notifications';
 import {
@@ -33,7 +34,11 @@ describe('isoDateStringSchema', () => {
     }
   );
 
-  it.each(['2026-02-28', '2024-02-29', '2026-12-31'])('acepta %s', value => {
+  it.each(['0050-03-01', '1899-12-31', '2201-01-01'])('rechaza el año fuera de rango en %s', value => {
+    expect(isoDateStringSchema.safeParse(value).success).toBe(false);
+  });
+
+  it.each(['2026-02-28', '2024-02-29', '2026-12-31', '1900-01-01'])('acepta %s', value => {
     expect(isoDateStringSchema.safeParse(value).success).toBe(true);
   });
 
@@ -113,6 +118,24 @@ describe('cotas de entrada', () => {
     expect(refreshTokenBodySchema.safeParse({ refreshToken: long }).success).toBe(false);
     expect(addShoppingListItemSchema.safeParse({ pantryProductId: long, quantityToBuy: 1 }).success).toBe(false);
     expect(addGatheringExpenseSchema.safeParse({ participantId: long, amount: 1 }).success).toBe(false);
+  });
+});
+
+describe('enteros de Postgres', () => {
+  it('acota tmdbId al máximo de un INT4', () => {
+    expect(addMediaItemSchema.safeParse({ tmdbId: 2_147_483_647, mediaType: 'movie' }).success).toBe(true);
+    expect(addMediaItemSchema.safeParse({ tmdbId: 3_000_000_000, mediaType: 'movie' }).success).toBe(false);
+  });
+
+  it('acota las series de un ejercicio', () => {
+    const exercise = { planId: 'p1', dayLabel: 'Lunes', name: 'Sentadilla', reps: '10' };
+    expect(addGymExerciseSchema.safeParse({ ...exercise, sets: 4 }).success).toBe(true);
+    expect(addGymExerciseSchema.safeParse({ ...exercise, sets: 3e9 }).success).toBe(false);
+  });
+
+  it('acota la página de un listado', () => {
+    expect(paginationSchema.safeParse({ page: '10000' }).success).toBe(true);
+    expect(paginationSchema.safeParse({ page: '999999999999' }).success).toBe(false);
   });
 });
 

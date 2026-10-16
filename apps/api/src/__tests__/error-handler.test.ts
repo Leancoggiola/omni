@@ -16,6 +16,7 @@ describe('errorHandler', () => {
     ['P2025', 404],
     ['P2003', 400],
     ['P2023', 400],
+    ['P2020', 400],
   ])('traduce el error de Prisma %s a %i', (code, expected) => {
     const { status, body } = run(
       Object.assign(new Error('Prisma internals: Unique constraint on `tokenHash`'), { code })

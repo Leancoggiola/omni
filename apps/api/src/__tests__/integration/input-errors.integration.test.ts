@@ -4,6 +4,7 @@ import request from 'supertest';
 
 import { AMOUNT_MAX_10_2, AMOUNT_MAX_12_2 } from '@omni/shared/common';
 
+import { hashRefreshToken } from '../../auth/auth.service';
 import { config } from '../../config';
 import { prisma } from '../../common/db';
 import { authHeader } from '../../test/integration/auth';
@@ -42,7 +43,7 @@ describe('errores de entrada (integration)', () => {
 
   describe('errores de Prisma', () => {
     it('P2002: un alta que pierde la carrera contra otra igual responde 409', async () => {
-      const item = await prisma.mediaItem.create({
+      await prisma.mediaItem.create({
         data: { userId: user.id, tmdbId: 550, mediaType: 'movie', title: 'Fight Club', status: 'to_watch' },
       });
       vi.spyOn(prisma.mediaItem, 'findUnique').mockResolvedValueOnce(null);
@@ -54,7 +55,6 @@ describe('errores de entrada (integration)', () => {
       expect(res.status).toBe(409);
       expect(res.body).toEqual({ statusCode: 409, message: expect.any(String) });
       expect(res.body.message).not.toMatch(/prisma|constraint|userId/i);
-      expect(item.id).toEqual(expect.any(String));
     });
 
     it('P2025: un registro que desaparece entre la lectura y la escritura responde 404', async () => {
@@ -209,16 +209,30 @@ describe('errores de entrada (integration)', () => {
       expect(res.status).toBe(401);
     });
 
-    it('rechaza un refresh token firmado con otro algoritmo', async () => {
-      const login = await request(app)
-        .post('/api/auth/login')
-        .send({ username: 'inputerrors', password: TEST_PASSWORD });
+    async function storeForgedRefreshToken() {
       const forged = jwt.sign({ sub: user.id }, config.jwt.refreshSecret, { algorithm: 'HS384', expiresIn: '7d' });
+      await prisma.refreshToken.create({
+        data: { userId: user.id, tokenHash: hashRefreshToken(forged), expiresAt: new Date(Date.now() + 86_400_000) },
+      });
+      return forged;
+    }
+
+    it('rechaza un refresh token firmado con otro algoritmo aunque esté en la base', async () => {
+      const forged = await storeForgedRefreshToken();
 
       const res = await request(app).post('/api/auth/refresh').send({ refreshToken: forged });
 
-      expect(login.status).toBe(200);
       expect(res.status).toBe(401);
+      expect(await prisma.refreshToken.count({ where: { userId: user.id, rotatedAt: null } })).toBe(1);
+    });
+
+    it('el logout no reconoce como propio un refresh token firmado con otro algoritmo', async () => {
+      const forged = await storeForgedRefreshToken();
+
+      const res = await request(app).post('/api/auth/logout').send({ refreshToken: forged });
+
+      expect(res.status).toBe(200);
+      expect(await prisma.refreshToken.count({ where: { userId: user.id } })).toBe(1);
     });
   });
 
@@ -254,6 +268,12 @@ describe('errores de entrada (integration)', () => {
   });
 
   describe('guards', () => {
+    it('DELETE /notifications/devices/:deviceId autentica antes de validar el id', async () => {
+      const res = await request(app).delete(`/api/notifications/devices/${'a'.repeat(65)}`);
+
+      expect(res.status).toBe(401);
+    });
+
     it('requireAdmin responde 403 con el formato de error estándar', async () => {
       const res = await request(app).get('/api/admin/users').set('Authorization', auth);
 

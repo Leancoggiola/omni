@@ -13,10 +13,12 @@ const PRISMA_ERRORS: Record<string, { status: number; message: string }> = {
   P2025: { status: 404, message: 'Registro no encontrado' },
   P2003: { status: 400, message: 'Referencia inválida' },
   P2023: { status: 400, message: 'Dato inválido' },
+  P2020: { status: 400, message: 'Valor fuera de rango' },
 };
 
 /**
- * Traduce los errores conocidos de Prisma por su `code`, sin depender de la clase del cliente generado: un
+ * Traduce los errores conocidos de Prisma por su `code` (P2020 es la red de seguridad para un valor numérico que
+ * ningún schema acotó), sin depender de la clase del cliente generado: un
  * check-then-create que pierde una carrera, un registro que desaparece entre dos queries o un id mal formado dejan
  * de ser un 500. Un error con `status` propio se respeta tal cual.
  */
@@ -25,6 +27,7 @@ function resolveError(err: AppError): AppError {
 
   const code = (err as { code?: unknown }).code;
   const mapped = typeof code === 'string' ? PRISMA_ERRORS[code] : undefined;
+  if (mapped) logger.warn({ code }, 'Error de Prisma traducido a una respuesta 4xx');
   return mapped ?? err;
 }
 

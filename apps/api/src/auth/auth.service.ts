@@ -32,7 +32,10 @@ let dummyPasswordHash: Promise<string> | undefined;
  * tarda lo mismo exista o no la cuenta y no revela qué usernames están registrados. Se calcula la primera vez que se usa.
  */
 function getDummyPasswordHash(): Promise<string> {
-  dummyPasswordHash ??= bcrypt.hash(randomUUID(), BCRYPT_ROUNDS);
+  dummyPasswordHash ??= bcrypt.hash(randomUUID(), BCRYPT_ROUNDS).catch((err: unknown) => {
+    dummyPasswordHash = undefined;
+    throw err;
+  });
   return dummyPasswordHash;
 }
 

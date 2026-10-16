@@ -9,6 +9,13 @@ export const SEARCH_QUERY_MAX_LENGTH = 200;
 /** Largo máximo de un token que llega del cliente: un JWT firmado con claims mínimos ronda los 300 caracteres. */
 export const TOKEN_MAX_LENGTH = 2048;
 
+/** Máximo de un `Int` de Postgres (INT4): un entero mayor no entra en la columna. */
+export const INT4_MAX = 2_147_483_647;
+
+/** Tope de series de un ejercicio y de páginas de un listado: más allá no hay un uso real. */
+export const EXERCISE_SETS_MAX = 1000;
+export const PAGE_MAX = 10_000;
+
 /** Tope de participantes de una juntada. */
 export const GATHERING_PARTICIPANTS_MAX = 50;
 
