@@ -7,13 +7,13 @@ import { ApiError, fetcher } from '@/shared/api';
 import type { FC, PropsWithChildren } from 'react';
 
 /**
- * Un 4xx no se arregla reintentando (401 ya pasó por el refresh del client, 404 no va a aparecer). Un 429 sí: es
- * transitorio, y también llega cuando el que lo devuelve es el refresh (el client propaga su `ApiError`).
+ * Un 4xx no se arregla reintentando (401 ya pasó por el refresh del client, 404 no va a aparecer). Un 408 y un 429
+ * sí: son transitorios, y el 429 también llega cuando el que lo devuelve es el refresh (el client propaga su
+ * `ApiError`). Define `SWR_RETRY_OPTIONS`, que el hook de sesión recibe directamente (ver `AuthProvider`).
  */
 const isClientError = (err: unknown): boolean =>
-  err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 429;
+  err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 408 && err.status !== 429;
 
-/** Reintentos de los hooks de datos. El hook de sesión las recibe directamente (ver `AuthProvider`). */
 export const SWR_RETRY_OPTIONS = {
   errorRetryCount: 3,
   shouldRetryOnError: (err: unknown) => !isClientError(err),
@@ -38,11 +38,6 @@ const SWR_OPTIONS: SWRConfiguration = {
   initFocus: initAppStateFocus,
 };
 
-/**
- * Datos de la caché, fuera del componente: expo-router vuelve a montar el layout raíz al redirigir (por ejemplo, del
- * login a las tabs o al cerrar sesión) y una caché creada al montar se perdería con todo lo que tiene, la sesión
- * incluida.
- */
 const appStore = new Map<string, State>();
 
 /**
@@ -64,14 +59,16 @@ function cacheOver(store: Map<string, State>): Cache {
 }
 
 type SWRProviderProps = PropsWithChildren<{
-  /** Dónde viven los datos; los tests pasan uno nuevo para no compartirlos entre casos. */
   store?: Map<string, State>;
 }>;
 
 /**
  * Configuración global de SWR, montada por encima de `AuthProvider` para que la sesión y los datos compartan la
  * misma caché (`clearSession` la vacía entera). `initFocus` solo se aplica con `provider`: por eso la caché propia.
- * Los `useSWR` revalidan al volver a primer plano; los `useSWRImmutable` (sesión, perfil) no.
+ * Los `useSWR` revalidan al volver a primer plano; los `useSWRImmutable` (sesión, perfil) no. Los datos viven en
+ * `store`, fuera del componente (`appStore`; los tests pasan uno nuevo): expo-router vuelve a montar el layout
+ * raíz al redirigir (del login a las tabs, al cerrar sesión) y una caché creada al montar se perdería, la sesión
+ * incluida.
  */
 export const SWRProvider: FC<SWRProviderProps> = ({ children, store = appStore }) => {
   const [value] = useState<SWRConfiguration>(() => ({ ...SWR_OPTIONS, provider: () => cacheOver(store) }));

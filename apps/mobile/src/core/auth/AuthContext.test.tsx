@@ -139,7 +139,6 @@ describe('AuthProvider', () => {
       });
     };
 
-    /** El client corta tras dos sondeos al health con error de red, separados por 2 s. */
     const waitUntilUnverified = async (result: { current: { auth: { isSessionUnverified: boolean } } }) => {
       await waitFor(() => expect(callsTo(API_KEYS.health)).toHaveLength(1));
       await act(async () => {
@@ -207,8 +206,8 @@ describe('AuthProvider', () => {
       expect(result.current.auth.isAuthenticated).toBe(false);
     });
 
-    it('un 429 sí queda sin verificar: es transitorio', async () => {
-      routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'Demasiados intentos' }, 429);
+    it.each([408, 429])('un %i sí queda sin verificar: es transitorio', async status => {
+      routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'Transitorio' }, status);
       await setTokens('access-1', 'refresh-1');
       const { result } = renderAuth();
 

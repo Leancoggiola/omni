@@ -65,10 +65,10 @@ export function EmptyState({ icon: IconComponent, title, action }: EmptyStatePro
 type ErrorStateProps = {
   message?: string;
   onRetry?: () => void;
-  /** Muestra "Reintentar" cargando mientras el reintento está en curso. */
   retrying?: boolean;
 };
 
+/** Error con "Reintentar" opcional; `retrying` lo muestra cargando mientras el reintento está en curso. */
 export function ErrorState({
   message = 'No se pudieron cargar los datos',
   onRetry,

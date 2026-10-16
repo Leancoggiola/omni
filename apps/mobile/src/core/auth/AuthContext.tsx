@@ -36,9 +36,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: ApiError | undefined;
-  /** Hay token pero la sesión no se pudo verificar (red, timeout, 5xx, 429): no prueba que se haya perdido. */
   isSessionUnverified: boolean;
-  /** Hay un reintento de la sesión en curso mientras `isSessionUnverified`. */
   isRetryingSession: boolean;
   retrySession: () => void;
   login: (username: string, password: string) => Promise<void>;
@@ -48,13 +46,13 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 /**
- * Un 4xx que llega al hook (salvo 429) no se arregla reintentando: un 401/403 ya pasó por el refresh del client y
- * dice que la sesión no vale, y cualquier otro deja la sesión sin poder usarse. AuthGate manda al login.
+ * Un 4xx que llega al hook no se arregla reintentando: un 401/403 ya pasó por el refresh del client y dice que la
+ * sesión no vale, y cualquier otro deja la sesión sin poder usarse. AuthGate manda al login. Lo que no prueba que la
+ * sesión se haya perdido (red, timeout, 5xx, y los 4xx transitorios 408 y 429) deja la sesión sin verificar.
  */
 const isSessionRejected = (err: unknown): boolean =>
-  err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 429;
+  err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 408 && err.status !== 429;
 
-/** Espera máxima al POST de logout: más que los 3 s que `logoutSession` espera a un refresh en curso. */
 const LOGOUT_SERVER_WAIT_MS = 8_000;
 
 const BOOTSTRAP_READ_ATTEMPTS = 3;
@@ -141,7 +139,8 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   /**
    * Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request. Un error
    * del POST se ignora a propósito: igual se limpia la sesión local. Al POST se lo espera hasta
-   * `LOGOUT_SERVER_WAIT_MS`: con la API colgada (su tope es de 100 s) la sesión local se cierra igual y el request
+   * `LOGOUT_SERVER_WAIT_MS` (8 s, más que los 3 s que `logoutSession` espera a un refresh en curso): con la API
+   * colgada (su tope es de 100 s) la sesión local se cierra igual y el request
    * sigue en segundo plano con el refresh token que ya leyó. Si lo que falla es el borrado de los tokens en
    * SecureStore, la UI igual sale de la sesión y el error se relanza para que quien llama avise a la persona, porque
    * al reabrir la app los tokens guardados la volverían a loguear.
