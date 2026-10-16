@@ -1,8 +1,8 @@
-import { SWRConfig } from 'swr';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { SWRConfig, useSWRConfig } from 'swr';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 
 import { getSessionColorScheme, setSessionColorScheme } from '@/core/theme/sessionColorScheme';
-import { api } from '@/shared/api';
+import { api, ApiError, SWR_KEYS } from '@/shared/api';
 
 import { AuthProvider, useAuth } from '../AuthContext';
 
@@ -71,5 +71,122 @@ describe('AuthProvider: override de tema de sesión', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
     await act(() => result.current.login('maria', 'secreto'));
     expect(getSessionColorScheme()).toBeNull();
+  });
+});
+
+const MEDIA_KEY = '/api/media/list-de-prueba';
+
+describe('AuthProvider: sesión local y caché de SWR', () => {
+  let cache: Map<string, unknown>;
+  let profileFetcher: Mock<(key: string) => Promise<unknown>>;
+
+  const cacheWrapper = ({ children }: { children: ReactNode }) => (
+    <SWRConfig value={{ provider: () => cache as never, fetcher: profileFetcher }}>
+      <AuthProvider>{children}</AuthProvider>
+    </SWRConfig>
+  );
+
+  const renderAuth = () => renderHook(() => ({ auth: useAuth(), swr: useSWRConfig() }), { wrapper: cacheWrapper });
+
+  const seedMedia = async (result: ReturnType<typeof renderAuth>['result']) => {
+    await act(() => result.current.swr.mutate(MEDIA_KEY, [{ id: 'de-A' }], { revalidate: false }));
+    expect(result.current.swr.cache.get(MEDIA_KEY)?.data).toEqual([{ id: 'de-A' }]);
+  };
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    cache = new Map();
+    profileFetcher = vi
+      .fn<(key: string) => Promise<unknown>>()
+      .mockResolvedValue({ user: { id: 'u1', theme: 'light' } });
+    vi.mocked(api.post).mockReset().mockResolvedValue(undefined);
+  });
+
+  it('logout llama a /logout sin body y vacía toda la caché', async () => {
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await seedMedia(result);
+
+    await act(() => result.current.auth.logout());
+
+    expect(api.post).toHaveBeenCalledWith(SWR_KEYS.auth.logout);
+    expect(result.current.swr.cache.get(MEDIA_KEY)?.data).toBeUndefined();
+    await waitFor(() => expect(result.current.auth.user).toBeNull());
+  });
+
+  it('logout vacía la caché y no rechaza aunque el POST falle', async () => {
+    vi.mocked(api.post).mockRejectedValueOnce(new ApiError('Servicio no disponible', 503));
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await seedMedia(result);
+
+    await act(async () => {
+      await expect(result.current.auth.logout()).resolves.toBeUndefined();
+    });
+
+    expect(result.current.swr.cache.get(MEDIA_KEY)?.data).toBeUndefined();
+    await waitFor(() => expect(result.current.auth.user).toBeNull());
+  });
+
+  it('login vacía la caché del usuario anterior y guarda solo { user }, sin los tokens del body', async () => {
+    const user = { id: 'u2', name: 'B', theme: 'light' };
+    vi.mocked(api.post).mockResolvedValueOnce({ user, accessToken: 'access-secreto', refreshToken: 'refresh-secreto' });
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await seedMedia(result);
+
+    await act(() => result.current.auth.login('b', 'secreto'));
+
+    expect(result.current.swr.cache.get(MEDIA_KEY)?.data).toBeUndefined();
+    expect(result.current.swr.cache.get(SWR_KEYS.auth.profile)?.data).toEqual({ user });
+    expect(result.current.auth.user).toEqual(user);
+  });
+
+  it('un login fallido no toca la caché', async () => {
+    vi.mocked(api.post).mockRejectedValueOnce(new ApiError('Credenciales inválidas', 401));
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await seedMedia(result);
+
+    await act(async () => {
+      await expect(result.current.auth.login('b', 'mala')).rejects.toThrow('Credenciales inválidas');
+    });
+
+    expect(result.current.swr.cache.get(MEDIA_KEY)?.data).toEqual([{ id: 'de-A' }]);
+    expect(result.current.auth.isAuthenticated).toBe(true);
+  });
+
+  it('clearSession vacía la caché sin llamar a la API', async () => {
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await seedMedia(result);
+
+    await act(() => result.current.auth.clearSession());
+
+    expect(api.post).not.toHaveBeenCalled();
+    expect(result.current.swr.cache.get(MEDIA_KEY)?.data).toBeUndefined();
+    await waitFor(() => expect(result.current.auth.user).toBeNull());
+  });
+
+  it('un fallo de auth vacía la caché', async () => {
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await seedMedia(result);
+
+    act(() => failure.callback?.());
+
+    await waitFor(() => expect(result.current.swr.cache.get(MEDIA_KEY)?.data).toBeUndefined());
+  });
+
+  it('retry vuelve a pedir el perfil después de un error que no es de sesión', async () => {
+    profileFetcher.mockRejectedValueOnce(new ApiError('Servicio no disponible', 503));
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.auth.error).toMatchObject({ status: 503 }));
+    expect(result.current.auth.user).toBeNull();
+
+    await act(() => result.current.auth.retry());
+
+    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    expect(result.current.auth.error).toBeUndefined();
   });
 });

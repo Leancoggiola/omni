@@ -1,4 +1,5 @@
 import { FC, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Stack } from '@mantine/core';
 
 import { useAuth } from '@/core/auth';
@@ -19,7 +20,8 @@ import { UserIcon } from '@phosphor-icons/react';
 export const ProfilePage: FC = () => {
   const { profile, isLoading, isMutating, error, updateProfile, updatePreferences } = useProfile();
   const { changePassword, deleteAccount } = useAccountActions();
-  const { logout } = useAuth();
+  const { clearSession } = useAuth();
+  const navigate = useNavigate();
 
   const handleChangePassword = useCallback(
     async (newPassword: string) => {
@@ -28,10 +30,15 @@ export const ProfilePage: FC = () => {
     [changePassword]
   );
 
+  /**
+   * El DELETE ya borra las cookies: llamar a `/logout` sin sesión daría 401. Si falla, la sesión local no se toca
+   * y el error lo muestra `DeleteAccountButton`.
+   */
   const handleDeleteAccount = useCallback(async () => {
     await deleteAccount();
-    await logout();
-  }, [deleteAccount, logout]);
+    await clearSession();
+    navigate('/login', { replace: true });
+  }, [deleteAccount, clearSession, navigate]);
 
   const handleSave = useCallback(
     async ({

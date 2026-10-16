@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
 import { Button, Group, Paper, Stack, Text } from '@mantine/core';
 
-import { confirm } from '@/shared/ui';
+import { confirm, getErrorMessage, notifyError } from '@/shared/ui';
 
 interface DeleteAccountButtonProps {
   onDelete: () => Promise<void>;
@@ -23,6 +23,8 @@ export const DeleteAccountButton: FC<DeleteAccountButtonProps> = ({ onDelete }) 
     setLoading(true);
     try {
       await onDelete();
+    } catch (err) {
+      notifyError(getErrorMessage(err, 'No se pudo eliminar la cuenta'));
     } finally {
       setLoading(false);
     }

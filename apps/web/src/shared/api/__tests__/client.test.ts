@@ -100,7 +100,7 @@ describe('api client', () => {
       'fetch',
       vi.fn((url: string) => {
         if (url === SWR_KEYS.auth.refresh) {
-          return Promise.resolve({ ok: false, headers: JSON_HEADERS, json: () => Promise.resolve({}) });
+          return Promise.resolve({ ok: false, status: 401, headers: JSON_HEADERS, json: () => Promise.resolve({}) });
         }
         return Promise.resolve({
           ok: false,
@@ -114,6 +114,58 @@ describe('api client', () => {
 
     await expect(api.patch('/api/resource', {})).rejects.toMatchObject({ status: 401 });
     expect(onAuthFailure).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([429, 503])('does not close the session when the refresh answers %i', async refreshStatus => {
+    const onAuthFailure = vi.fn();
+    setOnAuthFailure(onAuthFailure);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === SWR_KEYS.auth.refresh) {
+          return Promise.resolve({
+            ok: false,
+            status: refreshStatus,
+            statusText: 'Unavailable',
+            headers: JSON_HEADERS,
+            json: () => Promise.resolve({ message: 'Servicio no disponible' }),
+          });
+        }
+        return Promise.resolve({
+          ok: false,
+          headers: JSON_HEADERS,
+          status: 401,
+          statusText: 'Unauthorized',
+          json: () => Promise.resolve({}),
+        });
+      })
+    );
+
+    await expect(api.patch('/api/resource', {})).rejects.toMatchObject({ status: refreshStatus });
+    expect(onAuthFailure).not.toHaveBeenCalled();
+  });
+
+  it('does not close the session when the refresh fails with a network error', async () => {
+    const onAuthFailure = vi.fn();
+    setOnAuthFailure(onAuthFailure);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === SWR_KEYS.auth.refresh) return Promise.reject(new TypeError('Failed to fetch'));
+        return Promise.resolve({
+          ok: false,
+          headers: JSON_HEADERS,
+          status: 401,
+          statusText: 'Unauthorized',
+          json: () => Promise.resolve({}),
+        });
+      })
+    );
+
+    await expect(api.patch('/api/resource', {})).rejects.toThrow('Failed to fetch');
+    expect(onAuthFailure).not.toHaveBeenCalled();
   });
 
   it('does not attempt refresh when login itself returns 401', async () => {
