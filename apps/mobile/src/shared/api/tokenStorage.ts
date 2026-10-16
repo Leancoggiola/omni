@@ -27,7 +27,8 @@ let migration: Promise<void> | null = null;
  * una clave nueva válida nunca se pisa, y las claves viejas que sobren (incluso de una migración interrumpida
  * entre la escritura y el borrado) se eliminan. Si solo había una de las dos viejas no hay sesión que conservar.
  * Una vez escrita la clave nueva, que falle el borrado de las viejas no impide usar la sesión: es solo limpieza
- * y se reintenta en el próximo arranque.
+ * y se reintenta en el próximo arranque. Un valor corrupto sin claves viejas con que reemplazarlo también se
+ * descarta acá, antes de cualquier lectura o escritura, para que las lecturas sean puras.
  */
 async function migrateLegacyKeys(): Promise<void> {
   const [raw, legacyAccess, legacyRefresh] = await Promise.all([
@@ -41,9 +42,11 @@ async function migrateLegacyKeys(): Promise<void> {
     await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(tokens));
   }
 
+  const hasCorruptSession = raw !== null && !parseTokens(raw) && !(legacyAccess && legacyRefresh);
   const leftovers = [
     legacyAccess !== null ? SecureStore.deleteItemAsync(LEGACY_ACCESS_KEY) : null,
     legacyRefresh !== null ? SecureStore.deleteItemAsync(LEGACY_REFRESH_KEY) : null,
+    hasCorruptSession ? SecureStore.deleteItemAsync(SESSION_KEY) : null,
   ];
   await Promise.all(leftovers.map(pending => pending?.catch(() => undefined)));
 }
@@ -60,15 +63,11 @@ function ensureMigrated(): Promise<void> {
   return migration;
 }
 
-/** Devuelve la sesión guardada o `null` si no hay (o si el valor guardado está corrupto, que se descarta). */
+/** Devuelve la sesión guardada o `null` si no hay (o si el valor guardado está corrupto). */
 export async function getTokens(): Promise<StoredTokens | null> {
   await ensureMigrated();
   const raw = await SecureStore.getItemAsync(SESSION_KEY);
-  const tokens = parseTokens(raw);
-  if (raw && !tokens && (await SecureStore.getItemAsync(SESSION_KEY)) === raw) {
-    await SecureStore.deleteItemAsync(SESSION_KEY).catch(() => undefined);
-  }
-  return tokens;
+  return parseTokens(raw);
 }
 
 export async function getAccessToken(): Promise<string | null> {

@@ -200,6 +200,21 @@ describe('api client', () => {
       expect(onAuthFailure).not.toHaveBeenCalled();
     });
 
+    it.each([[500], [429]])(
+      'un refresh con %s que termina tras cerrarse la sesión no propaga su error',
+      async status => {
+        const gate = deferred<unknown>();
+        respondWith(apiWithAccess('never', () => gate.promise));
+
+        const request = client.api.get('/api/resource');
+        await until(() => callsTo(REFRESH_URL).length === 1);
+        await storage.clearTokens();
+        gate.resolve(jsonResponse({ message: 'Intentá más tarde' }, status));
+
+        await expect(request).rejects.toMatchObject({ status: 401 });
+      }
+    );
+
     it.each([[500], [503], [429]])('un refresh con %s conserva los tokens y propaga el error', async status => {
       respondWith(apiWithAccess('never', () => jsonResponse({ message: 'Intentá más tarde' }, status)));
 
@@ -313,6 +328,31 @@ describe('api client', () => {
       await Promise.all([request, logout]);
 
       expect(bodyOf(callsTo(LOGOUT_URL)[0][1])).toEqual({ refreshToken: 'refresh-1' });
+    });
+
+    it('no espera más de 10 s a un refresh colgado y manda el token guardado', async () => {
+      jest.useFakeTimers();
+      try {
+        const gate = deferred<unknown>();
+        respondWith((url, init) =>
+          url === LOGOUT_URL ? logoutOk() : apiWithAccess('never', () => gate.promise)(url, init)
+        );
+
+        const request = client.api.get('/api/resource').catch(() => undefined);
+        await until(() => callsTo(REFRESH_URL).length === 1);
+        const logout = client.logoutSession();
+        await jest.advanceTimersByTimeAsync(9_000);
+        expect(callsTo(LOGOUT_URL)).toHaveLength(0);
+
+        await jest.advanceTimersByTimeAsync(1_500);
+        await logout;
+
+        expect(bodyOf(callsTo(LOGOUT_URL)[0][1])).toEqual({ refreshToken: 'refresh-1' });
+        gate.resolve(jsonResponse({ message: 'Caída breve' }, 503));
+        await request;
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('sin sesión manda el body sin refresh token', async () => {

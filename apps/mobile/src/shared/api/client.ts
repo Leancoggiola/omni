@@ -73,7 +73,11 @@ async function refreshAccessToken(): Promise<boolean> {
     return false;
   }
 
-  if (!res.ok) throw await toApiError(res);
+  if (!res.ok) {
+    const { changed, hasSession } = await sessionChangedDuringRefresh(tokens.refreshToken);
+    if (changed) return hasSession;
+    throw await toApiError(res);
+  }
 
   const data = (await res.json()) as AuthTokensResponse;
   const { changed, hasSession } = await sessionChangedDuringRefresh(tokens.refreshToken);
@@ -132,12 +136,37 @@ async function request<T = unknown>(path: string, method: HttpMethod, body?: unk
   return res.json();
 }
 
+const LOGOUT_REFRESH_WAIT_MS = 10_000;
+
+/**
+ * Espera a que termine el refresh en curso, hasta `LOGOUT_REFRESH_WAIT_MS`: un refresh colgado (ej. esperando que
+ * la API despierte) no puede demorar el logout. Si se agota el tiempo se sigue con el token que haya guardado; si
+ * ya se rotó, la API borra también los sucesores recién rotados.
+ */
+async function waitForRefreshToSettle(): Promise<void> {
+  while (refreshPromise) {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timedOut = await Promise.race([
+      refreshPromise.then(
+        () => false,
+        () => false
+      ),
+      new Promise<boolean>(resolve => {
+        timer = setTimeout(() => resolve(true), LOGOUT_REFRESH_WAIT_MS);
+      }),
+    ]);
+    clearTimeout(timer);
+    if (timedOut) return;
+  }
+}
+
 /**
  * Cierra la sesión en el servidor con el refresh token vigente al momento de enviar. Espera un refresh en curso
- * para no mandar un token que ya se rotó, y no pasa por el refresh por 401: el logout de la API no devuelve 401.
+ * (con tope) para no mandar un token que ya se rotó, y no pasa por el refresh por 401: el logout de la API no
+ * devuelve 401.
  */
 export async function logoutSession(): Promise<void> {
-  while (refreshPromise) await refreshPromise.catch(() => undefined);
+  await waitForRefreshToSettle();
   const refreshToken = await getRefreshToken();
   await request(API_KEYS.auth.logout, 'POST', { refreshToken: refreshToken ?? undefined });
 }
