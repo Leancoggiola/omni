@@ -20,7 +20,7 @@ import {
   clearTokens,
   fetcher,
   getAccessToken,
-  getRefreshToken,
+  logoutSession,
   setOnAuthFailure,
   setTokens,
 } from '@/shared/api';
@@ -40,8 +40,12 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** Un 4xx no se arregla reintentando (401 ya pasó por el refresh del client, 404 no va a aparecer). */
-const isClientError = (err: unknown): boolean => err instanceof ApiError && err.status >= 400 && err.status < 500;
+/**
+ * Un 4xx no se arregla reintentando (401 ya pasó por el refresh del client, 404 no va a aparecer). Un 429 sí: es
+ * transitorio, y también llega cuando el que lo devuelve es el refresh (el client propaga su `ApiError`).
+ */
+const isClientError = (err: unknown): boolean =>
+  err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 429;
 
 const SWR_OPTIONS: SWRConfiguration = {
   fetcher,
@@ -58,7 +62,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const token = await getAccessToken();
+      const token = await getAccessToken().catch(() => null);
       if (!cancelled) {
         setHasToken(!!token);
         setBootstrapped(true);
@@ -110,11 +114,12 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
    */
   const logout = useCallback(() => {
     logoutInFlight.current ??= (async () => {
-      const refreshToken = await getRefreshToken();
       try {
-        await api.post(API_KEYS.auth.logout, { refreshToken: refreshToken ?? undefined });
+        await logoutSession();
       } catch {}
-      await clearTokens();
+      try {
+        await clearTokens();
+      } catch {}
       await clearSession();
     })().finally(() => {
       logoutInFlight.current = null;
