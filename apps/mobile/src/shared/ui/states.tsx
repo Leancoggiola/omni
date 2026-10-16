@@ -65,9 +65,15 @@ export function EmptyState({ icon: IconComponent, title, action }: EmptyStatePro
 type ErrorStateProps = {
   message?: string;
   onRetry?: () => void;
+  /** Muestra "Reintentar" cargando mientras el reintento está en curso. */
+  retrying?: boolean;
 };
 
-export function ErrorState({ message = 'No se pudieron cargar los datos', onRetry }: ErrorStateProps) {
+export function ErrorState({
+  message = 'No se pudieron cargar los datos',
+  onRetry,
+  retrying = false,
+}: ErrorStateProps) {
   const colors = useSemanticColors();
 
   return (
@@ -87,7 +93,7 @@ export function ErrorState({ message = 'No se pudieron cargar los datos', onRetr
         </Paragraph>
       </XStack>
       {onRetry ? (
-        <Button fullWidth size="sm" variant="outline" color="destructive" onPress={onRetry}>
+        <Button fullWidth size="sm" variant="outline" color="destructive" loading={retrying} onPress={onRetry}>
           Reintentar
         </Button>
       ) : null}

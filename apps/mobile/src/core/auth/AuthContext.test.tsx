@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import useSWR, { SWRConfig, useSWRConfig } from 'swr';
 import type { FC, PropsWithChildren } from 'react';
 
+import { SWRProvider } from '@/core/providers';
 import { API_KEYS } from '@/shared/api';
 import { getTokens, setTokens } from '@/shared/api/tokenStorage';
 import { deleteItemAsync, getItemAsync, store } from '@/test/secureStoreMock';
@@ -14,7 +15,16 @@ const BASE = 'http://api.test';
 const url = (path: string) => `${BASE}${path}`;
 const USER = { id: 1, username: 'leo', role: 'USER' };
 
+let swrCache = new Map();
+
 const Wrapper: FC<PropsWithChildren> = ({ children }) => (
+  <SWRProvider store={swrCache}>
+    <AuthProvider>{children}</AuthProvider>
+  </SWRProvider>
+);
+
+/** Sin las opciones globales de `SWRProvider`: prueba que el hook de sesión trae sus propios reintentos. */
+const BareWrapper: FC<PropsWithChildren> = ({ children }) => (
   <SWRConfig value={{ provider: () => new Map() }}>
     <AuthProvider>{children}</AuthProvider>
   </SWRConfig>
@@ -41,17 +51,18 @@ describe('AuthProvider', () => {
 
   const callsTo = (path: string) => fetchMock.mock.calls.filter(([calledUrl]) => calledUrl === url(path));
 
-  const renderAuth = () =>
+  const renderAuth = (wrapper: FC<PropsWithChildren> = Wrapper) =>
     renderHook(
       () => {
         const auth = useAuth();
         const { cache, mutate } = useSWRConfig();
         return { auth, cache, mutate };
       },
-      { wrapper: Wrapper }
+      { wrapper }
     );
 
   beforeEach(async () => {
+    swrCache = new Map();
     jest.useFakeTimers();
     process.env.EXPO_PUBLIC_API_URL = BASE;
     store.clear();
@@ -105,6 +116,117 @@ describe('AuthProvider', () => {
     expect(await getTokens()).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1' });
   });
 
+  it('login cachea la sesión con el usuario de la respuesta y no vuelve a pedir el perfil', async () => {
+    routes[API_KEYS.auth.login] = () =>
+      jsonResponse({ accessToken: 'access-1', refreshToken: 'refresh-1', user: USER });
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.auth.isLoading).toBe(false));
+
+    await act(() => result.current.auth.login('leo', 'secreto'));
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(1_000);
+    });
+
+    expect(result.current.auth.isAuthenticated).toBe(true);
+    expect(result.current.auth.isLoading).toBe(false);
+    expect(callsTo(API_KEYS.auth.profile)).toHaveLength(0);
+  });
+
+  describe('sesión sin verificar', () => {
+    const goOffline = () => {
+      fetchMock.mockImplementation(async () => {
+        throw new TypeError('Network request failed');
+      });
+    };
+
+    /** El client corta tras dos sondeos al health con error de red, separados por 2 s. */
+    const waitUntilUnverified = async (result: { current: { auth: { isSessionUnverified: boolean } } }) => {
+      await waitFor(() => expect(callsTo(API_KEYS.health)).toHaveLength(1));
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2_000);
+      });
+      await waitFor(() => expect(result.current.auth.isSessionUnverified).toBe(true));
+    };
+
+    it('con token y la API caída queda sin verificar, sin sesión y con los tokens guardados', async () => {
+      goOffline();
+      await setTokens('access-1', 'refresh-1');
+      const { result } = renderAuth();
+
+      await waitUntilUnverified(result);
+
+      expect(result.current.auth.isAuthenticated).toBe(false);
+      expect(await getTokens()).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1' });
+    });
+
+    it('retrySession vuelve a pedir el perfil y entra cuando la API responde', async () => {
+      goOffline();
+      await setTokens('access-1', 'refresh-1');
+      const { result } = renderAuth();
+      await waitUntilUnverified(result);
+
+      fetchMock.mockImplementation(async (target: string) =>
+        target === url(API_KEYS.auth.profile) ? jsonResponse({ user: USER }) : jsonResponse({}, 404)
+      );
+      act(() => result.current.auth.retrySession());
+      expect(result.current.auth.isRetryingSession).toBe(true);
+
+      await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+      expect(result.current.auth.isSessionUnverified).toBe(false);
+      expect(result.current.auth.isRetryingSession).toBe(false);
+    });
+
+    it('el hook de sesión trae sus propios reintentos: un 500 se reintenta 3 veces y un 404 ninguna', async () => {
+      routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'Error' }, 500);
+      await setTokens('access-1', 'refresh-1');
+      const failing = renderAuth(BareWrapper);
+      await waitFor(() => expect(failing.result.current.auth.isSessionUnverified).toBe(true));
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(300_000);
+      });
+      expect(callsTo(API_KEYS.auth.profile)).toHaveLength(4);
+      failing.unmount();
+
+      fetchMock.mockClear();
+      routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'No existe' }, 404);
+      const missing = renderAuth(BareWrapper);
+      await waitFor(() => expect(missing.result.current.auth.error).toBeDefined());
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(300_000);
+      });
+      expect(callsTo(API_KEYS.auth.profile)).toHaveLength(1);
+    });
+
+    it('un 4xx que no es 429 tampoco: AuthGate manda al login en vez de quedar en el ErrorState', async () => {
+      routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'No existe' }, 404);
+      await setTokens('access-1', 'refresh-1');
+      const { result } = renderAuth();
+
+      await waitFor(() => expect(result.current.auth.error).toBeDefined());
+      expect(result.current.auth.isSessionUnverified).toBe(false);
+      expect(result.current.auth.isAuthenticated).toBe(false);
+    });
+
+    it('un 429 sí queda sin verificar: es transitorio', async () => {
+      routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'Demasiados intentos' }, 429);
+      await setTokens('access-1', 'refresh-1');
+      const { result } = renderAuth();
+
+      await waitFor(() => expect(result.current.auth.isSessionUnverified).toBe(true));
+    });
+
+    it('un 401 que llega al hook (el refresh ya renovó y la API lo sigue rechazando) no es una sesión sin verificar', async () => {
+      routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'Usuario no encontrado' }, 401);
+      routes[API_KEYS.auth.refresh] = () => jsonResponse({ accessToken: 'access-2', refreshToken: 'refresh-2' });
+      await setTokens('access-1', 'refresh-1');
+      const { result } = renderAuth();
+
+      await waitFor(() => expect(result.current.auth.error).toBeDefined());
+      expect(result.current.auth.isSessionUnverified).toBe(false);
+      expect(result.current.auth.isAuthenticated).toBe(false);
+    });
+  });
+
   describe('logout', () => {
     const signIn = async () => {
       await setTokens('access-vencido', 'refresh-1');
@@ -146,6 +268,29 @@ describe('AuthProvider', () => {
 
       expect(await getTokens()).toBeNull();
       expect(result.current.auth.user).toBeNull();
+    });
+
+    it('con la API colgada no espera el tope del POST: cierra la sesión local a los 8 s', async () => {
+      const { result } = await signIn();
+      routes[API_KEYS.auth.logout] = () => new Promise(() => undefined);
+
+      let done = false;
+      const logout = result.current.auth.logout().then(() => {
+        done = true;
+      });
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(7_000);
+      });
+      expect(done).toBe(false);
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(1_500);
+        await logout;
+      });
+
+      expect(result.current.auth.isAuthenticated).toBe(false);
+      expect(await getTokens()).toBeNull();
+      expect(callsTo(API_KEYS.auth.logout)).toHaveLength(1);
     });
 
     it('varios toques seguidos comparten un solo request', async () => {
