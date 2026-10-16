@@ -136,7 +136,7 @@ describe('notifications routes (integration)', () => {
       );
 
       expect(res.status).toBe(409);
-      expect(res.body.message).toBe('Este dispositivo ya está registrado');
+      expect(res.body.message).toBe('Ya existe un registro con esos datos');
       expect(await prisma.notificationDevice.count({ where: { userId: user.id } })).toBe(1);
     });
 

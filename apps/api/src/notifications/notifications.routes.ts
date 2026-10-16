@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { idParamsSchema } from '@omni/shared/common';
 import type { NextFunction, Request, Response } from 'express';
 import { registerNotificationDeviceSchema } from '@omni/shared/notifications';
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
@@ -40,14 +41,19 @@ router.post(
   }
 );
 
-router.delete('/devices/:deviceId', authenticateJwt, async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    await deleteDevice(userId, req.params.deviceId as string);
-    res.status(204).send();
-  } catch (err) {
-    next(err);
+router.delete(
+  '/devices/:deviceId',
+  validate(idParamsSchema('deviceId'), 'params'),
+  authenticateJwt,
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      await deleteDevice(userId, req.params.deviceId as string);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 export default router;

@@ -8,11 +8,32 @@ export interface AppError {
   errors?: Record<string, string[]>;
 }
 
-export function errorHandler(err: AppError, _req: Request, res: Response, _next: NextFunction) {
+const PRISMA_ERRORS: Record<string, { status: number; message: string }> = {
+  P2002: { status: 409, message: 'Ya existe un registro con esos datos' },
+  P2025: { status: 404, message: 'Registro no encontrado' },
+  P2003: { status: 400, message: 'Referencia inválida' },
+  P2023: { status: 400, message: 'Dato inválido' },
+};
+
+/**
+ * Traduce los errores conocidos de Prisma por su `code`, sin depender de la clase del cliente generado: un
+ * check-then-create que pierde una carrera, un registro que desaparece entre dos queries o un id mal formado dejan
+ * de ser un 500. Un error con `status` propio se respeta tal cual.
+ */
+function resolveError(err: AppError): AppError {
+  if (err.status !== undefined) return err;
+
+  const code = (err as { code?: unknown }).code;
+  const mapped = typeof code === 'string' ? PRISMA_ERRORS[code] : undefined;
+  return mapped ?? err;
+}
+
+export function errorHandler(rawErr: AppError, _req: Request, res: Response, _next: NextFunction) {
+  const err = resolveError(rawErr);
   const status = err.status ?? 500;
 
   if (status === 500) {
-    logger.error(err, 'Unhandled error');
+    logger.error(rawErr, 'Unhandled error');
   }
 
   const message =
