@@ -285,8 +285,11 @@ export function createServerWake(options: ServerWakeOptions) {
    * así un cold start que retiene la conexión no se pierde. Los demás no pasan por el polling y esperan 100 s
    * (`SERVER_MUTATION_TIMEOUT_MS`): más que el cold start (~1 min, el login suele ser el primero) y menos que los
    * 120 s del proxy de Vercel. Idempotentes son GET/HEAD/PUT/DELETE, o lo que `fetchOptions.idempotent` fuerce (el
-   * refresh: la API lo acepta repetido dentro de su gracia de rotación, y no repetirlo enseguida la deja fuera de
-   * ella). Reintenta en dos casos:
+   * refresh: la API lo acepta repetido dentro de su gracia de rotación de 30 s, y no repetirlo enseguida la deja
+   * fuera de ella). El reintento sale con el primer sondeo del health que responde, a lo sumo
+   * `SERVER_WAKE_MAX_BACKOFF_MS` (8 s) después de que la API vuelve a contestar: dentro de la gracia aunque el
+   * request original se haya procesado al despertar. No queda cubierto el caso de una API que procesa el refresh
+   * pero no contesta el health. Reintenta en dos casos:
    * - La respuesta es del proxy o de la plataforma (`isApiResponse`). Con 502/503 el request no llegó a la API y se
    *   reintenta siempre: es lo que llega en un cold start, también al login. Queda el riesgo, raro, de un 502 del
    *   proxy después de que la API procesó un POST/PATCH. Un 504 (el proxy reenvió el request y se cansó de esperar)
