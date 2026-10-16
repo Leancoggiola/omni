@@ -71,6 +71,13 @@ describe('tokenStorage', () => {
     });
   });
 
+  it('si falla el borrado de un valor corrupto igual lo trata como sin sesión', async () => {
+    secure.store.set(SESSION_KEY, 'not-json');
+    secure.deleteItemAsync.mockRejectedValueOnce(new Error('keystore no disponible'));
+
+    await expect(storage.getTokens()).resolves.toBeNull();
+  });
+
   describe('migración de las claves anteriores', () => {
     const seedLegacy = () => {
       secure.store.set(LEGACY_ACCESS_KEY, 'legacy-access');

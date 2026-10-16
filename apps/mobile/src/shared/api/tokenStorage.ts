@@ -66,7 +66,7 @@ export async function getTokens(): Promise<StoredTokens | null> {
   const raw = await SecureStore.getItemAsync(SESSION_KEY);
   const tokens = parseTokens(raw);
   if (raw && !tokens && (await SecureStore.getItemAsync(SESSION_KEY)) === raw) {
-    await SecureStore.deleteItemAsync(SESSION_KEY);
+    await SecureStore.deleteItemAsync(SESSION_KEY).catch(() => undefined);
   }
   return tokens;
 }
