@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
+import { ApiError } from '@/shared/api';
 import { confirm, notifyError, notifySuccess, notifyWarning } from '@/shared/ui';
 
 import { ProfileScreen } from './ProfileScreen';
@@ -218,21 +219,35 @@ describe('ProfileScreen · preferencias', () => {
 
 describe('ProfileScreen · cambiar contraseña', () => {
   const submit = () => fireEvent.press(screen.getByRole('button', { name: 'Cambiar contraseña' }));
+  const field = (label: string) => screen.getByLabelText(label, { exact: false });
+  const fill = (current: string, next: string, confirm = next) => {
+    fireEvent.changeText(field('Contraseña actual'), current);
+    fireEvent.changeText(field('Nueva contraseña'), next);
+    fireEvent.changeText(field('Confirmar contraseña'), confirm);
+  };
+
+  it('pide la contraseña actual, la nueva y la confirmación', () => {
+    renderProfile();
+
+    expect(field('Contraseña actual')).toBeTruthy();
+    expect(field('Nueva contraseña')).toBeTruthy();
+    expect(field('Confirmar contraseña')).toBeTruthy();
+  });
 
   it('el botón está deshabilitado hasta que se escribe algo', () => {
     renderProfile();
     expect(screen.getByRole('button', { name: 'Cambiar contraseña', disabled: true })).toBeTruthy();
 
-    fireEvent.changeText(screen.getByLabelText('Nueva contraseña', { exact: false }), 'a');
+    fireEvent.changeText(field('Contraseña actual'), 'a');
     expect(screen.getByRole('button', { name: 'Cambiar contraseña', disabled: false })).toBeTruthy();
   });
 
-  it('valida al enviar: contraseña corta y confirmación distinta, sin llamar a la API', () => {
+  it('valida al enviar: sin actual, contraseña corta y confirmación distinta, sin llamar a la API', () => {
     renderProfile();
-    fireEvent.changeText(screen.getByLabelText('Nueva contraseña', { exact: false }), '1234');
-    fireEvent.changeText(screen.getByLabelText('Confirmar contraseña', { exact: false }), '12345678');
+    fill('', '1234', '12345678');
     submit();
 
+    expect(screen.getByText('La contraseña actual es requerida')).toBeTruthy();
     expect(screen.getByText('La contraseña debe tener al menos 8 caracteres')).toBeTruthy();
     expect(screen.getByText('Las contraseñas no coinciden')).toBeTruthy();
     expect(mockChangePassword).not.toHaveBeenCalled();
@@ -241,24 +256,24 @@ describe('ProfileScreen · cambiar contraseña', () => {
   it('con datos válidos cambia la contraseña, limpia los campos y avisa', async () => {
     mockChangePassword.mockResolvedValue(undefined);
     renderProfile();
-    fireEvent.changeText(screen.getByLabelText('Nueva contraseña', { exact: false }), 'nueva-clave');
-    fireEvent.changeText(screen.getByLabelText('Confirmar contraseña', { exact: false }), 'nueva-clave');
+    fill('clave-actual', 'nueva-clave');
     await act(async () => submit());
 
-    expect(mockChangePassword).toHaveBeenCalledWith('nueva-clave');
+    expect(mockChangePassword).toHaveBeenCalledWith({ currentPassword: 'clave-actual', newPassword: 'nueva-clave' });
     expect(notifySuccess).toHaveBeenCalledWith('Contraseña actualizada correctamente');
-    expect(screen.getByLabelText('Nueva contraseña', { exact: false })).toHaveDisplayValue('');
+    expect(field('Contraseña actual')).toHaveDisplayValue('');
+    expect(field('Nueva contraseña')).toHaveDisplayValue('');
   });
 
-  it('si el servidor rechaza, avisa con notifyError y conserva lo escrito', async () => {
-    mockChangePassword.mockRejectedValue(new Error('Contraseña reciente'));
+  it('si el servidor rechaza la contraseña actual, avisa con notifyError y conserva lo escrito', async () => {
+    mockChangePassword.mockRejectedValue(new ApiError('La contraseña actual es incorrecta', 400));
     renderProfile();
-    fireEvent.changeText(screen.getByLabelText('Nueva contraseña', { exact: false }), 'nueva-clave');
-    fireEvent.changeText(screen.getByLabelText('Confirmar contraseña', { exact: false }), 'nueva-clave');
+    fill('equivocada', 'nueva-clave');
     await act(async () => submit());
 
-    expect(notifyError).toHaveBeenCalledWith('Contraseña reciente');
-    expect(screen.getByLabelText('Nueva contraseña', { exact: false })).toHaveDisplayValue('nueva-clave');
+    expect(notifyError).toHaveBeenCalledWith('La contraseña actual es incorrecta');
+    expect(field('Contraseña actual')).toHaveDisplayValue('equivocada');
+    expect(field('Nueva contraseña')).toHaveDisplayValue('nueva-clave');
   });
 });
 
@@ -339,6 +354,7 @@ describe('ProfileScreen · doble envío y escritura durante el guardado', () => 
     let finish!: () => void;
     mockChangePassword.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));
     renderProfile();
+    fireEvent.changeText(screen.getByLabelText('Contraseña actual', { exact: false }), 'clave-actual');
     fireEvent.changeText(screen.getByLabelText('Nueva contraseña', { exact: false }), 'nueva-clave');
     fireEvent.changeText(screen.getByLabelText('Confirmar contraseña', { exact: false }), 'nueva-clave');
     fireEvent.press(screen.getByRole('button', { name: 'Cambiar contraseña' }));
