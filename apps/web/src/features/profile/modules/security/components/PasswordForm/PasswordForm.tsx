@@ -8,14 +8,20 @@ import type { FC } from 'react';
 
 import { changePasswordSchema } from '@omni/shared/users';
 
-interface PasswordFormValues {
-  newPassword: string;
+import type { ChangePasswordPayload } from '@omni/shared/users';
+
+interface PasswordFormValues extends ChangePasswordPayload {
   confirmPassword: string;
 }
 
 interface PasswordFormProps {
-  onSubmit: (newPassword: string) => Promise<void>;
+  onSubmit: (payload: ChangePasswordPayload) => Promise<void>;
 }
+
+const fieldError = (field: keyof ChangePasswordPayload, value: string): string | null => {
+  const parsed = changePasswordSchema.shape[field].safeParse(value);
+  return parsed.success ? null : (parsed.error.issues[0]?.message ?? 'Contraseña inválida');
+};
 
 export const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
   const [loading, setLoading] = useState(false);
@@ -25,26 +31,14 @@ export const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
   const form = useForm<PasswordFormValues>({
     mode: 'uncontrolled',
     initialValues: {
+      currentPassword: '',
       newPassword: '',
       confirmPassword: '',
     },
     validate: {
-      newPassword: value => {
-        const parsed = changePasswordSchema.safeParse({ newPassword: value });
-        if (!parsed.success) {
-          return parsed.error.issues[0]?.message ?? 'Contraseña inválida';
-        }
-        return null;
-      },
-      confirmPassword: (value, values) => {
-        if (value.length < 8) {
-          return 'La contraseña debe tener al menos 8 caracteres';
-        }
-        if (value !== values.newPassword) {
-          return 'Las contraseñas no coinciden';
-        }
-        return null;
-      },
+      currentPassword: value => fieldError('currentPassword', value),
+      newPassword: value => fieldError('newPassword', value),
+      confirmPassword: (value, values) => (value !== values.newPassword ? 'Las contraseñas no coinciden' : null),
     },
   });
 
@@ -59,7 +53,7 @@ export const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
     setError(null);
     setSuccessMessage(null);
     try {
-      await onSubmit(values.newPassword);
+      await onSubmit({ currentPassword: values.currentPassword, newPassword: values.newPassword });
       form.reset();
       setSuccessMessage('Contraseña actualizada correctamente');
       notifySuccess('Contraseña actualizada correctamente');
@@ -74,15 +68,24 @@ export const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
     <form noValidate onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="sm">
         {error && <Alert color="destructive">{error}</Alert>}
+        <PasswordInput
+          label="Contraseña actual"
+          autoComplete="current-password"
+          visibilityToggleFocusable
+          key={form.key('currentPassword')}
+          {...form.getInputProps('currentPassword')}
+        />
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
           <PasswordInput
             label="Nueva contraseña"
+            autoComplete="new-password"
             visibilityToggleFocusable
             key={form.key('newPassword')}
             {...form.getInputProps('newPassword')}
           />
           <PasswordInput
             label="Confirmar contraseña"
+            autoComplete="new-password"
             visibilityToggleFocusable
             key={form.key('confirmPassword')}
             {...form.getInputProps('confirmPassword')}
