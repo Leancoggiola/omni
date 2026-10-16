@@ -86,7 +86,8 @@ export async function updateProfile(userId: string, dto: UpdateProfilePayload) {
 
 /**
  * Exige la contraseña actual (400 si no coincide: un 401 haría que los clientes intenten renovar la sesión) y la
- * verifica dentro del lock de sesiones, contra la contraseña vigente.
+ * verifica dentro del lock de sesiones, contra la contraseña vigente. Si la cuenta ya no existe responde 401: la sesión
+ * dejó de ser válida y el cliente debe cerrarla.
  * Revoca todas las sesiones en la misma transacción: ningún refresh token emitido antes del cambio sigue valiendo.
  * La contraseña nueva (`newPasswordSchema`, compartida con el alta de usuario) tiene tope de 72 caracteres porque bcrypt
  * trunca en silencio lo que pasa de ese largo.
