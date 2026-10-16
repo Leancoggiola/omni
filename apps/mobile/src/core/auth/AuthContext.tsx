@@ -47,6 +47,25 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const isClientError = (err: unknown): boolean =>
   err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 429;
 
+const BOOTSTRAP_READ_ATTEMPTS = 3;
+const BOOTSTRAP_READ_RETRY_MS = 500;
+
+/**
+ * Lee el access token al arrancar. Un fallo de SecureStore puede ser transitorio (keystore todavía bloqueado), así
+ * que se reintenta unas veces antes de rendirse; si sigue fallando se trata como "sin sesión" (se muestra el login,
+ * sin tocar los tokens guardados) en vez de dejar la app cargando para siempre.
+ */
+async function readBootstrapToken(): Promise<string | null> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await getAccessToken();
+    } catch {
+      if (attempt >= BOOTSTRAP_READ_ATTEMPTS) return null;
+      await new Promise(resolve => setTimeout(resolve, BOOTSTRAP_READ_RETRY_MS));
+    }
+  }
+}
+
 const SWR_OPTIONS: SWRConfiguration = {
   fetcher,
   revalidateOnFocus: false,
@@ -62,7 +81,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const token = await getAccessToken().catch(() => null);
+      const token = await readBootstrapToken();
       if (!cancelled) {
         setHasToken(!!token);
         setBootstrapped(true);

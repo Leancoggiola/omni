@@ -29,6 +29,7 @@ const jsonResponse = (body: unknown, status = 200) => ({
   json: () => Promise.resolve(body),
 });
 
+const readFromStore = async (key: string) => store.get(key) ?? null;
 const bodyOf = (init: RequestInit) => JSON.parse(init.body as string);
 
 describe('AuthProvider', () => {
@@ -54,6 +55,8 @@ describe('AuthProvider', () => {
     jest.useFakeTimers();
     process.env.EXPO_PUBLIC_API_URL = BASE;
     store.clear();
+    getItemAsync.mockReset();
+    getItemAsync.mockImplementation(readFromStore);
     routes = {
       [API_KEYS.auth.profile]: () => jsonResponse({ user: USER }),
       [API_KEYS.auth.logout]: () => jsonResponse({ message: 'Sesión cerrada exitosamente' }),
@@ -201,13 +204,31 @@ describe('AuthProvider', () => {
     expect(callsTo('/api/probe-404')).toHaveLength(1);
   });
 
-  it('si SecureStore falla al arrancar no queda cargando para siempre', async () => {
+  it('si SecureStore falla un momento al arrancar reintenta y conserva la sesión', async () => {
+    await setTokens('access-1', 'refresh-1');
     getItemAsync.mockRejectedValueOnce(new Error('keystore no disponible'));
 
     const { result } = renderAuth();
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(600);
+    });
+
+    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+  });
+
+  it('si SecureStore sigue fallando al arrancar no queda cargando para siempre ni borra los tokens', async () => {
+    await setTokens('access-1', 'refresh-1');
+    getItemAsync.mockRejectedValue(new Error('keystore no disponible'));
+
+    const { result } = renderAuth();
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(2_000);
+    });
 
     await waitFor(() => expect(result.current.auth.isLoading).toBe(false));
     expect(result.current.auth.isAuthenticated).toBe(false);
+    getItemAsync.mockImplementation(readFromStore);
+    expect(await getTokens()).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1' });
   });
 
   it('logout cierra la sesión local y avisa del error si SecureStore falla al borrar los tokens', async () => {
