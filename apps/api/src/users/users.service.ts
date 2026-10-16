@@ -85,21 +85,20 @@ export async function updateProfile(userId: string, dto: UpdateProfilePayload) {
 }
 
 /**
- * Exige la contraseña actual (400 si no coincide: un 401 haría que los clientes intenten renovar la sesión).
+ * Exige la contraseña actual (400 si no coincide: un 401 haría que los clientes intenten renovar la sesión) y la
+ * verifica dentro del lock de sesiones, contra la contraseña vigente.
  * Revoca todas las sesiones en la misma transacción: ningún refresh token emitido antes del cambio sigue valiendo.
  */
 export async function changePassword(userId: string, { currentPassword, newPassword }: ChangePasswordPayload) {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { password: true } });
-  if (!user) throw { status: 401, message: 'Usuario no encontrado' };
-
-  if (!(await bcrypt.compare(currentPassword, user.password))) {
-    throw { status: 400, message: 'La contraseña actual es incorrecta' };
-  }
-
   const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
 
   await prisma.$transaction(async tx => {
     await lockUserSessions(tx, userId);
+    const user = await tx.user.findUnique({ where: { id: userId }, select: { password: true } });
+    if (!user) throw { status: 401, message: 'Usuario no encontrado' };
+    if (!(await bcrypt.compare(currentPassword, user.password))) {
+      throw { status: 400, message: 'La contraseña actual es incorrecta' };
+    }
     await tx.user.update({
       where: { id: userId },
       data: { password: hashedPassword },
