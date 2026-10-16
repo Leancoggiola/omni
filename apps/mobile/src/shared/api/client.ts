@@ -29,9 +29,10 @@ function notifyAuthFailure(): void {
   onAuthFailure?.();
 }
 
+/** Arma el `ApiError` de una respuesta no OK con el `message` del body si lo trae, o el `statusText` si no. */
 async function toApiError(res: Response): Promise<ApiError> {
-  const info = await res.json().catch(() => ({}));
-  return new ApiError((info as Record<string, string>).message || res.statusText, res.status, info);
+  const info = (await res.json().catch(() => ({}))) as { message?: string };
+  return new ApiError(info.message || res.statusText, res.status, info);
 }
 
 /**
