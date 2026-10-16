@@ -56,6 +56,10 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     [clearSession, mutate]
   );
 
+  /**
+   * Cierre best-effort: el POST puede fallar (red, 429, 5xx) y aun así la sesión local se cierra, así que el
+   * error se descarta a propósito y la limpieza va en el `finally`.
+   */
   const logout = useCallback(async () => {
     try {
       await api.post(SWR_KEYS.auth.logout);
