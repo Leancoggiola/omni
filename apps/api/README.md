@@ -41,7 +41,7 @@ src/
 ├── media/
 │   ├── media.routes.ts        # CRUD de lista + búsqueda TMDB
 │   ├── media.service.ts       # Queries Prisma (list, add, update, remove)
-│   └── tmdb.service.ts        # Client para TMDB API (search, detail)
+│   └── tmdb.service.ts        # Client para TMDB API (search, detalle para alta)
 └── users/
     └── users.service.ts       # Queries de usuario (create, findByEmail, findById)
 ```
@@ -62,14 +62,13 @@ Todas las rutas están bajo el prefijo `/api`.
 
 ### Media (`/api/media`) — Todas requieren 🔒 JWT
 
-| Método   | Ruta              | Query/Body                       | Descripción                                    |
-| -------- | ----------------- | -------------------------------- | ---------------------------------------------- |
-| `GET`    | `/search`         | `?query=&page=1&type=multi`      | Busca en TMDB (movie, tv, multi)               |
-| `GET`    | `/tmdb/:type/:id` | —                                | Detalle completo de un item en TMDB            |
-| `GET`    | `/list`           | `?status=&mediaType=`            | Lista de media del usuario (filtrable)         |
-| `POST`   | `/list`           | `{ tmdbId, mediaType, status? }` | Agrega item a la lista                         |
-| `PATCH`  | `/list/:id`       | `{ status }`                     | Actualiza estado (to_watch, watching, watched) |
-| `DELETE` | `/list/:id`       | —                                | Elimina item de la lista                       |
+| Método   | Ruta        | Query/Body                       | Descripción                                    |
+| -------- | ----------- | -------------------------------- | ---------------------------------------------- |
+| `GET`    | `/search`   | `?query=&page=1&type=multi`      | Busca en TMDB (movie, tv, multi)               |
+| `GET`    | `/list`     | `?status=&mediaType=`            | Lista de media del usuario (filtrable)         |
+| `POST`   | `/list`     | `{ tmdbId, mediaType, status? }` | Agrega item a la lista                         |
+| `PATCH`  | `/list/:id` | `{ status }`                     | Actualiza estado (to_watch, watching, watched) |
+| `DELETE` | `/list/:id` | —                                | Elimina item de la lista                       |
 
 ## Flujo de autenticación
 
@@ -136,15 +135,14 @@ yarn start    # node dist/main.js
 
 ## Variables de entorno
 
-| Variable                 | Requerida | Default  | Descripción                                  |
-| ------------------------ | --------- | -------- | -------------------------------------------- |
-| `DATABASE_URL`           | ✅        | —        | Connection string PostgreSQL (con pgbouncer) |
-| `DIRECT_URL`             | ✅        | —        | Connection string directa (para migraciones) |
-| `JWT_ACCESS_SECRET`      | ✅        | —        | Secret para access tokens                    |
-| `JWT_REFRESH_SECRET`     | ✅        | —        | Secret para refresh tokens                   |
-| `TMDB_API_KEY`           | ✅        | —        | API key de TMDB                              |
-| `PORT`                   | ❌        | `3000`   | Puerto del servidor                          |
-| `CORS_ORIGIN`            | ❌        | `true`   | Origen permitido para CORS                   |
-| `JWT_ACCESS_EXPIRES_IN`  | ❌        | `15m`    | Expiración access token                      |
-| `JWT_REFRESH_EXPIRES_IN` | ❌        | `7d`     | Expiración refresh token                     |
-| `COOKIE_REFRESH_MAX_AGE` | ❌        | `604800` | Max age cookie en segundos (7 días)          |
+| Variable                 | Requerida | Default | Descripción                                  |
+| ------------------------ | --------- | ------- | -------------------------------------------- |
+| `DATABASE_URL`           | ✅        | —       | Connection string PostgreSQL (con pgbouncer) |
+| `DIRECT_URL`             | ✅        | —       | Connection string directa (para migraciones) |
+| `JWT_ACCESS_SECRET`      | ✅        | —       | Secret para access tokens                    |
+| `JWT_REFRESH_SECRET`     | ✅        | —       | Secret para refresh tokens                   |
+| `TMDB_API_KEY`           | ✅        | —       | "API Read Access Token" (v4) de TMDB         |
+| `PORT`                   | ❌        | `3000`  | Puerto del servidor                          |
+| `CORS_ORIGIN`            | ❌        | `true`  | Origen permitido para CORS                   |
+| `JWT_ACCESS_EXPIRES_IN`  | ❌        | `15m`   | Expiración access token                      |
+| `JWT_REFRESH_EXPIRES_IN` | ❌        | `7d`    | Expiración refresh token                     |

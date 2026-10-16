@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { idParamsSchema } from '@omni/shared/common';
 import type { NextFunction, Request, Response } from 'express';
 import {
   addGatheringExpenseSchema,
@@ -54,16 +55,21 @@ router.post('/friends', validate(createSplitFriendSchema), async (req, res, next
   }
 });
 
-router.patch('/friends/:friendId', validate(updateSplitFriendSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await splitService.updateFriend(userId, req.params.friendId as string, req.body));
-  } catch (err) {
-    next(err);
+router.patch(
+  '/friends/:friendId',
+  validate(idParamsSchema('friendId'), 'params'),
+  validate(updateSplitFriendSchema),
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      res.json(await splitService.updateFriend(userId, req.params.friendId as string, req.body));
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
-router.delete('/friends/:friendId', async (req, res, next) => {
+router.delete('/friends/:friendId', validate(idParamsSchema('friendId'), 'params'), async (req, res, next) => {
   try {
     const { userId } = req.user as { userId: string };
     await splitService.deleteFriend(userId, req.params.friendId as string);
@@ -82,7 +88,7 @@ router.get('/gatherings', validate(listGatheringsSchema, 'query'), async (req, r
   }
 });
 
-router.get('/gatherings/:gatheringId', async (req, res, next) => {
+router.get('/gatherings/:gatheringId', validate(idParamsSchema('gatheringId'), 'params'), async (req, res, next) => {
   try {
     const { userId } = req.user as { userId: string };
     res.json(await splitService.getGathering(userId, req.params.gatheringId as string));
@@ -100,16 +106,21 @@ router.post('/gatherings', validate(createGatheringSchema), async (req, res, nex
   }
 });
 
-router.patch('/gatherings/:gatheringId/settled', validate(toggleGatheringSettledSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await splitService.toggleGatheringSettled(userId, req.params.gatheringId as string, req.body));
-  } catch (err) {
-    next(err);
+router.patch(
+  '/gatherings/:gatheringId/settled',
+  validate(idParamsSchema('gatheringId'), 'params'),
+  validate(toggleGatheringSettledSchema),
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      res.json(await splitService.toggleGatheringSettled(userId, req.params.gatheringId as string, req.body));
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
-router.delete('/gatherings/:gatheringId', async (req, res, next) => {
+router.delete('/gatherings/:gatheringId', validate(idParamsSchema('gatheringId'), 'params'), async (req, res, next) => {
   try {
     const { userId } = req.user as { userId: string };
     await splitService.deleteGathering(userId, req.params.gatheringId as string);
@@ -119,23 +130,36 @@ router.delete('/gatherings/:gatheringId', async (req, res, next) => {
   }
 });
 
-router.post('/gatherings/:gatheringId/expenses', validate(addGatheringExpenseSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.status(201).json(await splitService.addGatheringExpense(userId, req.params.gatheringId as string, req.body));
-  } catch (err) {
-    next(err);
+router.post(
+  '/gatherings/:gatheringId/expenses',
+  validate(idParamsSchema('gatheringId'), 'params'),
+  validate(addGatheringExpenseSchema),
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      res.status(201).json(await splitService.addGatheringExpense(userId, req.params.gatheringId as string, req.body));
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
-router.delete('/gatherings/:gatheringId/expenses/:expenseId', async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    await splitService.deleteGatheringExpense(userId, req.params.gatheringId as string, req.params.expenseId as string);
-    res.status(204).send();
-  } catch (err) {
-    next(err);
+router.delete(
+  '/gatherings/:gatheringId/expenses/:expenseId',
+  validate(idParamsSchema('gatheringId', 'expenseId'), 'params'),
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      await splitService.deleteGatheringExpense(
+        userId,
+        req.params.gatheringId as string,
+        req.params.expenseId as string
+      );
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 export default router;

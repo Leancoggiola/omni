@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { idParamsSchema } from '@omni/shared/common';
 import type { NextFunction, Request, Response } from 'express';
 import {
   addGymExerciseSchema,
@@ -26,15 +27,19 @@ router.get('/plans', validate(listGymPlansSchema, 'query'), async (req: Request,
   }
 });
 
-router.get('/plans/:planId', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    const result = await gymService.getPlan(userId, req.params.planId as string);
-    res.json(result);
-  } catch (err) {
-    next(err);
+router.get(
+  '/plans/:planId',
+  validate(idParamsSchema('planId'), 'params'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      const result = await gymService.getPlan(userId, req.params.planId as string);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 router.post('/plans', validate(createGymPlanSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -46,15 +51,19 @@ router.post('/plans', validate(createGymPlanSchema), async (req: Request, res: R
   }
 });
 
-router.post('/plans/:planId/archive', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    const result = await gymService.archivePlan(userId, req.params.planId as string);
-    res.json(result);
-  } catch (err) {
-    next(err);
+router.post(
+  '/plans/:planId/archive',
+  validate(idParamsSchema('planId'), 'params'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      const result = await gymService.archivePlan(userId, req.params.planId as string);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 router.post('/exercises', validate(addGymExerciseSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -68,6 +77,7 @@ router.post('/exercises', validate(addGymExerciseSchema), async (req: Request, r
 
 router.patch(
   '/exercises/:exerciseId',
+  validate(idParamsSchema('exerciseId'), 'params'),
   validate(updateGymExerciseSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -82,6 +92,7 @@ router.patch(
 
 router.patch(
   '/exercises/:exerciseId/weight',
+  validate(idParamsSchema('exerciseId'), 'params'),
   validate(updateGymExerciseWeightSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -94,14 +105,18 @@ router.patch(
   }
 );
 
-router.delete('/exercises/:exerciseId', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    await gymService.deleteExercise(userId, req.params.exerciseId as string);
-    res.status(204).send();
-  } catch (err) {
-    next(err);
+router.delete(
+  '/exercises/:exerciseId',
+  validate(idParamsSchema('exerciseId'), 'params'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      await gymService.deleteExercise(userId, req.params.exerciseId as string);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 export default router;
