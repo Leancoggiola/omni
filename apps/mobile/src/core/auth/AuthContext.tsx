@@ -20,7 +20,7 @@ import {
   clearTokens,
   fetcher,
   getAccessToken,
-  getRefreshToken,
+  logoutSession,
   setOnAuthFailure,
   setTokens,
 } from '@/shared/api';
@@ -40,8 +40,31 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** Un 4xx no se arregla reintentando (401 ya pasó por el refresh del client, 404 no va a aparecer). */
-const isClientError = (err: unknown): boolean => err instanceof ApiError && err.status >= 400 && err.status < 500;
+/**
+ * Un 4xx no se arregla reintentando (401 ya pasó por el refresh del client, 404 no va a aparecer). Un 429 sí: es
+ * transitorio, y también llega cuando el que lo devuelve es el refresh (el client propaga su `ApiError`).
+ */
+const isClientError = (err: unknown): boolean =>
+  err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 429;
+
+const BOOTSTRAP_READ_ATTEMPTS = 3;
+const BOOTSTRAP_READ_RETRY_MS = 500;
+
+/**
+ * Lee el access token al arrancar. Un fallo de SecureStore puede ser transitorio (keystore todavía bloqueado), así
+ * que se reintenta unas veces antes de rendirse; si sigue fallando se trata como "sin sesión" (se muestra el login,
+ * sin tocar los tokens guardados) en vez de dejar la app cargando para siempre.
+ */
+async function readBootstrapToken(): Promise<string | null> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await getAccessToken();
+    } catch {
+      if (attempt >= BOOTSTRAP_READ_ATTEMPTS) return null;
+      await new Promise(resolve => setTimeout(resolve, BOOTSTRAP_READ_RETRY_MS));
+    }
+  }
+}
 
 const SWR_OPTIONS: SWRConfiguration = {
   fetcher,
@@ -58,7 +81,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const token = await getAccessToken();
+      const token = await readBootstrapToken();
       if (!cancelled) {
         setHasToken(!!token);
         setBootstrapped(true);
@@ -105,17 +128,24 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const logoutInFlight = useRef<Promise<void> | null>(null);
 
   /**
-   * Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request. Si el
-   * POST falla igual se limpia la sesión local.
+   * Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request. Un error
+   * del POST se ignora a propósito: igual se limpia la sesión local. Si lo que falla es el borrado de los tokens
+   * en SecureStore, la UI igual sale de la sesión y el error se relanza para que quien llama avise a la persona,
+   * porque al reabrir la app los tokens guardados la volverían a loguear.
    */
   const logout = useCallback(() => {
     logoutInFlight.current ??= (async () => {
-      const refreshToken = await getRefreshToken();
       try {
-        await api.post(API_KEYS.auth.logout, { refreshToken: refreshToken ?? undefined });
+        await logoutSession();
       } catch {}
-      await clearTokens();
+      let clearTokensError: unknown;
+      try {
+        await clearTokens();
+      } catch (error) {
+        clearTokensError = error;
+      }
       await clearSession();
+      if (clearTokensError) throw clearTokensError;
     })().finally(() => {
       logoutInFlight.current = null;
     });

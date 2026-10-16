@@ -139,7 +139,7 @@ Cada refresh token lleva un `jti` aleatorio y en la base se guarda su sha256 (`R
 
 Las filas rotadas se conservan hasta que vence su token, a propósito: si un token robado se usa primero y el atacante lo sigue rotando, el dispositivo legítimo vuelve con un token viejo de la cadena y solo esa fila permite reconocer el reuso y revocar todo. Podarlas antes convertiría ese caso en un 401 que no revoca nada. El costo es una fila por refresh: con un access token de 15 min y un refresh de 7 días, como mucho unas 670 filas por dispositivo en uso continuo, que se podan al vencer. Todas las búsquedas van por índice (`tokenHash` único, `previousTokenHash` y `userId`). Si el volumen crece, la alternativa es guardar un id de familia por cadena y revocar la familia en vez de conservar cada fila.
 
-Web ignora los tokens del body. Mobile los guarda (SecureStore) y no depende de cookies.
+Web ignora los tokens del body. Mobile los guarda en SecureStore, en una sola clave (JSON con access y refresh, para que una rotación nunca deje un par mezclado), y no depende de cookies. Solo un 401/403 del refresh cierra la sesión de mobile; un 5xx, un 429 o un error de red conservan los tokens. El logout de mobile espera un refresh en curso (con tope) y manda en el body el refresh token vigente al momento de enviar.
 
 ---
 
