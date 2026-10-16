@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { idParamsSchema } from '@omni/shared/common';
 import type { NextFunction, Request, Response } from 'express';
 import {
   addShoppingListItemSchema,
@@ -58,7 +59,7 @@ router.get(
   }
 );
 
-router.get('/products/:productId', async (req, res, next) => {
+router.get('/products/:productId', validate(idParamsSchema('productId'), 'params'), async (req, res, next) => {
   try {
     const { userId } = req.user as { userId: string };
     res.json(await pantryService.getProduct(userId, req.params.productId as string));
@@ -76,16 +77,21 @@ router.post('/products', validate(createPantryProductSchema), async (req, res, n
   }
 });
 
-router.patch('/products/:productId', validate(updatePantryProductSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await pantryService.updateProduct(userId, req.params.productId as string, req.body));
-  } catch (err) {
-    next(err);
+router.patch(
+  '/products/:productId',
+  validate(idParamsSchema('productId'), 'params'),
+  validate(updatePantryProductSchema),
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      res.json(await pantryService.updateProduct(userId, req.params.productId as string, req.body));
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
-router.delete('/products/:productId', async (req, res, next) => {
+router.delete('/products/:productId', validate(idParamsSchema('productId'), 'params'), async (req, res, next) => {
   try {
     const { userId } = req.user as { userId: string };
     await pantryService.deleteProduct(userId, req.params.productId as string);
@@ -124,6 +130,7 @@ router.post('/shopping-list/items', validate(addShoppingListItemSchema), async (
 
 router.patch(
   '/shopping-list/items/:itemId/complete',
+  validate(idParamsSchema('itemId'), 'params'),
   validate(completeShoppingListItemSchema),
   async (req, res, next) => {
     try {
@@ -135,7 +142,7 @@ router.patch(
   }
 );
 
-router.delete('/shopping-list/items/:itemId', async (req, res, next) => {
+router.delete('/shopping-list/items/:itemId', validate(idParamsSchema('itemId'), 'params'), async (req, res, next) => {
   try {
     const { userId } = req.user as { userId: string };
     await pantryService.deleteShoppingListItem(userId, req.params.itemId as string);

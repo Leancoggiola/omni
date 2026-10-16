@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Request } from 'express';
-import { config } from '../../config';
+import { config, JWT_ALGORITHM } from '../../config';
 
 function extractRefreshToken(req: Request): string | null {
   const fromHeader = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
@@ -21,6 +21,7 @@ passport.use(
   new JwtStrategy(
     {
       jwtFromRequest: extractRefreshToken,
+      algorithms: [JWT_ALGORITHM],
       ignoreExpiration: false,
       secretOrKey: config.jwt.refreshSecret,
       passReqToCallback: true,

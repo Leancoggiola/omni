@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { TOKEN_MAX_LENGTH } from '../common/limits';
 import { newPasswordSchema } from '../users/schemas';
 
 export const usernameSchema = z
@@ -57,7 +58,7 @@ export const createUserFormSchema: z.ZodType<CreateUserFormValues> = z
  */
 export const refreshTokenBodySchema = z
   .object({
-    refreshToken: z.string().min(1).optional(),
+    refreshToken: z.string().min(1).max(TOKEN_MAX_LENGTH).optional(),
   })
   .default({});
 export type RefreshTokenBody = z.infer<typeof refreshTokenBodySchema>;

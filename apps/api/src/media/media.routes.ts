@@ -1,6 +1,6 @@
 import { Router } from 'express';
+import { idParamsSchema } from '@omni/shared/common';
 import type { Request, Response, NextFunction } from 'express';
-import type { MediaType } from '@omni/shared/media';
 import { searchMediaSchema, addMediaItemSchema, updateMediaItemSchema, filterMediaSchema } from '@omni/shared/media';
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
 import { createRateLimiter, validate } from '../common/utils';
@@ -34,17 +34,6 @@ router.get(
   }
 );
 
-router.get('/tmdb/:type/:id', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const type = req.params.type as string as MediaType;
-    const id = parseInt(req.params.id as string, 10);
-    const result = await mediaService.getTmdbDetail(type, id);
-    res.json(result);
-  } catch (err) {
-    next(err);
-  }
-});
-
 router.get('/list', validate(filterMediaSchema, 'query'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.user as { userId: string };
@@ -65,24 +54,33 @@ router.post('/list', validate(addMediaItemSchema), async (req: Request, res: Res
   }
 });
 
-router.patch('/list/:id', validate(updateMediaItemSchema), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    const result = await mediaService.updateStatus(userId, req.params.id as string, req.body);
-    res.json(result);
-  } catch (err) {
-    next(err);
+router.patch(
+  '/list/:id',
+  validate(idParamsSchema('id'), 'params'),
+  validate(updateMediaItemSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      const result = await mediaService.updateStatus(userId, req.params.id as string, req.body);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
-router.delete('/list/:id', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    await mediaService.removeFromList(userId, req.params.id as string);
-    res.status(204).send();
-  } catch (err) {
-    next(err);
+router.delete(
+  '/list/:id',
+  validate(idParamsSchema('id'), 'params'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId } = req.user as { userId: string };
+      await mediaService.removeFromList(userId, req.params.id as string);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 export default router;

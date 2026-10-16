@@ -5,8 +5,6 @@ import { config } from '../../config';
 export const ACCESS_COOKIE = 'access_token';
 export const REFRESH_COOKIE = 'refresh_token';
 
-const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000;
-
 /**
  * `clearCookie` solo borra una cookie si `path` y opciones coinciden con las del `set`, por eso las opciones
  * viven en un solo lugar y tanto el login como el borrado las toman de acá.
@@ -33,19 +31,19 @@ function refreshCookieOptions(): CookieOptions {
   return { httpOnly: true, secure: config.isProduction, sameSite: 'strict', path: '/api/auth' };
 }
 
-/** Cookie del access token (web): 15 min, `httpOnly`, `sameSite: strict`, en `/api`. Mobile no la usa: manda Bearer. */
+/** Cookie del access token (web): dura lo que el JWT (`JWT_ACCESS_EXPIRES_IN`), `httpOnly`, `sameSite: strict`, en `/api`. Mobile no la usa: manda Bearer. */
 export function setAccessCookie(res: Response, token: string) {
-  res.cookie(ACCESS_COOKIE, token, { ...accessCookieOptions(), maxAge: ACCESS_COOKIE_MAX_AGE });
+  res.cookie(ACCESS_COOKIE, token, { ...accessCookieOptions(), maxAge: config.jwt.accessTtlMs });
 }
 
 /**
- * Cookie del refresh token (web): dura `COOKIE_REFRESH_MAX_AGE` y viaja solo a `/api/auth`. Mobile recibe el
+ * Cookie del refresh token (web): dura lo que el JWT (`JWT_REFRESH_EXPIRES_IN`) y viaja solo a `/api/auth`. Mobile recibe el
  * token en el body. Además borra la cookie con el path legacy, para que el primer login o refresh posterior al
  * deploy la limpie.
  */
 export function setRefreshCookie(res: Response, token: string) {
   res.clearCookie(REFRESH_COOKIE, { ...refreshCookieOptions(), path: LEGACY_REFRESH_COOKIE_PATH });
-  res.cookie(REFRESH_COOKIE, token, { ...refreshCookieOptions(), maxAge: config.cookie.refreshMaxAge });
+  res.cookie(REFRESH_COOKIE, token, { ...refreshCookieOptions(), maxAge: config.jwt.refreshTtlMs });
 }
 
 /** Todo cierre de sesión (logout, refresh revocado, cuenta eliminada) pasa por acá. */

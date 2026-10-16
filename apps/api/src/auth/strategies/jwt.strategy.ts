@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Request } from 'express';
-import { config } from '../../config';
+import { config, JWT_ALGORITHM } from '../../config';
 
 export interface JwtPayload {
   sub: string;
@@ -17,6 +17,7 @@ passport.use(
         ExtractJwt.fromAuthHeaderAsBearerToken(),
         (req: Request) => req?.cookies?.access_token ?? null,
       ]),
+      algorithms: [JWT_ALGORITHM],
       ignoreExpiration: false,
       secretOrKey: config.jwt.accessSecret,
     },

@@ -90,14 +90,6 @@ describe('media routes (integration)', () => {
       expect(res.status).toBe(200);
       expect(mockedTmdb.searchMovies).toHaveBeenCalledWith('fight', 1);
     });
-
-    it('GET /tmdb/:type/:id returns the movie detail', async () => {
-      const res = await request(app).get('/api/media/tmdb/movie/550').set('Authorization', auth);
-
-      expect(res.status).toBe(200);
-      expect(res.body).toMatchObject({ title: 'Fight Club' });
-      expect(mockedTmdb.getMovieDetail).toHaveBeenCalledWith(550);
-    });
   });
 
   describe('list', () => {

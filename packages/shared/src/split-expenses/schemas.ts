@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isoDateStringSchema } from '../common/dates';
+import { AMOUNT_MAX_12_2, GATHERING_PARTICIPANTS_MAX, SEARCH_QUERY_MAX_LENGTH, idSchema } from '../common/limits';
 import { paginationSchema } from '../common/pagination';
 import type { FriendFormValues, NewGatheringFormValues } from './types';
 import {
@@ -37,28 +38,28 @@ export const updateSplitFriendSchema = z
 export type UpdateSplitFriendPayload = z.infer<typeof updateSplitFriendSchema>;
 
 export const suggestSplitFriendsSchema = z.object({
-  q: z.string().trim().min(1),
+  q: z.string().trim().min(1).max(SEARCH_QUERY_MAX_LENGTH),
   limit: z.coerce.number().int().min(1).max(SUGGEST_FRIENDS_MAX_LIMIT).default(SUGGEST_FRIENDS_DEFAULT_LIMIT),
 });
 
 export type SuggestSplitFriendsParams = z.infer<typeof suggestSplitFriendsSchema>;
 
 const gatheringParticipantInputSchema = z.union([
-  z.object({ friendId: z.string().min(1) }),
+  z.object({ friendId: idSchema }),
   z.object({ name: z.string().trim().min(1).max(SPLIT_FRIEND_NAME_MAX) }),
 ]);
 
 export const createGatheringSchema = z.object({
   name: z.string().trim().min(1).max(GATHERING_NAME_MAX),
   date: isoDateStringSchema,
-  participants: z.array(gatheringParticipantInputSchema).min(1),
+  participants: z.array(gatheringParticipantInputSchema).min(1).max(GATHERING_PARTICIPANTS_MAX),
 });
 
 export type CreateGatheringPayload = z.infer<typeof createGatheringSchema>;
 
 export const addGatheringExpenseSchema = z.object({
-  participantId: z.string().min(1),
-  amount: z.number().positive(),
+  participantId: idSchema,
+  amount: z.number().positive().max(AMOUNT_MAX_12_2),
   description: z.string().trim().max(GATHERING_EXPENSE_DESCRIPTION_MAX).nullable().optional(),
 });
 
@@ -88,5 +89,8 @@ const gatheringParticipantDraftSchema = z.object({
 export const newGatheringFormSchema: z.ZodType<NewGatheringFormValues> = z.object({
   name: z.string().trim().min(1, 'Ingresá un nombre').max(GATHERING_NAME_MAX),
   date: isoDateStringSchema,
-  participants: z.array(gatheringParticipantDraftSchema).min(1, 'Agregá al menos un participante'),
+  participants: z
+    .array(gatheringParticipantDraftSchema)
+    .min(1, 'Agregá al menos un participante')
+    .max(GATHERING_PARTICIPANTS_MAX),
 });
