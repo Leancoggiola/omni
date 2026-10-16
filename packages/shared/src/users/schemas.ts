@@ -12,11 +12,9 @@ export const updateProfileSchema = z
   .strict();
 export type UpdateProfilePayload = z.infer<typeof updateProfileSchema>;
 
-/** Largo de la contraseña: el máximo es el de bcrypt, que trunca en silencio lo que pasa de 72. */
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 72;
 
-/** Contraseña nueva de una cuenta: la comparten el alta de usuario y el cambio de contraseña. */
 export const newPasswordSchema = z
   .string()
   .min(PASSWORD_MIN_LENGTH, { error: `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres` })
