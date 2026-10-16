@@ -3,9 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../client';
 import { fetcher } from '../fetcher';
 import { SWR_KEYS } from '../keys';
+import { ensureRefreshed } from '../refreshSession';
 import { ensureServerAwake, fetchWithWake, subscribeServerWake } from '../serverWake';
 
-import { createServerWake } from '@omni/shared/server-wake';
+import {
+  createServerWake,
+  SERVER_GATEWAY_TIMEOUT_MESSAGE,
+  SERVER_MUTATION_TIMEOUT_MS,
+  SERVER_REQUEST_TIMEOUT_MS,
+  SERVER_TIMEOUT_MESSAGE,
+  SERVER_TIMEOUT_STATUS,
+} from '@omni/shared/server-wake';
 
 const JSON_HEADERS = new Headers({ 'content-type': 'application/json' });
 const HTML_HEADERS = new Headers({ 'content-type': 'text/html; charset=utf-8' });
@@ -208,6 +216,69 @@ describe('fetchWithWake', () => {
     const res = await fetchWithWake('/api/resource', { method: 'POST' });
 
     expect(await res.json()).toEqual({ created: true });
+    expect(resourceCalls).toBe(2);
+  });
+
+  it.each(['POST', 'PATCH'])('still retries a %s after a proxy 503', async method => {
+    let resourceCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === SWR_KEYS.health) return Promise.resolve(jsonResponse({ status: 'ok' }));
+        resourceCalls += 1;
+        return Promise.resolve(resourceCalls === 1 ? htmlResponse(503) : jsonResponse({ saved: true }));
+      })
+    );
+
+    const res = await fetchWithWake('/api/resource', { method });
+
+    expect(await res.json()).toEqual({ saved: true });
+    expect(resourceCalls).toBe(2);
+  });
+
+  it.each(['POST', 'patch'])('does not retry a %s after a proxy 504 and throws the timeout ApiError', async method => {
+    const fetchMock = vi.fn().mockResolvedValue(htmlResponse(504));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(fetchWithWake('/api/resource', { method })).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 504,
+      message: SERVER_GATEWAY_TIMEOUT_MESSAGE,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries a POST marked as idempotent after a proxy 504', async () => {
+    let resourceCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === SWR_KEYS.health) return Promise.resolve(jsonResponse({ status: 'ok' }));
+        resourceCalls += 1;
+        return Promise.resolve(resourceCalls === 1 ? htmlResponse(504) : jsonResponse({ renewed: true }));
+      })
+    );
+
+    const res = await fetchWithWake('/api/resource', { method: 'POST' }, { idempotent: true });
+
+    expect(await res.json()).toEqual({ renewed: true });
+    expect(resourceCalls).toBe(2);
+  });
+
+  it('still retries a GET after a proxy 504', async () => {
+    let resourceCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === SWR_KEYS.health) return Promise.resolve(jsonResponse({ status: 'ok' }));
+        resourceCalls += 1;
+        return Promise.resolve(resourceCalls === 1 ? htmlResponse(504) : jsonResponse({ list: [] }));
+      })
+    );
+
+    const res = await fetchWithWake('/api/resource');
+
+    expect(await res.json()).toEqual({ list: [] });
     expect(resourceCalls).toBe(2);
   });
 
@@ -550,6 +621,204 @@ describe('fetchWithWake', () => {
   });
 });
 
+describe('fetchWithWake request timeout', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  /** Request que la API acepta y nunca contesta: solo se corta si se aborta su `signal`. */
+  const hangUntilAborted = (init?: RequestInit) =>
+    new Promise<never>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+    });
+
+  it('aborts a hung POST after 100 s with an ApiError of status 0, without retrying', async () => {
+    const signals: AbortSignal[] = [];
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => {
+      if (init?.signal) signals.push(init.signal);
+      return hangUntilAborted(init);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const promise = fetchWithWake('/api/resource', { method: 'POST' });
+    const assertion = expect(promise).rejects.toMatchObject({
+      name: 'ApiError',
+      status: SERVER_TIMEOUT_STATUS,
+      message: SERVER_TIMEOUT_MESSAGE,
+    });
+    await vi.advanceTimersByTimeAsync(SERVER_MUTATION_TIMEOUT_MS);
+    await assertion;
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(signals[0]?.aborted).toBe(true);
+  });
+
+  it('does not cut a GET before 30 s', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise(resolve => {
+            setTimeout(() => resolve(jsonResponse({ slow: true })), SERVER_REQUEST_TIMEOUT_MS - 1);
+          })
+      )
+    );
+
+    const promise = fetchWithWake('/api/resource');
+    await vi.advanceTimersByTimeAsync(SERVER_REQUEST_TIMEOUT_MS - 1);
+    const res = await promise;
+
+    expect(await res.json()).toEqual({ slow: true });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('waits past 30 s for a POST held by a cold start, and cuts it only at 100 s', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise(resolve => {
+            setTimeout(() => resolve(jsonResponse({ logged: true })), 60_000);
+          })
+      )
+    );
+
+    const promise = fetchWithWake('/api/auth/login', { method: 'POST' });
+    await vi.advanceTimersByTimeAsync(60_000);
+    const res = await promise;
+
+    expect(await res.json()).toEqual({ logged: true });
+    expect(SERVER_MUTATION_TIMEOUT_MS).toBeGreaterThan(60_000);
+    expect(SERVER_MUTATION_TIMEOUT_MS).toBeLessThan(120_000);
+  });
+
+  it('cuts a POST marked as idempotent at 30 s and retries it after polling health', async () => {
+    let resourceCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) => {
+        if (url === SWR_KEYS.health) return Promise.resolve(jsonResponse({ status: 'ok' }));
+        resourceCalls += 1;
+        return resourceCalls === 1 ? hangUntilAborted(init) : Promise.resolve(jsonResponse({ renewed: true }));
+      })
+    );
+
+    const promise = fetchWithWake('/api/resource', { method: 'POST' }, { idempotent: true });
+    await vi.advanceTimersByTimeAsync(SERVER_REQUEST_TIMEOUT_MS);
+    const res = await promise;
+
+    expect(await res.json()).toEqual({ renewed: true });
+    expect(resourceCalls).toBe(2);
+  });
+
+  it('cuts the request even when fetch ignores the abort signal', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => undefined))
+    );
+
+    const promise = fetchWithWake('/api/resource', { method: 'PATCH' });
+    const assertion = expect(promise).rejects.toMatchObject({ status: SERVER_TIMEOUT_STATUS });
+    await vi.advanceTimersByTimeAsync(SERVER_MUTATION_TIMEOUT_MS);
+    await assertion;
+  });
+
+  it('treats a hung GET like a network error: polls health and retries', async () => {
+    let resourceCalls = 0;
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (url === SWR_KEYS.health) return Promise.resolve(jsonResponse({ status: 'ok' }));
+      resourceCalls += 1;
+      return resourceCalls === 1 ? hangUntilAborted(init) : Promise.resolve(jsonResponse({ data: 3 }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const promise = fetchWithWake('/api/resource');
+    await vi.advanceTimersByTimeAsync(SERVER_REQUEST_TIMEOUT_MS);
+    const res = await promise;
+
+    expect(await res.json()).toEqual({ data: 3 });
+    expect(countCalls(fetchMock, SWR_KEYS.health)).toBe(1);
+    expect(resourceCalls).toBe(2);
+  });
+
+  it('rethrows the timeout ApiError when a hung GET is followed by offline probes', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) =>
+        url === SWR_KEYS.health ? Promise.reject(new TypeError('Failed to fetch')) : hangUntilAborted(init)
+      )
+    );
+
+    const promise = fetchWithWake('/api/resource');
+    const assertion = expect(promise).rejects.toMatchObject({ name: 'ApiError', status: SERVER_TIMEOUT_STATUS });
+    await vi.advanceTimersByTimeAsync(SERVER_REQUEST_TIMEOUT_MS + 2_000);
+    await assertion;
+  });
+
+  it('rethrows the caller abort, not the timeout, when the caller aborts a hung request', async () => {
+    const controller = new AbortController();
+    const signals: AbortSignal[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, init?: RequestInit) => {
+        if (init?.signal) signals.push(init.signal);
+        return hangUntilAborted(init);
+      })
+    );
+
+    const promise = fetchWithWake('/api/resource', { signal: controller.signal });
+    const assertion = expect(promise).rejects.toMatchObject({ name: 'AbortError' });
+    await vi.advanceTimersByTimeAsync(1_000);
+    controller.abort();
+    await assertion;
+
+    expect(signals[0]?.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('keeps the caller abort wired after the headers, so it still cuts reading the body', async () => {
+    const controller = new AbortController();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, init?: RequestInit) =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: JSON_HEADERS,
+          json: () => hangUntilAborted(init),
+        })
+      )
+    );
+
+    const res = await fetchWithWake('/api/resource', { signal: controller.signal });
+    const body = res.json();
+    const assertion = expect(body).rejects.toMatchObject({ name: 'AbortError' });
+    controller.abort();
+    await assertion;
+  });
+
+  it('passes an already aborted caller signal through to fetch', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) =>
+      init?.signal?.aborted
+        ? Promise.reject(new DOMException('aborted', 'AbortError'))
+        : Promise.resolve(jsonResponse({ ok: true }))
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(fetchWithWake('/api/resource', { signal: controller.signal })).rejects.toMatchObject({
+      name: 'AbortError',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('createServerWake', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -614,6 +883,21 @@ describe('api and fetcher integration', () => {
     );
 
     await expect(fetcher('/api/media/list')).resolves.toEqual({ list: [] });
+  });
+
+  it('the refresh retries right away after a proxy 504, inside the rotation grace of the API', async () => {
+    let refreshCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === SWR_KEYS.health) return Promise.resolve(jsonResponse({ status: 'ok' }));
+        refreshCalls += 1;
+        return Promise.resolve(refreshCalls === 1 ? htmlResponse(504) : jsonResponse({ ok: true }));
+      })
+    );
+
+    await expect(ensureRefreshed()).resolves.toBe(true);
+    expect(refreshCalls).toBe(2);
   });
 
   it('api.post surfaces a 500 JSON error without retrying', async () => {
