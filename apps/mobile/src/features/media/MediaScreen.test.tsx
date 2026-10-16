@@ -1,4 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { RefreshControl } from 'react-native';
+
+import { ApiError } from '@/shared/api/ApiError';
 
 import { actionSheet, confirm, notifyError, notifySuccess, SHEET_EXIT_MS } from '@/shared/ui';
 
@@ -57,7 +60,7 @@ const ITEMS = [
 ];
 
 function renderWith(list: Partial<{ data: MediaItem[]; error: Error; isLoading: boolean }> = { data: ITEMS }) {
-  const mutate = jest.fn();
+  const mutate = jest.fn().mockResolvedValue(undefined);
   mockUseMyMediaList.mockReturnValue({ data: undefined, error: undefined, isLoading: false, mutate, ...list });
   render(<MediaScreen />);
   return { mutate };
@@ -88,6 +91,14 @@ describe('MediaScreen · lista', () => {
     expect(screen.queryByText('Breaking Bad')).toBeNull();
     fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
     expect(mutate).toHaveBeenCalled();
+  });
+
+  it('tirar para actualizar revalida la lista', async () => {
+    const { mutate } = renderWith();
+
+    await act(async () => screen.UNSAFE_getByType(RefreshControl).props.onRefresh());
+
+    expect(mutate).toHaveBeenCalledTimes(1);
   });
 
   it('mientras carga muestra el spinner y no el estado vacío', () => {
@@ -163,9 +174,9 @@ describe('MediaScreen · acciones', () => {
     expect(mockMutations.updateStatus).not.toHaveBeenCalled();
 
     mockActionSheet.mockResolvedValueOnce('to_watch');
-    mockMutations.updateStatus.mockRejectedValueOnce(new Error('Sin conexión'));
+    mockMutations.updateStatus.mockRejectedValueOnce(new TypeError('Network request failed'));
     await act(async () => fireEvent.press(pill));
-    expect(notifyError).toHaveBeenCalledWith('Sin conexión');
+    expect(notifyError).toHaveBeenCalledWith('No se pudo actualizar el estado');
   });
 
   it('el tacho pide confirmación: cancelar no borra, confirmar borra y avisa', async () => {
@@ -203,7 +214,7 @@ describe('MediaScreen · acciones', () => {
 
   it('si el borrado falla avisa con notifyError', async () => {
     mockConfirm.mockResolvedValue(true);
-    mockMutations.removeFromList.mockRejectedValue(new Error('No encontrado'));
+    mockMutations.removeFromList.mockRejectedValue(new ApiError('No encontrado', 404));
     renderWith();
 
     await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Eliminar Breaking Bad' })));

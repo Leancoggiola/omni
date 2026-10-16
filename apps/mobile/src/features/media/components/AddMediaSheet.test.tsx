@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Modal } from 'react-native';
 
+import { ApiError } from '@/shared/api/ApiError';
+
 import { SHEET_EXIT_MS } from '@/shared/ui';
 
 import { AddMediaSheet } from './AddMediaSheet';
@@ -142,7 +144,9 @@ describe('AddMediaSheet', () => {
   });
 
   it('si falla, el error queda en el sheet y no se cierra', async () => {
-    const { onOpenChange, onClosed } = renderSheet(jest.fn().mockRejectedValue(new Error('Ya está en tu lista')));
+    const { onOpenChange, onClosed } = renderSheet(
+      jest.fn().mockRejectedValue(new ApiError('Ya está en tu lista', 409))
+    );
 
     fireEvent.press(screen.getByRole('radio', { name: 'Dune, Película' }));
     await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));

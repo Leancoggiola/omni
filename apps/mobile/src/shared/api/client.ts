@@ -51,7 +51,9 @@ async function sessionChangedDuringRefresh(
  * Pide un par nuevo con el refresh token guardado. Solo un 401/403 significa que la sesión ya no es válida:
  * limpia los tokens y avisa. Un 5xx, un 429 o un error de red no dicen nada de la sesión, así que se propagan
  * (el `ApiError` es el del refresh, no el 401 original) y los tokens se conservan para reintentar después.
- * Si mientras tanto la sesión cambió, el resultado del refresh se descarta. La comprobación y la escritura no son
+ * Si mientras tanto la sesión cambió, el resultado del refresh se descarta. Se pide como idempotente: la API acepta el
+ * mismo refresh token dentro de su gracia de rotación, y repetirlo enseguida ante un timeout o un 504 evita quedar
+ * fuera de ella con el token viejo (lo que revocaría todas las sesiones). La comprobación y la escritura no son
  * atómicas: un logout o login que caiga entre las dos lecturas y escrituras de SecureStore puede quedar pisado.
  */
 async function refreshAccessToken(): Promise<boolean> {
@@ -61,11 +63,15 @@ async function refreshAccessToken(): Promise<boolean> {
     return false;
   }
 
-  const res = await fetchWithWake(toUrl(API_KEYS.auth.refresh), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken: tokens.refreshToken }),
-  });
+  const res = await fetchWithWake(
+    toUrl(API_KEYS.auth.refresh),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: tokens.refreshToken }),
+    },
+    { idempotent: true }
+  );
 
   if (res.status === 401 || res.status === 403) {
     const { changed, hasSession } = await sessionChangedDuringRefresh(tokens.refreshToken);

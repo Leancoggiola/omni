@@ -10,7 +10,9 @@ import {
   type PropsWithChildren,
 } from 'react';
 import useSWRImmutable from 'swr/immutable';
-import { SWRConfig, useSWRConfig, type SWRConfiguration } from 'swr';
+import { useSWRConfig } from 'swr';
+
+import { isClientError, SWR_RETRY_OPTIONS } from '@/core/providers';
 
 import {
   api,
@@ -34,18 +36,16 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: ApiError | undefined;
+  isSessionUnverified: boolean;
+  isRetryingSession: boolean;
+  retrySession: () => void;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/**
- * Un 4xx no se arregla reintentando (401 ya pasó por el refresh del client, 404 no va a aparecer). Un 429 sí: es
- * transitorio, y también llega cuando el que lo devuelve es el refresh (el client propaga su `ApiError`).
- */
-const isClientError = (err: unknown): boolean =>
-  err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 429;
+const LOGOUT_SERVER_WAIT_MS = 8_000;
 
 const BOOTSTRAP_READ_ATTEMPTS = 3;
 const BOOTSTRAP_READ_RETRY_MS = 500;
@@ -66,13 +66,6 @@ async function readBootstrapToken(): Promise<string | null> {
   }
 }
 
-const SWR_OPTIONS: SWRConfiguration = {
-  fetcher,
-  revalidateOnFocus: false,
-  errorRetryCount: 3,
-  shouldRetryOnError: err => !isClientError(err),
-};
-
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [bootstrapped, setBootstrapped] = useState(false);
   const [hasToken, setHasToken] = useState(false);
@@ -92,13 +85,17 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     };
   }, []);
 
-  const { data, isLoading, error, mutate } = useSWRImmutable<ProfileResponse>(
+  const { data, isLoading, isValidating, error, mutate } = useSWRImmutable<ProfileResponse>(
     bootstrapped && hasToken ? API_KEYS.auth.profile : null,
-    fetcher
+    fetcher,
+    SWR_RETRY_OPTIONS
   );
 
   const user = data?.user ?? null;
   const isAuthenticated = !!data?.user;
+  const isSessionUnverified = hasToken && !isAuthenticated && !!error && !isClientError(error);
+
+  const retrySession = useCallback(() => void mutate(), [mutate]);
 
   /**
    * Cierra la sesión local: sin token la key de sesión pasa a null (`user` → null, AuthGate
@@ -115,29 +112,42 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     return clearOnAuthFailure;
   }, [clearSession]);
 
+  /**
+   * La sesión se cachea antes de activar la key: el `useSWRImmutable` arranca con el usuario del login y no vuelve a
+   * pedir `/auth/profile`. El `mutate` del hook no sirve acá: en este render sigue atado a la key `null`.
+   */
   const login = useCallback(
     async (username: string, password: string) => {
       const res = await api.post<AuthTokensResponse>(API_KEYS.auth.login, { username, password });
       await setTokens(res.accessToken, res.refreshToken);
+      await globalMutate<ProfileResponse>(API_KEYS.auth.profile, { user: res.user }, { revalidate: false });
       setHasToken(true);
-      await mutate({ user: res.user }, { revalidate: false });
     },
-    [mutate]
+    [globalMutate]
   );
 
   const logoutInFlight = useRef<Promise<void> | null>(null);
 
   /**
    * Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request. Un error
-   * del POST se ignora a propósito: igual se limpia la sesión local. Si lo que falla es el borrado de los tokens
-   * en SecureStore, la UI igual sale de la sesión y el error se relanza para que quien llama avise a la persona,
-   * porque al reabrir la app los tokens guardados la volverían a loguear.
+   * del POST se ignora a propósito: igual se limpia la sesión local. Al POST se lo espera hasta
+   * `LOGOUT_SERVER_WAIT_MS` (8 s, más que los 3 s que `logoutSession` espera a un refresh en curso): con la API
+   * colgada (su tope es de 100 s) la sesión local se cierra igual y el request sigue en segundo plano con el refresh
+   * token que ya leyó. No puede volver a guardar tokens: el logout no pasa por el refresh, y un refresh que termine
+   * después ve que la sesión cambió y no escribe. Si lo que falla es el borrado de los tokens en SecureStore, la UI
+   * igual sale de la sesión y el error se relanza para que quien llama avise a la persona, porque al reabrir la app
+   * los tokens guardados la volverían a loguear.
    */
   const logout = useCallback(() => {
     logoutInFlight.current ??= (async () => {
-      try {
-        await logoutSession();
-      } catch {}
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      await Promise.race([
+        logoutSession().catch(() => undefined),
+        new Promise<void>(resolve => {
+          timer = setTimeout(resolve, LOGOUT_SERVER_WAIT_MS);
+        }),
+      ]);
+      clearTimeout(timer);
       let clearTokensError: unknown;
       try {
         await clearTokens();
@@ -158,17 +168,28 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
       isAuthenticated,
       isLoading: !bootstrapped || (hasToken && isLoading),
       error: error as ApiError | undefined,
+      isSessionUnverified,
+      isRetryingSession: isSessionUnverified && isValidating,
+      retrySession,
       login,
       logout,
     }),
-    [user, isAuthenticated, bootstrapped, hasToken, isLoading, error, login, logout]
+    [
+      user,
+      isAuthenticated,
+      bootstrapped,
+      hasToken,
+      isLoading,
+      error,
+      isSessionUnverified,
+      isValidating,
+      retrySession,
+      login,
+      logout,
+    ]
   );
 
-  return (
-    <SWRConfig value={SWR_OPTIONS}>
-      <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-    </SWRConfig>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextValue => {

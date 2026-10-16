@@ -1,5 +1,7 @@
 import { notifications } from '@mantine/notifications';
 
+import { ApiError } from '@/shared/api';
+
 import { NotificationCard } from './NotificationCard';
 
 import type { NotificationVariant } from './NotificationCard';
@@ -44,6 +46,10 @@ export function notifyPersistent(message: string): () => void {
   return () => notifications.hide(id);
 }
 
+/**
+ * Mensaje para mostrar al usuario: el de la API (`ApiError`, ya en español) o `fallback`. Un error de red, de parseo
+ * o cualquier otro llega con un mensaje técnico y en inglés ("Failed to fetch"), así que no se muestra.
+ */
 export function getErrorMessage(err: unknown, fallback: string): string {
-  return err instanceof Error ? err.message : fallback;
+  return err instanceof ApiError && err.message ? err.message : fallback;
 }

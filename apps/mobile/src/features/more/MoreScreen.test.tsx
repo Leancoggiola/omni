@@ -57,11 +57,11 @@ describe('MoreScreen', () => {
   });
 
   it('si falla el cierre de sesión avisa con notifyError y reactiva el botón', async () => {
-    mockLogout.mockRejectedValue(new Error('Sin conexión'));
+    mockLogout.mockRejectedValue(new Error('SecureStore no disponible'));
     render(<MoreScreen />);
     await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' })));
 
-    expect(notifyError).toHaveBeenCalledWith('Sin conexión');
+    expect(notifyError).toHaveBeenCalledWith('No se pudo cerrar la sesión');
     expect(screen.getByRole('button', { name: 'Cerrar sesión', busy: false })).toBeTruthy();
   });
 });

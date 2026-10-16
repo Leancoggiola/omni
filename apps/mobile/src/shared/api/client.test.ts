@@ -5,6 +5,7 @@ jest.mock('expo-secure-store', () => jest.requireActual('@/test/secureStoreMock'
 const BASE = 'http://api.test';
 const REFRESH_URL = `${BASE}${API_KEYS.auth.refresh}`;
 const LOGOUT_URL = `${BASE}${API_KEYS.auth.logout}`;
+const HEALTH_URL = `${BASE}${API_KEYS.health}`;
 
 type Client = typeof import('./client');
 type Storage = typeof import('./tokenStorage');
@@ -249,14 +250,38 @@ describe('api client', () => {
 
     it('un error de red en el refresh conserva los tokens y propaga el error', async () => {
       respondWith(url => {
-        if (url === REFRESH_URL) throw new TypeError('Network request failed');
+        if (url === REFRESH_URL || url === HEALTH_URL) throw new TypeError('Network request failed');
         return jsonResponse({ message: 'No' }, 401);
       });
 
-      await expect(client.api.get('/api/resource')).rejects.toThrow('Network request failed');
+      jest.useFakeTimers();
+      try {
+        const request = client.api.get('/api/resource');
+        const assertion = expect(request).rejects.toThrow('Network request failed');
+        await jest.advanceTimersByTimeAsync(2_000);
+        await assertion;
+      } finally {
+        jest.useRealTimers();
+      }
 
       expect(await storage.getTokens()).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1' });
       expect(onAuthFailure).not.toHaveBeenCalled();
+    });
+
+    it('un 504 del proxy en el refresh se reintenta enseguida (dentro de la gracia de rotación de la API)', async () => {
+      let refreshes = 0;
+      const gatewayTimeout = { ok: false, status: 504, headers: new Headers({ 'content-type': 'text/html' }) };
+      respondWith((url, init) => {
+        if (url === HEALTH_URL) return jsonResponse({ status: 'ok' });
+        return apiWithAccess('access-2', () =>
+          ++refreshes === 1 ? gatewayTimeout : refreshReturning('access-2', 'refresh-2')
+        )(url, init);
+      });
+
+      await expect(client.api.get('/api/resource')).resolves.toEqual({ ok: true });
+
+      expect(refreshes).toBe(2);
+      expect(await storage.getTokens()).toEqual({ accessToken: 'access-2', refreshToken: 'refresh-2' });
     });
 
     it('un refresh fallido por error transitorio se puede reintentar en el próximo request', async () => {

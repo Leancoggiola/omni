@@ -7,12 +7,14 @@ UI con **Tamagui**, nunca Mantine. Nueva feature: `/new-feature`.
 ```
 apps/mobile/
   app/                    # Expo Router
-    _layout.tsx           # Tamagui + AuthProvider + Notifications/Confirm/ActionSheet + AuthGate (Stack)
+    _layout.tsx           # Tamagui + SWRProvider + AuthProvider + Notifications/Confirm/ActionSheet + AuthGate (Stack)
     login.tsx
     profile.tsx           # ruta de stack sobre las tabs (se abre solo desde la tarjeta de usuario de "Más")
     (tabs)/index|media|pantry|more.tsx
   src/
     core/auth/            # AuthProvider, SecureStore
+    core/authGate/        # AuthGate: spinner, login, ErrorState de sesión sin verificar o el Stack
+    core/providers/       # SWRProvider (caché, reintentos, foco con AppState)
     core/serverWake/      # ServerWakeNotice (aviso de cold start)
     shared/api/           # API_KEYS, client Bearer, tokenStorage
     shared/ui/            # primitivas de UI (ver abajo)
@@ -45,7 +47,7 @@ Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/a
 
 ## Cold start de la API
 
-Igual que web: el client usa `fetchWithWake` (`shared/api/serverWake.ts`) en `request` y en el refresh, con `API_KEYS.health`. Reintenta si la respuesta es del proxy o de la plataforma (no es JSON y trae 502/503/504 o `text/html`: cualquier método; un JSON, aunque sea 502, se devuelve tal cual) o si `fetch` lanza un error de red solo en GET/HEAD/PUT/DELETE; en POST/PATCH el error se propaga porque no se sabe si la API procesó el request. Sin conexión no espera 90 s: tras 2 sondeos seguidos al health con error de red (no por su timeout) y sin ninguna respuesta HTTP previa, corta, sin banner, y relanza el error de red del request (no hay NetInfo: no se consulta el estado de red del dispositivo); una respuesta del proxy (502/503/504, HTML) o un timeout del sondeo siguen el polling. Además, `ServerWakeNotice` (`core/serverWake`, montado en `app/_layout.tsx`) muestra un `Banner` mientras la API despierta (aparece cuando falla el primer sondeo o pasan ~1,5 s sin respuesta). `serverWake.ts` es una instancia de `createServerWake` de `@omni/shared/server-wake`, que tiene la orquestación compartida con web, las constantes y la decisión pura.
+Igual que web: el client usa `fetchWithWake` (`shared/api/serverWake.ts`) en `request` y en el refresh, con `API_KEYS.health`. Reintenta si la respuesta es del proxy o de la plataforma (no es JSON y trae 502/503/504 o `text/html`: cualquier método; un JSON, aunque sea 502, se devuelve tal cual) o si `fetch` lanza un error de red solo en GET/HEAD/PUT/DELETE; en POST/PATCH el error se propaga porque no se sabe si la API procesó el request. Un 504 del proxy en POST/PATCH tampoco se reintenta (lanza `ApiError` 504). Cada intento tiene tope hasta los headers (OkHttp de RN no tiene timeout): 30 s si es idempotente, 100 s en POST/PATCH (esperan el cold start); al vencer, `ApiError` con status 0. El refresh se pide con `{ idempotent: true }` (la API acepta el mismo token dentro de su gracia de rotación): corta a los 30 s y se reintenta, así un refresh colgado no bloquea los requests que lo esperan. Sin conexión no espera 90 s: tras 2 sondeos seguidos al health con error de red (no por su timeout) y sin ninguna respuesta HTTP previa, corta, sin banner, y relanza el error de red del request (no hay NetInfo: no se consulta el estado de red del dispositivo); una respuesta del proxy (502/503/504, HTML) o un timeout del sondeo siguen el polling. Además, `ServerWakeNotice` (`core/serverWake`, montado en `app/_layout.tsx`) muestra un `Banner` mientras la API despierta (aparece cuando falla el primer sondeo o pasan ~1,5 s sin respuesta). `serverWake.ts` es una instancia de `createServerWake` de `@omni/shared/server-wake`, que tiene la orquestación compartida con web, las constantes y la decisión pura.
 
 ## Hooks (SWR)
 
@@ -63,6 +65,8 @@ import useSWRImmutable from 'swr/immutable';
 
 Return: dominio + `isLoading` + `error` (+ `isMutating` si aplica). Paridad de patrones con web: skill `swr-hooks`.
 
+`SWRProvider` (`core/providers`, por encima de `AuthProvider`: la sesión y los datos comparten caché) usa una caché a nivel de módulo, porque expo-router vuelve a montar el layout raíz al redirigir (login → tabs) y una creada al montar se perdería; pone el `fetcher`, los reintentos (`SWR_RETRY_OPTIONS`: 3, sin reintentar 4xx salvo 408 y 429) y `initFocus` con `AppState`: los `useSWR` revalidan al volver a primer plano, los `useSWRImmutable` no. Sin NetInfo no hay `initReconnect`. Las listas y el perfil llevan "tirar para actualizar" con `usePullToRefresh(refresh)` de `@/shared/ui` (`refreshControl`).
+
 ## Auth
 
 - **No cookies.** Tokens en `expo-secure-store` vía `tokenStorage`, en **una sola clave** (`omni.session`, JSON con access y refresh): `setTokens` los escribe juntos o no escribe nada. `tokenStorage` migra una vez por proceso las claves anteriores (`omni.accessToken` / `omni.refreshToken`) sin cerrar la sesión; los tests de `tokenStorage` cubren que sea idempotente. Los tokens se leen siempre por `tokenStorage`, nunca con `SecureStore` directo. El par de JWT ronda los 600 bytes (la API firma `sub`, `username` y `role` en el access, y `sub` y `jti` en el refresh): si se suman claims o se soporta iOS, `expo-secure-store` avisa a partir de ~2048 bytes por valor.
@@ -70,7 +74,9 @@ Return: dominio + `isLoading` + `error` (+ `isMutating` si aplica). Paridad de p
 - Cada request: `Authorization: Bearer <access>` (`src/shared/api/client.ts`).
 - 401 → refresh con `{ refreshToken }` → reintento. Lo maneja el client: no reimplementar en cada hook. Un solo refresh a la vez; si el access ya cambió cuando llega el 401 (otro request refrescó antes), reintenta sin rotar de nuevo.
 - Solo un **401/403 del refresh** limpia los tokens y avisa (`setOnAuthFailure` → `AuthProvider.clearSession`). Un 5xx, un 429 o un error de red propagan el error y conservan la sesión: el `ApiError` que llega al hook es el del refresh, no el 401 original. Si la sesión cambió mientras el refresh volaba (logout, login nuevo), su resultado se descarta. Los hooks de datos reintentan un 429 y no los demás 4xx.
-- Logout: `logoutSession()` del client espera un refresh en curso (hasta 3 s), lee el refresh token vigente al enviar y hace `POST` con `{ refreshToken }` sin pasar por el refresh por 401 (la API no responde 401 al logout); sin refresh token guardado no hace ningún request. `AuthProvider.logout` limpia tokens y caché de SWR aunque falle el POST; si falla el borrado en SecureStore, la UI igual sale de la sesión y el error se relanza para que quien llama avise (`MoreScreen` y `ProfileScreen` ya lo hacen).
+- Logout: `logoutSession()` del client espera un refresh en curso (hasta 3 s), lee el refresh token vigente al enviar y hace `POST` con `{ refreshToken }` sin pasar por el refresh por 401 (la API no responde 401 al logout); sin refresh token guardado no hace ningún request. `AuthProvider.logout` limpia tokens y caché de SWR aunque falle el POST, y al POST lo espera hasta 8 s (con la API colgada no espera su tope de 100 s); si falla el borrado en SecureStore, la UI igual sale de la sesión y el error se relanza para que quien llama avise (`MoreScreen` y `ProfileScreen` ya lo hacen).
+- Al arrancar con token, si `/auth/profile` falla por red, timeout, 5xx, 408 o 429 (`isSessionUnverified`), `AuthGate` muestra un `ErrorState` con "Reintentar" (`retrySession`) y "Cerrar sesión" en vez de mandar al login: la sesión puede seguir siendo válida. Un 4xx que no sea 408 ni 429 sí manda al login. El hook de sesión recibe `SWR_RETRY_OPTIONS` directamente. `login()` cachea la sesión con `globalMutate` antes de activar la key, así no pide el perfil de nuevo.
+- Errores al usuario: `getErrorMessage(err, fallback)` muestra `err.message` solo si es `ApiError` (ya en español); un error de red o de parseo usa el fallback.
 - Web usa cookies; no mezclar estrategias en el mismo client.
 
 ## UI compartida (`@/shared/ui`)

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { YStack, type TamaguiElement } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
-import { Banner, Button, PasswordField, SectionCard, TextField, Title } from '@/shared/ui';
+import { Banner, Button, getErrorMessage, PasswordField, SectionCard, TextField, Title } from '@/shared/ui';
 import { elevation } from '@/theme/elevation';
 
 import LOGO from '../../../assets/images/splash-icon.png';
@@ -52,7 +52,7 @@ export function LoginScreen() {
     try {
       await login(parsed.data.username, parsed.data.password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
+      setError(getErrorMessage(err, 'Error al iniciar sesión'));
     } finally {
       submitting.current = false;
       setLoading(false);

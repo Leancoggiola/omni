@@ -1,5 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
+import { ApiError } from '@/shared/api/ApiError';
+
 import { LoginScreen } from './LoginScreen';
 
 const mockLogin = jest.fn();
@@ -81,7 +83,7 @@ describe('LoginScreen', () => {
   });
 
   it('el error del servidor se muestra en un Banner destructivo', async () => {
-    mockLogin.mockRejectedValue(new Error('Usuario o contraseña incorrectos'));
+    mockLogin.mockRejectedValue(new ApiError('Usuario o contraseña incorrectos', 401));
     render(<LoginScreen />);
     fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
     fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
@@ -92,7 +94,7 @@ describe('LoginScreen', () => {
   });
 
   it('si la validación local falla, el error del servidor anterior deja de mostrarse', async () => {
-    mockLogin.mockRejectedValue(new Error('Credenciales inválidas'));
+    mockLogin.mockRejectedValue(new ApiError('Credenciales inválidas', 401));
     render(<LoginScreen />);
     fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
     fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
@@ -105,8 +107,11 @@ describe('LoginScreen', () => {
     expect(screen.getByText('La contraseña es requerida')).toBeTruthy();
   });
 
-  it('un error que no es Error cae al mensaje genérico', async () => {
-    mockLogin.mockRejectedValue('boom');
+  it.each([
+    ['no es Error', 'boom'],
+    ['es de red', new TypeError('Network request failed')],
+  ])('un error que %s cae al mensaje genérico', async (_label, reason) => {
+    mockLogin.mockRejectedValue(reason);
     render(<LoginScreen />);
     fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
     fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
