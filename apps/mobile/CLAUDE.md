@@ -65,7 +65,7 @@ Return: dominio + `isLoading` + `error` (+ `isMutating` si aplica). Paridad de p
 
 ## Auth
 
-- **No cookies.** Tokens en `expo-secure-store` vía `tokenStorage`, en **una sola clave** (`omni.session`, JSON con access y refresh): `setTokens` los escribe juntos o no escribe nada. `tokenStorage` migra una vez por proceso las claves anteriores (`omni.accessToken` / `omni.refreshToken`) sin cerrar la sesión; los tests de `tokenStorage` cubren que sea idempotente. Los tokens se leen siempre por `tokenStorage`, nunca con `SecureStore` directo.
+- **No cookies.** Tokens en `expo-secure-store` vía `tokenStorage`, en **una sola clave** (`omni.session`, JSON con access y refresh): `setTokens` los escribe juntos o no escribe nada. `tokenStorage` migra una vez por proceso las claves anteriores (`omni.accessToken` / `omni.refreshToken`) sin cerrar la sesión; los tests de `tokenStorage` cubren que sea idempotente. Los tokens se leen siempre por `tokenStorage`, nunca con `SecureStore` directo. El par de JWT ronda los 600 bytes (la API firma `sub`, `username` y `role` en el access, y `sub` y `jti` en el refresh): si se suman claims o se soporta iOS, `expo-secure-store` avisa a partir de ~2048 bytes por valor.
 - Login/refresh devuelven `accessToken` + `refreshToken` en el body (`AuthTokensResponse`).
 - Cada request: `Authorization: Bearer <access>` (`src/shared/api/client.ts`).
 - 401 → refresh con `{ refreshToken }` → reintento. Lo maneja el client: no reimplementar en cada hook. Un solo refresh a la vez; si el access ya cambió cuando llega el 401 (otro request refrescó antes), reintenta sin rotar de nuevo.

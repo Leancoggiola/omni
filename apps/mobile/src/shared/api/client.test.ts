@@ -248,14 +248,14 @@ describe('api client', () => {
       await expect(client.api.get('/api/resource')).resolves.toEqual({ ok: true });
     });
 
-    it('sin tokens guardados avisa que la sesión no es válida y no llama al refresh', async () => {
+    it('un request sin sesión que recibe 401 no refresca ni avisa', async () => {
       await storage.clearTokens();
       respondWith(() => jsonResponse({ message: 'No' }, 401));
 
       await expect(client.api.get('/api/resource')).rejects.toMatchObject({ status: 401 });
 
       expect(callsTo(REFRESH_URL)).toHaveLength(0);
-      expect(onAuthFailure).toHaveBeenCalledTimes(1);
+      expect(onAuthFailure).not.toHaveBeenCalled();
     });
 
     it('no refresca ante el 401 del login', async () => {

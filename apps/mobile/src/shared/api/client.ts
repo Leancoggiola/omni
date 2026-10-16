@@ -106,8 +106,9 @@ const NO_REFRESH_PATHS: string[] = [API_KEYS.auth.login, API_KEYS.auth.refresh, 
  */
 async function recoverFromUnauthorized(sentAccessToken: string | null): Promise<boolean> {
   const currentAccessToken = await getAccessToken();
+  if (currentAccessToken === null) return false;
   if (currentAccessToken === sentAccessToken) return ensureRefreshed();
-  return currentAccessToken !== null;
+  return true;
 }
 
 async function request<T = unknown>(path: string, method: HttpMethod, body?: unknown, retried = false): Promise<T> {
