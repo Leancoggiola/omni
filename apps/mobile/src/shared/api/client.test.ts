@@ -87,6 +87,18 @@ describe('api client', () => {
       expect(bearer(fetchMock.mock.calls[0][1])).toBe('Bearer access-1');
     });
 
+    it('si SecureStore falla al leer el token el request sale igual, sin Authorization', async () => {
+      const secure = jest.requireMock<typeof import('@/test/secureStoreMock')>('expo-secure-store');
+      secure.getItemAsync.mockRejectedValueOnce(new Error('keystore no disponible'));
+      respondWith(() => jsonResponse({ ok: true }));
+
+      await expect(client.api.post(API_KEYS.auth.login, { username: 'leo', password: 'secreto' })).resolves.toEqual({
+        ok: true,
+      });
+
+      expect(bearer(fetchMock.mock.calls[0][1])).toBeUndefined();
+    });
+
     it('devuelve undefined ante un 204', async () => {
       respondWith(() => ({ ...jsonResponse(null, 204), ok: true }));
 

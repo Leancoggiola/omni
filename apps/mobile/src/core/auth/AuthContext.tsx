@@ -109,18 +109,24 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const logoutInFlight = useRef<Promise<void> | null>(null);
 
   /**
-   * Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request. Si el
-   * POST falla igual se limpia la sesión local.
+   * Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request. Un error
+   * del POST se ignora a propósito: igual se limpia la sesión local. Si lo que falla es el borrado de los tokens
+   * en SecureStore, la UI igual sale de la sesión y el error se relanza para que quien llama avise a la persona,
+   * porque al reabrir la app los tokens guardados la volverían a loguear.
    */
   const logout = useCallback(() => {
     logoutInFlight.current ??= (async () => {
       try {
         await logoutSession();
       } catch {}
+      let clearTokensError: unknown;
       try {
         await clearTokens();
-      } catch {}
+      } catch (error) {
+        clearTokensError = error;
+      }
       await clearSession();
+      if (clearTokensError) throw clearTokensError;
     })().finally(() => {
       logoutInFlight.current = null;
     });

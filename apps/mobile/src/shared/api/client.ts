@@ -113,7 +113,7 @@ async function recoverFromUnauthorized(sentAccessToken: string | null): Promise<
 }
 
 async function request<T = unknown>(path: string, method: HttpMethod, body?: unknown, retried = false): Promise<T> {
-  const accessToken = await getAccessToken();
+  const accessToken = await getAccessToken().catch(() => null);
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };

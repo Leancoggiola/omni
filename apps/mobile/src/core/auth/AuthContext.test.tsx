@@ -210,13 +210,15 @@ describe('AuthProvider', () => {
     expect(result.current.auth.isAuthenticated).toBe(false);
   });
 
-  it('logout cierra la sesión local aunque SecureStore falle al borrar los tokens', async () => {
+  it('logout cierra la sesión local y avisa del error si SecureStore falla al borrar los tokens', async () => {
     await setTokens('access-1', 'refresh-1');
     const { result } = renderAuth();
     await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
     deleteItemAsync.mockRejectedValueOnce(new Error('no se pudo borrar'));
 
-    await act(() => result.current.auth.logout());
+    await act(async () => {
+      await expect(result.current.auth.logout()).rejects.toThrow('no se pudo borrar');
+    });
 
     expect(result.current.auth.user).toBeNull();
     expect(result.current.auth.isAuthenticated).toBe(false);
