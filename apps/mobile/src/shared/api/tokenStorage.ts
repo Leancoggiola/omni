@@ -85,7 +85,20 @@ export async function setTokens(accessToken: string, refreshToken: string): Prom
   await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify({ accessToken, refreshToken }));
 }
 
+/**
+ * Borra la sesión. No necesita leer nada, así que tolera que la migración haya fallado (keystore con un fallo
+ * transitorio): igual espera una migración en curso, y si falló borra también las claves anteriores para que el
+ * próximo arranque no migre una sesión que se acaba de cerrar.
+ */
 export async function clearTokens(): Promise<void> {
-  await ensureMigrated();
+  const migrated = await ensureMigrated().then(
+    () => true,
+    () => false
+  );
   await SecureStore.deleteItemAsync(SESSION_KEY);
+  if (!migrated) {
+    await Promise.all(
+      [LEGACY_ACCESS_KEY, LEGACY_REFRESH_KEY].map(key => SecureStore.deleteItemAsync(key).catch(() => undefined))
+    );
+  }
 }

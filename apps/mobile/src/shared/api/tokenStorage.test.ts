@@ -187,6 +187,16 @@ describe('tokenStorage', () => {
       expect(secure.store.has(SESSION_KEY)).toBe(true);
     });
 
+    it('clearTokens borra la sesión y las claves anteriores aunque la migración haya fallado', async () => {
+      seedLegacy();
+      secure.store.set(SESSION_KEY, JSON.stringify({ accessToken: 'new-access', refreshToken: 'new-refresh' }));
+      secure.getItemAsync.mockRejectedValueOnce(new Error('keystore no disponible'));
+
+      await expect(storage.clearTokens()).resolves.toBeUndefined();
+
+      expect(secure.store.size).toBe(0);
+    });
+
     it('reintenta la migración si falló la primera vez', async () => {
       seedLegacy();
       secure.getItemAsync.mockRejectedValueOnce(new Error('keystore no disponible'));
