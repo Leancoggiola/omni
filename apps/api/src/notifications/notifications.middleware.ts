@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
-import passport from 'passport';
 
+import { authenticateJwt } from '../auth/middleware/auth.middleware';
 import { resolveUserIdFromDeviceToken } from './notifications.service';
 
 /** JWT (cookie/Bearer) or Raspberry Pi device API key. */
@@ -18,13 +18,5 @@ export async function authenticateNotifications(req: Request, res: Response, nex
     return;
   }
 
-  passport.authenticate('jwt', { session: false }, (err: unknown, user: Express.User | false) => {
-    if (err) return next(err);
-    if (!user) {
-      next({ status: 401, message: 'No autenticado' });
-      return;
-    }
-    req.user = user;
-    next();
-  })(req, res, next);
+  authenticateJwt(req, res, next);
 }

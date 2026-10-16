@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveOriginSecret, resolveRateLimitGlobalMax } from '../config';
+import { parseDurationMs, resolveJwtConfig, resolveOriginSecret, resolveRateLimitGlobalMax } from '../config';
 
 describe('resolveOriginSecret', () => {
   it('en producción sin secreto falla al arrancar con un error claro', () => {
@@ -30,5 +30,72 @@ describe('resolveRateLimitGlobalMax', () => {
 
   it('respeta un entero positivo', () => {
     expect(resolveRateLimitGlobalMax('500')).toBe(500);
+  });
+});
+
+describe('parseDurationMs', () => {
+  it.each([
+    ['15m', 15 * 60 * 1000],
+    ['7d', 7 * 24 * 60 * 60 * 1000],
+    ['2h', 2 * 60 * 60 * 1000],
+    ['90s', 90 * 1000],
+    ['900', 900 * 1000],
+    [' 15m ', 15 * 60 * 1000],
+  ])('convierte %j a milisegundos', (raw, expected) => {
+    expect(parseDurationMs(raw, 'JWT_ACCESS_EXPIRES_IN')).toBe(expected);
+  });
+
+  it.each(['time_m', 'time_d', '', '0', '0m', '-5m', '1.5h', '15 minutes', 'm', '15w', '9'.repeat(30) + 'd'])(
+    'rechaza el valor inválido %j nombrando la variable',
+    raw => {
+      expect(() => parseDurationMs(raw, 'JWT_ACCESS_EXPIRES_IN')).toThrow(/JWT_ACCESS_EXPIRES_IN inválido/);
+    }
+  );
+});
+
+describe('resolveJwtConfig', () => {
+  const secrets = {
+    accessSecret: 'a'.repeat(32),
+    refreshSecret: 'b'.repeat(32),
+    accessExpiresIn: undefined,
+    refreshExpiresIn: undefined,
+  };
+
+  it('usa 15m y 7d por defecto y expone las vigencias en milisegundos', () => {
+    expect(resolveJwtConfig(secrets, true)).toMatchObject({
+      accessTtlMs: 15 * 60 * 1000,
+      refreshTtlMs: 7 * 24 * 60 * 60 * 1000,
+    });
+  });
+
+  it('toma las vigencias configuradas', () => {
+    expect(resolveJwtConfig({ ...secrets, accessExpiresIn: '20s', refreshExpiresIn: '2d' }, true)).toMatchObject({
+      accessTtlMs: 20 * 1000,
+      refreshTtlMs: 2 * 24 * 60 * 60 * 1000,
+    });
+  });
+
+  it('en producción rechaza secretos de menos de 32 caracteres', () => {
+    expect(() => resolveJwtConfig({ ...secrets, accessSecret: 'access' }, true)).toThrow(/JWT_ACCESS_SECRET/);
+    expect(() => resolveJwtConfig({ ...secrets, refreshSecret: 'b'.repeat(31) }, true)).toThrow(/JWT_REFRESH_SECRET/);
+  });
+
+  it('en producción rechaza secretos iguales', () => {
+    expect(() => resolveJwtConfig({ ...secrets, refreshSecret: secrets.accessSecret }, true)).toThrow(/distintos/);
+  });
+
+  it('fuera de producción acepta secretos cortos o iguales', () => {
+    expect(() =>
+      resolveJwtConfig({ ...secrets, accessSecret: 'access', refreshSecret: 'access' }, false)
+    ).not.toThrow();
+  });
+
+  it.each([true, false])('rechaza una vigencia inválida (producción: %s)', isProduction => {
+    expect(() => resolveJwtConfig({ ...secrets, accessExpiresIn: 'time_m' }, isProduction)).toThrow(
+      /JWT_ACCESS_EXPIRES_IN inválido/
+    );
+    expect(() => resolveJwtConfig({ ...secrets, refreshExpiresIn: 'time_d' }, isProduction)).toThrow(
+      /JWT_REFRESH_EXPIRES_IN inválido/
+    );
   });
 });

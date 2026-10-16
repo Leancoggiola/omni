@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 
-import { config } from '../config';
+import { config, JWT_ALGORITHM } from '../config';
 import * as usersService from '../users/users.service';
 import { lockUserSessions, prisma } from '../common/db';
 import type { PrismaTransactionClient } from '../common/db/prisma';
@@ -23,10 +23,26 @@ export const ROTATION_GRACE_MS = 30 * 1000;
 /** Sesiones hermanas que puede recibir un token rotado dentro de la gracia, además de su sucesor. */
 export const MAX_GRACE_SIBLINGS = 2;
 
+const BCRYPT_ROUNDS = 12;
+
+let dummyPasswordHash: Promise<string> | undefined;
+
+/**
+ * Hash con el mismo costo que los de los usuarios, contra el que se compara cuando el usuario no existe: así el login
+ * tarda lo mismo exista o no la cuenta y no revela qué usernames están registrados. Se calcula la primera vez que se usa.
+ */
+function getDummyPasswordHash(): Promise<string> {
+  dummyPasswordHash ??= bcrypt.hash(randomUUID(), BCRYPT_ROUNDS);
+  return dummyPasswordHash;
+}
+
 /** Trae las preferencias junto con el usuario: login arma la sesión sin volver a la base. */
 export async function validateUser(username: string, password: string) {
   const user = await usersService.findByUsernameForLogin(username);
-  if (!user) return null;
+  if (!user) {
+    await bcrypt.compare(password, await getDummyPasswordHash());
+    return null;
+  }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return null;
@@ -186,7 +202,10 @@ async function deleteTokenChain(tx: PrismaTransactionClient, userId: string, tok
 
 function refreshTokenOwner(rawRefreshToken: string): string | null {
   try {
-    const payload = jwt.verify(rawRefreshToken, config.jwt.refreshSecret, { ignoreExpiration: true });
+    const payload = jwt.verify(rawRefreshToken, config.jwt.refreshSecret, {
+      algorithms: [JWT_ALGORITHM],
+      ignoreExpiration: true,
+    });
     return typeof payload === 'object' && typeof payload.sub === 'string' ? payload.sub : null;
   } catch {
     return null;
@@ -203,10 +222,12 @@ interface SignedTokens {
 /** `expiresAt` sale del `exp` del propio JWT: la fila y el token vencen juntos. */
 function signTokens(payload: { sub: string; username: string; role: string }): SignedTokens {
   const accessToken = jwt.sign(payload, config.jwt.accessSecret, {
-    expiresIn: config.jwt.accessExpiresIn as string & jwt.SignOptions['expiresIn'],
+    algorithm: JWT_ALGORITHM,
+    expiresIn: config.jwt.accessTtlMs / 1000,
   });
   const refreshToken = jwt.sign({ sub: payload.sub }, config.jwt.refreshSecret, {
-    expiresIn: config.jwt.refreshExpiresIn as string & jwt.SignOptions['expiresIn'],
+    algorithm: JWT_ALGORITHM,
+    expiresIn: config.jwt.refreshTtlMs / 1000,
     jwtid: randomUUID(),
   });
   const { exp } = jwt.decode(refreshToken) as jwt.JwtPayload & { exp: number };
