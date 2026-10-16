@@ -55,6 +55,7 @@
 | -------------------------------------------------------- | --------------------------------------- |
 | [deployment.md](./ops/deployment.md)                     | Producción, pipeline y runbooks         |
 | [commits-and-releases.md](./ops/commits-and-releases.md) | Conventional commits / semantic-release |
+| [setup-desde-cero.md](./ops/setup-desde-cero.md)         | Credenciales, S3 y backups desde cero   |
 
 ### Tooling
 
