@@ -1,4 +1,4 @@
-import type { ApiError } from '@/shared/api';
+import type { AuthContextValue } from '@/core/auth';
 import type { SessionUser } from '@omni/shared/auth';
 
 export function createMockSessionUser(overrides: Partial<SessionUser> = {}): SessionUser {
@@ -13,16 +13,7 @@ export function createMockSessionUser(overrides: Partial<SessionUser> = {}): Ses
   };
 }
 
-interface MockAuthValue {
-  user: SessionUser | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: ApiError | undefined;
-  login: () => Promise<void>;
-  logout: () => Promise<void>;
-  clearSession: () => Promise<void>;
-  retry: () => Promise<void>;
-}
+type MockAuthValue = AuthContextValue;
 
 export function createMockAuthValue(overrides: Partial<MockAuthValue> = {}): MockAuthValue {
   return { ...defaultAuthValue(), ...overrides };

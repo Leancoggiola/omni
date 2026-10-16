@@ -39,7 +39,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
 
   const handleLogout = useCallback(async () => {
     await logout();
-    navigate('/login');
+    navigate('/login', { replace: true });
   }, [logout, navigate]);
 
   const isActive = useCallback(

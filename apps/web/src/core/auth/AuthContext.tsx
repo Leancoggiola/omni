@@ -9,13 +9,13 @@ import type { AuthTokensResponse, ProfileResponse, SessionUser } from '@omni/sha
 
 export type { SessionUser };
 
-interface AuthContextValue {
+export interface AuthContextValue {
   user: SessionUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: ApiError | undefined;
   login: (username: string, password: string) => Promise<void>;
-  /** Nunca rechaza: la sesión local se cierra aunque el POST falle. */
+  /** No rechaza por un fallo del POST: la sesión local se cierra aunque la API no responda. */
   logout: () => Promise<void>;
   /** Cierra la sesión local sin llamar a la API (ej. tras eliminar la cuenta, que ya borra las cookies). */
   clearSession: () => Promise<void>;
