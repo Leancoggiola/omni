@@ -181,8 +181,15 @@ jobs:
             echo "::error::El backup no tiene tablas: la base de producción estaba vacía (¿faltan las migraciones?) o el restore falló."
             exit 1
           fi
-          MIGRATIONS=$($PSQL -c 'select count(*) from public._prisma_migrations' || echo 0)
-          USERS=$($PSQL -c 'select count(*) from public."User"' || echo 0)
+          count_rows() {
+            if [ "$($PSQL -c "select to_regclass('$1') is not null")" = "t" ]; then
+              $PSQL -c "select count(*) from $1"
+            else
+              echo 0
+            fi
+          }
+          MIGRATIONS=$(count_rows 'public._prisma_migrations')
+          USERS=$(count_rows 'public."User"')
           echo "Migraciones aplicadas: $MIGRATIONS | usuarios: $USERS"
           if [ "$MIGRATIONS" -lt 1 ] || [ "$USERS" -lt 1 ]; then
             echo "::error::El restore dejó tablas pero sin migraciones o sin usuarios."
