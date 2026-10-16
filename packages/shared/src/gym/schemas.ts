@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GYM_PLAN_STATUSES } from './constants';
+import { AMOUNT_MAX_8_2, idSchema } from '../common/limits';
 import { paginationSchema } from '../common/pagination';
 
 export const listGymPlansSchema = paginationSchema.extend({
@@ -15,7 +16,7 @@ export const createGymPlanSchema = z.object({
 export type CreateGymPlanPayload = z.infer<typeof createGymPlanSchema>;
 
 export const addGymExerciseSchema = z.object({
-  planId: z.string().min(1),
+  planId: idSchema,
   dayLabel: z.string().trim().min(1).max(80),
   name: z.string().trim().min(1).max(120),
   sets: z.number().int().positive().nullable().optional(),
@@ -36,7 +37,7 @@ export const updateGymExerciseSchema = z
 export type UpdateGymExercisePayload = z.infer<typeof updateGymExerciseSchema>;
 
 export const updateGymExerciseWeightSchema = z.object({
-  weightKg: z.number().nonnegative().nullable(),
+  weightKg: z.number().nonnegative().max(AMOUNT_MAX_8_2).nullable(),
 });
 
 export type UpdateGymExerciseWeightPayload = z.infer<typeof updateGymExerciseWeightSchema>;

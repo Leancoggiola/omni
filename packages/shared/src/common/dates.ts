@@ -4,7 +4,8 @@ export const APP_TIMEZONE = 'America/Argentina/Buenos_Aires';
 
 export const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
-export const isoDateStringSchema = z.string().regex(ISO_DATE_REGEX, 'Fecha inválida (YYYY-MM-DD)');
+/** Fecha de calendario real: rechaza días que no existen (`2026-02-31`) en lugar de dejar que `Date.UTC` los corra. */
+export const isoDateStringSchema = z.iso.date('Fecha inválida (YYYY-MM-DD)');
 
 export function calendarPartsInTimeZone(date: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat('en-US', {
