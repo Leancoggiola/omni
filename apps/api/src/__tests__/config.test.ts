@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseDurationMs, resolveJwtConfig, resolveOriginSecret, resolveRateLimitGlobalMax } from '../config';
+import {
+  parseDurationMs,
+  resolveJwtConfig,
+  resolveOriginSecret,
+  resolveRateLimitGlobalMax,
+  resolveTmdbApiKey,
+} from '../config';
 
 describe('resolveOriginSecret', () => {
   it('en producción sin secreto falla al arrancar con un error claro', () => {
@@ -51,6 +57,34 @@ describe('parseDurationMs', () => {
       expect(() => parseDurationMs(raw, 'JWT_ACCESS_EXPIRES_IN')).toThrow(/JWT_ACCESS_EXPIRES_IN inválido/);
     }
   );
+});
+
+describe('parseDurationMs: tope', () => {
+  it('acepta hasta 3650 días', () => {
+    expect(parseDurationMs('3650d', 'JWT_REFRESH_EXPIRES_IN')).toBe(3650 * 24 * 60 * 60 * 1000);
+  });
+
+  it.each(['3651d', '99999999d', '999999999h'])('rechaza %j por salirse del rango de fechas', raw => {
+    expect(() => parseDurationMs(raw, 'JWT_REFRESH_EXPIRES_IN')).toThrow(/JWT_REFRESH_EXPIRES_IN inválido/);
+  });
+});
+
+describe('resolveTmdbApiKey', () => {
+  const v3Key = '0123456789abcdef0123456789ABCDEF';
+  const readAccessToken = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYmMifQ.firma';
+
+  it('en producción rechaza una API key v3', () => {
+    expect(() => resolveTmdbApiKey(v3Key, true)).toThrow(/API Read Access Token/);
+  });
+
+  it('en producción acepta el Read Access Token', () => {
+    expect(resolveTmdbApiKey(readAccessToken, true)).toBe(readAccessToken);
+  });
+
+  it('fuera de producción acepta cualquier valor', () => {
+    expect(resolveTmdbApiKey(v3Key, false)).toBe(v3Key);
+    expect(resolveTmdbApiKey('test-tmdb-api-key', false)).toBe('test-tmdb-api-key');
+  });
 });
 
 describe('resolveJwtConfig', () => {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { INT4_MAX, SEARCH_QUERY_MAX_LENGTH } from '../common/limits';
+import { INT4_MAX, SEARCH_QUERY_MAX_LENGTH, TMDB_PAGE_MAX } from '../common/limits';
 import { MEDIA_TYPES, MEDIA_STATUSES, SEARCH_TYPES } from './constants';
 import type { AddMediaFormValues } from './types';
 
@@ -30,7 +30,7 @@ export type UpdateMediaItemPayload = z.infer<typeof updateMediaItemSchema>;
 
 export const searchMediaSchema = z.object({
   query: z.string().max(SEARCH_QUERY_MAX_LENGTH),
-  page: z.coerce.number().int().min(1).default(1),
+  page: z.coerce.number().int().min(1).max(TMDB_PAGE_MAX).default(1),
   type: z.enum(SEARCH_TYPES).default('multi'),
 });
 export type SearchMediaParams = z.infer<typeof searchMediaSchema>;

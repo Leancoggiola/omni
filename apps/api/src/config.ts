@@ -27,6 +27,9 @@ export function resolveOriginSecret(raw: string | undefined, isProduction: boole
 
 const JWT_SECRET_MIN_LENGTH = 32;
 
+/** Tope de vigencia de un token: más allá la fecha de vencimiento se sale del rango de `Date`. */
+const TOKEN_TTL_MAX_MS = 3650 * 24 * 60 * 60 * 1000;
+
 const DURATION_UNIT_MS = { s: 1000, m: 60 * 1000, h: 60 * 60 * 1000, d: 24 * 60 * 60 * 1000 } as const;
 
 /**
@@ -38,8 +41,10 @@ export function parseDurationMs(raw: string, name: string): number {
   const match = /^(\d+)([smhd])?$/.exec(value);
   const amount = match ? Number(match[1]) : 0;
   const unitMs = match ? DURATION_UNIT_MS[(match[2] ?? 's') as keyof typeof DURATION_UNIT_MS] : 0;
-  if (!match || amount <= 0 || !Number.isSafeInteger(amount * unitMs)) {
-    throw new Error(`${name} inválido: usá un entero positivo con unidad s, m, h o d (por ejemplo 15m o 7d)`);
+  if (!match || amount <= 0 || amount * unitMs > TOKEN_TTL_MAX_MS) {
+    throw new Error(
+      `${name} inválido: usá un entero positivo de hasta 3650d con unidad s, m, h o d (por ejemplo 15m o 7d)`
+    );
   }
   return amount * unitMs;
 }
@@ -79,6 +84,20 @@ export function resolveJwtConfig(env: JwtEnv, isProduction: boolean) {
   };
 }
 
+/**
+ * La API autentica contra TMDB con `Authorization: Bearer`, que solo acepta el "API Read Access Token" (un JWT). Una
+ * API key v3 (32 caracteres hexadecimales) haría fallar toda búsqueda con 502 recién en runtime, así que en producción
+ * el arranque la rechaza y el deploy no reemplaza a la instancia que sí funciona.
+ */
+export function resolveTmdbApiKey(raw: string, isProduction: boolean): string {
+  if (isProduction && /^[0-9a-f]{32}$/i.test(raw.trim())) {
+    throw new Error(
+      'TMDB_API_KEY parece una API key v3: usá el "API Read Access Token" (v4) de themoviedb.org/settings/api'
+    );
+  }
+  return raw;
+}
+
 /** Un valor inválido daría `NaN` y dejaría el limiter roto: cualquier cosa que no sea un entero positivo usa el default. */
 export function resolveRateLimitGlobalMax(raw: string | undefined): number {
   const value = Number(raw);
@@ -112,7 +131,7 @@ export const config = {
   },
 
   tmdb: {
-    apiKey: required('TMDB_API_KEY'),
+    apiKey: resolveTmdbApiKey(required('TMDB_API_KEY'), process.env.NODE_ENV === 'production'),
     baseUrl: process.env.TMDB_BASE_URL ?? 'https://api.themoviedb.org/3',
   },
 

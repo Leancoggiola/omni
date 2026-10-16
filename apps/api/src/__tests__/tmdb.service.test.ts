@@ -87,6 +87,12 @@ describe('tmdb.service', () => {
     expect(JSON.stringify(error)).not.toContain('Invalid API key');
   });
 
+  it('devuelve 502 cuando TMDB responde 200 con un body que no es JSON', async () => {
+    fetchMock.mockResolvedValue(new Response('<html>oops</html>', { status: 200 }));
+
+    await expect(getMovieDetail(550)).rejects.toMatchObject({ status: 502 });
+  });
+
   it('devuelve 404 cuando el título no existe en TMDB', async () => {
     fetchMock.mockResolvedValue(new Response('{}', { status: 404 }));
 

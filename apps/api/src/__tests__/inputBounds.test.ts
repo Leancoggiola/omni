@@ -133,6 +133,11 @@ describe('enteros de Postgres', () => {
     expect(addGymExerciseSchema.safeParse({ ...exercise, sets: 3e9 }).success).toBe(false);
   });
 
+  it('acota la página de búsqueda al máximo que acepta TMDB', () => {
+    expect(searchMediaSchema.safeParse({ query: 'a', page: '500' }).success).toBe(true);
+    expect(searchMediaSchema.safeParse({ query: 'a', page: '501' }).success).toBe(false);
+  });
+
   it('acota la página de un listado', () => {
     expect(paginationSchema.safeParse({ page: '10000' }).success).toBe(true);
     expect(paginationSchema.safeParse({ page: '999999999999' }).success).toBe(false);

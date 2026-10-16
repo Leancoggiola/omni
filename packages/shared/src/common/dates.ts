@@ -2,8 +2,6 @@ import { z } from 'zod';
 
 export const APP_TIMEZONE = 'America/Argentina/Buenos_Aires';
 
-export const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-
 const ISO_DATE_MIN = '1900-01-01';
 const ISO_DATE_MAX = '2200-12-31';
 

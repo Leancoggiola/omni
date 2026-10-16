@@ -16,6 +16,9 @@ export const INT4_MAX = 2_147_483_647;
 export const EXERCISE_SETS_MAX = 1000;
 export const PAGE_MAX = 10_000;
 
+/** TMDB responde 422 a partir de la página 501 de cualquier búsqueda. */
+export const TMDB_PAGE_MAX = 500;
+
 /** Tope de participantes de una juntada. */
 export const GATHERING_PARTICIPANTS_MAX = 50;
 

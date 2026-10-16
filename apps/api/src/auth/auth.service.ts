@@ -23,27 +23,18 @@ export const ROTATION_GRACE_MS = 30 * 1000;
 /** Sesiones hermanas que puede recibir un token rotado dentro de la gracia, además de su sucesor. */
 export const MAX_GRACE_SIBLINGS = 2;
 
-const BCRYPT_ROUNDS = 12;
-
-let dummyPasswordHash: Promise<string> | undefined;
-
 /**
- * Hash con el mismo costo que los de los usuarios, contra el que se compara cuando el usuario no existe: así el login
- * tarda lo mismo exista o no la cuenta y no revela qué usernames están registrados. Se calcula la primera vez que se usa.
+ * Hash bcrypt de costo 12 (el de los usuarios) contra el que se compara cuando el username no existe: así el login
+ * tarda lo mismo exista o no la cuenta y no revela qué usernames están registrados. Es una constante para que
+ * ningún login, ni el primero tras arrancar, pague un costo distinto.
  */
-function getDummyPasswordHash(): Promise<string> {
-  dummyPasswordHash ??= bcrypt.hash(randomUUID(), BCRYPT_ROUNDS).catch((err: unknown) => {
-    dummyPasswordHash = undefined;
-    throw err;
-  });
-  return dummyPasswordHash;
-}
+const DUMMY_PASSWORD_HASH = '$2b$12$E9mheTnBYQr8IG4ruH0QeOWAnRY2auJWScRrKAPCY/05r3snwbZJi';
 
 /** Trae las preferencias junto con el usuario: login arma la sesión sin volver a la base. */
 export async function validateUser(username: string, password: string) {
   const user = await usersService.findByUsernameForLogin(username);
   if (!user) {
-    await bcrypt.compare(password, await getDummyPasswordHash());
+    await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
     return null;
   }
 

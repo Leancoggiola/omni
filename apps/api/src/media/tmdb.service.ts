@@ -19,8 +19,8 @@ function upstreamError(err: unknown): { status: number; message: string } {
 }
 
 function upstreamStatusError(status: number): { status: number; message: string } {
-  if (status !== 404) logger.warn({ upstreamStatus: status }, 'TMDB respondió con error');
   if (status === 404) return { status: 404, message: 'No se encontró el título en TMDB' };
+  logger.warn({ upstreamStatus: status }, 'TMDB respondió con error');
   return { status: 502, message: 'Error de TMDB' };
 }
 
@@ -52,7 +52,9 @@ async function get<T>(path: string, params: Record<string, string | number> = {}
   try {
     return (await res.json()) as T;
   } catch (err) {
-    throw upstreamError(err);
+    if (err instanceof Error && err.name === 'TimeoutError') throw upstreamError(err);
+    logger.warn({ err }, 'TMDB devolvió una respuesta inválida');
+    throw { status: 502, message: 'TMDB devolvió una respuesta inválida' };
   }
 }
 
