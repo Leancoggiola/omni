@@ -168,6 +168,17 @@ describe('api client', () => {
       expect(callsTo(REFRESH_URL)).toHaveLength(1);
     });
 
+    it('si SecureStore falla justo después de un 401 se propaga el 401, no el error del keystore', async () => {
+      const secure = jest.requireMock<typeof import('@/test/secureStoreMock')>('expo-secure-store');
+      respondWith(() => jsonResponse({ message: 'No' }, 401));
+      secure.getItemAsync.mockResolvedValueOnce(JSON.stringify({ accessToken: 'access-1', refreshToken: 'refresh-1' }));
+      secure.getItemAsync.mockRejectedValueOnce(new Error('keystore no disponible'));
+
+      await expect(client.api.get('/api/resource')).rejects.toMatchObject({ status: 401 });
+
+      expect(callsTo(REFRESH_URL)).toHaveLength(0);
+    });
+
     it('un 401 tardío tras cerrarse la sesión no refresca ni avisa de nuevo', async () => {
       const staleResponse = deferred<unknown>();
       respondWith((url, init) => {
@@ -342,7 +353,7 @@ describe('api client', () => {
       expect(bodyOf(callsTo(LOGOUT_URL)[0][1])).toEqual({ refreshToken: 'refresh-1' });
     });
 
-    it('no espera más de 10 s a un refresh colgado y manda el token guardado', async () => {
+    it('no espera más de 3 s a un refresh colgado y manda el token guardado', async () => {
       jest.useFakeTimers();
       try {
         const gate = deferred<unknown>();
@@ -353,7 +364,7 @@ describe('api client', () => {
         const request = client.api.get('/api/resource').catch(() => undefined);
         await until(() => callsTo(REFRESH_URL).length === 1);
         const logout = client.logoutSession();
-        await jest.advanceTimersByTimeAsync(9_000);
+        await jest.advanceTimersByTimeAsync(2_000);
         expect(callsTo(LOGOUT_URL)).toHaveLength(0);
 
         await jest.advanceTimersByTimeAsync(1_500);

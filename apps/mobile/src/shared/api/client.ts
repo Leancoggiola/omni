@@ -106,7 +106,7 @@ const NO_REFRESH_PATHS: string[] = [API_KEYS.auth.login, API_KEYS.auth.refresh, 
  * nuevo; si ya no hay sesión no se refresca.
  */
 async function recoverFromUnauthorized(sentAccessToken: string | null): Promise<boolean> {
-  const currentAccessToken = await getAccessToken();
+  const currentAccessToken = await getAccessToken().catch(() => null);
   if (currentAccessToken === null) return false;
   if (currentAccessToken === sentAccessToken) return ensureRefreshed();
   return true;
@@ -138,7 +138,7 @@ async function request<T = unknown>(path: string, method: HttpMethod, body?: unk
   return res.json();
 }
 
-const LOGOUT_REFRESH_WAIT_MS = 10_000;
+const LOGOUT_REFRESH_WAIT_MS = 3_000;
 
 /**
  * Espera a que termine el refresh en curso, hasta `LOGOUT_REFRESH_WAIT_MS`: un refresh colgado (ej. esperando que
