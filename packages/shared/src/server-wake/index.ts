@@ -15,18 +15,7 @@ export const SERVER_WAKE_NOTICE_DELAY_MS = 1_500;
 /** Tope de cada sondeo al health: un proxy dormido puede dejar la conexión colgada. */
 export const SERVER_WAKE_PROBE_TIMEOUT_MS = 10_000;
 
-/**
- * Tope de cada intento de un request idempotente, hasta recibir los headers: el `fetch` de React Native (OkHttp)
- * no pone ninguno, y un request colgado (incluido el refresh) quedaría pendiente para siempre. Si vence, el
- * request pasa al polling del health como un error de red: un cold start que retiene la conexión no se pierde.
- */
 export const SERVER_REQUEST_TIMEOUT_MS = 30_000;
-
-/**
- * Tope de cada intento de un POST/PATCH, que no pasa por el polling: tiene que superar el cold start de Render
- * (~1 min, durante el cual el proxy retiene el request; el login suele ser el primero) y quedar debajo del tope
- * de 120 s del proxy de Vercel.
- */
 export const SERVER_MUTATION_TIMEOUT_MS = 100_000;
 
 export const SERVER_WAKE_MESSAGE = 'Despertando el servidor, puede tardar hasta un minuto y medio…';
@@ -37,10 +26,7 @@ export const SERVER_TIMEOUT_MESSAGE =
 export const SERVER_GATEWAY_TIMEOUT_MESSAGE =
   'El servidor tardó demasiado en procesar el pedido. Revisá si se aplicó antes de intentar de nuevo.';
 
-/** Status del error por timeout del request: no hubo respuesta HTTP. */
 export const SERVER_TIMEOUT_STATUS = 0;
-
-/** Status con el que el proxy avisa que reenvió el request y se cansó de esperar a la API. */
 const GATEWAY_TIMEOUT_STATUS = 504;
 
 type ResponseLike = {
@@ -91,9 +77,7 @@ type ProbeResult = 'awake' | 'asleep' | 'offline';
 /** Sondeos consecutivos con error de red, sin ninguna respuesta HTTP previa, para concluir "sin conexión". */
 const OFFLINE_PROBES = 2;
 
-/** Opciones por llamada de `fetchWithWake`. */
 export type FetchWithWakeOptions = {
-  /** Fuerza si repetir el request es seguro; por defecto sale del método (`isIdempotentMethod`). */
   idempotent?: boolean;
 };
 
@@ -244,9 +228,9 @@ export function createServerWake(options: ServerWakeOptions) {
 
   /**
    * Un intento del request con tope de `timeoutMs` hasta recibir los headers. Al vencer aborta el `fetch` y lanza el
-   * error de `createError` con `SERVER_TIMEOUT_STATUS`, aunque el `fetch` ignore el abort. El abort del caller llega
-   * al `fetch` y su error se propaga tal cual; si el intento responde, el abort sigue conectado y corta la lectura
-   * del body.
+   * error de `createError` con `SERVER_TIMEOUT_STATUS` (0: no hubo respuesta HTTP), aunque el `fetch` ignore el
+   * abort. El abort del caller llega al `fetch` y su error se propaga tal cual. Si el intento responde, el listener
+   * (`once`) queda conectado a propósito para que el abort del caller corte también la lectura del body.
    */
   async function fetchWithTimeout(url: string, init: RequestInit | undefined, timeoutMs: number): Promise<Response> {
     const controller = new AbortController();
@@ -296,14 +280,17 @@ export function createServerWake(options: ServerWakeOptions) {
   }
 
   /**
-   * `fetch` que tolera el cold start de la API, con tope por intento: `SERVER_REQUEST_TIMEOUT_MS` en los
-   * idempotentes y `SERVER_MUTATION_TIMEOUT_MS` en los demás. Idempotentes son GET/HEAD/PUT/DELETE y lo que el
-   * caller marque con `idempotent: true` (el refresh: la API lo acepta repetido dentro de su gracia de rotación, y
-   * no repetirlo enseguida la deja fuera de ella). Reintenta en dos casos:
+   * `fetch` que tolera el cold start de la API, con tope por intento hasta recibir los headers (el `fetch` de React
+   * Native no pone ninguno). Los idempotentes cortan a los 30 s (`SERVER_REQUEST_TIMEOUT_MS`) y pasan al polling,
+   * así un cold start que retiene la conexión no se pierde. Los demás no pasan por el polling y esperan 100 s
+   * (`SERVER_MUTATION_TIMEOUT_MS`): más que el cold start (~1 min, el login suele ser el primero) y menos que los
+   * 120 s del proxy de Vercel. Idempotentes son GET/HEAD/PUT/DELETE, o lo que `fetchOptions.idempotent` fuerce (el
+   * refresh: la API lo acepta repetido dentro de su gracia de rotación, y no repetirlo enseguida la deja fuera de
+   * ella). Reintenta en dos casos:
    * - La respuesta es del proxy o de la plataforma (`isApiResponse`). Con 502/503 el request no llegó a la API y se
    *   reintenta siempre: es lo que llega en un cold start, también al login. Queda el riesgo, raro, de un 502 del
-   *   proxy después de que la API procesó un POST/PATCH. Un 504 solo se reintenta si es idempotente; si no, lanza el
-   *   error de `createError` con status 504.
+   *   proxy después de que la API procesó un POST/PATCH. Un 504 (el proxy reenvió el request y se cansó de esperar)
+   *   solo se reintenta si es idempotente; si no, lanza el error de `createError` con status 504.
    * - El `fetch` lanzó un error de red o venció el tope, solo si es idempotente. Si no, el error se propaga porque
    *   no se sabe si la API procesó el request; el de timeout es el de `createError` con `SERVER_TIMEOUT_STATUS`.
    * Cualquier otra respuesta, un 500 JSON incluido, se devuelve tal cual. Si el servidor no despierta a tiempo,
