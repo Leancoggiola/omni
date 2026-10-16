@@ -3,7 +3,7 @@ import { useSWRConfig } from 'swr';
 import useSWRImmutable from 'swr/immutable';
 
 import { clearSessionColorScheme } from '@/core/theme/sessionColorScheme';
-import { api, ApiError, clearOnAuthFailure, setOnAuthFailure, SWR_KEYS } from '@/shared/api';
+import { api, clearOnAuthFailure, setOnAuthFailure, SWR_KEYS } from '@/shared/api';
 
 import type { AuthTokensResponse, ProfileResponse, SessionUser } from '@omni/shared/auth';
 
@@ -13,7 +13,7 @@ export interface AuthContextValue {
   user: SessionUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  error: ApiError | undefined;
+  error: Error | undefined;
   login: (username: string, password: string) => Promise<void>;
   /** No rechaza por un fallo del POST: la sesión local se cierra aunque la API no responda. */
   logout: () => Promise<void>;

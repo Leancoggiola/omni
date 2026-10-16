@@ -79,7 +79,7 @@ describe('ProtectedRoute', () => {
     mockAuth.value = createMockAuthValue({
       user: null,
       isAuthenticated: false,
-      error: error as ApiError,
+      error,
       retry,
     });
     renderRoute();
