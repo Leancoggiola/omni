@@ -6,6 +6,7 @@ export type ThemeOption = 'Claro' | 'Oscuro' | 'Sistema';
 export class ProfilePage {
   constructor(private readonly page: Page) {}
 
+  readonly nameField = () => this.page.getByRole('textbox', { name: 'Nombre Completo' });
   readonly phoneField = () => this.page.getByRole('textbox', { name: 'Teléfono' });
   readonly themeControl = () => this.page.getByRole('radiogroup', { name: 'Tema' });
   readonly themeOption = (option: ThemeOption) => this.themeControl().getByRole('radio', { name: option });
@@ -16,6 +17,9 @@ export class ProfilePage {
   readonly newPasswordField = () => this.page.getByLabel('Nueva contraseña');
   readonly confirmPasswordField = () => this.page.getByLabel('Confirmar contraseña');
   readonly changePasswordButton = () => this.page.getByRole('button', { name: 'Cambiar contraseña' });
+
+  readonly deleteAccountButton = () => this.page.getByRole('button', { name: 'Eliminar cuenta' });
+  readonly confirmDeleteButton = () => this.page.getByRole('button', { name: 'Sí, eliminar mi cuenta' });
 
   async goto() {
     await this.page.goto('/profile');
@@ -33,6 +37,11 @@ export class ProfilePage {
 
   async save() {
     await this.saveButton().click();
+  }
+
+  async deleteAccount() {
+    await this.deleteAccountButton().click();
+    await this.confirmDeleteButton().click();
   }
 
   async changePassword(newPassword: string, confirmation = newPassword) {

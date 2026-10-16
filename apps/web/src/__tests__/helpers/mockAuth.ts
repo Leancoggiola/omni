@@ -1,3 +1,4 @@
+import type { AuthContextValue } from '@/core/auth';
 import type { SessionUser } from '@omni/shared/auth';
 
 export function createMockSessionUser(overrides: Partial<SessionUser> = {}): SessionUser {
@@ -12,11 +13,13 @@ export function createMockSessionUser(overrides: Partial<SessionUser> = {}): Ses
   };
 }
 
-export function createMockAuthValue(overrides: Partial<ReturnType<typeof defaultAuthValue>> = {}) {
+type MockAuthValue = AuthContextValue;
+
+export function createMockAuthValue(overrides: Partial<MockAuthValue> = {}): MockAuthValue {
   return { ...defaultAuthValue(), ...overrides };
 }
 
-function defaultAuthValue() {
+function defaultAuthValue(): MockAuthValue {
   return {
     user: createMockSessionUser(),
     isAuthenticated: true,
@@ -24,5 +27,7 @@ function defaultAuthValue() {
     error: undefined,
     login: async () => {},
     logout: async () => {},
+    clearSession: async () => {},
+    retry: async () => {},
   };
 }

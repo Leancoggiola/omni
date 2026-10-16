@@ -140,7 +140,12 @@ mutate((key: unknown) => typeof key === 'string' && key.startsWith(SWR_KEYS.medi
 - En layout/shell usar `useAuth` para `name`, `email`, `avatarUrl`; nunca `useProfile`.
 - Tras `updateProfile`, sincronizar la cache de auth con `toSessionUser(profile)` vía `useSWRConfig().mutate(SWR_KEYS.auth.profile, …)`.
 - `updatePreferences` hace PATCH a `SWR_KEYS.users.preferences` y mergea en la cache del perfil. No existe `GET /api/users/preferences`: las preferencias vienen de `GET /api/users/profile`.
-- Login: `await mutate(apiResponse, { revalidate: false })`. Logout: `await mutate(undefined, { revalidate: false })` — ambos con el mutate bound del `useSWRImmutable` de `AuthContext`.
+- **Sesión y caché:** logout y login vacían **toda** la caché de SWR con `clearSession` de `AuthContext` (`globalMutate(() => true, undefined, { revalidate: false })`, igual que mobile). Los reads con `useSWRImmutable` (`media.list`, `users.profile`) no revalidan nunca, así que sin el vaciado el usuario siguiente de la pestaña vería los datos del anterior.
+  - Login: tras la respuesta de la API, `await clearSession()`, `clearSessionColorScheme()` y `mutate({ user: res.user }, { revalidate: false })`. Se guarda solo `{ user }`: web no guarda los tokens del body (`accessToken`/`refreshToken`), que quedarían legibles desde JS. Un login fallido no toca la caché.
+  - Logout: `try { POST } catch {} finally { clearSession() }`. Nunca rechaza y limpia la sesión local aunque el POST falle.
+  - Eliminar la cuenta: `DELETE` y luego `clearSession()`, **sin** llamar a `/logout` (el DELETE ya borra las cookies y el logout daría 401). Si el DELETE falla no se limpia nada y se muestra el error.
+  - Un flujo nuevo que cierre o cambie la sesión (registro, SSO) debe vaciar la caché igual.
+- **Refresh:** solo un 401/403 del refresh cierra la sesión (`notifyAuthFailure` → `clearSession`). Un 5xx, un 429 o un error de red propagan el error: `ProtectedRoute` muestra `ErrorState` con reintento (`retry` de `useAuth`) en vez de mandar al login.
 
 ## Shape de retorno
 

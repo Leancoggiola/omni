@@ -141,6 +141,8 @@ Las filas rotadas se conservan hasta que vence su token, a propósito: si un tok
 
 Web ignora los tokens del body. Mobile los guarda en SecureStore, en una sola clave (JSON con access y refresh, para que una rotación nunca deje un par mezclado), y no depende de cookies. Solo un 401/403 del refresh cierra la sesión de mobile; un 5xx, un 429 o un error de red conservan los tokens. El logout de mobile espera un refresh en curso (con tope) y manda en el body el refresh token vigente al momento de enviar.
 
+**Sesión en la web.** El login guarda en la caché de SWR solo `{ user }`: los tokens del body no se guardan y la sesión vive en las cookies `httpOnly`. Login y logout vacían toda la caché de SWR (`clearSession` de `AuthContext`) para que el usuario siguiente de la pestaña no vea los datos del anterior. El logout no depende de la API: limpia la sesión local aunque el POST falle, y eliminar la cuenta la limpia sin llamar a `/logout`. El refresh solo cierra la sesión ante un 401/403; ante un 5xx, un 429 o un error de red `ProtectedRoute` muestra un error con reintento.
+
 ---
 
 ## Agregar una nueva feature
