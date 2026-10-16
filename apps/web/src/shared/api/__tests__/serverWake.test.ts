@@ -13,6 +13,7 @@ import {
   SERVER_REQUEST_TIMEOUT_MS,
   SERVER_TIMEOUT_MESSAGE,
   SERVER_TIMEOUT_STATUS,
+  SERVER_WAKE_MAX_BACKOFF_MS,
 } from '@omni/shared/server-wake';
 
 const JSON_HEADERS = new Headers({ 'content-type': 'application/json' });
@@ -713,6 +714,32 @@ describe('fetchWithWake request timeout', () => {
 
     expect(await res.json()).toEqual({ renewed: true });
     expect(resourceCalls).toBe(2);
+  });
+
+  it('retries a hung idempotent POST at most one backoff after health answers again (inside the rotation grace)', async () => {
+    const wakeAt = Date.now() + SERVER_REQUEST_TIMEOUT_MS + 20_000;
+    let resourceCalls = 0;
+    let retriedAt = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) => {
+        if (url === SWR_KEYS.health) {
+          return Promise.resolve(Date.now() >= wakeAt ? jsonResponse({ status: 'ok' }) : htmlResponse(503));
+        }
+        resourceCalls += 1;
+        if (resourceCalls === 1) return hangUntilAborted(init);
+        retriedAt = Date.now();
+        return Promise.resolve(jsonResponse({ renewed: true }));
+      })
+    );
+
+    const promise = fetchWithWake('/api/auth/refresh', { method: 'POST' }, { idempotent: true });
+    await vi.advanceTimersByTimeAsync(SERVER_REQUEST_TIMEOUT_MS + 40_000);
+    const res = await promise;
+
+    expect(await res.json()).toEqual({ renewed: true });
+    expect(retriedAt).toBeGreaterThanOrEqual(wakeAt);
+    expect(retriedAt - wakeAt).toBeLessThanOrEqual(SERVER_WAKE_MAX_BACKOFF_MS);
   });
 
   it('cuts the request even when fetch ignores the abort signal', async () => {
