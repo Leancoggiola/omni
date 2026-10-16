@@ -4,11 +4,10 @@ import { useForm } from '@mantine/form';
 
 import { getErrorMessage, notifySuccess } from '@/shared/ui';
 
+import type { ChangePasswordPayload } from '@omni/shared/users';
 import type { FC } from 'react';
 
 import { changePasswordSchema } from '@omni/shared/users';
-
-import type { ChangePasswordPayload } from '@omni/shared/users';
 
 interface PasswordFormValues extends ChangePasswordPayload {
   confirmPassword: string;
