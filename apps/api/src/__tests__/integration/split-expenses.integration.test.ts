@@ -4,7 +4,13 @@ import request from 'supertest';
 import { prisma } from '../../common/db';
 import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
-import { createFriend, createGathering, createUser, toJwtUser } from '../../test/integration/factories';
+import {
+  createFriend,
+  createGathering,
+  createGatheringExpense,
+  createUser,
+  toJwtUser,
+} from '../../test/integration/factories';
 import { findRecordedCall } from '../../test/integration/queryRecorder';
 import { withSavepoint } from '../../test/integration/withSavepoint';
 
@@ -148,6 +154,33 @@ describe('split-expenses routes (integration)', () => {
       expect(res.status).toBe(200);
       expect(res.body.items).toHaveLength(1);
       expect(res.body).toMatchObject({ total: 1, page: 1, limit: 50 });
+    });
+
+    it('GET /gatherings sums each gathering in the database and rounds the total', async () => {
+      const asado = await createGathering(user.id, { name: 'Asado', participants: ['Ana', 'Beto'] });
+      await createGatheringExpense(asado.id, asado.participants[0]!.id, { amount: 0.1 });
+      await createGatheringExpense(asado.id, asado.participants[1]!.id, { amount: 0.2 });
+      await createGathering(user.id, { name: 'Vacía', participants: ['Ana'] });
+
+      const res = await request(app).get('/api/split-expenses/gatherings').set('Authorization', auth);
+
+      const byName = Object.fromEntries(
+        res.body.items.map((item: { name: string; totalAmount: number; participantCount: number }) => [item.name, item])
+      );
+      expect(byName.Asado).toMatchObject({ totalAmount: 0.3, participantCount: 2 });
+      expect(byName['Vacía']).toMatchObject({ totalAmount: 0, participantCount: 1 });
+    });
+
+    it('GET /gatherings/:id rounds the totals and the fair share', async () => {
+      const asado = await createGathering(user.id, { name: 'Asado', participants: ['Ana', 'Beto'] });
+      await createGatheringExpense(asado.id, asado.participants[0]!.id, { amount: 0.1 });
+      await createGatheringExpense(asado.id, asado.participants[0]!.id, { amount: 0.2 });
+
+      const res = await request(app).get(`/api/split-expenses/gatherings/${asado.id}`).set('Authorization', auth);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ totalAmount: 0.3, fairShare: 0.15 });
+      expect(res.body.participants.find((p: { displayName: string }) => p.displayName === 'Ana').totalPaid).toBe(0.3);
     });
 
     it('GET /gatherings/:id returns the detail', async () => {

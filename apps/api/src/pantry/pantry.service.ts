@@ -11,7 +11,7 @@ import type {
 } from '@omni/shared/pantry';
 import { isExpiringSoon, isLowStock } from '@omni/shared/pantry';
 import { parseIsoDateString, startOfTodayInAppTz } from '@omni/shared/common';
-import type { PantryProduct as PrismaPantryProduct } from '../generated/prisma/client';
+import type { PantryProduct as PrismaPantryProduct, Prisma } from '../generated/prisma/client';
 import { paginationSkipTake } from '@omni/shared/common';
 
 import { prisma } from '../common/db';
@@ -46,24 +46,35 @@ async function getOwnedProduct(userId: string, productId: string) {
   return product;
 }
 
-export async function getSummary(userId: string): Promise<PantrySummary> {
-  const today = startOfTodayInAppTz();
-  const products = await prisma.pantryProduct.findMany({ where: { userId } });
-  let lowStockCount = 0;
-  let expiringSoonCount = 0;
+/**
+ * Productos del usuario con alerta de alacena: bajo stock y por vencer, cada uno según su propia regla (un producto
+ * puede estar en las dos listas). Fuente única del resumen y del digest de notificaciones.
+ */
+export async function loadPantryAlerts(userId: string, today = startOfTodayInAppTz()) {
+  const products = await prisma.pantryProduct.findMany({
+    where: { userId },
+    select: { id: true, name: true, quantity: true, minQuantity: true, expiresAt: true },
+    orderBy: [{ name: 'asc' }, { id: 'asc' }],
+  });
+  const lowStock: { id: string; name: string }[] = [];
+  const expiringSoon: { id: string; name: string }[] = [];
   for (const p of products) {
     const quantity = decimalToNumber(p.quantity) ?? 0;
-    const minQuantity = decimalToNumber(p.minQuantity);
-    if (isLowStock(quantity, minQuantity)) lowStockCount += 1;
-    if (isExpiringSoon(p.expiresAt, today)) expiringSoonCount += 1;
+    if (isLowStock(quantity, decimalToNumber(p.minQuantity))) lowStock.push({ id: p.id, name: p.name });
+    if (isExpiringSoon(p.expiresAt, today)) expiringSoon.push({ id: p.id, name: p.name });
   }
-  const shoppingListCount = await prisma.pantryShoppingListItem.count({
-    where: { userId, checked: false },
-  });
+  return { totalProducts: products.length, lowStock, expiringSoon };
+}
+
+export async function getSummary(userId: string): Promise<PantrySummary> {
+  const [alerts, shoppingListCount] = await Promise.all([
+    loadPantryAlerts(userId),
+    prisma.pantryShoppingListItem.count({ where: { userId, checked: false } }),
+  ]);
   return {
-    totalProducts: products.length,
-    expiringSoonCount,
-    lowStockCount,
+    totalProducts: alerts.totalProducts,
+    expiringSoonCount: alerts.expiringSoon.length,
+    lowStockCount: alerts.lowStock.length,
     shoppingListCount,
   };
 }
@@ -160,10 +171,12 @@ export async function updateProduct(userId: string, productId: string, dto: Upda
 
 export async function deleteProduct(userId: string, productId: string) {
   await getOwnedProduct(userId, productId);
-  await prisma.pantryShoppingListItem.deleteMany({
-    where: { pantryProductId: productId, source: 'AUTO', checked: false },
+  await prisma.$transaction(async tx => {
+    await tx.pantryShoppingListItem.deleteMany({
+      where: { pantryProductId: productId, source: 'AUTO', checked: false },
+    });
+    await tx.pantryProduct.delete({ where: { id: productId } });
   });
-  await prisma.pantryProduct.delete({ where: { id: productId } });
 }
 
 function mapShoppingItem(
@@ -213,46 +226,58 @@ export async function listShoppingList(userId: string) {
 }
 
 export async function generateShoppingList(userId: string) {
-  const lowStock = await prisma.pantryProduct.findMany({
-    where: {
-      userId,
-      minQuantity: { not: null },
-    },
-  });
+  await prisma.$transaction(async tx => {
+    const withMinimum = await tx.pantryProduct.findMany({
+      where: { userId, minQuantity: { not: null } },
+    });
+    const lowStock = withMinimum.filter(p =>
+      isLowStock(decimalToNumber(p.quantity) ?? 0, decimalToNumber(p.minQuantity))
+    );
+    if (lowStock.length === 0) return;
 
-  for (const product of lowStock) {
-    const quantity = decimalToNumber(product.quantity) ?? 0;
-    const minQuantity = decimalToNumber(product.minQuantity);
-    if (minQuantity == null || quantity > minQuantity) continue;
-
-    const quantityToBuy = computeQuantityToBuy(quantity, minQuantity);
-    const existing = await prisma.pantryShoppingListItem.findFirst({
+    const pending = await tx.pantryShoppingListItem.findMany({
       where: {
         userId,
-        pantryProductId: product.id,
         source: 'AUTO',
         checked: false,
+        pantryProductId: { in: lowStock.map(p => p.id) },
       },
     });
+    const pendingByProduct = new Map(pending.map(item => [item.pantryProductId, item]));
 
-    if (existing) {
-      await prisma.pantryShoppingListItem.update({
-        where: { id: existing.id },
-        data: { quantityToBuy, name: product.name, unit: product.unit },
-      });
-    } else {
-      await prisma.pantryShoppingListItem.create({
-        data: {
+    const toCreate: Prisma.PantryShoppingListItemCreateManyInput[] = [];
+    const toUpdate: { id: string; quantityToBuy: number; name: string; unit: PrismaPantryProduct['unit'] }[] = [];
+    for (const product of lowStock) {
+      const quantityToBuy = computeQuantityToBuy(
+        decimalToNumber(product.quantity) ?? 0,
+        decimalToNumber(product.minQuantity) ?? 0
+      );
+      const existing = pendingByProduct.get(product.id);
+      if (!existing) {
+        toCreate.push({
           userId,
           pantryProductId: product.id,
           name: product.name,
           source: 'AUTO',
           quantityToBuy,
           unit: product.unit,
-        },
-      });
+        });
+      } else if (
+        decimalToNumber(existing.quantityToBuy) !== quantityToBuy ||
+        existing.name !== product.name ||
+        existing.unit !== product.unit
+      ) {
+        toUpdate.push({ id: existing.id, quantityToBuy, name: product.name, unit: product.unit });
+      }
     }
-  }
+
+    if (toCreate.length > 0) {
+      await tx.pantryShoppingListItem.createMany({ data: toCreate, skipDuplicates: true });
+    }
+    for (const { id, ...data } of toUpdate) {
+      await tx.pantryShoppingListItem.updateMany({ where: { id, checked: false }, data });
+    }
+  });
 
   return listShoppingList(userId);
 }
@@ -286,59 +311,49 @@ export async function addShoppingListItem(userId: string, dto: AddShoppingListIt
 }
 
 export async function completeShoppingListItem(userId: string, itemId: string, dto: CompleteShoppingListItemPayload) {
-  const item = await prisma.pantryShoppingListItem.findFirst({
-    where: { id: itemId, userId },
-  });
-  if (!item) throw { status: 404, message: 'Ítem no encontrado' };
-
-  const quantityPurchased = dto.quantityPurchased ?? decimalToNumber(item.quantityToBuy) ?? 1;
-  let product: PantryProduct | undefined;
-  let linkedRow: PrismaPantryProduct | null = null;
-
-  if (item.pantryProductId) {
-    const updated = await prisma.pantryProduct.update({
-      where: { id: item.pantryProductId },
-      data: { quantity: { increment: quantityPurchased } },
+  return prisma.$transaction(async tx => {
+    const item = await tx.pantryShoppingListItem.findFirst({
+      where: { id: itemId, userId },
     });
-    linkedRow = updated;
-    product = mapProduct(updated);
-  } else {
+    if (!item) throw { status: 404, message: 'Ítem no encontrado' };
+    if (item.checked) throw { status: 409, message: 'El ítem ya estaba marcado' };
+
+    const quantityPurchased = dto.quantityPurchased ?? decimalToNumber(item.quantityToBuy) ?? 1;
     const nameNormalized = normalizeName(item.name);
-    const existing = await prisma.pantryProduct.findUnique({
-      where: { userId_nameNormalized: { userId, nameNormalized } },
-    });
-    if (existing) {
-      const updated = await prisma.pantryProduct.update({
-        where: { id: existing.id },
-        data: { quantity: { increment: quantityPurchased } },
-      });
-      linkedRow = updated;
-      product = mapProduct(updated);
-    } else {
-      if (!dto.category) {
-        throw { status: 400, message: 'La categoría es obligatoria para productos nuevos' };
-      }
-      const created = await prisma.pantryProduct.create({
-        data: {
-          userId,
-          name: item.name,
-          nameNormalized,
-          category: dto.category,
-          unit: item.unit,
-          quantity: quantityPurchased,
-        },
-      });
-      linkedRow = created;
-      product = mapProduct(created);
+    const existingByName = item.pantryProductId
+      ? null
+      : await tx.pantryProduct.findUnique({ where: { userId_nameNormalized: { userId, nameNormalized } } });
+    const existingId = item.pantryProductId ?? existingByName?.id;
+    const target = existingId ? { existingId } : dto.category ? { newCategory: dto.category } : null;
+    if (!target) {
+      throw { status: 400, message: 'La categoría es obligatoria para productos nuevos' };
     }
-  }
 
-  await prisma.pantryShoppingListItem.update({
-    where: { id: itemId },
-    data: { checked: true },
+    const claimed = await tx.pantryShoppingListItem.updateMany({
+      where: { id: itemId, userId, checked: false },
+      data: { checked: true },
+    });
+    if (claimed.count === 0) throw { status: 409, message: 'El ítem ya estaba marcado' };
+
+    const linkedRow =
+      'existingId' in target
+        ? await tx.pantryProduct.update({
+            where: { id: target.existingId },
+            data: { quantity: { increment: quantityPurchased } },
+          })
+        : await tx.pantryProduct.create({
+            data: {
+              userId,
+              name: item.name,
+              nameNormalized,
+              category: target.newCategory,
+              unit: item.unit,
+              quantity: quantityPurchased,
+            },
+          });
+
+    return { item: mapShoppingItem({ ...item, checked: true }, linkedRow), product: mapProduct(linkedRow) };
   });
-
-  return { item: mapShoppingItem({ ...item, checked: true }, linkedRow), product };
 }
 
 export async function deleteShoppingListItem(userId: string, itemId: string) {

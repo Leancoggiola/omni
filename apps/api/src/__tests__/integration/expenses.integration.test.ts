@@ -5,7 +5,7 @@ import { prisma } from '../../common/db';
 import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
 import { createExpenseReminder, createPersonalExpense, createUser, toJwtUser } from '../../test/integration/factories';
-import { findRecordedCall } from '../../test/integration/queryRecorder';
+import { findRecordedCall, getRecordedCalls } from '../../test/integration/queryRecorder';
 
 const app = createIntegrationApp();
 
@@ -276,6 +276,176 @@ describe('expenses routes (integration)', () => {
 
       expect(res.status).toBe(409);
       expect(res.body.message).toBe('El recordatorio ya está completado');
+    });
+
+    it('returns 409 the second time a one-off reminder is completed and records a single expense', async () => {
+      const reminder = await createExpenseReminder(user.id, { recurrence: 'ONCE' });
+      const complete = () =>
+        request(app)
+          .post(`/api/expenses/reminders/${reminder.id}/complete`)
+          .set('Authorization', auth)
+          .send({ amount: 1000, category: 'HOME' });
+
+      expect((await complete()).status).toBe(200);
+      expect((await complete()).status).toBe(409);
+      expect(await prisma.personalExpense.count({ where: { reminderId: reminder.id } })).toBe(1);
+    });
+
+    it('completes a monthly reminder twice without failing and keeps the original day (31-ene → 28-feb → 31-mar)', async () => {
+      const reminder = await createExpenseReminder(user.id, {
+        recurrence: 'MONTHLY',
+        dueDate: new Date('2026-01-31'),
+      });
+      const complete = () =>
+        request(app)
+          .post(`/api/expenses/reminders/${reminder.id}/complete`)
+          .set('Authorization', auth)
+          .send({ amount: 1000, category: 'HOME' });
+
+      const first = await complete();
+      const second = await complete();
+
+      expect(first.status).toBe(200);
+      expect(first.body.reminder.dueDate).toBe('2026-02-28');
+      expect(second.status).toBe(200);
+      expect(second.body.reminder.dueDate).toBe('2026-03-31');
+      expect(await prisma.personalExpense.count({ where: { reminderId: reminder.id } })).toBe(2);
+    });
+
+    it('does not skip a cycle when a monthly reminder was snoozed past its own occurrence', async () => {
+      const reminder = await createExpenseReminder(user.id, {
+        recurrence: 'MONTHLY',
+        dueDate: new Date('2026-03-10'),
+        anchorDay: 30,
+      });
+
+      const res = await request(app)
+        .post(`/api/expenses/reminders/${reminder.id}/complete`)
+        .set('Authorization', auth)
+        .send({ amount: 1000, category: 'HOME' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.reminder.dueDate).toBe('2026-03-30');
+    });
+
+    it('returns 404 for a reminder of another user and writes nothing', async () => {
+      const other = await createUser({ username: 'expenses-other' });
+      const reminder = await createExpenseReminder(other.id);
+
+      const res = await request(app)
+        .post(`/api/expenses/reminders/${reminder.id}/complete`)
+        .set('Authorization', auth)
+        .send({ amount: 1000, category: 'HOME' });
+
+      expect(res.status).toBe(404);
+      expect(await prisma.personalExpense.count({ where: { reminderId: reminder.id } })).toBe(0);
+    });
+  });
+
+  describe('reminder write guards', () => {
+    it('completing claims the reminder with its status and due date', async () => {
+      const reminder = await createExpenseReminder(user.id, { dueDate: new Date('2026-08-05') });
+
+      await request(app)
+        .post(`/api/expenses/reminders/${reminder.id}/complete`)
+        .set('Authorization', auth)
+        .send({ amount: 1000, category: 'HOME' });
+
+      expect(findRecordedCall('expenseReminder', 'updateMany')?.args?.where).toMatchObject({
+        id: reminder.id,
+        userId: user.id,
+        status: 'PENDING',
+        dueDate: reminder.dueDate,
+      });
+    });
+
+    it('snoozing and editing are guarded the same way, so they cannot overwrite a completion', async () => {
+      const reminder = await createExpenseReminder(user.id, { dueDate: new Date('2026-08-05') });
+
+      await request(app)
+        .post(`/api/expenses/reminders/${reminder.id}/snooze`)
+        .set('Authorization', auth)
+        .send({ until: '2026-08-09' });
+      const snooze = findRecordedCall('expenseReminder', 'updateMany');
+      await request(app)
+        .patch(`/api/expenses/reminders/${reminder.id}`)
+        .set('Authorization', auth)
+        .send({ title: 'Nuevo' });
+
+      const guard = { id: reminder.id, userId: user.id, status: 'PENDING' };
+      expect(snooze?.args?.where).toMatchObject({ ...guard, dueDate: reminder.dueDate });
+      const edit = getRecordedCalls().filter(
+        call => call.model === 'expenseReminder' && call.operation === 'updateMany'
+      )[1];
+      expect(edit?.args?.where).toMatchObject(guard);
+      expect(edit?.args?.where).not.toHaveProperty('dueDate');
+    });
+  });
+
+  describe('reminder anchor day', () => {
+    it('POST /reminders stores the day of the due date as the anchor', async () => {
+      const res = await request(app)
+        .post('/api/expenses/reminders')
+        .set('Authorization', auth)
+        .send({ title: 'Expensas', dueDate: '2026-01-31', recurrence: 'MONTHLY' });
+
+      expect(res.status).toBe(201);
+      const stored = await prisma.expenseReminder.findUnique({ where: { id: res.body.id } });
+      expect(stored?.anchorDay).toBe(31);
+    });
+
+    it('PATCH /reminders/:reminderId moves the anchor when the due date changes', async () => {
+      const reminder = await createExpenseReminder(user.id, { dueDate: new Date('2026-01-31') });
+
+      const res = await request(app)
+        .patch(`/api/expenses/reminders/${reminder.id}`)
+        .set('Authorization', auth)
+        .send({ dueDate: '2026-02-10' });
+
+      expect(res.status).toBe(200);
+      const stored = await prisma.expenseReminder.findUnique({ where: { id: reminder.id } });
+      expect(stored?.anchorDay).toBe(10);
+    });
+
+    it('POST /reminders/:reminderId/snooze keeps the anchor', async () => {
+      const reminder = await createExpenseReminder(user.id, { dueDate: new Date('2026-01-31') });
+
+      const res = await request(app)
+        .post(`/api/expenses/reminders/${reminder.id}/snooze`)
+        .set('Authorization', auth)
+        .send({ until: '2026-02-03' });
+
+      expect(res.status).toBe(200);
+      const stored = await prisma.expenseReminder.findUnique({ where: { id: reminder.id } });
+      expect(stored?.anchorDay).toBe(31);
+    });
+  });
+
+  describe('summary totals', () => {
+    it('GET /summary rounds money to two decimals and groups by category in the database', async () => {
+      await createPersonalExpense(user.id, { amount: 0.1, category: 'FOOD', date: new Date('2026-08-02') });
+      await createPersonalExpense(user.id, { amount: 0.2, category: 'FOOD', date: new Date('2026-08-03') });
+      await createPersonalExpense(user.id, { amount: 10.05, category: 'HOME', date: new Date('2026-08-04') });
+
+      const res = await request(app).get('/api/expenses/summary?month=2026-08').set('Authorization', auth);
+
+      expect(res.status).toBe(200);
+      expect(res.body.totalAmount).toBe(10.35);
+      expect(res.body.byCategory).toEqual([
+        { category: 'FOOD', amount: 0.3, count: 2 },
+        { category: 'HOME', amount: 10.05, count: 1 },
+      ]);
+      expect(findRecordedCall('personalExpense', 'findMany')).toBeUndefined();
+    });
+
+    it('GET /summary counts the overdue reminders', async () => {
+      await createExpenseReminder(user.id, { dueDate: new Date('2020-01-01') });
+      await createExpenseReminder(user.id, { dueDate: new Date('2999-01-01') });
+      await createExpenseReminder(user.id, { dueDate: new Date('2020-01-01'), status: 'COMPLETED' });
+
+      const res = await request(app).get('/api/expenses/summary?month=2026-08').set('Authorization', auth);
+
+      expect(res.body).toMatchObject({ pendingRemindersCount: 2, overdueRemindersCount: 1 });
     });
   });
 });

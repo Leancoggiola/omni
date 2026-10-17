@@ -1,15 +1,15 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { isExpiringSoon, isLowStock } from '@omni/shared/pantry';
 import type {
   NotificationDigest,
   NotificationDevice,
   RegisterNotificationDevicePayload,
 } from '@omni/shared/notifications';
-import { summarizeGatheringPayments } from '@omni/shared/split-expenses';
 import { startOfTodayInAppTz } from '@omni/shared/common';
 
 import { prisma } from '../common/db';
-import { decimalToNumber, toIsoDateString, toIsoDateTimeString } from '../common/utils/lifestyle';
+import { toIsoDateString, toIsoDateTimeString } from '../common/utils/lifestyle';
+import { loadPantryAlerts } from '../pantry/pantry.service';
+import { listUnsettledGatheringDebts } from '../split-expenses/split-expenses.service';
 
 function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex');
@@ -38,46 +38,25 @@ async function userNotificationsEnabled(userId: string) {
 export async function getDigest(userId: string): Promise<NotificationDigest> {
   const today = startOfTodayInAppTz();
 
-  const [pendingReminders, pantryProducts, unsettledGatherings] = await Promise.all([
+  const [pendingReminders, pantryAlerts, splitItems] = await Promise.all([
     prisma.expenseReminder.findMany({
       where: { userId, status: 'PENDING' },
       orderBy: { dueDate: 'asc' },
     }),
-    prisma.pantryProduct.findMany({ where: { userId } }),
-    prisma.gathering.findMany({
-      where: { userId, isSettled: false },
-      include: {
-        participants: { include: { expenses: true } },
-      },
-      orderBy: { date: 'desc' },
-    }),
+    loadPantryAlerts(userId, today),
+    listUnsettledGatheringDebts(userId),
   ]);
 
   const overdueReminders = pendingReminders.filter(r => r.dueDate < today);
   const dueTodayReminders = pendingReminders.filter(r => r.dueDate.getTime() === today.getTime());
 
-  const pantryItems: NotificationDigest['pantry']['items'] = [];
-  for (const p of pantryProducts) {
-    const quantity = decimalToNumber(p.quantity) ?? 0;
-    const minQuantity = decimalToNumber(p.minQuantity);
-    if (isLowStock(quantity, minQuantity)) {
-      pantryItems.push({ id: p.id, name: p.name, reason: 'LOW_STOCK' });
-    } else if (isExpiringSoon(p.expiresAt, today)) {
-      pantryItems.push({ id: p.id, name: p.name, reason: 'EXPIRING' });
-    }
-  }
-
-  const splitItems = unsettledGatherings
-    .map(g => {
-      const participantSummaries = g.participants.map(p => ({
-        id: p.id,
-        displayName: p.displayName,
-        totalPaid: p.expenses.reduce((sum, e) => sum + (decimalToNumber(e.amount) ?? 0), 0),
-      }));
-      const { totalAmount, hasDebts } = summarizeGatheringPayments(participantSummaries);
-      return { id: g.id, name: g.name, totalAmount, hasDebts };
-    })
-    .filter(g => g.hasDebts);
+  const lowStockIds = new Set(pantryAlerts.lowStock.map(p => p.id));
+  const pantryItems: NotificationDigest['pantry']['items'] = [
+    ...pantryAlerts.lowStock.map(p => ({ id: p.id, name: p.name, reason: 'LOW_STOCK' as const })),
+    ...pantryAlerts.expiringSoon
+      .filter(p => !lowStockIds.has(p.id))
+      .map(p => ({ id: p.id, name: p.name, reason: 'EXPIRING' as const })),
+  ];
 
   return {
     generatedAt: toIsoDateTimeString(new Date()),
