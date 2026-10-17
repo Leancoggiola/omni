@@ -11,7 +11,7 @@ import { XIcon } from '@phosphor-icons/react';
 interface GatheringExpensesProps {
   expenses: GatheringExpense[];
   canDelete: boolean;
-  onDelete: (expenseId: string) => void;
+  onDelete: (expense: GatheringExpense) => void;
 }
 
 export const GatheringExpenses: FC<GatheringExpensesProps> = ({ expenses, canDelete, onDelete }) => (
@@ -37,8 +37,8 @@ export const GatheringExpenses: FC<GatheringExpensesProps> = ({ expenses, canDel
               <ActionIcon
                 variant="subtle"
                 color="gray"
-                aria-label="Eliminar gasto"
-                onClick={() => onDelete(expense.id)}
+                aria-label={`Eliminar gasto de ${expense.participantName}`}
+                onClick={() => onDelete(expense)}
               >
                 <XIcon size="1rem" />
               </ActionIcon>

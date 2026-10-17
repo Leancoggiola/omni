@@ -14,7 +14,7 @@ export const STALE_DAY_RETRY_MS = 30_000;
  * `date` solo versiona la cache key: el servidor decide el día. Al cruzar la medianoche la key cambia y SWR
  * refetchea; con `keepPreviousData`, `data` conserva el día anterior mientras carga el nuevo, y como en SWR 2
  * `isLoading` es true igual, solo se considera "cargando" si no hay nada para mostrar. El provider global no
- * reintenta errores y la card no tiene botón "Reintentar", así que acá se habilita un reintento acotado.
+ * reintenta errores y la card ofrece "Reintentar" a mano y además acá se habilita un reintento automático acotado.
  *
  * Con el reloj del cliente adelantado la key ya es del día nuevo pero el servidor contestó con el anterior.
  * Como la key es immutable quedaría fija: se vuelve a pedir cada `STALE_DAY_RETRY_MS` hasta que el servidor
@@ -49,5 +49,5 @@ export function useTodayHolidays() {
     [dateKey]
   );
 
-  return { holidays: data ?? fallback, isLoading: isLoading && !data, error };
+  return { holidays: data ?? fallback, isLoading: isLoading && !data, error, mutate };
 }

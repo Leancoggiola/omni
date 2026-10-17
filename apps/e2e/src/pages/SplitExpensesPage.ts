@@ -25,6 +25,8 @@ export class SplitExpensesPage {
   readonly amountField = () => this.page.getByRole('textbox', { name: 'Monto' });
   readonly descriptionField = () => this.page.getByRole('textbox', { name: 'Descripción' });
   readonly addExpenseButton = () => this.page.getByRole('button', { name: 'Agregar gasto' });
+  readonly deleteExpenseButton = () => this.page.getByRole('button', { name: 'Eliminar gasto' });
+  readonly retryButton = () => this.page.getByRole('button', { name: 'Reintentar' });
   readonly settleButton = () => this.page.getByRole('button', { name: 'Marcar como saldado' });
 
   async goto() {

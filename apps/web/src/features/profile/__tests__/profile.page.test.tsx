@@ -11,6 +11,8 @@ import userEvent from '@testing-library/user-event';
 const mocks = vi.hoisted(() => ({
   auth: {} as ReturnType<typeof createMockAuthValue>,
   deleteAccount: vi.fn(),
+  profileState: {} as { error?: Error },
+  mutate: vi.fn(),
 }));
 
 vi.mock('@/core/auth', () => ({ useAuth: () => mocks.auth }));
@@ -20,7 +22,6 @@ vi.mock('../modules', () => ({
     <button onClick={() => void onDelete().catch(() => undefined)}>Eliminar cuenta</button>
   ),
   PasswordForm: () => null,
-  ProfilePhotoSection: () => null,
   ProfileSectionCard: () => null,
   ProfileSettingsForm: () => null,
   useAccountActions: () => ({ changePassword: vi.fn(), deleteAccount: mocks.deleteAccount }),
@@ -28,7 +29,8 @@ vi.mock('../modules', () => ({
     profile: { name: 'Ana', avatarUrl: null, updatedAt: 'x' },
     isLoading: false,
     isMutating: false,
-    error: undefined,
+    error: mocks.profileState.error,
+    mutate: mocks.mutate,
     updateProfile: vi.fn(),
     updatePreferences: vi.fn(),
   }),
@@ -53,6 +55,8 @@ describe('ProfilePage: eliminar cuenta', () => {
     clearSession.mockReset().mockResolvedValue(undefined);
     logout.mockReset().mockResolvedValue(undefined);
     mocks.deleteAccount.mockReset().mockResolvedValue(undefined);
+    mocks.mutate.mockReset();
+    mocks.profileState = {};
     mocks.auth = createMockAuthValue({ clearSession, logout });
   });
 
@@ -76,5 +80,17 @@ describe('ProfilePage: eliminar cuenta', () => {
     await waitFor(() => expect(mocks.deleteAccount).toHaveBeenCalledOnce());
     expect(clearSession).not.toHaveBeenCalled();
     expect(screen.queryByText('Pantalla de login')).not.toBeInTheDocument();
+  });
+});
+
+describe('ProfilePage: error de carga', () => {
+  it('ofrece reintentar y vuelve a pedir el perfil', async () => {
+    mocks.profileState = { error: new Error('x') };
+    mocks.auth = createMockAuthValue({});
+    renderProfile();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    expect(mocks.mutate).toHaveBeenCalledOnce();
   });
 });
