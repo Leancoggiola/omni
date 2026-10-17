@@ -43,9 +43,8 @@ export class MediaPage {
     await this.page.getByRole('option', { name: status, exact: true }).click();
   }
 
-  /** En la grilla el botón de eliminar solo se renderiza mientras el card está hovereado. */
+  /** El botón de eliminar está siempre visible, también en la grilla. */
   async startDelete(title: string) {
-    await this.posterOf(title).hover();
     await this.deleteButtonOf(title).click();
   }
 }
