@@ -20,27 +20,18 @@ export function useSplitExpensesMutations() {
     await mutate(
       (key: unknown) =>
         typeof key === 'string' &&
-        (key === SWR_KEYS.splitExpenses.friends || key.startsWith(SWR_KEYS.splitExpenses.friendsSuggest)),
-      undefined,
-      { revalidate: true }
+        (key === SWR_KEYS.splitExpenses.friends || key.startsWith(SWR_KEYS.splitExpenses.friendsSuggest))
     );
   }, [mutate]);
 
-  const invalidateGatherings = useCallback(async () => {
-    await Promise.all([
-      mutate(
-        (key: unknown) => typeof key === 'string' && key.startsWith(SWR_KEYS.splitExpenses.gatherings),
-        undefined,
-        { revalidate: true }
-      ),
-      invalidateNotificationDigest(mutate),
-    ]);
-  }, [mutate]);
-
-  const invalidateGathering = useCallback(
-    async (gatheringId: string) => {
+  const invalidateGatherings = useCallback(
+    async (excludeGatheringId?: string) => {
+      const excluded = excludeGatheringId ? SWR_KEYS.splitExpenses.gathering(excludeGatheringId) : null;
       await Promise.all([
-        mutate(SWR_KEYS.splitExpenses.gathering(gatheringId), undefined, { revalidate: true }),
+        mutate(
+          (key: unknown) =>
+            typeof key === 'string' && key.startsWith(SWR_KEYS.splitExpenses.gatherings) && key !== excluded
+        ),
         invalidateNotificationDigest(mutate),
       ]);
     },
@@ -85,16 +76,16 @@ export function useSplitExpensesMutations() {
   const toggleGatheringSettled = useCallback(
     async (gatheringId: string, payload: ToggleGatheringSettledPayload) => {
       const gathering = await api.patch<GatheringDetail>(SWR_KEYS.splitExpenses.gatheringSettled(gatheringId), payload);
-      await Promise.all([invalidateGatherings(), invalidateGathering(gatheringId)]);
+      await invalidateGatherings();
       return gathering;
     },
-    [invalidateGathering, invalidateGatherings]
+    [invalidateGatherings]
   );
 
   const deleteGathering = useCallback(
     async (gatheringId: string) => {
       await api.delete(SWR_KEYS.splitExpenses.gathering(gatheringId));
-      await invalidateGatherings();
+      await invalidateGatherings(gatheringId);
     },
     [invalidateGatherings]
   );
@@ -102,18 +93,18 @@ export function useSplitExpensesMutations() {
   const addGatheringExpense = useCallback(
     async (gatheringId: string, payload: AddGatheringExpensePayload) => {
       const gathering = await api.post<GatheringDetail>(SWR_KEYS.splitExpenses.gatheringExpenses(gatheringId), payload);
-      await Promise.all([invalidateGatherings(), invalidateGathering(gatheringId)]);
+      await invalidateGatherings();
       return gathering;
     },
-    [invalidateGathering, invalidateGatherings]
+    [invalidateGatherings]
   );
 
   const deleteGatheringExpense = useCallback(
     async (gatheringId: string, expenseId: string) => {
       await api.delete(SWR_KEYS.splitExpenses.gatheringExpense(gatheringId, expenseId));
-      await Promise.all([invalidateGatherings(), invalidateGathering(gatheringId)]);
+      await invalidateGatherings();
     },
-    [invalidateGathering, invalidateGatherings]
+    [invalidateGatherings]
   );
 
   return {
