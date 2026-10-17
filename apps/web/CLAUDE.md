@@ -57,12 +57,12 @@ Usar **siempre** los componentes de `@/shared/ui`. No armar variantes propias co
 ```tsx
 import { EmptyState, ErrorState, LoadingState } from '@/shared/ui';
 
-if (error) return <ErrorState message="No se pudo cargar tu lista" />;
+if (error) return <ErrorState message="No se pudo cargar tu lista" onRetry={() => void mutate()} />;
 if (isLoading) return <LoadingState />;
 if (items.length === 0) return <EmptyState icon={<Icon />} title="..." action={<Button />} />;
 ```
 
-**El `error` de SWR se renderiza siempre.** Un fetch fallido nunca debe verse como estado vacío.
+**El `error` de SWR se renderiza siempre**, con `onRetry` (el hook expone `mutate`). Un fetch fallido nunca debe verse como estado vacío.
 
 ## Formularios (`@mantine/form`)
 
