@@ -82,6 +82,7 @@ export function useProfile() {
     isLoading,
     isMutating: isUpdatingProfile || isUpdatingPreferences,
     error,
+    mutate,
     updateProfile,
     updatePreferences,
   };

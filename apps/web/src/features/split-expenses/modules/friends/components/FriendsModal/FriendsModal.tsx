@@ -18,7 +18,7 @@ interface FriendsModalProps {
 }
 
 export const FriendsModal: FC<FriendsModalProps> = ({ opened, onClose }) => {
-  const { items: friends, isLoading, error } = useSplitFriends();
+  const { items: friends, isLoading, error, mutate } = useSplitFriends();
   const { createFriend, updateFriend, deleteFriend } = useSplitExpensesMutations();
 
   const handleCreate = async (payload: CreateSplitFriendPayload) => {
@@ -30,7 +30,7 @@ export const FriendsModal: FC<FriendsModalProps> = ({ opened, onClose }) => {
     <Modal opened={opened} onClose={onClose} title="Amigos guardados" centered>
       <Stack gap="md">
         {error ? (
-          <ErrorState message="No se pudieron cargar los amigos" />
+          <ErrorState message="No se pudieron cargar los amigos" onRetry={() => mutate()} />
         ) : isLoading ? (
           <LoadingState size="sm" py="md" />
         ) : friends.length === 0 ? (

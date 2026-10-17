@@ -6,6 +6,6 @@ import type { GatheringDetail } from '@omni/shared/split-expenses';
 
 export function useGathering(gatheringId: string | null | undefined) {
   const key = gatheringId ? SWR_KEYS.splitExpenses.gathering(gatheringId) : null;
-  const { data, error, isLoading } = useSWR<GatheringDetail>(key);
-  return { gathering: data ?? null, isLoading, error };
+  const { data, error, isLoading, mutate } = useSWR<GatheringDetail>(key);
+  return { gathering: data ?? null, isLoading, error, mutate };
 }

@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo, useState } from 'react';
+import { FC, useCallback, useMemo, useRef, useState } from 'react';
 import { Stack } from '@mantine/core';
 
 import { confirm, getErrorMessage, notifyError, notifySuccess } from '@/shared/ui';
@@ -21,6 +21,7 @@ export const MediaPage: FC = () => {
   const [typeFilter, setTypeFilter] = useState<MediaType | 'all'>('all');
   const [displayMode, onDisplayChange] = useState<string>('grid');
   const [addOpened, setAddOpened] = useState(false);
+  const deletingIds = useRef(new Set<string>());
 
   const filters = useMemo<MediaFilters>(
     () => ({
@@ -30,7 +31,13 @@ export const MediaPage: FC = () => {
     [statusFilter, typeFilter]
   );
 
-  const { data: listData, allItems, isLoading: listLoading, error: listError } = useMyMediaList(filters);
+  const {
+    data: listData,
+    allItems,
+    isLoading: listLoading,
+    error: listError,
+    mutate: retryList,
+  } = useMyMediaList(filters);
   const { addToList, updateStatus, removeFromList } = useMediaMutations();
 
   const existingTmdbIds = useMemo(() => {
@@ -60,19 +67,23 @@ export const MediaPage: FC = () => {
 
   const handleDelete = useCallback(
     async (item: MediaItem) => {
-      const confirmed = await confirm({
-        title: '¿Eliminar?',
-        description: 'Esta acción no se puede deshacer.',
-        confirmLabel: 'Eliminar',
-      });
-
-      if (!confirmed) return;
+      if (deletingIds.current.has(item.id)) return;
+      deletingIds.current.add(item.id);
 
       try {
+        const confirmed = await confirm({
+          title: '¿Eliminar?',
+          description: 'Esta acción no se puede deshacer.',
+          confirmLabel: 'Eliminar',
+        });
+        if (!confirmed) return;
+
         await removeFromList(item.id);
         notifySuccess('Eliminado de tu lista');
       } catch (err) {
         notifyError(getErrorMessage(err, 'No se pudo eliminar de la lista'));
+      } finally {
+        deletingIds.current.delete(item.id);
       }
     },
     [removeFromList]
@@ -95,6 +106,7 @@ export const MediaPage: FC = () => {
         items={listData}
         isLoading={listLoading}
         error={listError}
+        onRetry={() => retryList()}
         searchText={searchText}
         displayMode={displayMode}
         onAdd={() => setAddOpened(true)}

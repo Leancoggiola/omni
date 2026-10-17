@@ -5,8 +5,9 @@ import { renderWithProviders } from '@/__tests__/helpers';
 import { MyMediaList } from '../components/MyMediaList';
 
 import type { MediaItem } from '../../_shared/types';
+import type { ComponentProps } from 'react';
 
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 
 const item: MediaItem = {
   id: 'm1',
@@ -34,7 +35,7 @@ const stubViewport = (wide: boolean) => {
   }));
 };
 
-const renderList = (displayMode: string) =>
+const renderList = (displayMode: string, props: Partial<ComponentProps<typeof MyMediaList>> = {}) =>
   renderWithProviders(
     <MyMediaList
       items={[item]}
@@ -44,6 +45,8 @@ const renderList = (displayMode: string) =>
       onAdd={vi.fn()}
       onStatusChange={vi.fn()}
       onDelete={vi.fn()}
+      onRetry={vi.fn()}
+      {...props}
     />
   );
 
@@ -57,11 +60,11 @@ describe('MyMediaList', () => {
     expect(screen.getByRole('button', { name: 'Eliminar The Matrix' })).toBeInTheDocument();
   });
 
-  it('desde sm con modo grilla muestra la grilla, sin el tacho a la vista', () => {
+  it('desde sm con modo grilla muestra la grilla con el tacho a la vista, sin hover', () => {
     stubViewport(true);
     renderList('grid');
 
-    expect(screen.queryByRole('button', { name: 'Eliminar The Matrix' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Eliminar The Matrix' })).toBeInTheDocument();
     expect(screen.getByText('The Matrix')).toBeInTheDocument();
   });
 
@@ -70,5 +73,14 @@ describe('MyMediaList', () => {
     renderList('list');
 
     expect(screen.getByRole('button', { name: 'Eliminar The Matrix' })).toBeInTheDocument();
+  });
+
+  it('si falla la carga ofrece reintentar', () => {
+    const onRetry = vi.fn();
+    stubViewport(true);
+    renderList('grid', { error: new Error('x'), onRetry });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(onRetry).toHaveBeenCalledOnce();
   });
 });
