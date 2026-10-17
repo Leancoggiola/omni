@@ -12,7 +12,7 @@ import type {
   UpdateSplitFriendPayload,
 } from '@omni/shared/split-expenses';
 import { summarizeGatheringPayments } from '@omni/shared/split-expenses';
-import { parseIsoDateString, paginationSkipTake } from '@omni/shared/common';
+import { parseIsoDateString, paginationSkipTake, roundMoney } from '@omni/shared/common';
 import type {
   GatheringExpense as PrismaGatheringExpense,
   SplitFriend as PrismaSplitFriend,
@@ -41,6 +41,39 @@ function assertGatheringEditable(gathering: { isSettled: boolean }) {
   }
 }
 
+/** Total pagado por participante, sumado en la base (una consulta) y redondeado a 2 decimales. */
+async function loadParticipantTotals(gatheringIds: string[]): Promise<Map<string, number>> {
+  if (gatheringIds.length === 0) return new Map();
+  const rows = await prisma.gatheringExpense.groupBy({
+    by: ['participantId'],
+    where: { gatheringId: { in: gatheringIds } },
+    _sum: { amount: true },
+  });
+  return new Map(rows.map(row => [row.participantId, roundMoney(decimalToNumber(row._sum.amount) ?? 0)]));
+}
+
+/**
+ * Resumen de las juntadas sin saldar que tienen deudas, de la más reciente a la más vieja. Fuente única del digest de
+ * notificaciones.
+ */
+export async function listUnsettledGatheringDebts(userId: string) {
+  const gatherings = await prisma.gathering.findMany({
+    where: { userId, isSettled: false },
+    include: { participants: { select: { id: true, displayName: true } } },
+    orderBy: { date: 'desc' },
+  });
+  const totals = await loadParticipantTotals(gatherings.map(g => g.id));
+
+  return gatherings
+    .map(g => {
+      const { totalAmount, hasDebts } = summarizeGatheringPayments(
+        g.participants.map(p => ({ id: p.id, displayName: p.displayName, totalPaid: totals.get(p.id) ?? 0 }))
+      );
+      return { id: g.id, name: g.name, totalAmount, hasDebts };
+    })
+    .filter(g => g.hasDebts);
+}
+
 async function buildGatheringDetail(userId: string, gatheringId: string): Promise<GatheringDetail> {
   const gathering = await prisma.gathering.findFirst({
     where: { id: gatheringId, userId },
@@ -48,7 +81,6 @@ async function buildGatheringDetail(userId: string, gatheringId: string): Promis
       participants: {
         include: {
           friend: true,
-          expenses: true,
         },
       },
       expenses: {
@@ -60,15 +92,13 @@ async function buildGatheringDetail(userId: string, gatheringId: string): Promis
   if (!gathering) throw { status: 404, message: 'Juntada no encontrada' };
 
   const participantById = new Map(gathering.participants.map(p => [p.id, p]));
+  const totals = await loadParticipantTotals([gathering.id]);
 
-  const participantSummaries = gathering.participants.map(p => {
-    const totalPaid = p.expenses.reduce((sum, e) => sum + (decimalToNumber(e.amount) ?? 0), 0);
-    return {
-      id: p.id,
-      displayName: p.displayName,
-      totalPaid,
-    };
-  });
+  const participantSummaries = gathering.participants.map(p => ({
+    id: p.id,
+    displayName: p.displayName,
+    totalPaid: totals.get(p.id) ?? 0,
+  }));
 
   const { totalAmount, fairShare, settlements } = summarizeGatheringPayments(participantSummaries);
 
@@ -196,20 +226,30 @@ export async function listGatherings(userId: string, params: ListGatheringsParam
       take,
       orderBy: [{ isSettled: 'asc' }, { date: 'desc' }, { createdAt: 'desc' }],
       include: {
-        participants: { select: { id: true } },
-        expenses: { select: { amount: true } },
+        _count: { select: { participants: true } },
       },
     }),
     prisma.gathering.count({ where }),
   ]);
+
+  const sums = rows.length
+    ? await prisma.gatheringExpense.groupBy({
+        by: ['gatheringId'],
+        where: { gatheringId: { in: rows.map(g => g.id) } },
+        _sum: { amount: true },
+      })
+    : [];
+  const totalByGathering = new Map(
+    sums.map(row => [row.gatheringId, roundMoney(decimalToNumber(row._sum.amount) ?? 0)])
+  );
 
   const items: GatheringSummary[] = rows.map(g => ({
     id: g.id,
     name: g.name,
     date: toIsoDateString(g.date),
     isSettled: g.isSettled,
-    participantCount: g.participants.length,
-    totalAmount: g.expenses.reduce((sum, e) => sum + (decimalToNumber(e.amount) ?? 0), 0),
+    participantCount: g._count.participants,
+    totalAmount: totalByGathering.get(g.id) ?? 0,
   }));
 
   return { items, total, page: params.page, limit: params.limit };

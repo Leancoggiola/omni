@@ -1,10 +1,20 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
+import { startOfTodayInAppTz } from '@omni/shared/common';
+
 import { prisma } from '../../common/db';
 import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
-import { createExpenseReminder, createUser, createUserPreferences, toJwtUser } from '../../test/integration/factories';
+import {
+  createExpenseReminder,
+  createGathering,
+  createGatheringExpense,
+  createPantryProduct,
+  createUser,
+  createUserPreferences,
+  toJwtUser,
+} from '../../test/integration/factories';
 import { withSavepoint } from '../../test/integration/withSavepoint';
 
 const app = createIntegrationApp();
@@ -49,6 +59,49 @@ describe('notifications routes (integration)', () => {
       expect(res.status).toBe(200);
       expect(res.body.notificationsDisabled).toBeUndefined();
       expect(res.body.expenses.overdueCount).toBe(1);
+    });
+
+    it('reports one reason per pantry product, low stock first', async () => {
+      await createUserPreferences(user.id, { notifications: true });
+      const tomorrow = new Date(startOfTodayInAppTz().getTime() + 86_400_000);
+      const both = await createPantryProduct(user.id, {
+        name: 'Yogur',
+        quantity: 1,
+        minQuantity: 2,
+        expiresAt: tomorrow,
+      });
+      const expiring = await createPantryProduct(user.id, { name: 'Queso', quantity: 9, expiresAt: tomorrow });
+      await createPantryProduct(user.id, { name: 'Arroz', quantity: 9, minQuantity: 2 });
+
+      const res = await request(app).get('/api/notifications/digest').set('Authorization', auth);
+
+      expect(res.body.pantry).toEqual({
+        lowStockCount: 1,
+        expiringSoonCount: 1,
+        items: [
+          { id: both.id, name: 'Yogur', reason: 'LOW_STOCK' },
+          { id: expiring.id, name: 'Queso', reason: 'EXPIRING' },
+        ],
+      });
+    });
+
+    it('lists only the unsettled gatherings that have debts, with the total rounded', async () => {
+      await createUserPreferences(user.id, { notifications: true });
+      const debts = await createGathering(user.id, { name: 'Asado', participants: ['Ana', 'Beto'] });
+      await createGatheringExpense(debts.id, debts.participants[0]!.id, { amount: 0.1 });
+      await createGatheringExpense(debts.id, debts.participants[0]!.id, { amount: 0.2 });
+      const even = await createGathering(user.id, { name: 'Cine', participants: ['Ana', 'Beto'] });
+      await createGatheringExpense(even.id, even.participants[0]!.id, { amount: 50 });
+      await createGatheringExpense(even.id, even.participants[1]!.id, { amount: 50 });
+      const settled = await createGathering(user.id, { name: 'Viejo', isSettled: true, participants: ['Ana', 'Beto'] });
+      await createGatheringExpense(settled.id, settled.participants[0]!.id, { amount: 80 });
+
+      const res = await request(app).get('/api/notifications/digest').set('Authorization', auth);
+
+      expect(res.body.splitExpenses).toEqual({
+        unsettledCount: 1,
+        items: [{ id: debts.id, name: 'Asado', totalAmount: 0.3 }],
+      });
     });
 
     it('accepts the api key handed out when registering a Raspberry Pi device', async () => {
