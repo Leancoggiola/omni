@@ -26,27 +26,32 @@ Este proyecto usa **Conventional Commits** + **semantic-release** para automatiz
 | `style`    | —                   | Formato, espacios (sin lógica)        |
 | `revert`   | patch               | Revierte un commit anterior           |
 
+### Título del PR
+
+Los rulesets mergean con el título del PR como mensaje del commit, y semantic-release lee ese título. Por eso el título del PR sigue el mismo formato y lo valida el workflow **PR Title** con `commitlint` (agregarlo a los checks requeridos). Usá `#N` como scope: `feat(#12): marcar película como vista`. Los commits de la rama aceptan scope de paquete o `#N`; se prefiere el de paquete (`feat(web): …`).
+
 > `BREAKING CHANGE:` en el footer (o `!` después del type) genera una versión **major** (`x.0.0`).
 
 ---
 
 ### Scopes válidos
 
-Definidos en `commitlint.config.ts`:
+Definidos en `commitlint.config.ts` (regla `scope-valid`):
 
-| Scope           | Dónde aplica                   |
-| --------------- | ------------------------------ |
-| `api`           | `apps/api`                     |
-| `web`           | `apps/web`                     |
-| `mobile`        | `apps/mobile`                  |
-| `shared`        | `packages/shared`              |
-| `eslint-config` | `packages/eslint-config`       |
-| `ts-config`     | `packages/typescript-config`   |
-| `deps`          | Actualización de dependencias  |
-| `release`       | Commits del proceso de release |
-| `ci`            | Workflows de GitHub Actions    |
+| Scope           | Dónde aplica                       |
+| --------------- | ---------------------------------- |
+| `api`           | `apps/api`                         |
+| `web`           | `apps/web`                         |
+| `mobile`        | `apps/mobile`                      |
+| `shared`        | `packages/shared`                  |
+| `eslint-config` | `packages/eslint-config`           |
+| `ts-config`     | `packages/typescript-config`       |
+| `deps`          | Actualización de dependencias      |
+| `release`       | Commits del proceso de release     |
+| `ci`            | Workflows de GitHub Actions        |
+| `#N`            | Número del issue (ej. `feat(#12)`) |
 
-El scope es **opcional** pero recomendado en un monorepo.
+El scope es **opcional** pero recomendado en un monorepo. Se acepta un scope de paquete o `#N`.
 
 ---
 
