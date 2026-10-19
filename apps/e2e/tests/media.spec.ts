@@ -79,6 +79,17 @@ test.describe('media', () => {
     await expect(lightbox).toBeHidden();
   });
 
+  test('abre el poster en el lightbox con el teclado', async ({ page }) => {
+    const media = new MediaPage(page);
+    await media.goto();
+    await media.addViaApi(550, 'movie');
+
+    await media.posterOf('Fight Club').focus();
+    await page.keyboard.press('Enter');
+
+    await expect(page.getByRole('dialog')).toBeVisible();
+  });
+
   test('por debajo de sm muestra la lista, sin toggle de vista', async ({ page }) => {
     const media = new MediaPage(page);
     await page.setViewportSize({ width: 375, height: 812 });
