@@ -211,5 +211,122 @@ describe('gym routes (integration)', () => {
       expect(res.status).toBe(204);
       expect(await prisma.gymExercise.findUnique({ where: { id: exercise.id } })).toBeNull();
     });
+
+    it('DELETE /exercises/:exerciseId returns 409 when the plan is archived and keeps the exercise', async () => {
+      const plan = await createGymPlan(user.id, { status: 'ARCHIVED' });
+      const exercise = await createGymExercise(plan.id);
+
+      const res = await request(app).delete(`/api/gym/exercises/${exercise.id}`).set('Authorization', auth);
+
+      expect(res.status).toBe(409);
+      expect(res.body.message).toBe('El plan está archivado');
+      expect(await prisma.gymExercise.findUnique({ where: { id: exercise.id } })).not.toBeNull();
+      expect(await prisma.gymPlan.findUnique({ where: { id: plan.id } })).not.toBeNull();
+    });
+
+    it('DELETE /exercises/:exerciseId keeps the day while it still has exercises', async () => {
+      const plan = await createGymPlan(user.id);
+      const first = await createGymExercise(plan.id, { dayLabel: 'Lunes', name: 'Sentadilla' });
+      await createGymExercise(plan.id, { dayLabel: 'Lunes', name: 'Prensa' });
+
+      await request(app).delete(`/api/gym/exercises/${first.id}`).set('Authorization', auth);
+
+      expect(await prisma.gymPlanDay.count({ where: { planId: plan.id } })).toBe(1);
+    });
+
+    it('DELETE /exercises/:exerciseId removes the empty day but keeps the other days', async () => {
+      const plan = await createGymPlan(user.id);
+      const monday = await createGymExercise(plan.id, { dayLabel: 'Lunes' });
+      await createGymExercise(plan.id, { dayLabel: 'Martes' });
+
+      const res = await request(app).delete(`/api/gym/exercises/${monday.id}`).set('Authorization', auth);
+
+      expect(res.status).toBe(204);
+      const days = await prisma.gymPlanDay.findMany({ where: { planId: plan.id } });
+      expect(days.map(day => day.label)).toEqual(['Martes']);
+    });
+
+    it('DELETE /exercises/:exerciseId keeps the plan when it runs out of exercises', async () => {
+      const plan = await createGymPlan(user.id, { name: 'Fuerza' });
+      const exercise = await createGymExercise(plan.id);
+
+      await request(app).delete(`/api/gym/exercises/${exercise.id}`).set('Authorization', auth);
+
+      const stored = await prisma.gymPlan.findUnique({ where: { id: plan.id } });
+      expect(stored).toMatchObject({ name: 'Fuerza', status: 'ACTIVE' });
+      expect(await prisma.gymPlanDay.count({ where: { planId: plan.id } })).toBe(0);
+
+      const detail = await request(app).get(`/api/gym/plans/${plan.id}`).set('Authorization', auth);
+      expect(detail.status).toBe(200);
+      expect(detail.body.days).toEqual([]);
+    });
+
+    it('DELETE /exercises/:exerciseId returns 404 for an exercise of another user', async () => {
+      const other = await createUser({ username: 'gym-other-delete' });
+      const plan = await createGymPlan(other.id);
+      const exercise = await createGymExercise(plan.id);
+
+      const res = await request(app).delete(`/api/gym/exercises/${exercise.id}`).set('Authorization', auth);
+
+      expect(res.status).toBe(404);
+      expect(await prisma.gymExercise.findUnique({ where: { id: exercise.id } })).not.toBeNull();
+    });
+
+    it('PATCH /exercises/:exerciseId moves the exercise to a new day and removes the empty source day', async () => {
+      const plan = await createGymPlan(user.id);
+      const exercise = await createGymExercise(plan.id, { dayLabel: 'Lunes' });
+
+      const res = await request(app)
+        .patch(`/api/gym/exercises/${exercise.id}`)
+        .set('Authorization', auth)
+        .send({ dayLabel: 'Miércoles' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.days.map((day: { label: string }) => day.label)).toEqual(['Miércoles']);
+      expect(await prisma.gymPlanDay.count({ where: { planId: plan.id } })).toBe(1);
+    });
+
+    it('PATCH /exercises/:exerciseId keeps the source day when it still has exercises', async () => {
+      const plan = await createGymPlan(user.id);
+      const moved = await createGymExercise(plan.id, { dayLabel: 'Lunes', name: 'Sentadilla' });
+      await createGymExercise(plan.id, { dayLabel: 'Lunes', name: 'Prensa' });
+
+      await request(app)
+        .patch(`/api/gym/exercises/${moved.id}`)
+        .set('Authorization', auth)
+        .send({ dayLabel: 'Miércoles' });
+
+      const days = await prisma.gymPlanDay.findMany({ where: { planId: plan.id }, orderBy: { label: 'asc' } });
+      expect(days.map(day => day.label)).toEqual(['Lunes', 'Miércoles']);
+    });
+
+    it('PATCH /exercises/:exerciseId puts the moved exercise at the end of the target day', async () => {
+      const plan = await createGymPlan(user.id);
+      const moved = await createGymExercise(plan.id, { dayLabel: 'Lunes', name: 'Sentadilla' });
+      const existing = await createGymExercise(plan.id, { dayLabel: 'Martes', name: 'Remo' });
+      await prisma.gymExercise.update({ where: { id: existing.id }, data: { sortOrder: 4 } });
+
+      await request(app)
+        .patch(`/api/gym/exercises/${moved.id}`)
+        .set('Authorization', auth)
+        .send({ dayLabel: 'Martes' });
+
+      const stored = await prisma.gymExercise.findUnique({ where: { id: moved.id } });
+      expect(stored?.sortOrder).toBe(5);
+    });
+
+    it('PATCH /exercises/:exerciseId returns 409 when the plan is archived and does not move anything', async () => {
+      const plan = await createGymPlan(user.id, { status: 'ARCHIVED' });
+      const exercise = await createGymExercise(plan.id, { dayLabel: 'Lunes' });
+
+      const res = await request(app)
+        .patch(`/api/gym/exercises/${exercise.id}`)
+        .set('Authorization', auth)
+        .send({ dayLabel: 'Martes' });
+
+      expect(res.status).toBe(409);
+      const days = await prisma.gymPlanDay.findMany({ where: { planId: plan.id } });
+      expect(days.map(day => day.label)).toEqual(['Lunes']);
+    });
   });
 });

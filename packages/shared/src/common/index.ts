@@ -23,5 +23,7 @@ export {
   parseIsoDateString,
   monthRange,
   addOneMonthSameDay,
+  nextMonthlyOccurrence,
   calendarPartsInTimeZone,
 } from './dates';
+export { roundMoney } from './money';

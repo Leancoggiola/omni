@@ -10,7 +10,7 @@ import type {
 } from '@omni/shared/gym';
 import type { GymPlan, GymPlanDay, GymExercise as PrismaGymExercise } from '../generated/prisma/client';
 
-import { prisma } from '../common/db';
+import { prisma, type PrismaTransactionClient } from '../common/db';
 import { decimalToNumber, toIsoDateTimeString } from '../common/utils/lifestyle';
 import { paginationSkipTake } from '@omni/shared/common';
 
@@ -64,25 +64,36 @@ async function getOwnedActivePlan(userId: string, planId: string) {
   return plan;
 }
 
-async function findOrCreateDay(planId: string, dayLabel: string) {
+async function findOrCreateDay(db: PrismaTransactionClient, planId: string, dayLabel: string) {
   const label = dayLabel.trim();
-  const existing = await prisma.gymPlanDay.findUnique({
+  const existing = await db.gymPlanDay.findUnique({
     where: { planId_label: { planId, label } },
   });
   if (existing) return existing;
 
-  const maxOrder = await prisma.gymPlanDay.aggregate({
+  const maxOrder = await db.gymPlanDay.aggregate({
     where: { planId },
     _max: { sortOrder: true },
   });
 
-  return prisma.gymPlanDay.create({
+  return db.gymPlanDay.create({
     data: {
       planId,
       label,
       sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
     },
   });
+}
+
+/**
+ * Borra el día si se quedó sin ejercicios. El plan nunca se borra por quedar vacío: se archiva a propósito. Bloquea la
+ * fila del día antes de contar: borrarlo arrastra sus ejercicios, y sin el lock un ejercicio insertado entre el conteo
+ * y el borrado se perdería en silencio.
+ */
+async function pruneEmptyDay(db: PrismaTransactionClient, dayId: string) {
+  await db.$queryRaw`SELECT "id" FROM "GymPlanDay" WHERE "id" = ${dayId} FOR UPDATE`;
+  const remaining = await db.gymExercise.count({ where: { dayId } });
+  if (remaining === 0) await db.gymPlanDay.delete({ where: { id: dayId } });
 }
 
 async function getPlanDetail(userId: string, planId: string): Promise<GymPlanDetail> {
@@ -161,21 +172,30 @@ export async function archivePlan(userId: string, planId: string) {
 
 export async function addExercise(userId: string, dto: AddGymExercisePayload) {
   await getOwnedActivePlan(userId, dto.planId);
-  const day = await findOrCreateDay(dto.planId, dto.dayLabel);
 
-  const maxOrder = await prisma.gymExercise.aggregate({
-    where: { dayId: day.id },
-    _max: { sortOrder: true },
-  });
+  await prisma.$transaction(async tx => {
+    const day = await findOrCreateDay(tx, dto.planId, dto.dayLabel);
+    const locked = await tx.$queryRaw<
+      { id: string }[]
+    >`SELECT "id" FROM "GymPlanDay" WHERE "id" = ${day.id} FOR UPDATE`;
+    if (locked.length === 0) {
+      throw { status: 409, message: 'El día cambió mientras se agregaba el ejercicio, reintentá' };
+    }
 
-  await prisma.gymExercise.create({
-    data: {
-      dayId: day.id,
-      name: dto.name.trim(),
-      sets: dto.sets ?? null,
-      reps: dto.reps.trim(),
-      sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
-    },
+    const maxOrder = await tx.gymExercise.aggregate({
+      where: { dayId: day.id },
+      _max: { sortOrder: true },
+    });
+
+    await tx.gymExercise.create({
+      data: {
+        dayId: day.id,
+        name: dto.name.trim(),
+        sets: dto.sets ?? null,
+        reps: dto.reps.trim(),
+        sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
+      },
+    });
   });
 
   return getPlanDetail(userId, dto.planId);
@@ -187,20 +207,25 @@ export async function updateExercise(userId: string, exerciseId: string, dto: Up
     throw { status: 409, message: 'El plan está archivado' };
   }
 
-  let dayId = exercise.dayId;
-  if (dto.dayLabel && dto.dayLabel.trim() !== exercise.day.label) {
-    const day = await findOrCreateDay(exercise.day.planId, dto.dayLabel);
-    dayId = day.id;
-  }
+  await prisma.$transaction(async tx => {
+    let move: { dayId: string; sortOrder: number } | undefined;
+    if (dto.dayLabel && dto.dayLabel.trim() !== exercise.day.label) {
+      const day = await findOrCreateDay(tx, exercise.day.planId, dto.dayLabel);
+      const maxOrder = await tx.gymExercise.aggregate({ where: { dayId: day.id }, _max: { sortOrder: true } });
+      move = { dayId: day.id, sortOrder: (maxOrder._max.sortOrder ?? -1) + 1 };
+    }
 
-  await prisma.gymExercise.update({
-    where: { id: exerciseId },
-    data: {
-      ...(dto.name !== undefined && { name: dto.name.trim() }),
-      ...(dto.sets !== undefined && { sets: dto.sets }),
-      ...(dto.reps !== undefined && { reps: dto.reps.trim() }),
-      ...(dayId !== exercise.dayId && { dayId }),
-    },
+    await tx.gymExercise.update({
+      where: { id: exerciseId },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name.trim() }),
+        ...(dto.sets !== undefined && { sets: dto.sets }),
+        ...(dto.reps !== undefined && { reps: dto.reps.trim() }),
+        ...move,
+      },
+    });
+
+    if (move) await pruneEmptyDay(tx, exercise.dayId);
   });
 
   return getPlanDetail(userId, exercise.day.planId);
@@ -222,21 +247,12 @@ export async function updateExerciseWeight(userId: string, exerciseId: string, d
 
 export async function deleteExercise(userId: string, exerciseId: string) {
   const exercise = await getOwnedExercise(userId, exerciseId);
-  const planId = exercise.day.planId;
-  const dayId = exercise.dayId;
-
-  await prisma.gymExercise.delete({ where: { id: exerciseId } });
-
-  const remainingInDay = await prisma.gymExercise.count({ where: { dayId } });
-  if (remainingInDay === 0) {
-    await prisma.gymPlanDay.delete({ where: { id: dayId } });
+  if (exercise.day.plan.status === 'ARCHIVED') {
+    throw { status: 409, message: 'El plan está archivado' };
   }
 
-  const remainingInPlan = await prisma.gymExercise.count({
-    where: { day: { planId } },
+  await prisma.$transaction(async tx => {
+    await tx.gymExercise.delete({ where: { id: exerciseId } });
+    await pruneEmptyDay(tx, exercise.dayId);
   });
-
-  if (remainingInPlan === 0) {
-    await prisma.gymPlan.delete({ where: { id: planId } });
-  }
 }

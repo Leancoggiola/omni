@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
+import { startOfTodayInAppTz } from '@omni/shared/common';
+
 import { prisma } from '../../common/db';
 import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
 import { createPantryProduct, createShoppingListItem, createUser, toJwtUser } from '../../test/integration/factories';
-import { findRecordedCall } from '../../test/integration/queryRecorder';
+import { findRecordedCall, getRecordedCalls } from '../../test/integration/queryRecorder';
+import { withSavepoint } from '../../test/integration/withSavepoint';
 
 const app = createIntegrationApp();
 
@@ -272,6 +275,204 @@ describe('pantry routes (integration)', () => {
       const remaining = await prisma.pantryShoppingListItem.findMany({ where: { userId: user.id } });
       expect(remaining).toHaveLength(1);
       expect(remaining[0]?.name).toBe('Pendiente');
+    });
+  });
+
+  describe('complete is idempotent', () => {
+    it('returns 409 the second time and adds the stock only once', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Arroz', quantity: 1 });
+      const item = await createShoppingListItem(user.id, { name: 'Arroz', pantryProductId: product.id });
+      const complete = () =>
+        request(app)
+          .patch(`/api/pantry/shopping-list/items/${item.id}/complete`)
+          .set('Authorization', auth)
+          .send({ quantityPurchased: 2 });
+
+      const first = await complete();
+      const second = await complete();
+
+      expect(first.status).toBe(200);
+      expect(second.status).toBe(409);
+      expect(second.body.message).toBe('El ítem ya estaba marcado');
+      const stored = await prisma.pantryProduct.findUnique({ where: { id: product.id } });
+      expect(Number(stored?.quantity)).toBe(3);
+    });
+
+    it('claims the item with a guard on checked before touching the stock', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Arroz', quantity: 1 });
+      const item = await createShoppingListItem(user.id, { name: 'Arroz', pantryProductId: product.id });
+
+      await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}/complete`)
+        .set('Authorization', auth)
+        .send({});
+
+      const calls = getRecordedCalls();
+      const claimIndex = calls.findIndex(c => c.model === 'pantryShoppingListItem' && c.operation === 'updateMany');
+      const stockIndex = calls.findIndex(c => c.model === 'pantryProduct' && c.operation === 'update');
+      expect(calls[claimIndex]?.args?.where).toMatchObject({ id: item.id, userId: user.id, checked: false });
+      expect(claimIndex).toBeGreaterThanOrEqual(0);
+      expect(claimIndex).toBeLessThan(stockIndex);
+    });
+
+    it('returns 409 for an item that was already checked', async () => {
+      const item = await createShoppingListItem(user.id, { name: 'Yerba', checked: true });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}/complete`)
+        .set('Authorization', auth)
+        .send({ category: 'BEVERAGES' });
+
+      expect(res.status).toBe(409);
+      expect(await prisma.pantryProduct.count({ where: { userId: user.id } })).toBe(0);
+    });
+
+    it('leaves the item unchecked when the new product has no category', async () => {
+      const item = await createShoppingListItem(user.id, { name: 'Yerba' });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}/complete`)
+        .set('Authorization', auth)
+        .send({});
+
+      expect(res.status).toBe(400);
+      const stored = await prisma.pantryShoppingListItem.findUnique({ where: { id: item.id } });
+      expect(stored?.checked).toBe(false);
+      expect(await prisma.pantryProduct.count({ where: { userId: user.id } })).toBe(0);
+    });
+
+    it('adds to the existing product with the same name instead of creating another', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Leche', quantity: 1 });
+      const item = await createShoppingListItem(user.id, { name: 'leche', quantityToBuy: 2 });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}/complete`)
+        .set('Authorization', auth)
+        .send({});
+
+      expect(res.status).toBe(200);
+      expect(await prisma.pantryProduct.count({ where: { userId: user.id } })).toBe(1);
+      const stored = await prisma.pantryProduct.findUnique({ where: { id: product.id } });
+      expect(Number(stored?.quantity)).toBe(3);
+    });
+
+    it('returns 404 for an item of another user', async () => {
+      const other = await createUser({ username: 'pantry-other-complete' });
+      const item = await createShoppingListItem(other.id);
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}/complete`)
+        .set('Authorization', auth)
+        .send({ category: 'GRAINS' });
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('generate shopping list', () => {
+    it('includes a product that sits exactly on its minimum', async () => {
+      await createPantryProduct(user.id, { name: 'Arroz', quantity: 2, minQuantity: 2 });
+
+      const res = await request(app).post('/api/pantry/shopping-list/generate').set('Authorization', auth);
+
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0]).toMatchObject({ name: 'Arroz', quantityToBuy: 1 });
+    });
+
+    it('creates the missing items with a single insert and no query per product', async () => {
+      await createPantryProduct(user.id, { name: 'Arroz', quantity: 1, minQuantity: 2 });
+      await createPantryProduct(user.id, { name: 'Fideos', quantity: 0, minQuantity: 5 });
+      await createPantryProduct(user.id, { name: 'Sal', quantity: 0, minQuantity: 1 });
+
+      const res = await request(app).post('/api/pantry/shopping-list/generate').set('Authorization', auth);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(3);
+      const calls = getRecordedCalls().filter(call => call.model === 'pantryShoppingListItem');
+      expect(calls.filter(call => call.operation === 'createMany')).toHaveLength(1);
+      expect(calls.filter(call => call.operation === 'findFirst')).toHaveLength(0);
+      expect(calls.filter(call => call.operation === 'create')).toHaveLength(0);
+    });
+
+    it('updates the quantity of a pending auto item instead of duplicating it', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Arroz', quantity: 1, minQuantity: 5 });
+      await request(app).post('/api/pantry/shopping-list/generate').set('Authorization', auth);
+      await prisma.pantryProduct.update({ where: { id: product.id }, data: { quantity: 0 } });
+
+      const res = await request(app).post('/api/pantry/shopping-list/generate').set('Authorization', auth);
+
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0]).toMatchObject({ quantityToBuy: 5, checked: false });
+    });
+
+    it('creates a new item for a product whose previous auto item was already checked', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Arroz', quantity: 1, minQuantity: 2 });
+      await createShoppingListItem(user.id, {
+        name: 'Arroz',
+        pantryProductId: product.id,
+        source: 'AUTO',
+        checked: true,
+      });
+
+      const res = await request(app).post('/api/pantry/shopping-list/generate').set('Authorization', auth);
+
+      expect(res.body).toHaveLength(2);
+      expect(res.body.filter((item: { checked: boolean }) => !item.checked)).toHaveLength(1);
+    });
+
+    it('rejects a second pending auto item for the same product at the database level', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Arroz', quantity: 1, minQuantity: 2 });
+      await createShoppingListItem(user.id, { pantryProductId: product.id, source: 'AUTO' });
+
+      await expect(
+        withSavepoint(() => createShoppingListItem(user.id, { pantryProductId: product.id, source: 'AUTO' }))
+      ).rejects.toMatchObject({ code: 'P2002' });
+
+      await createShoppingListItem(user.id, { pantryProductId: product.id, source: 'AUTO', checked: true });
+      await createShoppingListItem(user.id, { pantryProductId: product.id, source: 'MANUAL' });
+      expect(await prisma.pantryShoppingListItem.count({ where: { userId: user.id } })).toBe(3);
+    });
+  });
+
+  describe('summary alerts', () => {
+    it('counts a product both as low stock and as expiring soon', async () => {
+      const tomorrow = new Date(startOfTodayInAppTz().getTime() + 86_400_000);
+      await createPantryProduct(user.id, { name: 'Yogur', quantity: 1, minQuantity: 2, expiresAt: tomorrow });
+
+      const res = await request(app).get('/api/pantry/summary').set('Authorization', auth);
+
+      expect(res.body).toMatchObject({ lowStockCount: 1, expiringSoonCount: 1 });
+    });
+  });
+
+  describe('delete product', () => {
+    it('removes its pending auto items and keeps the manual and checked ones', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Arroz' });
+      const pending = await createShoppingListItem(user.id, { pantryProductId: product.id, source: 'AUTO' });
+      const manual = await createShoppingListItem(user.id, { pantryProductId: product.id, source: 'MANUAL' });
+      const checked = await createShoppingListItem(user.id, {
+        pantryProductId: product.id,
+        source: 'AUTO',
+        checked: true,
+      });
+
+      const res = await request(app).delete(`/api/pantry/products/${product.id}`).set('Authorization', auth);
+
+      expect(res.status).toBe(204);
+      expect(await prisma.pantryShoppingListItem.findUnique({ where: { id: pending.id } })).toBeNull();
+      expect(await prisma.pantryShoppingListItem.findUnique({ where: { id: manual.id } })).not.toBeNull();
+      expect(await prisma.pantryShoppingListItem.findUnique({ where: { id: checked.id } })).not.toBeNull();
+    });
+
+    it('returns 404 for a product of another user and keeps its items', async () => {
+      const other = await createUser({ username: 'pantry-other-delete' });
+      const product = await createPantryProduct(other.id, { name: 'Ajeno' });
+      const item = await createShoppingListItem(other.id, { pantryProductId: product.id, source: 'AUTO' });
+
+      const res = await request(app).delete(`/api/pantry/products/${product.id}`).set('Authorization', auth);
+
+      expect(res.status).toBe(404);
+      expect(await prisma.pantryShoppingListItem.findUnique({ where: { id: item.id } })).not.toBeNull();
     });
   });
 });
