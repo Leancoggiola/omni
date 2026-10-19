@@ -10,12 +10,18 @@ import type {
   UpdateExpenseReminderPayload,
   UpdatePersonalExpensePayload,
 } from '@omni/shared/expenses';
-import { addOneMonthSameDay } from '@omni/shared/expenses';
+import { nextMonthlyOccurrence } from '@omni/shared/expenses';
 import type {
   ExpenseReminder as PrismaExpenseReminder,
   PersonalExpense as PrismaPersonalExpense,
 } from '../generated/prisma/client';
-import { monthRange, parseIsoDateString, paginationSkipTake, startOfTodayInAppTz } from '@omni/shared/common';
+import {
+  monthRange,
+  parseIsoDateString,
+  paginationSkipTake,
+  roundMoney,
+  startOfTodayInAppTz,
+} from '@omni/shared/common';
 
 import { prisma } from '../common/db';
 import { decimalToNumber, toIsoDateString, toIsoDateTimeString } from '../common/utils/lifestyle';
@@ -61,6 +67,8 @@ function mapReminder(row: PrismaExpenseReminder, today = startOfTodayInAppTz()):
   };
 }
 
+const reminderChanged = () => ({ status: 409, message: 'El recordatorio cambió mientras se procesaba, reintentá' });
+
 async function getOwnedExpense(userId: string, expenseId: string) {
   const expense = await prisma.personalExpense.findFirst({ where: { id: expenseId, userId } });
   if (!expense) throw { status: 404, message: 'Gasto no encontrado' };
@@ -84,30 +92,32 @@ function buildExpenseWhere(userId: string, params: ListExpensesParams) {
 
 export async function getSummary(userId: string, params: ListExpensesParams): Promise<ExpensesSummary> {
   const where = buildExpenseWhere(userId, params);
-  const expenses = await prisma.personalExpense.findMany({ where });
-  const totalAmount = expenses.reduce((sum, e) => sum + (decimalToNumber(e.amount) ?? 0), 0);
-  const byCategoryMap = new Map<string, number>();
-  for (const e of expenses) {
-    byCategoryMap.set(e.category, (byCategoryMap.get(e.category) ?? 0) + (decimalToNumber(e.amount) ?? 0));
-  }
-  const byCategory = [...byCategoryMap.entries()].map(([category, amount]) => ({
-    category: category as PersonalExpense['category'],
-    amount,
-    count: expenses.filter(e => e.category === category).length,
-  }));
+  const pendingWhere = { userId, status: 'PENDING' as const };
 
-  const today = startOfTodayInAppTz();
-  const pendingReminders = await prisma.expenseReminder.findMany({
-    where: { userId, status: 'PENDING' },
-  });
+  const [totals, byCategoryRows, pendingRemindersCount, overdueRemindersCount] = await Promise.all([
+    prisma.personalExpense.aggregate({ where, _sum: { amount: true }, _count: { _all: true } }),
+    prisma.personalExpense.groupBy({
+      by: ['category'],
+      where,
+      _sum: { amount: true },
+      _count: { _all: true },
+      orderBy: { category: 'asc' },
+    }),
+    prisma.expenseReminder.count({ where: pendingWhere }),
+    prisma.expenseReminder.count({ where: { ...pendingWhere, dueDate: { lt: startOfTodayInAppTz() } } }),
+  ]);
 
   return {
-    totalAmount,
-    transactionCount: expenses.length,
-    pendingRemindersCount: pendingReminders.length,
-    overdueRemindersCount: pendingReminders.filter(r => r.dueDate < today).length,
-    activeCategoriesCount: byCategoryMap.size,
-    byCategory,
+    totalAmount: roundMoney(decimalToNumber(totals._sum.amount) ?? 0),
+    transactionCount: totals._count._all,
+    pendingRemindersCount,
+    overdueRemindersCount,
+    activeCategoriesCount: byCategoryRows.length,
+    byCategory: byCategoryRows.map(row => ({
+      category: row.category,
+      amount: roundMoney(decimalToNumber(row._sum.amount) ?? 0),
+      count: row._count._all,
+    })),
   };
 }
 
@@ -165,12 +175,14 @@ export async function listReminders(userId: string, status?: 'PENDING' | 'COMPLE
 }
 
 export async function createReminder(userId: string, dto: CreateExpenseReminderPayload) {
+  const dueDate = parseIsoDateString(dto.dueDate);
   const reminder = await prisma.expenseReminder.create({
     data: {
       userId,
       title: dto.title.trim(),
       description: dto.description ?? null,
-      dueDate: parseIsoDateString(dto.dueDate),
+      dueDate,
+      anchorDay: dueDate.getUTCDate(),
       priority: dto.priority ?? 'MEDIUM',
       recurrence: dto.recurrence,
     },
@@ -183,17 +195,24 @@ export async function updateReminder(userId: string, reminderId: string, dto: Up
   if (current.status === 'COMPLETED') {
     throw { status: 409, message: 'No se puede editar un recordatorio completado' };
   }
-  const reminder = await prisma.expenseReminder.update({
-    where: { id: reminderId },
+  const newDueDate = dto.dueDate !== undefined ? parseIsoDateString(dto.dueDate) : undefined;
+  const claimed = await prisma.expenseReminder.updateMany({
+    where: {
+      id: reminderId,
+      userId,
+      status: 'PENDING',
+      ...(newDueDate && { dueDate: current.dueDate }),
+    },
     data: {
       ...(dto.title !== undefined && { title: dto.title.trim() }),
-      ...(dto.dueDate !== undefined && { dueDate: parseIsoDateString(dto.dueDate) }),
+      ...(newDueDate && { dueDate: newDueDate, anchorDay: newDueDate.getUTCDate() }),
       ...(dto.priority !== undefined && { priority: dto.priority }),
       ...(dto.recurrence !== undefined && { recurrence: dto.recurrence }),
       ...(dto.description !== undefined && { description: dto.description }),
     },
   });
-  return mapReminder(reminder);
+  if (claimed.count === 0) throw reminderChanged();
+  return mapReminder(await getOwnedReminder(userId, reminderId));
 }
 
 export async function deleteReminder(userId: string, reminderId: string) {
@@ -202,14 +221,24 @@ export async function deleteReminder(userId: string, reminderId: string) {
 }
 
 export async function completeReminder(userId: string, reminderId: string, dto: CompleteExpenseReminderPayload) {
-  const reminder = await getOwnedReminder(userId, reminderId);
-  if (reminder.status !== 'PENDING') {
-    throw { status: 409, message: 'El recordatorio ya está completado' };
-  }
-
   const expenseDate = dto.expenseDate ? parseIsoDateString(dto.expenseDate) : startOfTodayInAppTz();
 
   const result = await prisma.$transaction(async tx => {
+    const reminder = await tx.expenseReminder.findFirst({ where: { id: reminderId, userId } });
+    if (!reminder) throw { status: 404, message: 'Recordatorio no encontrado' };
+    if (reminder.status !== 'PENDING') {
+      throw { status: 409, message: 'El recordatorio ya está completado' };
+    }
+
+    const claimed = await tx.expenseReminder.updateMany({
+      where: { id: reminderId, userId, status: 'PENDING', dueDate: reminder.dueDate },
+      data:
+        reminder.recurrence === 'ONCE'
+          ? { status: 'COMPLETED' }
+          : { dueDate: nextMonthlyOccurrence(reminder.dueDate, reminder.anchorDay) },
+    });
+    if (claimed.count === 0) throw reminderChanged();
+
     const expense = await tx.personalExpense.create({
       data: {
         userId,
@@ -220,19 +249,7 @@ export async function completeReminder(userId: string, reminderId: string, dto: 
         reminderId: reminder.id,
       },
     });
-
-    let updatedReminder;
-    if (reminder.recurrence === 'ONCE') {
-      updatedReminder = await tx.expenseReminder.update({
-        where: { id: reminderId },
-        data: { status: 'COMPLETED' },
-      });
-    } else {
-      updatedReminder = await tx.expenseReminder.update({
-        where: { id: reminderId },
-        data: { dueDate: addOneMonthSameDay(reminder.dueDate) },
-      });
-    }
+    const updatedReminder = await tx.expenseReminder.findUniqueOrThrow({ where: { id: reminderId } });
 
     return { expense, reminder: updatedReminder };
   });
@@ -257,9 +274,10 @@ export async function snoozeReminder(userId: string, reminderId: string, dto: Sn
     dueDate = parseIsoDateString(dto.until!);
   }
 
-  const updated = await prisma.expenseReminder.update({
-    where: { id: reminderId },
+  const claimed = await prisma.expenseReminder.updateMany({
+    where: { id: reminderId, userId, status: 'PENDING', dueDate: reminder.dueDate },
     data: { dueDate },
   });
-  return mapReminder(updated);
+  if (claimed.count === 0) throw reminderChanged();
+  return mapReminder(await getOwnedReminder(userId, reminderId));
 }

@@ -290,11 +290,12 @@ model PersonalExpense {
   category   ExpenseCategory
   date       DateTime         @db.Date
   notes      String?
-  reminderId String?          @unique
+  reminderId String?
   reminder   ExpenseReminder? @relation(fields: [reminderId], references: [id], onDelete: SetNull)
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
 
+  @@index([reminderId])
   @@index([userId, date])
   @@index([userId, category, date])
 }
@@ -306,10 +307,11 @@ model ExpenseReminder {
   title       String
   description String?
   dueDate     DateTime                  @db.Date
+  anchorDay   Int
   priority    ExpenseReminderPriority   @default(MEDIUM)
   recurrence  ExpenseReminderRecurrence
   status      ExpenseReminderStatus     @default(PENDING)
-  expense     PersonalExpense?
+  expenses    PersonalExpense[]
   createdAt   DateTime                  @default(now())
   updatedAt   DateTime                  @updatedAt
 

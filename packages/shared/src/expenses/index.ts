@@ -36,4 +36,4 @@ export type {
   SnoozeExpenseReminderPayload,
   ListRemindersParams,
 } from './schemas';
-export { addOneMonthSameDay } from '../common/dates';
+export { addOneMonthSameDay, nextMonthlyOccurrence } from '../common/dates';
