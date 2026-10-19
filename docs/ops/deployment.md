@@ -38,19 +38,19 @@ Dispara con push a `main` y con `workflow_dispatch` (inputs `redeploy`, `build_a
 ```mermaid
 flowchart TD
   T["push a main / dispatch"] --> REL["release<br/>semantic-release"]
-  REL --> API["deploy-api<br/>hook Render + espera commit == sha"]
+  REL --> API["deploy-api<br/>hook Render + espera un commit que incluya el sha"]
   API --> WEB["deploy-web<br/>vercel pull/build/deploy + smoke"]
   REL --> APK["build-apk<br/>Gradle + firma + omni-apk"]
   REL --> SYNC["sync-develop<br/>back-merge main a develop"]
 ```
 
-| Job            | Hace                                                                                                                              |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `release`      | semantic-release; calcula `sha`, `tag`, `prev_tag`, `version`, `mobile_changed`.                                                  |
-| `deploy-api`   | POST al deploy hook de Render y polling a `/api/health` hasta `commit == sha` (timeout 20 min). Las migraciones corren al inicio. |
-| `deploy-web`   | Tras la API: `vercel pull/build/deploy --prod`. Smoke: `/api/health/ready` 200 con el sha nuevo y `/profile` 200.                 |
-| `build-apk`    | Solo si cambió `apps/mobile` o `packages/shared` (o dispatch con `build_apk`). Publica en `omni-apk` o deja artifact de 7 días.   |
-| `sync-develop` | Back-merge de `main` a `develop`.                                                                                                 |
+| Job            | Hace                                                                                                                                                                                                        |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `release`      | semantic-release; calcula `sha`, `tag`, `prev_tag`, `version`, `mobile_changed`.                                                                                                                            |
+| `deploy-api`   | POST al deploy hook de Render y polling a `/api/health` hasta que el commit publicado sea el sha o un descendiente suyo (`git merge-base --is-ancestor`; timeout 20 min). Las migraciones corren al inicio. |
+| `deploy-web`   | Tras la API: `vercel pull/build/deploy --prod`. Smoke: `/api/health/ready` 200 con el sha nuevo y `/profile` 200.                                                                                           |
+| `build-apk`    | Solo si cambió `apps/mobile` o `packages/shared` (o dispatch con `build_apk`). Publica en `omni-apk` o deja artifact de 7 días.                                                                             |
+| `sync-develop` | Back-merge de `main` a `develop`.                                                                                                                                                                           |
 
 Solo `feat`, `fix`, `perf` o `BREAKING CHANGE` generan release. `backup.yml` es independiente (ver [Backups](#backups)).
 
@@ -158,6 +158,17 @@ El día 1 de cada mes 08:00 UTC (o con `workflow_dispatch` y `restore_test=true`
 2. `redeploy=true`: deploya API y web desde el HEAD de `main`, sin release.
 3. `build_apk=true`: buildea el APK del último tag. Con `upload_apk=false` queda como artifact de 7 días. Si el release ya existe en `omni-apk`, el job falla en vez de pisarlo.
 4. Solo la API: `curl -s "$RENDER_DEPLOY_HOOK_PROD"`.
+
+### Docker local
+
+`docker-compose.yml` publica todos los puertos en `127.0.0.1` y fija las imágenes por digest (Dependabot las actualiza).
+
+| Servicio  | Para qué                                                                                                 | Puerto                  |
+| --------- | -------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `db`      | Postgres de desarrollo con volumen persistente. Sirve para ensayar un restore de backup.                 | `5432`                  |
+| `api`     | Imagen de producción de la API (`apps/api/Dockerfile`), con `apps/api/.env`. Para probar el build local. | `3000`                  |
+| `db-test` | Postgres efímero (tmpfs) para los tests de integración.                                                  | `${DB_TEST_PORT:-5433}` |
+| `db-e2e`  | Postgres efímero (tmpfs) para la suite E2E.                                                              | `${DB_E2E_PORT:-5434}`  |
 
 ### Restore de backup
 

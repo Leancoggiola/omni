@@ -14,3 +14,7 @@ docker-compose*.yml
 Dockerfile
 *.log
 dist
+.claude
+.codegraph
+.playwright-mcp
+apps/mobile
