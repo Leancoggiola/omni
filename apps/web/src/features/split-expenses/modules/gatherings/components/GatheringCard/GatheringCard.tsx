@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useRef, useState } from 'react';
 import { ActionIcon, Badge, Button, Card, Collapse, Divider, Group, Menu, Stack, Text, ThemeIcon } from '@mantine/core';
 
 import { confirm, ErrorState, getErrorMessage, LoadingState, notifyError, notifySuccess } from '@/shared/ui';
@@ -12,7 +12,7 @@ import { GatheringParticipants } from './GatheringParticipants';
 import { GatheringSection } from './GatheringSection';
 import { GatheringSettlements } from './GatheringSettlements';
 
-import type { GatheringSummary } from '@omni/shared/split-expenses';
+import type { GatheringExpense, GatheringSummary } from '@omni/shared/split-expenses';
 
 import {
   CaretDownIcon,
@@ -31,8 +31,10 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
   const [expanded, setExpanded] = useState(!summary.isSettled);
   const [settleLoading, setSettleLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const deletingGathering = useRef(false);
+  const deletingExpenseIds = useRef(new Set<string>());
 
-  const { gathering, isLoading, error } = useGathering(expanded ? summary.id : null);
+  const { gathering, isLoading, error, mutate } = useGathering(expanded ? summary.id : null);
   const { addGatheringExpense, deleteGatheringExpense, toggleGatheringSettled, deleteGathering } =
     useSplitExpensesMutations();
 
@@ -42,11 +44,24 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
     await addGatheringExpense(summary.id, payload);
   };
 
-  const handleDeleteExpense = async (expenseId: string) => {
+  const handleDeleteExpense = async (expense: GatheringExpense) => {
+    if (deletingExpenseIds.current.has(expense.id)) return;
+    deletingExpenseIds.current.add(expense.id);
+
     try {
-      await deleteGatheringExpense(summary.id, expenseId);
+      const confirmed = await confirm({
+        title: 'Eliminar gasto',
+        description: `¿Seguro que querés eliminar el gasto de ${expense.participantName}${expense.description ? ` ("${expense.description}")` : ''}? Esta acción no se puede deshacer.`,
+        confirmLabel: 'Eliminar',
+        cancelLabel: 'Cancelar',
+      });
+      if (!confirmed) return;
+
+      await deleteGatheringExpense(summary.id, expense.id);
     } catch (err) {
       notifyError(getErrorMessage(err, 'No se pudo eliminar el gasto'));
+    } finally {
+      deletingExpenseIds.current.delete(expense.id);
     }
   };
 
@@ -63,23 +78,25 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
   };
 
   const handleDelete = async () => {
-    if (deleting) return;
+    if (deletingGathering.current) return;
+    deletingGathering.current = true;
 
-    const confirmed = await confirm({
-      title: 'Eliminar juntada',
-      description: `¿Seguro que querés eliminar "${summary.name}"? Esta acción no se puede deshacer.`,
-      confirmLabel: 'Eliminar',
-      cancelLabel: 'Cancelar',
-    });
-    if (!confirmed) return;
-
-    setDeleting(true);
     try {
+      const confirmed = await confirm({
+        title: 'Eliminar juntada',
+        description: `¿Seguro que querés eliminar "${summary.name}"? Esta acción no se puede deshacer.`,
+        confirmLabel: 'Eliminar',
+        cancelLabel: 'Cancelar',
+      });
+      if (!confirmed) return;
+
+      setDeleting(true);
       await deleteGathering(summary.id);
       notifySuccess('Juntada eliminada');
     } catch (err) {
       notifyError(getErrorMessage(err, 'No se pudo eliminar la juntada'));
     } finally {
+      deletingGathering.current = false;
       setDeleting(false);
     }
   };
@@ -133,7 +150,7 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
       <Collapse expanded={expanded}>
         {error ? (
           <Stack mt="md">
-            <ErrorState message="No se pudo cargar la juntada" />
+            <ErrorState message="No se pudo cargar la juntada" onRetry={() => mutate()} />
           </Stack>
         ) : isLoading && !gathering ? (
           <LoadingState size="sm" />

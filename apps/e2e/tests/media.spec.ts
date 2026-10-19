@@ -79,6 +79,17 @@ test.describe('media', () => {
     await expect(lightbox).toBeHidden();
   });
 
+  test('abre el poster en el lightbox con el teclado', async ({ page }) => {
+    const media = new MediaPage(page);
+    await media.goto();
+    await media.addViaApi(550, 'movie');
+
+    await media.posterOf('Fight Club').focus();
+    await page.keyboard.press('Enter');
+
+    await expect(page.getByRole('dialog')).toBeVisible();
+  });
+
   test('por debajo de sm muestra la lista, sin toggle de vista', async ({ page }) => {
     const media = new MediaPage(page);
     await page.setViewportSize({ width: 375, height: 812 });
@@ -91,6 +102,19 @@ test.describe('media', () => {
     await expect(media.viewToggle()).toBeHidden();
   });
 
+  test('en la grilla eliminar se alcanza con el teclado, sin hover', async ({ page }) => {
+    const media = new MediaPage(page);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await media.goto();
+    await media.addViaApi(603, 'movie');
+    await expect(media.posterOf('The Matrix')).toBeVisible();
+
+    await media.deleteButtonOf('The Matrix').focus();
+    await page.keyboard.press('Enter');
+
+    await expect(page.getByText('Esta acción no se puede deshacer.')).toBeVisible();
+  });
+
   test('desde sm muestra la grilla con el toggle de vista', async ({ page }) => {
     const media = new MediaPage(page);
     await page.setViewportSize({ width: 1280, height: 800 });
@@ -99,6 +123,6 @@ test.describe('media', () => {
 
     await expect(media.viewToggle()).toBeVisible();
     await expect(media.posterOf('The Matrix')).toBeVisible();
-    await expect(media.deleteButtonOf('The Matrix')).toBeHidden();
+    await expect(media.deleteButtonOf('The Matrix')).toBeVisible();
   });
 });

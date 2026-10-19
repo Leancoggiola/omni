@@ -16,7 +16,7 @@ export const SplitExpensesPage: FC = () => {
   const [friendsOpened, setFriendsOpened] = useState(false);
   const [newGatheringOpened, setNewGatheringOpened] = useState(false);
 
-  const { items, isLoading, error } = useGatherings();
+  const { items, isLoading, error, mutate } = useGatherings();
   const { createGathering } = useSplitExpensesMutations();
 
   const handleCreateGathering = async (payload: CreateGatheringPayload) => {
@@ -34,6 +34,7 @@ export const SplitExpensesPage: FC = () => {
         items={items}
         isLoading={isLoading}
         error={error}
+        onRetry={() => mutate()}
         onNewGathering={() => setNewGatheringOpened(true)}
       />
 

@@ -25,7 +25,7 @@ import { ArrowSquareOutIcon, ConfettiIcon } from '@phosphor-icons/react';
 const HOLIDAY_DURATION = 3000;
 
 export const HolidaysCard: FC = () => {
-  const { holidays, isLoading, error } = useTodayHolidays();
+  const { holidays, isLoading, error, mutate } = useTodayHolidays();
   const isDark = useIsDark();
   const theme = useMantineTheme();
   const currentItemId = useId();
@@ -37,7 +37,7 @@ export const HolidaysCard: FC = () => {
   });
 
   if (error) {
-    return <ErrorState message="No se pudieron cargar las efemérides de hoy" />;
+    return <ErrorState message="No se pudieron cargar las efemérides de hoy" onRetry={() => mutate()} />;
   }
 
   if (isLoading) {

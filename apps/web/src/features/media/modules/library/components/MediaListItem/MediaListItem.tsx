@@ -1,17 +1,13 @@
 import { memo } from 'react';
 import { ActionIcon, Badge, Card, Group, Select, Stack, Text } from '@mantine/core';
 
+import { MEDIA_STATUS_SELECT_DATA } from '../../utils/mediaStatusOptions';
 import { MediaPoster } from '../MediaPoster';
 
 import type { MediaItem, MediaStatus } from '../../../_shared/types';
 
-import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS } from '@omni/shared/media';
+import { MEDIA_TYPE_LABELS } from '@omni/shared/media';
 import { TrashIcon } from '@phosphor-icons/react';
-
-const STATUS_SELECT_DATA = MEDIA_STATUSES.map(value => ({
-  value,
-  label: MEDIA_STATUS_LABELS[value],
-}));
 
 interface MediaListItemProps {
   item: MediaItem;
@@ -40,7 +36,7 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusChange,
           <Group gap="xs" wrap="nowrap" justify="space-between">
             <Select
               aria-label={`Estado de ${item.title}`}
-              data={STATUS_SELECT_DATA}
+              data={MEDIA_STATUS_SELECT_DATA}
               value={item.status}
               onChange={val => val && onStatusChange(item.id, val as MediaStatus)}
               size="sm"

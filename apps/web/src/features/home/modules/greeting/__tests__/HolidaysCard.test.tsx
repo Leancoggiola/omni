@@ -26,6 +26,7 @@ const withItems = (titles: string[]) =>
     holidays: holidays(titles.map(title => ({ title }))),
     isLoading: false,
     error: undefined,
+    mutate: vi.fn(),
   });
 
 describe('HolidaysCard', () => {
@@ -42,6 +43,14 @@ describe('HolidaysCard', () => {
     renderWithProviders(<HolidaysCard />);
     expect(screen.getByText('No se pudieron cargar las efemérides de hoy')).toBeInTheDocument();
     expect(screen.queryByText('Hoy no hay efemérides registradas')).not.toBeInTheDocument();
+  });
+
+  it('el error ofrece reintentar y vuelve a pedir las efemérides', () => {
+    const mutate = vi.fn();
+    useTodayHolidays.mockReturnValue({ holidays: holidays([]), isLoading: false, error: new Error('x'), mutate });
+    renderWithProviders(<HolidaysCard />);
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(mutate).toHaveBeenCalledOnce();
   });
 
   it('mientras carga muestra un skeleton accesible y no el contenido', () => {

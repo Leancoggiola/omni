@@ -77,6 +77,44 @@ test.describe('juntadas', () => {
     await expect(settlements).toContainText('$5.000,00');
   });
 
+  test('pide confirmación antes de eliminar un gasto', async ({ page, freshUser }) => {
+    await freshUser('gasto');
+    const split = new SplitExpensesPage(page);
+    await split.goto();
+    await split.createGathering('Parrilla', ['Ana', 'Bruno']);
+    await split.ensureExpanded('Parrilla');
+    await split.addExpense('Ana', '4000', 'Chorizos');
+    await expect(page.getByText('Chorizos')).toBeVisible();
+
+    await split.deleteExpenseButton().click();
+    await expect(page.getByText('Esta acción no se puede deshacer.')).toBeVisible();
+    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(page.getByText('Chorizos')).toBeVisible();
+
+    await split.deleteExpenseButton().click();
+    await page.getByRole('button', { name: 'Eliminar', exact: true }).click();
+    await expect(page.getByText('Chorizos')).toBeHidden();
+  });
+
+  test('si falla la carga de juntadas, Reintentar la recupera', async ({ page, freshUser }) => {
+    await freshUser('retry');
+    let failing = true;
+    await page.route('**/api/split-expenses/gatherings?*', route =>
+      failing
+        ? route.fulfill({ status: 500, contentType: 'application/json', body: '{"message":"boom"}' })
+        : route.continue()
+    );
+    const split = new SplitExpensesPage(page);
+    await split.goto();
+    await expect(page.getByRole('alert').filter({ hasText: 'No se pudieron cargar las juntadas' })).toBeVisible();
+
+    failing = false;
+    await split.retryButton().click();
+
+    await expect(page.getByText('Todavía no tenés juntadas')).toBeVisible();
+    await expect(page.getByRole('alert')).toBeHidden();
+  });
+
   test('marca la juntada como saldada', async ({ page, freshUser }) => {
     await freshUser('sal');
     const split = new SplitExpensesPage(page);
@@ -87,7 +125,6 @@ test.describe('juntadas', () => {
     await split.settleButton().click();
 
     await expect(page.getByText('Saldado')).toBeVisible();
-    await split.expandButton().click();
     await expect(page.getByRole('button', { name: 'Marcar como pendiente' })).toBeVisible();
   });
 
