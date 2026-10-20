@@ -580,5 +580,4 @@ export const SHADOW = {
   brand: { color: '#96786F', offsetY: 10, radius: 15, opacity: 0.2, elevation: 8 },
 } as const;
 
-export type BrandShade = keyof typeof BRAND;
 export type ColorScheme = keyof typeof SEMANTIC;

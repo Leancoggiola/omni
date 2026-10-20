@@ -4,23 +4,23 @@
 export const SERVER_WAKE_MAX_BACKOFF_MS = 8_000;
 
 /** Pausas iniciales entre sondeos del health: 2 s y 4 s; después se mantiene en el máximo (8 s). */
-export const SERVER_WAKE_BACKOFF_MS = [2_000, 4_000, SERVER_WAKE_MAX_BACKOFF_MS] as const;
+const SERVER_WAKE_BACKOFF_MS = [2_000, 4_000, SERVER_WAKE_MAX_BACKOFF_MS] as const;
 
 /** Tiempo máximo esperando que la API despierte antes de rendirse. */
-export const SERVER_WAKE_TIMEOUT_MS = 90_000;
+const SERVER_WAKE_TIMEOUT_MS = 90_000;
 
 /** Espera sin respuesta del primer sondeo tras la cual el aviso aparece igual: un corte breve no muestra nada, una espera larga sí. */
-export const SERVER_WAKE_NOTICE_DELAY_MS = 1_500;
+const SERVER_WAKE_NOTICE_DELAY_MS = 1_500;
 
 /** Tope de cada sondeo al health: un proxy dormido puede dejar la conexión colgada. */
-export const SERVER_WAKE_PROBE_TIMEOUT_MS = 10_000;
+const SERVER_WAKE_PROBE_TIMEOUT_MS = 10_000;
 
 export const SERVER_REQUEST_TIMEOUT_MS = 30_000;
 export const SERVER_MUTATION_TIMEOUT_MS = 100_000;
 
 export const SERVER_WAKE_MESSAGE = 'Despertando el servidor, puede tardar hasta un minuto y medio…';
-export const SERVER_WAKE_FAILURE_MESSAGE = 'El servidor no responde. Probá de nuevo en unos minutos.';
-export const SERVER_WAKE_FAILURE_STATUS = 503;
+const SERVER_WAKE_FAILURE_MESSAGE = 'El servidor no responde. Probá de nuevo en unos minutos.';
+const SERVER_WAKE_FAILURE_STATUS = 503;
 export const SERVER_TIMEOUT_MESSAGE =
   'El servidor tardó demasiado en responder. Revisá tu conexión e intentá de nuevo.';
 export const SERVER_GATEWAY_TIMEOUT_MESSAGE =
@@ -38,7 +38,7 @@ type ResponseLike = {
 const PLATFORM_STATUSES = [502, 503, 504];
 
 /** Pausa antes del sondeo número `attempt` (desde 0); después del último escalón se mantiene en 8 s. */
-export function nextWakeDelay(attempt: number): number {
+function nextWakeDelay(attempt: number): number {
   return SERVER_WAKE_BACKOFF_MS[Math.max(attempt, 0)] ?? SERVER_WAKE_MAX_BACKOFF_MS;
 }
 
@@ -49,7 +49,7 @@ export function nextWakeDelay(attempt: number): number {
  * Una respuesta JSON es siempre de la API, con cualquier status (un 502 por un fallo de Wikipedia o TMDB llega
  * con su mensaje). Lo demás (204, 304, 404 o texto) también se devuelve tal cual.
  */
-export function isApiResponse(res: ResponseLike): boolean {
+function isApiResponse(res: ResponseLike): boolean {
   const contentType = (res.headers.get('content-type') ?? '').toLowerCase();
   if (contentType.includes('application/json')) return true;
   return !(PLATFORM_STATUSES.includes(res.status) || contentType.includes('text/html'));
@@ -62,7 +62,7 @@ const IDEMPOTENT_METHODS = ['GET', 'HEAD', 'PUT', 'DELETE'];
  * red no dice si la API llegó a procesar el request antes de cortarse la conexión, así que solo se
  * reintenta en métodos idempotentes; en POST/PATCH el error se propaga.
  */
-export function isIdempotentMethod(method?: string): boolean {
+function isIdempotentMethod(method?: string): boolean {
   return IDEMPOTENT_METHODS.includes((method ?? 'GET').toUpperCase());
 }
 

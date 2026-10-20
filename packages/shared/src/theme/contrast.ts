@@ -7,7 +7,7 @@ function channel(value: number): number {
 }
 
 /** Luminancia relativa de WCAG para un color `#RRGGBB` (el alfa, si viene, se ignora). */
-export function relativeLuminance(hex: string): number {
+function relativeLuminance(hex: string): number {
   const rgb = /^#([0-9a-f]{6})(?:[0-9a-f]{2})?$/i.exec(hex)?.[1];
   if (!rgb) throw new Error(`relativeLuminance: se esperaba #RRGGBB, llegó "${hex}"`);
   const n = parseInt(rgb, 16);

@@ -2,4 +2,4 @@ export type { SessionUser, ProfileResponse, Role, AuthTokensResponse } from './t
 export { ROLE_LABELS } from './types';
 export { toSessionUser } from './session';
 export { loginSchema, createUserSchema, createUserFormSchema, usernameSchema, refreshTokenBodySchema } from './schemas';
-export type { LoginPayload, CreateUserPayload, CreateUserFormValues, RefreshTokenBody } from './schemas';
+export type { LoginPayload, CreateUserPayload, CreateUserFormValues } from './schemas';

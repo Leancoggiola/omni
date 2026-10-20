@@ -84,5 +84,3 @@ export type SnoozeExpenseReminderPayload = z.infer<typeof snoozeExpenseReminderS
 export const listRemindersSchema = z.object({
   status: z.enum(EXPENSE_REMINDER_STATUSES).optional(),
 });
-
-export type ListRemindersParams = z.infer<typeof listRemindersSchema>;
