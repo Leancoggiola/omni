@@ -1,19 +1,12 @@
 import type { CreateGatheringPayload, NewGatheringFormValues } from '@omni/shared/split-expenses';
 
+import { appDateKey } from '@omni/shared/common';
 import { newGatheringFormSchema } from '@omni/shared/split-expenses';
-
-/** Local YYYY-MM-DD for today, used as the default gathering date. */
-export function todayIsoDate(now = new Date()): string {
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 export function createInitialNewGatheringValues(): NewGatheringFormValues {
   return {
     name: '',
-    date: todayIsoDate(),
+    date: appDateKey(),
     participants: [],
   };
 }

@@ -63,7 +63,13 @@ export const FriendRow: FC<FriendRowProps> = ({ friend, onUpdate, onDelete }) =>
         <ActionIcon variant="subtle" color="gray" aria-label="Editar" onClick={() => setEditing(true)}>
           <PencilSimpleIcon size="1rem" />
         </ActionIcon>
-        <ActionIcon variant="subtle" color="red" aria-label="Eliminar" loading={deleting} onClick={handleDelete}>
+        <ActionIcon
+          variant="subtle"
+          color="destructive"
+          aria-label="Eliminar"
+          loading={deleting}
+          onClick={handleDelete}
+        >
           <TrashIcon size="1rem" />
         </ActionIcon>
       </Group>

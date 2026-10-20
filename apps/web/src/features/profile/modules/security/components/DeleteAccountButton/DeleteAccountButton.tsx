@@ -14,7 +14,7 @@ export const DeleteAccountButton: FC<DeleteAccountButtonProps> = ({ onDelete }) 
     const confirmed = await confirm({
       title: 'Eliminar cuenta',
       description:
-        '¿Seguro que quieres eliminar tu cuenta? Esta acción no se puede deshacer. Se borrarán todos tus datos de forma permanente.',
+        '¿Seguro que querés eliminar tu cuenta? Esta acción no se puede deshacer. Se borrarán todos tus datos de forma permanente.',
       confirmLabel: 'Sí, eliminar mi cuenta',
     });
 
@@ -33,7 +33,7 @@ export const DeleteAccountButton: FC<DeleteAccountButtonProps> = ({ onDelete }) 
   return (
     <Paper>
       <Group justify="space-between" align="center" wrap="wrap" gap="md">
-        <Stack gap={2}>
+        <Stack gap="3xs">
           <Text fw={600}>¿Eliminar tu cuenta?</Text>
           <Text c="dimmed" size="sm">
             Se borran todos tus datos de forma permanente. Esta acción no se puede deshacer.

@@ -138,7 +138,7 @@ export const ParticipantPicker: FC<ParticipantPickerProps> = ({ participants, on
       </Group>
 
       {error && (
-        <Text size="xs" c="red">
+        <Text size="xs" c="error">
           {error}
         </Text>
       )}
