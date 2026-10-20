@@ -17,8 +17,7 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <RootLayout />,
-        errorElement: routeErrorElement,
-        children: protectedRoutes,
+        children: [{ errorElement: routeErrorElement, children: protectedRoutes }],
       },
     ],
   },
@@ -28,8 +27,7 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AuthLayout />,
-        errorElement: routeErrorElement,
-        children: guestRoutes,
+        children: [{ errorElement: routeErrorElement, children: guestRoutes }],
       },
     ],
   },
