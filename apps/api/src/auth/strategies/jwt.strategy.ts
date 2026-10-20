@@ -3,7 +3,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Request } from 'express';
 import { config, JWT_ALGORITHM } from '../../config';
 
-export interface JwtPayload {
+interface JwtPayload {
   sub: string;
   username: string;
   role: string;

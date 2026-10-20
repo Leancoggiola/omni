@@ -9,7 +9,7 @@ import { REFRESH_COOKIE } from '../../common/utils/cookies';
  * cookie (web). Nunca rechaza: el logout responde igual sin token, y el service decide si el token es válido.
  * El header `Authorization` se ignora, así un access token vencido no interfiere.
  */
-export function extractLogoutRefreshToken(req: Request): string | undefined {
+function extractLogoutRefreshToken(req: Request): string | undefined {
   const body = refreshTokenBodySchema.safeParse(req.body);
   if (body.success && body.data.refreshToken) return body.data.refreshToken;
 

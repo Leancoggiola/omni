@@ -96,7 +96,7 @@ async function pruneEmptyDay(db: PrismaTransactionClient, dayId: string) {
   if (remaining === 0) await db.gymPlanDay.delete({ where: { id: dayId } });
 }
 
-async function getPlanDetail(userId: string, planId: string): Promise<GymPlanDetail> {
+export async function getPlan(userId: string, planId: string): Promise<GymPlanDetail> {
   const plan = await prisma.gymPlan.findFirst({
     where: { id: planId, userId },
     include: planDetailInclude,
@@ -148,10 +148,6 @@ export async function listPlans(userId: string, params: ListGymPlansParams) {
   return { items: plans, total, page: params.page, limit: params.limit };
 }
 
-export async function getPlan(userId: string, planId: string) {
-  return getPlanDetail(userId, planId);
-}
-
 export async function createPlan(userId: string, dto: CreateGymPlanPayload) {
   const plan = await prisma.gymPlan.create({
     data: { userId, name: dto.name ?? null },
@@ -198,7 +194,7 @@ export async function addExercise(userId: string, dto: AddGymExercisePayload) {
     });
   });
 
-  return getPlanDetail(userId, dto.planId);
+  return getPlan(userId, dto.planId);
 }
 
 export async function updateExercise(userId: string, exerciseId: string, dto: UpdateGymExercisePayload) {
@@ -228,7 +224,7 @@ export async function updateExercise(userId: string, exerciseId: string, dto: Up
     if (move) await pruneEmptyDay(tx, exercise.dayId);
   });
 
-  return getPlanDetail(userId, exercise.day.planId);
+  return getPlan(userId, exercise.day.planId);
 }
 
 export async function updateExerciseWeight(userId: string, exerciseId: string, dto: UpdateGymExerciseWeightPayload) {

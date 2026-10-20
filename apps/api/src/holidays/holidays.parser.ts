@@ -61,7 +61,7 @@ const TRAILING_NOTE = /[.:]\s*\([^)]*\)/g;
 /** Corta el título en el primer punto seguido de mayúscula, con o sin espacio. */
 const TITLE_SPLIT = /^(.+?)\.\s*(?=[A-ZÁÉÍÓÚÑÜ])/;
 
-export interface ParsedHoliday {
+interface ParsedHoliday {
   title: string;
   isArgentina: boolean;
 }
