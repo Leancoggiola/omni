@@ -7,22 +7,18 @@ import { useSemanticColors } from '@/core/theme';
 import { IconButton } from './button/IconButton';
 import { Title } from './Title';
 
-import type { ReactNode } from 'react';
-
 const CHIP_SIZE = 44;
 
 type ScreenHeaderProps = {
   icon: Icon;
   title: string;
   subtitle?: string;
-  /** Se muestra en el borde opuesto: botones, avatar, etc. */
-  actions?: ReactNode;
   /** Pantallas de stack (Perfil): agrega un `IconButton` de volver antes del chip. */
   onBack?: () => void;
 };
 
-/** Equivalente de `PageHeader` de web: chip de ícono terracota + título + subtítulo + acciones. */
-export function ScreenHeader({ icon: IconComponent, title, subtitle, actions, onBack }: ScreenHeaderProps) {
+/** Equivalente de `PageHeader` de web: chip de ícono terracota + título + subtítulo. */
+export function ScreenHeader({ icon: IconComponent, title, subtitle, onBack }: ScreenHeaderProps) {
   const colors = useSemanticColors();
 
   return (
@@ -50,7 +46,6 @@ export function ScreenHeader({ icon: IconComponent, title, subtitle, actions, on
           ) : null}
         </YStack>
       </XStack>
-      {actions}
     </XStack>
   );
 }

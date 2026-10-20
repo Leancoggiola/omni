@@ -1,7 +1,7 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect } from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { Paragraph, XStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 
@@ -13,13 +13,7 @@ type BannerProps = {
   /** Solo texto: el Banner se anuncia y se lee como un único nodo, no lleva acciones adentro. */
   children: string;
   color?: BannerColor;
-  title?: string;
   icon?: Icon;
-  /**
-   * Anunciar el texto al montar o cambiar (default). `false` para un aviso fijo de la pantalla, que
-   * el lector ya encuentra al recorrerla.
-   */
-  announce?: boolean;
 };
 
 type SemanticColors = ReturnType<typeof useSemanticColors>;
@@ -48,14 +42,13 @@ const ICON_COLOR = {
  * Equivalente de `Alert` de web (variante `light-custom`, la que tiene por defecto): wash del color,
  * borde de 1 y texto en el color. Para errores de formulario: `<Banner color="destructive">`.
  */
-export function Banner({ children, color = 'brand', title, icon: IconComponent, announce = true }: BannerProps) {
+export function Banner({ children, color = 'brand', icon: IconComponent }: BannerProps) {
   const colors = useSemanticColors();
   const t = BANNER_TOKENS[color];
-  const announcement = title ? `${title}. ${children}` : children;
 
   useEffect(() => {
-    if (announce) AccessibilityInfo.announceForAccessibility(announcement);
-  }, [announce, announcement]);
+    AccessibilityInfo.announceForAccessibility(children);
+  }, [children]);
 
   return (
     <XStack
@@ -66,22 +59,15 @@ export function Banner({ children, color = 'brand', title, icon: IconComponent, 
       paddingVertical={SPACING.sm}
       paddingHorizontal={SPACING.md}
       gap={SPACING.sm}
-      alignItems={title ? 'flex-start' : 'center'}
+      alignItems="center"
       accessible
       accessibilityRole="alert"
-      accessibilityLabel={announcement}
+      accessibilityLabel={children}
     >
       {IconComponent ? <IconComponent size={20} color={ICON_COLOR[color](colors)} /> : null}
-      <YStack flex={1} gap={SPACING['2xs']}>
-        {title ? (
-          <Paragraph color={t.text} fontSize={FONT_SIZE.md} fontWeight="700">
-            {title}
-          </Paragraph>
-        ) : null}
-        <Paragraph color={title ? '$color' : t.text} fontSize={FONT_SIZE.md}>
-          {children}
-        </Paragraph>
-      </YStack>
+      <Paragraph flex={1} color={t.text} fontSize={FONT_SIZE.md}>
+        {children}
+      </Paragraph>
     </XStack>
   );
 }

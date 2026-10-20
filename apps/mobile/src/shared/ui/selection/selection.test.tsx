@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
-import { Chip } from './Chip';
 import { SegmentedControl } from './SegmentedControl';
 
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
@@ -45,40 +44,6 @@ describe('SegmentedControl', () => {
     render(<SegmentedControl data={STATUSES} value="all" onChange={onChange} disabled />);
 
     fireEvent.press(screen.getByRole('radio', { name: 'Vista', disabled: true }));
-    expect(onChange).not.toHaveBeenCalled();
-  });
-});
-
-describe('Chip', () => {
-  it('es un checkbox que alterna su estado', () => {
-    const onChange = jest.fn();
-    const { rerender } = render(
-      <Chip checked={false} onChange={onChange}>
-        Películas
-      </Chip>
-    );
-
-    fireEvent.press(screen.getByRole('checkbox', { name: 'Películas', checked: false }));
-    expect(onChange).toHaveBeenLastCalledWith(true);
-
-    rerender(
-      <Chip checked onChange={onChange}>
-        Películas
-      </Chip>
-    );
-    fireEvent.press(screen.getByRole('checkbox', { name: 'Películas', checked: true }));
-    expect(onChange).toHaveBeenLastCalledWith(false);
-  });
-
-  it('deshabilitado no cambia', () => {
-    const onChange = jest.fn();
-    render(
-      <Chip checked={false} onChange={onChange} disabled>
-        Series
-      </Chip>
-    );
-
-    fireEvent.press(screen.getByRole('checkbox', { name: 'Series', disabled: true }));
     expect(onChange).not.toHaveBeenCalled();
   });
 });
