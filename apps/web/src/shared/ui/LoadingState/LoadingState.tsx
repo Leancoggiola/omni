@@ -1,10 +1,10 @@
 import { FC } from 'react';
-import { Center, Loader, MantineSize } from '@mantine/core';
+import { Center, Loader, MantineSize, MantineSpacing } from '@mantine/core';
 
 interface LoadingStateProps {
   size?: MantineSize;
   /** Vertical padding, matches the surrounding block spacing. */
-  py?: MantineSize;
+  py?: MantineSpacing;
 }
 
 export const LoadingState: FC<LoadingStateProps> = ({ size = 'md', py = 'xl' }) => (

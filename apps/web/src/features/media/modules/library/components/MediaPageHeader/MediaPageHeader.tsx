@@ -28,13 +28,13 @@ export const MediaPageHeader: FC<MediaPageHeaderProps> = ({ onAdd, displayMode, 
             size="sm"
             color="brand.6"
             bg="var(--mantine-color-default)"
-            styles={{ label: { padding: '4px' } }}
+            styles={{ label: { padding: 'var(--mantine-spacing-2xs)' } }}
             data={[
               {
                 value: 'grid',
                 label: (
                   <Center>
-                    <GridFourIcon size={20} />
+                    <GridFourIcon size="1.25rem" />
                   </Center>
                 ),
               },
@@ -42,7 +42,7 @@ export const MediaPageHeader: FC<MediaPageHeaderProps> = ({ onAdd, displayMode, 
                 value: 'list',
                 label: (
                   <Center>
-                    <ListIcon size={20} />
+                    <ListIcon size="1.25rem" />
                   </Center>
                 ),
               },

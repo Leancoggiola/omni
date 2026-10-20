@@ -1,12 +1,11 @@
-import { Avatar } from '@mantine/core';
+import { Avatar, type AvatarProps } from '@mantine/core';
 
 import logoUrl from '@/assets/logo.png';
 
-import type { MantineSize } from '@mantine/core';
 import type { FC } from 'react';
 
 interface LogoAvatarProps {
-  size?: MantineSize | number;
+  size?: AvatarProps['size'];
   bg?: string;
 }
 

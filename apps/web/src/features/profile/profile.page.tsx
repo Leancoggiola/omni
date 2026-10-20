@@ -81,12 +81,12 @@ export const ProfilePage: FC = () => {
       <PageHeader
         icon={<UserIcon size="1.5rem" />}
         title="Mi Perfil"
-        subtitle="Gestiona tu información personal y preferencias"
+        subtitle="Gestioná tu información personal y preferencias"
       />
 
       <ProfileSettingsForm key={profile.updatedAt} profile={profile} isSaving={isMutating} onSave={handleSave} />
 
-      <ProfileSectionCard title="Cambiar contraseña" subtitle="Actualiza la contraseña de tu cuenta">
+      <ProfileSectionCard title="Cambiar contraseña" subtitle="Actualizá la contraseña de tu cuenta">
         <PasswordForm onSubmit={handleChangePassword} />
       </ProfileSectionCard>
 

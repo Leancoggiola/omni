@@ -25,7 +25,7 @@ export const Header: FC<HeaderProps> = ({ opened, onToggle }) => {
       <Group align="center" justify="space-between">
         <Burger opened={opened} onClick={onToggle} size="md" />
         <Group gap="xs">
-          <LogoAvatar size={32} />
+          <LogoAvatar size="2rem" />
           <Text fw={600}>Omni</Text>
         </Group>
         <Group>

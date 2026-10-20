@@ -50,6 +50,7 @@ describe('ProtectedRoute', () => {
 
     expect(screen.queryByText('Mi lista')).not.toBeInTheDocument();
     expect(screen.queryByText('Login desde /media')).not.toBeInTheDocument();
+    expect(screen.getByRole('status', { name: 'Cargando' })).toBeInTheDocument();
   });
 
   it('redirige al login, recordando la ruta, si no hay sesión ni error', () => {

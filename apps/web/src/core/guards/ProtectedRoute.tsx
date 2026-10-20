@@ -1,9 +1,9 @@
 import { FC } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Center, Container, Loader } from '@mantine/core';
+import { Center, Container } from '@mantine/core';
 
 import { ApiError } from '@/shared/api';
-import { ErrorState } from '@/shared/ui';
+import { ErrorState, LoadingState } from '@/shared/ui';
 
 import { useAuth } from '../auth';
 
@@ -18,7 +18,7 @@ export const ProtectedRoute: FC = () => {
   if (isLoading) {
     return (
       <Center h="100vh">
-        <Loader />
+        <LoadingState py="none" />
       </Center>
     );
   }

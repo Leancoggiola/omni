@@ -6,7 +6,7 @@ import { Paragraph, XStack } from 'tamagui';
 import { useSemanticColors } from '@/core/theme';
 
 /**
- * Mismos tokens que el Select de estado de web (`.combobox_root[data-*]`): por ver es neutro,
+ * Mismos tokens que el Select de estado de web (`MediaStatusSelect.module.scss`): por ver es neutro,
  * viendo es terracota y vista es sage.
  */
 const STATUS_TOKENS = {
