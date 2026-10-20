@@ -267,6 +267,27 @@ describe('errores de entrada (integration)', () => {
   });
 
   describe('guards', () => {
+    it('una ruta protegida autentica con el JWT de la cookie de acceso', async () => {
+      const token = authHeader(toJwtUser(user)).replace('Bearer ', '');
+
+      const res = await request(app).get('/api/users/profile').set('Cookie', `access_token=${token}`);
+
+      expect(res.status).toBe(200);
+    });
+
+    it('un JWT inválido responde 401 con el formato de error estándar', async () => {
+      const res = await request(app).get('/api/users/profile').set('Authorization', 'Bearer no-es-un-jwt');
+
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ statusCode: 401, message: expect.any(String) });
+    });
+
+    it('DELETE /media/list/:id autentica antes de validar el id', async () => {
+      const res = await request(app).delete(`/api/media/list/${'a'.repeat(65)}`);
+
+      expect(res.status).toBe(401);
+    });
+
     it('requireAdmin responde 403 con el formato de error estándar', async () => {
       const res = await request(app).get('/api/admin/users').set('Authorization', auth);
 
