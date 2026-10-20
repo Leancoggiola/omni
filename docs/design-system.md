@@ -22,7 +22,7 @@ Reglas:
 
 - **Nunca blanco puro ni gris frío** como fondo de página o card. El patrón es _canvas cálido + card cálida un tono más clara_.
 - **`BRAND` vs `TERRACOTTA`**: brand es la estructura (nav activo, títulos, gradiente principal); terracota es el acento puntual. Si todo es terracota deja de ser acento.
-- **Nada de verdes/azules crudos de Mantine.** `color="green"` o `color="blue"` rompen la paleta — usar los alias semánticos (`success`, `info`, `warning`, `destructive`).
+- **Nada de verdes/azules crudos de Mantine.** `color="green"` o `color="blue"` rompen la paleta — usar los alias semánticos (`success`, `info`, `warning`, `destructive`). En web, ESLint marca los literales `color`/`c`/`bg` con un color por defecto de Mantine (`red`, `blue`…), pero es una red parcial: no ve expresiones (`color={cond ? 'red' : 'blue'}`), spreads ni `gray`/`dark`, que se usan a propósito para controles neutros (`gray` = `dimmed`).
 
 ---
 
