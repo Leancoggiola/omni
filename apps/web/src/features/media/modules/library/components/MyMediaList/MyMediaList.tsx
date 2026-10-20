@@ -15,6 +15,7 @@ interface MyMediaListProps {
   items: MediaItem[] | undefined;
   isLoading: boolean;
   error?: unknown;
+  onRetry: () => void | Promise<unknown>;
   searchText: string;
   displayMode: string;
   onAdd: () => void;
@@ -26,6 +27,7 @@ export const MyMediaList: FC<MyMediaListProps> = ({
   items,
   isLoading,
   error,
+  onRetry,
   searchText,
   displayMode,
   onAdd,
@@ -44,7 +46,7 @@ export const MyMediaList: FC<MyMediaListProps> = ({
   }, [items, searchText]);
 
   if (error) {
-    return <ErrorState message="No se pudo cargar tu lista" />;
+    return <ErrorState message="No se pudo cargar tu lista" onRetry={onRetry} />;
   }
 
   if (isLoading) {

@@ -122,13 +122,14 @@ const updateStatus = useCallback(
 
 ### Invalidar varias keys
 
-Solo cuando un write tiene que invalidar keys distintas (no es el camino preferido para la lista de media):
+Solo cuando un write tiene que invalidar keys distintas (no es el camino preferido para la lista de media). Se pasa **solo el filtro**: SWR revalida y conserva la data visible.
 
 ```ts
-mutate((key: unknown) => typeof key === 'string' && key.startsWith(SWR_KEYS.media.list), undefined, {
-  revalidate: true,
-});
+mutate((key: unknown) => typeof key === 'string' && key.startsWith(SWR_KEYS.splitExpenses.gatherings));
 ```
+
+- Nunca `mutate(key, undefined, { revalidate: true })`: con 3 argumentos SWR 2.4 no revalida, escribe `data: undefined` (borra la data cacheada) y la UI vuelve a `LoadingState` en cada write.
+- Un filtro `startsWith` ya cubre las keys hijas (`gathering(id)` cuelga de `gatherings`): no invalidar además la key puntual. Si el write borra el recurso, excluir su key del filtro (`key !== gathering(id)`) para no pedir un detalle que ya no existe (404).
 
 ## Auth vs perfil — dos caches, dos shapes
 
@@ -162,3 +163,8 @@ mutate((key: unknown) => typeof key === 'string' && key.startsWith(SWR_KEYS.medi
 - Importar el `mutate` global de `swr`: usar el bound de `useSWR`/`useSWRImmutable` o `useSWRConfig`.
 - Armar query strings con `URLSearchParams`: usar `buildQueryString`.
 - Usar `useSWRMutation` solo para invalidar: usar `useSWRConfig` + `startsWith`.
+- Invalidar con `mutate(key, undefined, { revalidate: true })`: ver "Invalidar varias keys". Usar `mutate(filtro)`.
+
+## Reintento en pantallas
+
+Todo hook de lectura que alimente un `ErrorState` expone `mutate` y la pantalla lo pasa como `onRetry` (el provider global tiene `shouldRetryOnError: false`). Se pasa la promesa (`() => mutate()`, sin `void`): `ErrorState` deja el botón en `loading` hasta que resuelve.

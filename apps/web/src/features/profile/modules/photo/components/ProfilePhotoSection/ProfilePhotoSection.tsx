@@ -17,6 +17,10 @@ interface ProfilePhotoSectionProps {
   avatarUrl: string | null;
 }
 
+/**
+ * Cambio de foto de perfil. Oculta (no se renderiza en `ProfilePage`) hasta que exista el endpoint de avatar (#39):
+ * hoy solo muestra una vista previa local que no se guarda.
+ */
 export const ProfilePhotoSection: FC<ProfilePhotoSectionProps> = ({ name, avatarUrl }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 

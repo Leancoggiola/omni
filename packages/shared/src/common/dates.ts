@@ -53,14 +53,30 @@ export function monthRange(month: string): { start: Date; end: Date } {
   return { start, end };
 }
 
+function lastDayOfMonth(year: number, monthIndex: number): number {
+  return new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+}
+
 /**
- * Advances a calendar date by one month, clamping to the last day when needed.
- * Uses UTC date components (@db.Date).
+ * Advances a calendar date to the next month on `anchorDay`, clamping to the last day of that month when needed.
+ * `anchorDay` is the day the recurrence started on (defaults to the day of `date`, i.e. "same day"): the clamp only
+ * applies to the result, so 31-ene → 28-feb → 31-mar instead of dragging the clamped 28 forward. Uses UTC date
+ * components (@db.Date).
  */
-export function addOneMonthSameDay(date: Date): Date {
+export function addOneMonthSameDay(date: Date, anchorDay = date.getUTCDate()): Date {
   const year = date.getUTCFullYear();
   const month = date.getUTCMonth();
-  const day = date.getUTCDate();
-  const lastDayOfTargetMonth = new Date(Date.UTC(year, month + 2, 0)).getUTCDate();
-  return new Date(Date.UTC(year, month + 1, Math.min(day, lastDayOfTargetMonth)));
+  return new Date(Date.UTC(year, month + 1, Math.min(anchorDay, lastDayOfMonth(year, month + 1))));
+}
+
+/**
+ * Next due date of a monthly recurrence: the first occurrence of `anchorDay` strictly after `date`. Equals
+ * `addOneMonthSameDay` unless the date was snoozed past its own occurrence (due 28-feb snoozed to 10-mar, anchor 30 →
+ * 30-mar, not 30-abr).
+ */
+export function nextMonthlyOccurrence(date: Date, anchorDay: number): Date {
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  const sameMonth = new Date(Date.UTC(year, month, Math.min(anchorDay, lastDayOfMonth(year, month))));
+  return sameMonth > date ? sameMonth : addOneMonthSameDay(date, anchorDay);
 }

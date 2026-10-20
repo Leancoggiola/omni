@@ -16,61 +16,26 @@ concurrency:
 
 env:
   NODE_VERSION: '22'
-  PNPM_VERSION: '10.11.0'
 
 jobs:
-  install:
-    name: Install
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      # Restaura y guarda con la misma acción: con cache/save fallaba cuando la key ya existía.
-      - uses: actions/cache@v6
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - run: pnpm install --frozen-lockfile
-
   lint:
     name: Lint
-    needs: [install]
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - uses: actions/cache/restore@v6
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
 
       - uses: actions/cache@v6
         with:
@@ -86,22 +51,23 @@ jobs:
 
   audit:
     name: Security Audit
-    needs: [install]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      # Excepciones en pnpm.auditConfig.ignoreCves de package.json:
+      - run: pnpm install --frozen-lockfile
+
+      # Excepciones en auditConfig.ignoreCves de pnpm-workspace.yaml:
       # - CVE-2025-71329/CVE-2025-71330 (image-size): dependencia del bundler de
       #   mobile (metro) que pide la 1.x; el fix es 2.x.
       # - CVE-2026-85393 (node-forge) y CVE-2026-93687 (braces): sin versión
@@ -129,29 +95,22 @@ jobs:
 
   check-types:
     name: Type Check
-    needs: [install]
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - uses: actions/cache/restore@v6
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
 
       - uses: actions/cache@v6
         with:
@@ -163,14 +122,13 @@ jobs:
 
   test:
     name: Test
-    needs: [install]
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
       # Contra esto corren los tests de integración. El puerto coincide con apps/api/.env.test.
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -184,23 +142,17 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - uses: actions/cache/restore@v6
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
 
       - uses: actions/cache@v6
         with:
@@ -221,7 +173,6 @@ jobs:
 
   e2e:
     name: E2E
-    needs: [install]
     # Solo en PR y en el nightly: levantar api + web es demasiado lento para cada push.
     if: github.event_name == 'pull_request' || github.event_name == 'schedule'
     # Bloqueante en PRs a main; informativo en PRs a develop y en el nightly.
@@ -231,7 +182,7 @@ jobs:
     services:
       # Puerto y nombre de base tomados de apps/api/.env.e2e.
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -245,23 +196,17 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - uses: actions/cache/restore@v6
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
 
       - id: playwright-version
         run: echo "version=$(node -p "require('./apps/e2e/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
@@ -295,23 +240,17 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - uses: actions/cache/restore@v6
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
 
       - uses: actions/cache@v6
         with:

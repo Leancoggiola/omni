@@ -1,3 +1,4 @@
+import { roundMoney } from '../common/money';
 import type { Settlement } from './types';
 
 export interface SettlementParticipantInput {
@@ -9,12 +10,6 @@ export interface SettlementParticipantInput {
 export interface ParticipantBalance extends SettlementParticipantInput {
   fairShare: number;
   balance: number;
-}
-
-const MONEY_SCALE = 100;
-
-function roundMoney(value: number): number {
-  return Math.round(value * MONEY_SCALE) / MONEY_SCALE;
 }
 
 export function computeBalances(participants: SettlementParticipantInput[], fairShare: number): ParticipantBalance[] {

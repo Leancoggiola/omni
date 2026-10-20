@@ -51,7 +51,7 @@ Ejemplo: `feat/#12-marcar-visto`.
 
 ### Convención de PR
 
-- Título: incluye `#N` (ej. `feat(#12): marcar película como vista`).
+- Título: `<type>(#N): descripción`, con `#N` como scope (ej. `feat(#12): marcar película como vista`). Lo valida el workflow **PR Title** porque semantic-release lee ese título (ver [commits-and-releases.md](../ops/commits-and-releases.md)). Los commits de la rama aceptan scope de paquete o `#N`.
 - Body: `Closes #N` o `Fixes #N` (template en `.github/pull_request_template.md`).
 
 ## Orden full-stack

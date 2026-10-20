@@ -13,12 +13,13 @@ interface GatheringListProps {
   items: GatheringSummary[];
   isLoading: boolean;
   error?: unknown;
+  onRetry: () => void | Promise<unknown>;
   onNewGathering: () => void;
 }
 
-export const GatheringList: FC<GatheringListProps> = ({ items, isLoading, error, onNewGathering }) => {
+export const GatheringList: FC<GatheringListProps> = ({ items, isLoading, error, onRetry, onNewGathering }) => {
   if (error) {
-    return <ErrorState message="No se pudieron cargar las juntadas" />;
+    return <ErrorState message="No se pudieron cargar las juntadas" onRetry={onRetry} />;
   }
 
   if (isLoading && items.length === 0) {

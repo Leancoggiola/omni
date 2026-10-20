@@ -8,7 +8,6 @@ import { ErrorState, LoadingState, PageHeader } from '@/shared/ui';
 import {
   DeleteAccountButton,
   PasswordForm,
-  ProfilePhotoSection,
   ProfileSectionCard,
   ProfileSettingsForm,
   useAccountActions,
@@ -20,7 +19,7 @@ import type { ChangePasswordPayload } from '@omni/shared/users';
 import { UserIcon } from '@phosphor-icons/react';
 
 export const ProfilePage: FC = () => {
-  const { profile, isLoading, isMutating, error, updateProfile, updatePreferences } = useProfile();
+  const { profile, isLoading, isMutating, error, mutate, updateProfile, updatePreferences } = useProfile();
   const { changePassword, deleteAccount } = useAccountActions();
   const { clearSession } = useAuth();
   const navigate = useNavigate();
@@ -70,7 +69,7 @@ export const ProfilePage: FC = () => {
   }
 
   if (error) {
-    return <ErrorState message="No se pudo cargar tu perfil" />;
+    return <ErrorState message="No se pudo cargar tu perfil" onRetry={() => mutate()} />;
   }
 
   if (!profile) {
@@ -84,8 +83,6 @@ export const ProfilePage: FC = () => {
         title="Mi Perfil"
         subtitle="Gestiona tu información personal y preferencias"
       />
-
-      <ProfilePhotoSection name={profile.name} avatarUrl={profile.avatarUrl} />
 
       <ProfileSettingsForm key={profile.updatedAt} profile={profile} isSaving={isMutating} onSave={handleSave} />
 

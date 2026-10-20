@@ -1,20 +1,22 @@
 services:
+  # Imagen de producción de la API, para probar el Dockerfile en local. Necesita apps/api/.env y espera al db.
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
     ports:
-      - '3000:3000'
+      - '127.0.0.1:3000:3000'
     env_file:
       - apps/api/.env
     depends_on:
       db:
         condition: service_healthy
 
+  # Base de desarrollo con datos persistentes (volumen pgdata). Sirve también para probar restauraciones de backup.
   db:
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -29,9 +31,9 @@ services:
 
   # Solo para tests de integración. Los datos viven en tmpfs y se borran al parar el contenedor.
   db-test:
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
     ports:
-      - '${DB_TEST_PORT:-5433}:5432'
+      - '127.0.0.1:${DB_TEST_PORT:-5433}:5432'
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -47,9 +49,9 @@ services:
 
   # Solo para la suite E2E. Separada de db-test para poder correr ambas suites a la vez.
   db-e2e:
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
     ports:
-      - '${DB_E2E_PORT:-5434}:5432'
+      - '127.0.0.1:${DB_E2E_PORT:-5434}:5432'
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

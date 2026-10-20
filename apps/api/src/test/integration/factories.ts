@@ -260,6 +260,7 @@ export async function createPersonalExpense(userId: string, options: CreatePerso
 export interface CreateExpenseReminderOptions {
   title?: string;
   dueDate?: Date;
+  anchorDay?: number;
   priority?: 'LOW' | 'MEDIUM' | 'HIGH';
   recurrence?: 'ONCE' | 'MONTHLY';
   status?: 'PENDING' | 'COMPLETED';
@@ -267,12 +268,14 @@ export interface CreateExpenseReminderOptions {
 
 export async function createExpenseReminder(userId: string, options: CreateExpenseReminderOptions = {}) {
   const id = nextId('reminder');
+  const dueDate = options.dueDate ?? new Date('2026-08-05T00:00:00.000Z');
   return prisma.expenseReminder.create({
     data: {
       id,
       userId,
       title: options.title ?? `Recordatorio ${id}`,
-      dueDate: options.dueDate ?? new Date('2026-08-05T00:00:00.000Z'),
+      dueDate,
+      anchorDay: options.anchorDay ?? dueDate.getUTCDate(),
       priority: options.priority ?? 'MEDIUM',
       recurrence: options.recurrence ?? 'MONTHLY',
       status: options.status ?? 'PENDING',

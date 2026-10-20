@@ -49,6 +49,7 @@ Flujo: `develop` → branch `feat/#N-…` / `fix/#N-…` → PR a `develop` → 
 7. **Referencias** — web: `home` / `media` / `profile`; mobile: mismas features bajo `apps/mobile/src/features/`.
 8. **Exploración transversal** — flujo o impacto cruzando `api`/`shared`/`web`/`mobile`: `codegraph_explore` (una sola llamada), nunca `sync` manual. Referencias de un símbolo dentro de un proyecto → Grep.
 9. **Comentarios** — solo JSDoc (`/** */`) como descripción de una función, componente o hook, justo encima de su declaración. Nada entre líneas: ni `//` ni `/* */`, ni JSDoc sobre campos de un tipo u objeto, constantes sueltas o líneas dentro del cuerpo de una función o de un test; lo que valga la pena va en el JSDoc de la función que lo usa (salvo directivas: `eslint-disable`, `@ts-expect-error`, `tamagui-ignore`).
+10. **Versiones exactas** — en todos los `package.json` van sin `^` ni `~`, salvo las que fija `expo install` (mobile). Al fijar una versión se usa la que ya resuelve el lockfile; no se sube de paso. La config de pnpm (`overrides`, `auditConfig`, `onlyBuiltDependencies`) vive en `pnpm-workspace.yaml`.
 
 ---
 
