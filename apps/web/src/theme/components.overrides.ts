@@ -12,7 +12,6 @@ export const componentOverrides = {
     navbar: styles.appshell_navbar,
   },
   combobox: {
-    root: styles.combobox_root,
     option: styles.combobox_option,
   },
   modal: {

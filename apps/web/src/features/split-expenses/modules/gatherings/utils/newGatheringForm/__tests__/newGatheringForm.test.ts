@@ -1,19 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  createInitialNewGatheringValues,
-  newGatheringFormSchema,
-  toCreateGatheringPayload,
-  todayIsoDate,
-} from '../newGatheringForm';
+import { createInitialNewGatheringValues, newGatheringFormSchema, toCreateGatheringPayload } from '../newGatheringForm';
 
 import type { NewGatheringFormValues } from '../newGatheringForm';
-
-describe('todayIsoDate', () => {
-  it('formats a date as YYYY-MM-DD with zero padding', () => {
-    expect(todayIsoDate(new Date(2026, 0, 5))).toBe('2026-01-05');
-  });
-});
 
 describe('createInitialNewGatheringValues', () => {
   it('starts empty with today as the date', () => {

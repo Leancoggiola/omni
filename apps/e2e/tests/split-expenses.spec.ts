@@ -71,7 +71,7 @@ test.describe('juntadas', () => {
     await expect(page.getByText('Carne')).toBeVisible();
     await expect(page.getByText('Total: $10.000,00')).toBeVisible();
 
-    const settlements = page.getByText('¿Quién le debe a quién?').locator('..');
+    const settlements = split.settlements();
     await expect(settlements).toContainText('Bruno');
     await expect(settlements).toContainText('Ana');
     await expect(settlements).toContainText('$5.000,00');
@@ -89,10 +89,12 @@ test.describe('juntadas', () => {
     await split.deleteExpenseButton().click();
     await expect(page.getByText('Esta acción no se puede deshacer.')).toBeVisible();
     await page.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(page.getByRole('dialog')).toBeHidden();
     await expect(page.getByText('Chorizos')).toBeVisible();
 
     await split.deleteExpenseButton().click();
     await page.getByRole('button', { name: 'Eliminar', exact: true }).click();
+    await expect(page.getByRole('dialog')).toBeHidden();
     await expect(page.getByText('Chorizos')).toBeHidden();
   });
 
@@ -138,6 +140,7 @@ test.describe('juntadas', () => {
     await split.optionsButton().click();
     await page.getByRole('menuitem', { name: 'Eliminar juntada' }).click();
     await page.getByRole('button', { name: 'Eliminar', exact: true }).click();
+    await expect(page.getByRole('dialog')).toBeHidden();
 
     await expect(page.getByText('Picada')).toBeHidden();
   });

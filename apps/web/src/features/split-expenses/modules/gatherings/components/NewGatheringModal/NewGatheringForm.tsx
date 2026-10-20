@@ -3,19 +3,20 @@ import { Alert, Button, Group, Stack, TextInput } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { schemaResolver, useForm } from '@mantine/form';
 
+import { DISPLAY_DATE_FORMAT } from '@/shared/dates';
 import { getErrorMessage } from '@/shared/ui';
 
 import {
   createInitialNewGatheringValues,
   newGatheringFormSchema,
   toCreateGatheringPayload,
-  todayIsoDate,
 } from '../../utils/newGatheringForm';
 import { ParticipantPicker } from './ParticipantPicker';
 
 import type { NewGatheringFormValues } from '../../utils/newGatheringForm';
 import type { CreateGatheringPayload } from '@omni/shared/split-expenses';
 
+import { appDateKey } from '@omni/shared/common';
 import { GATHERING_NAME_MAX } from '@omni/shared/split-expenses';
 
 interface NewGatheringFormProps {
@@ -62,8 +63,8 @@ export const NewGatheringForm: FC<NewGatheringFormProps> = ({ loading, onCreate,
         <DatePickerInput
           label="Fecha"
           placeholder="dd/mm/aaaa"
-          valueFormat="DD/MM/YYYY"
-          maxDate={todayIsoDate()}
+          valueFormat={DISPLAY_DATE_FORMAT}
+          maxDate={appDateKey()}
           {...form.getInputProps('date')}
         />
 

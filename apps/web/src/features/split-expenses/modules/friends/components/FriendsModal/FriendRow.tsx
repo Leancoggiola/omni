@@ -49,7 +49,7 @@ export const FriendRow: FC<FriendRowProps> = ({ friend, onUpdate, onDelete }) =>
 
   return (
     <Group justify="space-between" wrap="nowrap">
-      <Stack gap={0}>
+      <Stack gap="none">
         <Text size="sm" fw={600}>
           {friend.name}
         </Text>
@@ -60,10 +60,21 @@ export const FriendRow: FC<FriendRowProps> = ({ friend, onUpdate, onDelete }) =>
         )}
       </Stack>
       <Group gap="3xs" wrap="nowrap">
-        <ActionIcon variant="subtle" color="gray" aria-label="Editar" onClick={() => setEditing(true)}>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          aria-label={`Editar a ${friend.name}`}
+          onClick={() => setEditing(true)}
+        >
           <PencilSimpleIcon size="1rem" />
         </ActionIcon>
-        <ActionIcon variant="subtle" color="red" aria-label="Eliminar" loading={deleting} onClick={handleDelete}>
+        <ActionIcon
+          variant="subtle"
+          color="destructive"
+          aria-label={`Eliminar a ${friend.name}`}
+          loading={deleting}
+          onClick={handleDelete}
+        >
           <TrashIcon size="1rem" />
         </ActionIcon>
       </Group>

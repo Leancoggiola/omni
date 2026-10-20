@@ -1,8 +1,8 @@
 import { memo } from 'react';
-import { ActionIcon, Badge, Box, Card, Select, Stack, Text } from '@mantine/core';
+import { ActionIcon, Badge, Box, Card, Stack, Text } from '@mantine/core';
 
-import { MEDIA_STATUS_SELECT_DATA } from '../../utils/mediaStatusOptions';
 import { MediaPoster } from '../MediaPoster';
+import { MediaStatusSelect } from '../MediaStatusSelect';
 
 import type { MediaItem, MediaStatus } from '../../../_shared/types';
 
@@ -48,13 +48,11 @@ export const MediaCard = memo(function MediaCard({ item, onStatusChange, onDelet
         </Text>
 
         <Box mt="auto">
-          <Select
+          <MediaStatusSelect
             aria-label={`Estado de ${item.title}`}
-            data={MEDIA_STATUS_SELECT_DATA}
-            value={item.status}
-            onChange={val => val && onStatusChange(item.id, val as MediaStatus)}
+            status={item.status}
+            onStatusChange={status => onStatusChange(item.id, status)}
             size="sm"
-            mod={item.status}
           />
         </Box>
       </Stack>

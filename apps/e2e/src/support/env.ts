@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 
 /**
  * Valores compartidos por la config de Playwright y los fixtures.
- * Las credenciales del admin deben coincidir con `apps/api/.env.e2e`, que es lo que consume el seed.
+ * Las credenciales del admin se leen de `apps/api/.env.e2e`, que es también lo que consume el seed.
  */
 
 /**
@@ -37,7 +37,10 @@ export const EXTERNAL_STUB_URL = `http://127.0.0.1:${STUB_PORT}`;
 /** Lee una variable de apps/api/.env.e2e, la única fuente de las credenciales y el nombre de la base. */
 function readApiEnvE2e(name: string): string {
   const file = readFileSync(new URL('../../../api/.env.e2e', import.meta.url), 'utf8');
-  const value = file.match(new RegExp('^' + name + '=(.+)$', 'm'))?.[1]?.trim();
+  const value = file
+    .match(new RegExp('^' + name + '=(.+)$', 'm'))?.[1]
+    ?.trim()
+    .replace(/^["']|["']$/g, '');
   if (!value) throw new Error('Falta ' + name + ' en apps/api/.env.e2e');
   return value;
 }
@@ -73,8 +76,8 @@ export const WEB_ENV: Record<string, string> = {
 };
 
 export const ADMIN = {
-  username: 'e2eadmin',
-  password: 'e2eadminpassword',
+  username: readApiEnvE2e('ADMIN_USERNAME'),
+  password: readApiEnvE2e('ADMIN_PASSWORD'),
 };
 
 /** usernameSchema exige 6-20 caracteres alfanuméricos, sin guiones ni guiones bajos. */
