@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react-native';
+import { WarningCircleIcon } from 'phosphor-react-native';
 import { AccessibilityInfo } from 'react-native';
 
 import { Badge } from './Badge';
@@ -34,5 +35,16 @@ describe('Banner', () => {
     expect(screen.getByRole('alert', { name: 'Usuario o contraseña incorrectos' })).toBeTruthy();
     expect(screen.getByText('Usuario o contraseña incorrectos')).toHaveProp('color', '$destructive');
     expect(announce).toHaveBeenCalledWith('Usuario o contraseña incorrectos');
+  });
+
+  it('con ícono sigue siendo una alerta con el mensaje', () => {
+    render(
+      <Banner color="info" icon={WarningCircleIcon}>
+        Modo de prueba
+      </Banner>
+    );
+
+    expect(screen.getByRole('alert', { name: 'Modo de prueba' })).toBeTruthy();
+    expect(screen.getByText('Modo de prueba')).toHaveProp('color', '$info');
   });
 });

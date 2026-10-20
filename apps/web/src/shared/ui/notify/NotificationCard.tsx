@@ -4,14 +4,13 @@ import type { FC, ReactNode } from 'react';
 
 import styles from './NotificationCard.module.scss';
 
-import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon } from '@phosphor-icons/react';
+import { CheckCircleIcon, InfoIcon, WarningIcon, XIcon } from '@phosphor-icons/react';
 
-export type NotificationVariant = 'success' | 'error' | 'warning' | 'info';
+export type NotificationVariant = 'success' | 'error' | 'info';
 
 const VARIANT_ICON: Record<NotificationVariant, ReactNode> = {
   success: <CheckCircleIcon weight="fill" size="1.125rem" />,
   error: <WarningIcon weight="fill" size="1.125rem" />,
-  warning: <WarningCircleIcon weight="fill" size="1.125rem" />,
   info: <InfoIcon weight="fill" size="1.125rem" />,
 };
 
