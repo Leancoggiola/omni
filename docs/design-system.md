@@ -143,7 +143,7 @@ Los dos clientes tienen `@/shared/ui` con la misma API; cambia la implementació
 
 | Web (Mantine)                                | Mobile (`@/shared/ui`)                       | Notas                                                                                                                         |
 | -------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `PageHeader`                                 | `ScreenHeader`                               | Chip de ícono terracota + título + subtítulo + `actions`                                                                      |
+| `PageHeader`                                 | `ScreenHeader`                               | Chip de ícono terracota + título + subtítulo                                                                                  |
 | `Paper` / `ProfileSectionCard`               | `SectionCard`                                | Card cálida, radio `lg`, sombra `sm`                                                                                          |
 | `Title order`                                | `Title order`                                | Escala `HEADING`                                                                                                              |
 | `Button`                                     | `Button`                                     | Mismas `variant` (filled · outline · light · subtle). `color`: brand · destructive. sm 36 / md 44 / lg 50 dp (web md = 42 px) |
@@ -152,8 +152,7 @@ Los dos clientes tienen `@/shared/ui` con la misma API; cambia la implementació
 | `PasswordInput`                              | `PasswordField`                              | Ojo para mostrar u ocultar                                                                                                    |
 | `Switch`                                     | `Switch`                                     | Con `label` arma la fila (texto a la izquierda, switch a la derecha)                                                          |
 | `SegmentedControl size="sm" color="brand.6"` | `SegmentedControl`                           | Mismo `data` (strings u objetos); siempre a lo ancho                                                                          |
-| `Chip`                                       | `Chip`                                       | Variante light: marcado en `primarySurface` con check                                                                         |
-| `Badge`                                      | `Badge`                                      | `color`: brand · accent · success · destructive · dimmed. Tipo de media = `accent` filled sm                                  |
+| `Badge`                                      | `Badge`                                      | `color` obligatorio: accent · dimmed. Tipo de media = `accent` filled sm                                                      |
 | `Alert` (`light-custom`)                     | `Banner`                                     | Mismo wash y borde por color; error de formulario = `color="destructive"`                                                     |
 | `Select`                                     | `Select`                                     | Campo de 44 dp con el valor y el caret; las opciones abren un `actionSheet()`                                                 |
 | `Menu` / opciones sueltas                    | `actionSheet()`                              | Opciones en bottom sheet, check en la actual + "Cancelar"; `Promise` con el `value` o `null`                                  |
@@ -168,7 +167,7 @@ Diferencias aceptadas: en mobile los botones de acción van a lo ancho (`fullWid
 
 ### Notificaciones
 
-`notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` desde `@/shared/ui`. En web las features **no** importan `@mantine/notifications` directo; en mobile **no** usan `Alert.alert`.
+`notifySuccess` / `notifyError` desde `@/shared/ui` (mobile suma `notifyWarning`). En web las features **no** importan `@mantine/notifications` directo; en mobile **no** usan `Alert.alert`.
 
 Mismo diseño en las dos plataformas (#68): **abajo** (web `bottom-center`; mobile encima de la tab bar, que le informa su alto con `useSetNotificationsBottomOffset` desde `MeasuredTabBar` mientras las tabs tienen el foco; si no, sobre el inset inferior o encima del teclado), **compacto** (padding xs/sm, título 12/700, mensaje 12 dimmed, X chica), **ícono suelto sin chip** y lavado **D**: una barra de 3 px del color del estado a la izquierda y el lavado horizontal que se desvanece al 90 %.
 

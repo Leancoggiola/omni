@@ -52,29 +52,7 @@ async function loadParticipantTotals(gatheringIds: string[]): Promise<Map<string
   return new Map(rows.map(row => [row.participantId, roundMoney(decimalToNumber(row._sum.amount) ?? 0)]));
 }
 
-/**
- * Resumen de las juntadas sin saldar que tienen deudas, de la más reciente a la más vieja. Fuente única del digest de
- * notificaciones.
- */
-export async function listUnsettledGatheringDebts(userId: string) {
-  const gatherings = await prisma.gathering.findMany({
-    where: { userId, isSettled: false },
-    include: { participants: { select: { id: true, displayName: true } } },
-    orderBy: { date: 'desc' },
-  });
-  const totals = await loadParticipantTotals(gatherings.map(g => g.id));
-
-  return gatherings
-    .map(g => {
-      const { totalAmount, hasDebts } = summarizeGatheringPayments(
-        g.participants.map(p => ({ id: p.id, displayName: p.displayName, totalPaid: totals.get(p.id) ?? 0 }))
-      );
-      return { id: g.id, name: g.name, totalAmount, hasDebts };
-    })
-    .filter(g => g.hasDebts);
-}
-
-async function buildGatheringDetail(userId: string, gatheringId: string): Promise<GatheringDetail> {
+export async function getGathering(userId: string, gatheringId: string): Promise<GatheringDetail> {
   const gathering = await prisma.gathering.findFirst({
     where: { id: gatheringId, userId },
     include: {
@@ -255,10 +233,6 @@ export async function listGatherings(userId: string, params: ListGatheringsParam
   return { items, total, page: params.page, limit: params.limit };
 }
 
-export async function getGathering(userId: string, gatheringId: string) {
-  return buildGatheringDetail(userId, gatheringId);
-}
-
 export async function createGathering(userId: string, dto: CreateGatheringPayload) {
   const friendIds = dto.participants.filter((p): p is { friendId: string } => 'friendId' in p).map(p => p.friendId);
 
@@ -290,7 +264,7 @@ export async function createGathering(userId: string, dto: CreateGatheringPayloa
     },
   });
 
-  return buildGatheringDetail(userId, gathering.id);
+  return getGathering(userId, gathering.id);
 }
 
 export async function toggleGatheringSettled(userId: string, gatheringId: string, dto: ToggleGatheringSettledPayload) {
@@ -305,7 +279,7 @@ export async function toggleGatheringSettled(userId: string, gatheringId: string
     },
   });
 
-  return buildGatheringDetail(userId, gatheringId);
+  return getGathering(userId, gatheringId);
 }
 
 export async function deleteGathering(userId: string, gatheringId: string) {
@@ -334,7 +308,7 @@ export async function addGatheringExpense(userId: string, gatheringId: string, d
     },
   });
 
-  return buildGatheringDetail(userId, gatheringId);
+  return getGathering(userId, gatheringId);
 }
 
 export async function deleteGatheringExpense(userId: string, gatheringId: string, expenseId: string) {

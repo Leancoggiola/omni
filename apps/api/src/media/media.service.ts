@@ -2,7 +2,6 @@ import type { AddMediaItemPayload, FilterMediaParams, UpdateMediaItemPayload } f
 
 import { prisma } from '../common/db';
 import * as tmdbService from './tmdb.service';
-import { recalculateStats } from '../users/stats.service';
 
 export async function search(query: string, page: number, type: string) {
   switch (type) {
@@ -54,8 +53,6 @@ export async function addToList(userId: string, dto: AddMediaItemPayload) {
     },
   });
 
-  await recalculateStats(userId);
-
   return item;
 }
 
@@ -84,8 +81,6 @@ export async function updateStatus(userId: string, itemId: string, dto: UpdateMe
     data: { status: dto.status },
   });
 
-  await recalculateStats(userId);
-
   return updated;
 }
 
@@ -99,6 +94,4 @@ export async function removeFromList(userId: string, itemId: string): Promise<vo
   }
 
   await prisma.mediaItem.delete({ where: { id: itemId } });
-
-  await recalculateStats(userId);
 }

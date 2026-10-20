@@ -6,7 +6,6 @@ export interface GatheringSettlementSummary {
   totalAmount: number;
   fairShare: number;
   settlements: Settlement[];
-  hasDebts: boolean;
 }
 
 export function summarizeGatheringPayments(participants: SettlementParticipantInput[]): GatheringSettlementSummary {
@@ -17,6 +16,5 @@ export function summarizeGatheringPayments(participants: SettlementParticipantIn
     totalAmount,
     fairShare,
     settlements,
-    hasDebts: settlements.length > 0,
   };
 }

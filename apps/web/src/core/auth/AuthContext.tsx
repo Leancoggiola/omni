@@ -11,7 +11,6 @@ export type { SessionUser };
 
 export interface AuthContextValue {
   user: SessionUser | null;
-  isAuthenticated: boolean;
   isLoading: boolean;
   error: Error | undefined;
   login: (username: string, password: string) => Promise<void>;
@@ -30,7 +29,6 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const { mutate: globalMutate } = useSWRConfig();
 
   const user = data?.user ?? null;
-  const isAuthenticated = !!data?.user;
 
   /**
    * Vacía toda la caché de SWR, la de sesión incluida: `useSWRImmutable` no revalida, así que lo que quede
@@ -81,8 +79,8 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   }, [clearSession]);
 
   const value = useMemo(
-    () => ({ user, isAuthenticated, isLoading, error, login, logout, clearSession, retry }),
-    [user, isAuthenticated, isLoading, error, login, logout, clearSession, retry]
+    () => ({ user, isLoading, error, login, logout, clearSession, retry }),
+    [user, isLoading, error, login, logout, clearSession, retry]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

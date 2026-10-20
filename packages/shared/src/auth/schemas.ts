@@ -61,4 +61,3 @@ export const refreshTokenBodySchema = z
     refreshToken: z.string().min(1).max(TOKEN_MAX_LENGTH).optional(),
   })
   .default({});
-export type RefreshTokenBody = z.infer<typeof refreshTokenBodySchema>;

@@ -165,26 +165,6 @@ async function main() {
     console.log('ℹ️  Skipping sample media items (production environment).');
   }
 
-  for (const user of createdUsers) {
-    const existingStats = await prisma.userStats.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (!existingStats) {
-      await prisma.userStats.create({
-        data: {
-          userId: user.id,
-          totalMovies: 0,
-          totalTvShows: 0,
-          totalWatched: 0,
-          totalWatching: 0,
-          totalToWatch: 0,
-        },
-      });
-    }
-  }
-  console.log('✅ User stats created/verified.');
-
   console.log('\n🎉 Seed completed successfully!');
   await prisma.$disconnect();
 }

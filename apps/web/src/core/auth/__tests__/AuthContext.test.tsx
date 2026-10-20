@@ -104,7 +104,7 @@ describe('AuthProvider: sesión local y caché de SWR', () => {
 
   it('logout llama a /logout sin body y vacía toda la caché', async () => {
     const { result } = renderAuth();
-    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await waitFor(() => expect(result.current.auth.user).not.toBeNull());
     await seedMedia(result);
 
     await act(() => result.current.auth.logout());
@@ -117,7 +117,7 @@ describe('AuthProvider: sesión local y caché de SWR', () => {
   it('logout vacía la caché y no rechaza aunque el POST falle', async () => {
     vi.mocked(api.post).mockRejectedValueOnce(new ApiError('Servicio no disponible', 503));
     const { result } = renderAuth();
-    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await waitFor(() => expect(result.current.auth.user).not.toBeNull());
     await seedMedia(result);
 
     await act(async () => {
@@ -132,7 +132,7 @@ describe('AuthProvider: sesión local y caché de SWR', () => {
     const user = { id: 'u2', name: 'B', theme: 'light' };
     vi.mocked(api.post).mockResolvedValueOnce({ user, accessToken: 'access-secreto', refreshToken: 'refresh-secreto' });
     const { result } = renderAuth();
-    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await waitFor(() => expect(result.current.auth.user).not.toBeNull());
     await seedMedia(result);
 
     await act(() => result.current.auth.login('b', 'secreto'));
@@ -145,7 +145,7 @@ describe('AuthProvider: sesión local y caché de SWR', () => {
   it('un login fallido no toca la caché', async () => {
     vi.mocked(api.post).mockRejectedValueOnce(new ApiError('Credenciales inválidas', 401));
     const { result } = renderAuth();
-    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await waitFor(() => expect(result.current.auth.user).not.toBeNull());
     await seedMedia(result);
 
     await act(async () => {
@@ -153,12 +153,12 @@ describe('AuthProvider: sesión local y caché de SWR', () => {
     });
 
     expect(result.current.swr.cache.get(MEDIA_KEY)?.data).toEqual([{ id: 'de-A' }]);
-    expect(result.current.auth.isAuthenticated).toBe(true);
+    expect(result.current.auth.user).not.toBeNull();
   });
 
   it('clearSession vacía la caché sin llamar a la API', async () => {
     const { result } = renderAuth();
-    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await waitFor(() => expect(result.current.auth.user).not.toBeNull());
     await seedMedia(result);
 
     await act(() => result.current.auth.clearSession());
@@ -170,7 +170,7 @@ describe('AuthProvider: sesión local y caché de SWR', () => {
 
   it('un fallo de auth vacía la caché', async () => {
     const { result } = renderAuth();
-    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await waitFor(() => expect(result.current.auth.user).not.toBeNull());
     await seedMedia(result);
 
     act(() => failure.callback?.());
@@ -186,7 +186,7 @@ describe('AuthProvider: sesión local y caché de SWR', () => {
 
     await act(() => result.current.auth.retry());
 
-    await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
+    await waitFor(() => expect(result.current.auth.user).not.toBeNull());
     expect(result.current.auth.error).toBeUndefined();
   });
 });

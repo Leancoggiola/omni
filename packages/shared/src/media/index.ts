@@ -26,4 +26,4 @@ export {
   searchMediaSchema,
   filterMediaSchema,
 } from './schemas';
-export type { AddMediaItemPayload, UpdateMediaItemPayload, SearchMediaParams, FilterMediaParams } from './schemas';
+export type { AddMediaItemPayload, UpdateMediaItemPayload, FilterMediaParams } from './schemas';

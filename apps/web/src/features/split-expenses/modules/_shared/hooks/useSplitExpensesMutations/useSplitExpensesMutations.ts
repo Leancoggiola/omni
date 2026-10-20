@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useSWRConfig } from 'swr';
 
-import { api, invalidateNotificationDigest, SWR_KEYS } from '@/shared/api';
+import { api, SWR_KEYS } from '@/shared/api';
 
 import type {
   AddGatheringExpensePayload,
@@ -27,13 +27,10 @@ export function useSplitExpensesMutations() {
   const invalidateGatherings = useCallback(
     async (excludeGatheringId?: string) => {
       const excluded = excludeGatheringId ? SWR_KEYS.splitExpenses.gathering(excludeGatheringId) : null;
-      await Promise.all([
-        mutate(
-          (key: unknown) =>
-            typeof key === 'string' && key.startsWith(SWR_KEYS.splitExpenses.gatherings) && key !== excluded
-        ),
-        invalidateNotificationDigest(mutate),
-      ]);
+      await mutate(
+        (key: unknown) =>
+          typeof key === 'string' && key.startsWith(SWR_KEYS.splitExpenses.gatherings) && key !== excluded
+      );
     },
     [mutate]
   );

@@ -14,7 +14,6 @@
     "./expenses": "./src/expenses/index.ts",
     "./split-expenses": "./src/split-expenses/index.ts",
     "./pantry": "./src/pantry/index.ts",
-    "./notifications": "./src/notifications/index.ts",
     "./holidays": "./src/holidays/index.ts",
     "./common": "./src/common/index.ts",
     "./navigation": "./src/navigation/index.ts",
@@ -45,9 +44,6 @@
       ],
       "pantry": [
         "src/pantry/index.ts"
-      ],
-      "notifications": [
-        "src/notifications/index.ts"
       ],
       "holidays": [
         "src/holidays/index.ts"

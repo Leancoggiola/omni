@@ -32,14 +32,6 @@ export function notifyError(message: string) {
   showNotification('error', 'Error', message, 10);
 }
 
-export function notifyWarning(message: string) {
-  showNotification('warning', 'Atención', message, 5);
-}
-
-export function notifyInfo(message: string) {
-  showNotification('info', 'Info', message, 0);
-}
-
 /** Aviso informativo que no se cierra solo; devuelve la función que lo cierra. */
 export function notifyPersistent(message: string): () => void {
   const id = showNotification('info', 'Info', message, 0, false);

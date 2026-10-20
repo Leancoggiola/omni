@@ -1,1 +1,0 @@
-export { useGymPlan } from './useGymPlan';

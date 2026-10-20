@@ -33,7 +33,6 @@ export const searchMediaSchema = z.object({
   page: z.coerce.number().int().min(1).max(TMDB_PAGE_MAX).default(1),
   type: z.enum(SEARCH_TYPES).default('multi'),
 });
-export type SearchMediaParams = z.infer<typeof searchMediaSchema>;
 
 export const filterMediaSchema = z.object({
   status: z.enum(MEDIA_STATUSES).optional(),

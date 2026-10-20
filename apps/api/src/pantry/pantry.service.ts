@@ -48,7 +48,7 @@ async function getOwnedProduct(userId: string, productId: string) {
 
 /**
  * Productos del usuario con alerta de alacena: bajo stock y por vencer, cada uno según su propia regla (un producto
- * puede estar en las dos listas). Fuente única del resumen y del digest de notificaciones.
+ * puede estar en las dos listas). Fuente única del resumen de alacena.
  */
 export async function loadPantryAlerts(userId: string, today = startOfTodayInAppTz()) {
   const products = await prisma.pantryProduct.findMany({

@@ -1,5 +1,5 @@
 export type { GymPlanStatus } from './constants';
-export { GYM_PLAN_STATUSES, GYM_PLAN_STATUS_LABELS } from './constants';
+export { GYM_PLAN_STATUSES } from './constants';
 export type { GymExercise, GymPlanDay, GymPlanDetail, GymPlanSummary } from './types';
 export {
   listGymPlansSchema,

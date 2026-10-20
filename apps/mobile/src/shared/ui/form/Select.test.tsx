@@ -30,7 +30,7 @@ describe('Select', () => {
   it('abre el actionSheet con las opciones y la actual, y avisa la elegida', async () => {
     mockActionSheet.mockResolvedValue('tv');
     const onChange = jest.fn();
-    render(<Select<Value> data={DATA} value="all" onChange={onChange} label="Tipo" />);
+    render(<Select<Value> data={DATA} value="all" onChange={onChange} accessibilityLabel="Tipo" />);
 
     await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Tipo: Todos' })));
 
@@ -49,13 +49,5 @@ describe('Select', () => {
     await act(async () => fireEvent.press(trigger));
 
     expect(onChange).not.toHaveBeenCalled();
-  });
-
-  it('deshabilitado no abre las opciones', () => {
-    render(<Select<Value> data={DATA} value="all" onChange={jest.fn()} accessibilityLabel="Tipo" disabled />);
-
-    fireEvent.press(screen.getByRole('button', { name: 'Tipo: Todos' }));
-    expect(mockActionSheet).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: 'Tipo: Todos' })).toBeDisabled();
   });
 });

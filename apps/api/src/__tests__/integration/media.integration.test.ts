@@ -120,16 +120,6 @@ describe('media routes (integration)', () => {
       expect(res.body).toMatchObject({ title: 'Game of Thrones', status: 'watching' });
     });
 
-    it('POST /list recalculates the user stats', async () => {
-      await request(app)
-        .post('/api/media/list')
-        .set('Authorization', auth)
-        .send({ tmdbId: 550, mediaType: 'movie', status: 'watched' });
-
-      const stats = await prisma.userStats.findUnique({ where: { userId: user.id } });
-      expect(stats).toMatchObject({ totalMovies: 1, totalWatched: 1, totalTvShows: 0 });
-    });
-
     it('POST /list returns 400 on an invalid payload', async () => {
       const res = await request(app).post('/api/media/list').set('Authorization', auth).send({ tmdbId: 550 });
       expect(res.status).toBe(400);
@@ -181,7 +171,7 @@ describe('media routes (integration)', () => {
       expect(res.body[0]).toMatchObject({ tmdbId: 550 });
     });
 
-    it('PATCH /list/:id updates the status and the stats', async () => {
+    it('PATCH /list/:id updates the status', async () => {
       const created = await request(app)
         .post('/api/media/list')
         .set('Authorization', auth)
@@ -194,8 +184,6 @@ describe('media routes (integration)', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('watched');
-      const stats = await prisma.userStats.findUnique({ where: { userId: user.id } });
-      expect(stats).toMatchObject({ totalWatched: 1, totalToWatch: 0 });
     });
 
     it('PATCH /list/:id returns 404 for an item of another user', async () => {

@@ -4,7 +4,6 @@ import { updateProfileSchema, changePasswordSchema, updatePreferencesSchema } fr
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
 import { clearCookies, createRateLimiter, validate } from '../common/utils';
 import * as usersService from './users.service';
-import * as statsService from './stats.service';
 
 const passwordLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
@@ -83,15 +82,5 @@ router.patch(
     }
   }
 );
-
-router.get('/stats', authenticateJwt, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as any;
-    const stats = await statsService.getStats(userId);
-    res.json({ stats });
-  } catch (err) {
-    next(err);
-  }
-});
 
 export default router;
