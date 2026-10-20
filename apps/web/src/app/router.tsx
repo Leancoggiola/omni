@@ -2,9 +2,13 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import { GuestRoute, ProtectedRoute } from '@/core/guards';
 import { AuthLayout, RootLayout } from '@/layouts';
-import { LoadingState } from '@/shared/ui';
+import { ErrorState, LoadingState } from '@/shared/ui';
 
 import { guestRoutes, protectedRoutes } from './routes';
+
+const routeErrorElement = (
+  <ErrorState message="No se pudo cargar la pantalla" onRetry={() => window.location.reload()} />
+);
 
 export const router = createBrowserRouter([
   {
@@ -13,6 +17,7 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <RootLayout />,
+        errorElement: routeErrorElement,
         children: protectedRoutes,
       },
     ],
@@ -23,6 +28,7 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AuthLayout />,
+        errorElement: routeErrorElement,
         children: guestRoutes,
       },
     ],
