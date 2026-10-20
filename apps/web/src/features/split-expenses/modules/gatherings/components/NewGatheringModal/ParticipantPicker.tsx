@@ -88,6 +88,7 @@ export const ParticipantPicker: FC<ParticipantPickerProps> = ({ participants, on
           <Combobox.Target>
             <TextInput
               style={{ flex: 1 }}
+              aria-label="Nombre o alias del participante"
               placeholder="Nombre o alias"
               value={input}
               maxLength={SPLIT_FRIEND_NAME_MAX}

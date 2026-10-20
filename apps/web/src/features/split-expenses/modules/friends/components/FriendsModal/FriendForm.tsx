@@ -50,8 +50,20 @@ export const FriendForm: FC<FriendFormProps> = ({ onCreate }) => {
 
         {submitError && <Alert color="destructive">{submitError}</Alert>}
 
-        <TextInput placeholder="Nombre" required maxLength={SPLIT_FRIEND_NAME_MAX} {...form.getInputProps('name')} />
-        <TextInput placeholder="Alias" required maxLength={SPLIT_FRIEND_ALIAS_MAX} {...form.getInputProps('alias')} />
+        <TextInput
+          aria-label="Nombre"
+          placeholder="Nombre"
+          required
+          maxLength={SPLIT_FRIEND_NAME_MAX}
+          {...form.getInputProps('name')}
+        />
+        <TextInput
+          aria-label="Alias"
+          placeholder="Alias"
+          required
+          maxLength={SPLIT_FRIEND_ALIAS_MAX}
+          {...form.getInputProps('alias')}
+        />
 
         <Group justify="flex-end">
           <Button type="submit" loading={loading} disabled={!form.isDirty()}>

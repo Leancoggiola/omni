@@ -127,7 +127,7 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
         <Group gap="3xs" wrap="nowrap">
           <Menu position="bottom-end" withinPortal>
             <Menu.Target>
-              <ActionIcon variant="subtle" color="gray" aria-label="Opciones de la juntada">
+              <ActionIcon variant="subtle" color="gray" aria-label={`Opciones de la juntada ${summary.name}`}>
                 <DotsThreeVerticalIcon size="1.2rem" weight="bold" />
               </ActionIcon>
             </Menu.Target>
@@ -145,7 +145,7 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
           <ActionIcon
             variant="subtle"
             color="gray"
-            aria-label={expanded ? 'Contraer' : 'Expandir'}
+            aria-label={`${expanded ? 'Contraer' : 'Expandir'} ${summary.name}`}
             onClick={() => setExpanded(value => !value)}
           >
             {expanded ? <CaretUpIcon size="1.1rem" /> : <CaretDownIcon size="1.1rem" />}
