@@ -1,18 +1,22 @@
-# Default owner for everything
-
-- @Leancoggiola
-
-# App-specific
+* @Leancoggiola
 
 apps/api/ @Leancoggiola
 apps/web/ @Leancoggiola
-
-# Shared packages
+apps/mobile/ @Leancoggiola
+apps/e2e/ @Leancoggiola
 
 packages/ @Leancoggiola
 
-# CI/CD and infra
+docs/ @Leancoggiola
 
 .github/ @Leancoggiola
+.husky/ @Leancoggiola
+.claude/ @Leancoggiola
 turbo.json @Leancoggiola
+package.json @Leancoggiola
+pnpm-lock.yaml @Leancoggiola
 pnpm-workspace.yaml @Leancoggiola
+commitlint.config.ts @Leancoggiola
+.releaserc.json @Leancoggiola
+docker-compose.yml @Leancoggiola
+render.yaml @Leancoggiola
