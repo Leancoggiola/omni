@@ -9,6 +9,5 @@ function getBaseUrl(): string {
 }
 
 export function toUrl(path: string): string {
-  if (path.startsWith('http')) return path;
   return `${getBaseUrl()}${path}`;
 }

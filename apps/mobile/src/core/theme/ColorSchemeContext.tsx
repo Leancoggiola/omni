@@ -11,9 +11,11 @@ import {
 import { useColorScheme } from 'react-native';
 import { SEMANTIC } from '@omni/shared/theme';
 
-import { useAuth } from '@/core/auth';
+import type { ProfileTheme } from '@omni/shared/users';
 
 type ColorScheme = 'light' | 'dark';
+
+type ColorSchemeProviderProps = PropsWithChildren<{ profileTheme: ProfileTheme | null }>;
 
 interface ColorSchemeContextValue {
   colorScheme: ColorScheme;
@@ -25,20 +27,20 @@ const ColorSchemeContext = createContext<ColorSchemeContextValue | null>(null);
 
 /**
  * Tema efectivo: el override del toggle pisa al del perfil mientras la app esté abierta.
- * Sin sesión o con tema `auto` se sigue el esquema del sistema. El override se descarta al
- * quedar sin usuario: logout, o refresh fallido (el client avisa vía `setOnAuthFailure` y
- * AuthProvider cierra la sesión), igual que en web.
+ * `profileTheme` es el tema del perfil, o `null` sin sesión; quien monta el provider lo saca de la sesión
+ * (así este módulo no depende de `core/auth`). Sin sesión o con tema `auto` se sigue el esquema del
+ * sistema. El override se descarta al quedar sin sesión: logout, o refresh fallido (el client avisa vía
+ * `setOnAuthFailure` y AuthProvider cierra la sesión), igual que en web.
  */
-export const ColorSchemeProvider: FC<PropsWithChildren> = ({ children }) => {
-  const { user } = useAuth();
+export const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ profileTheme, children }) => {
   const systemScheme: ColorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const [override, setOverride] = useState<ColorScheme | null>(null);
 
   useEffect(() => {
-    if (!user) setOverride(null);
-  }, [user]);
+    if (profileTheme === null) setOverride(null);
+  }, [profileTheme]);
 
-  const profileScheme = !user || user.theme === 'auto' ? systemScheme : user.theme;
+  const profileScheme = profileTheme === null || profileTheme === 'auto' ? systemScheme : profileTheme;
   const colorScheme = override ?? profileScheme;
 
   const toggle = useCallback(() => {
