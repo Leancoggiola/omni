@@ -10,7 +10,7 @@ import type { FC } from 'react';
 
 export const RootLayout: FC = () => {
   const [opened, { toggle, close }] = useDisclosure();
-  const isDesktop = useMediaQuery('(min-width: 62em)');
+  const isDesktop = useMediaQuery('(min-width: 62em)', undefined, { getInitialValueInEffect: false });
 
   useSyncColorScheme();
 

@@ -1,8 +1,8 @@
 import { memo } from 'react';
-import { ActionIcon, Badge, Card, Group, Select, Stack, Text } from '@mantine/core';
+import { ActionIcon, Badge, Card, Group, Stack, Text } from '@mantine/core';
 
-import { MEDIA_STATUS_SELECT_DATA } from '../../utils/mediaStatusOptions';
 import { MediaPoster } from '../MediaPoster';
+import { MediaStatusSelect } from '../MediaStatusSelect';
 
 import type { MediaItem, MediaStatus } from '../../../_shared/types';
 
@@ -34,13 +34,11 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusChange,
             </Badge>
           </Group>
           <Group gap="xs" wrap="nowrap" justify="space-between">
-            <Select
+            <MediaStatusSelect
               aria-label={`Estado de ${item.title}`}
-              data={MEDIA_STATUS_SELECT_DATA}
-              value={item.status}
-              onChange={val => val && onStatusChange(item.id, val as MediaStatus)}
+              status={item.status}
+              onStatusChange={status => onStatusChange(item.id, status)}
               size="sm"
-              mod={item.status}
               flex={1}
               maw="11.25rem"
             />
