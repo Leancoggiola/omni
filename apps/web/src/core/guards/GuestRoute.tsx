@@ -12,7 +12,7 @@ export const GuestRoute: FC = () => {
   if (isLoading) {
     return (
       <Center h="100vh">
-        <LoadingState />
+        <LoadingState py="none" />
       </Center>
     );
   }
