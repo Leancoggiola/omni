@@ -1,4 +1,4 @@
-import { contrastRatio, SEMANTIC, WCAG_AA_TEXT } from '@omni/shared/theme';
+import { contrastRatio, SEMANTIC, semanticDark, semanticLight, WCAG_AA_TEXT } from '@omni/shared/theme';
 
 /**
  * Regresión de contraste: cada relleno con texto encima (Button y Badge filled, segmento activo)
@@ -18,6 +18,63 @@ describe.each(['light', 'dark'] as const)('contraste de rellenos de SEMANTIC (%s
     ['Badge dimmed', s.dimmed, s.onDimmed],
   ])('%s llega a AA', (_name, fill, text) => {
     expect(contrastRatio(fill, text)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+  });
+});
+
+/**
+ * Compone un color `#RRGGBBAA` sobre un fondo opaco: los washes de oscuro son translúcidos y
+ * `contrastRatio` ignora el alfa, así que el contraste se mide contra lo que se ve.
+ */
+function over(color: string, background: string): string {
+  const alpha = color.length === 9 ? parseInt(color.slice(7, 9), 16) / 255 : 1;
+  const mix = (i: number) =>
+    Math.round(parseInt(color.slice(i, i + 2), 16) * alpha + parseInt(background.slice(i, i + 2), 16) * (1 - alpha))
+      .toString(16)
+      .padStart(2, '0');
+  return `#${mix(1)}${mix(3)}${mix(5)}`;
+}
+
+/**
+ * Regresión de contraste de texto (#137): el texto por defecto, el de marca y el atenuado llegan a AA
+ * sobre el canvas y la card, y el de marca también sobre su wash (chip marcado, Badge y Banner brand,
+ * Button light, ítem activo de la tab bar).
+ */
+describe.each(['light', 'dark'] as const)('contraste de texto de SEMANTIC (%s)', scheme => {
+  const s = SEMANTIC[scheme];
+
+  it.each([
+    ['texto sobre canvas', s.text, s.body],
+    ['texto sobre card', s.text, s.card],
+    ['marca sobre canvas', s.primary, s.body],
+    ['marca sobre card', s.primary, s.card],
+    ['marca sobre su wash en una card', s.primary, over(s.primarySurface, s.card)],
+    ['marca sobre su wash en el canvas', s.primary, over(s.primarySurface, s.body)],
+    ['atenuado sobre canvas', s.dimmed, s.body],
+    ['atenuado sobre card', s.dimmed, s.card],
+    ['link sobre canvas', s.anchor, s.body],
+  ])('%s llega a AA', (_name, text, background) => {
+    expect(contrastRatio(text, background)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+  });
+});
+
+/**
+ * Los hovers del atenuado y del link (#137) también llegan a AA sobre el canvas y la card. No están en
+ * `SEMANTIC` (mobile no tiene hover), así que se leen de `semanticLight` / `semanticDark`; el link hover
+ * solo existe en claro.
+ */
+describe('contraste de los hovers de texto', () => {
+  const light = SEMANTIC.light;
+  const dark = SEMANTIC.dark;
+
+  it.each([
+    ['atenuado hover sobre canvas (claro)', semanticLight['--mantine-color-text-dimmed-hover'], light.body],
+    ['atenuado hover sobre card (claro)', semanticLight['--mantine-color-text-dimmed-hover'], light.card],
+    ['link hover sobre canvas (claro)', semanticLight['--mantine-color-text-link-hover'], light.body],
+    ['link hover sobre card (claro)', semanticLight['--mantine-color-text-link-hover'], light.card],
+    ['atenuado hover sobre canvas (oscuro)', semanticDark['--mantine-color-text-dimmed-hover'], dark.body],
+    ['atenuado hover sobre card (oscuro)', semanticDark['--mantine-color-text-dimmed-hover'], dark.card],
+  ])('%s llega a AA', (_name, text, background) => {
+    expect(contrastRatio(text, background)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
   });
 });
 
