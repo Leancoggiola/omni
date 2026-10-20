@@ -56,6 +56,6 @@ describe('ConfirmProvider', () => {
     });
     fireEvent.click(await screen.findByRole('button', { name: 'No' }));
 
-    expect(screen.queryByText('¿Seguro?')).toBeInTheDocument();
+    expect(screen.getByText('¿Seguro?')).toBeInTheDocument();
   });
 });

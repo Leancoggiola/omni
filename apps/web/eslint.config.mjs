@@ -42,7 +42,7 @@ export default [
           message: 'Use named exports instead of default exports in components.',
         },
         {
-          selector: `JSXAttribute[name.name=/^(color|c|bg)$/][value.value=/^${MANTINE_DEFAULT_COLORS}(\.[0-9])?$/]`,
+          selector: `JSXAttribute[name.name=/^(color|c|bg)$/][value.value=/^${MANTINE_DEFAULT_COLORS}(\\.[0-9])?$/]`,
           message: 'Usá los alias semánticos (destructive, error, success, brand…) en lugar de colores de Mantine.',
         },
       ],

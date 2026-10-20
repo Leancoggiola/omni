@@ -37,7 +37,10 @@ export const EXTERNAL_STUB_URL = `http://127.0.0.1:${STUB_PORT}`;
 /** Lee una variable de apps/api/.env.e2e, la única fuente de las credenciales y el nombre de la base. */
 function readApiEnvE2e(name: string): string {
   const file = readFileSync(new URL('../../../api/.env.e2e', import.meta.url), 'utf8');
-  const value = file.match(new RegExp('^' + name + '=(.+)$', 'm'))?.[1]?.trim();
+  const value = file
+    .match(new RegExp('^' + name + '=(.+)$', 'm'))?.[1]
+    ?.trim()
+    .replace(/^["']|["']$/g, '');
   if (!value) throw new Error('Falta ' + name + ' en apps/api/.env.e2e');
   return value;
 }

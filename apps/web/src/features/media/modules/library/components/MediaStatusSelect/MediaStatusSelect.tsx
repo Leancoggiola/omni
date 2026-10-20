@@ -7,7 +7,7 @@ import type { MediaStatus } from '../../../_shared/types';
 
 import styles from './MediaStatusSelect.module.scss';
 
-interface MediaStatusSelectProps extends Omit<SelectProps, 'data' | 'value' | 'onChange' | 'mod'> {
+interface MediaStatusSelectProps extends Omit<SelectProps, 'data' | 'value' | 'onChange' | 'mod' | 'classNames'> {
   status: MediaStatus;
   onStatusChange: (status: MediaStatus) => void;
 }
