@@ -47,7 +47,7 @@ export const FriendRowEditor: FC<FriendRowEditorProps> = ({ friend, onUpdate, on
   };
 
   return (
-    <Stack gap={4}>
+    <Stack gap="2xs">
       <Group gap="xs" align="flex-start" wrap="nowrap">
         <TextInput
           aria-label="Nombre"
@@ -79,7 +79,7 @@ export const FriendRowEditor: FC<FriendRowEditorProps> = ({ friend, onUpdate, on
         </ActionIcon>
       </Group>
       {error && (
-        <Text size="xs" c="red">
+        <Text size="xs" c="error">
           {error}
         </Text>
       )}

@@ -12,6 +12,8 @@ const IMPORT_GROUPS = [
   ['^.+\\.s?css$'],
 ];
 
+const MANTINE_DEFAULT_COLORS = '(red|pink|grape|violet|indigo|blue|cyan|teal|green|lime|yellow|orange)';
+
 export default [
   ...baseConfig,
 
@@ -38,6 +40,10 @@ export default [
         {
           selector: 'ExportDefaultDeclaration',
           message: 'Use named exports instead of default exports in components.',
+        },
+        {
+          selector: `JSXAttribute[name.name=/^(color|c|bg)$/][value.value=/^${MANTINE_DEFAULT_COLORS}(\\.[0-9])?$/]`,
+          message: 'Usá los alias semánticos (destructive, error, success, brand…) en lugar de colores de Mantine.',
         },
       ],
     },

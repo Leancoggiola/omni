@@ -84,7 +84,7 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
     <form noValidate onSubmit={handleSubmit}>
       <Paper>
         <Stack gap="xl">
-          <ProfileSectionCard nested title="Información Personal" subtitle="Actualiza tus datos personales">
+          <ProfileSectionCard nested title="Información Personal" subtitle="Actualizá tus datos personales">
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
               <TextInput
                 label="Nombre Completo"
@@ -118,10 +118,10 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
             </SimpleGrid>
           </ProfileSectionCard>
 
-          <ProfileSectionCard nested title="Preferencias" subtitle="Personaliza tu experiencia">
+          <ProfileSectionCard nested title="Preferencias" subtitle="Personalizá tu experiencia">
             <Stack gap="md">
               <Group justify="space-between" align="flex-start" wrap="nowrap">
-                <Stack gap={2}>
+                <Stack gap="3xs">
                   <Text fw={500} size="sm">
                     Notificaciones
                   </Text>

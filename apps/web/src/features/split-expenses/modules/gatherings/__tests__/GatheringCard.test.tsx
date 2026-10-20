@@ -98,6 +98,19 @@ describe('GatheringCard', () => {
     expect(mocks.deleteGatheringExpense).toHaveBeenCalledOnce();
   });
 
+  it('muestra la fecha en formato de pantalla', () => {
+    renderWithProviders(<GatheringCard summary={summary} />);
+
+    expect(screen.getByText('10/10/2026', { exact: false })).toBeInTheDocument();
+  });
+
+  it('los controles de la juntada incluyen su nombre', () => {
+    renderWithProviders(<GatheringCard summary={summary} />);
+
+    expect(screen.getByRole('button', { name: 'Opciones de la juntada Asado' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Contraer Asado' })).toBeInTheDocument();
+  });
+
   it('si falla la carga ofrece reintentar', () => {
     mocks.state = { gathering: null, error: new Error('x') };
     renderWithProviders(<GatheringCard summary={summary} />);

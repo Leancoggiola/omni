@@ -36,6 +36,7 @@ export const MediaListToolbar: FC<MediaListToolbarProps> = ({
       <Paper p="md" shadow="xs">
         <Group gap="md" align="flex-end" wrap="wrap">
           <TextInput
+            aria-label="Buscar en tu lista"
             placeholder="Buscar..."
             value={searchText}
             onChange={e => onSearchTextChange(e.currentTarget.value)}
@@ -44,6 +45,7 @@ export const MediaListToolbar: FC<MediaListToolbarProps> = ({
             size="md"
           />
           <Select
+            aria-label="Tipo de contenido"
             data={TYPE_FILTER_OPTIONS}
             value={typeFilter}
             onChange={val => onTypeFilterChange((val as MediaType | 'all') || 'all')}

@@ -19,7 +19,7 @@ export const HomeMainCard: FC = () => {
             {greeting}
           </Text>
           {isLoading ? (
-            <Skeleton height={28} width={160} />
+            <Skeleton height="1.75rem" width="10rem" />
           ) : (
             <Title order={3} c="brand">
               {user?.name}

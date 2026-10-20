@@ -1,38 +1,33 @@
-import { Suspense } from 'react';
-import { createBrowserRouter, RouteObject } from 'react-router-dom';
-import { Loader } from '@mantine/core';
+import { createBrowserRouter } from 'react-router-dom';
 
 import { GuestRoute, ProtectedRoute } from '@/core/guards';
 import { AuthLayout, RootLayout } from '@/layouts';
+import { ErrorState, LoadingState } from '@/shared/ui';
 
 import { guestRoutes, protectedRoutes } from './routes';
 
-const withSuspense = (routes: RouteObject[]): RouteObject[] =>
-  routes.map(
-    route =>
-      ({
-        ...route,
-        element: route.element ? <Suspense fallback={<Loader />}>{route.element}</Suspense> : undefined,
-        children: route.children ? withSuspense(route.children) : undefined,
-      }) as RouteObject
-  );
+const routeErrorElement = (
+  <ErrorState message="No se pudo cargar la pantalla" onRetry={() => window.location.reload()} />
+);
 
 export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
+    hydrateFallbackElement: <LoadingState />,
     children: [
       {
         element: <RootLayout />,
-        children: withSuspense(protectedRoutes),
+        children: [{ errorElement: routeErrorElement, children: protectedRoutes }],
       },
     ],
   },
   {
     element: <GuestRoute />,
+    hydrateFallbackElement: <LoadingState />,
     children: [
       {
         element: <AuthLayout />,
-        children: withSuspense(guestRoutes),
+        children: [{ errorElement: routeErrorElement, children: guestRoutes }],
       },
     ],
   },

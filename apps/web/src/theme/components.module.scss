@@ -1,7 +1,7 @@
 .action_icon_root {
   &[data-variant='subtle']:hover {
     background: transparent;
-    border-color: 1px solid var(--ai-color);
+    border-color: transparent;
   }
 }
 
@@ -28,21 +28,6 @@
 :root[data-mantine-color-scheme='dark'] .appshell_navbar {
   --navbar-glow-top: color-mix(in srgb, var(--mantine-color-terracotta-6) 24%, transparent);
   --navbar-glow-bottom: color-mix(in srgb, var(--mantine-color-brand-6) 18%, transparent);
-}
-
-.combobox_root {
-  &[data-to_watch] input {
-    background: var(--mantine-color-surfaces-dimmed-subtle);
-    border-color: var(--mantine-color-border-dimmed);
-  }
-  &[data-watching] input {
-    background: var(--mantine-color-surfaces-accent-light);
-    border-color: var(--mantine-color-border-accent);
-  }
-  &[data-watched] input {
-    background: var(--mantine-color-surfaces-success-light);
-    border-color: var(--mantine-color-border-success);
-  }
 }
 
 .combobox_option {

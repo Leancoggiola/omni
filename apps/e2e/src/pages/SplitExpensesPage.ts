@@ -27,6 +27,7 @@ export class SplitExpensesPage {
   readonly addExpenseButton = () => this.page.getByRole('button', { name: 'Agregar gasto' });
   readonly deleteExpenseButton = () => this.page.getByRole('button', { name: 'Eliminar gasto' });
   readonly retryButton = () => this.page.getByRole('button', { name: 'Reintentar' });
+  readonly settlements = () => this.page.getByRole('group', { name: '¿Quién le debe a quién?' });
   readonly settleButton = () => this.page.getByRole('button', { name: 'Marcar como saldado' });
 
   async goto() {

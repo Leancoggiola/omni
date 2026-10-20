@@ -1,6 +1,7 @@
 import { FC, useRef, useState } from 'react';
 import { ActionIcon, Badge, Button, Card, Collapse, Divider, Group, Menu, Stack, Text, ThemeIcon } from '@mantine/core';
 
+import { formatIsoDateStringForDisplay } from '@/shared/dates';
 import { confirm, ErrorState, getErrorMessage, LoadingState, notifyError, notifySuccess } from '@/shared/ui';
 
 import { useSplitExpensesMutations } from '../../../_shared';
@@ -118,7 +119,7 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
               )}
             </Group>
             <Text size="sm" c="dimmed">
-              {summary.date} · {summary.participantCount} participantes · Total:{' '}
+              {formatIsoDateStringForDisplay(summary.date)} · {summary.participantCount} participantes · Total:{' '}
               <MoneyAmount value={summary.totalAmount} />
             </Text>
           </Stack>
@@ -126,12 +127,17 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
         <Group gap="3xs" wrap="nowrap">
           <Menu position="bottom-end" withinPortal>
             <Menu.Target>
-              <ActionIcon variant="subtle" color="gray" aria-label="Opciones de la juntada">
+              <ActionIcon variant="subtle" color="gray" aria-label={`Opciones de la juntada ${summary.name}`}>
                 <DotsThreeVerticalIcon size="1.2rem" weight="bold" />
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item color="red" disabled={deleting} leftSection={<TrashIcon size="1rem" />} onClick={handleDelete}>
+              <Menu.Item
+                color="destructive"
+                disabled={deleting}
+                leftSection={<TrashIcon size="1rem" />}
+                onClick={handleDelete}
+              >
                 Eliminar juntada
               </Menu.Item>
             </Menu.Dropdown>
@@ -139,7 +145,7 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
           <ActionIcon
             variant="subtle"
             color="gray"
-            aria-label={expanded ? 'Contraer' : 'Expandir'}
+            aria-label={`${expanded ? 'Contraer' : 'Expandir'} ${summary.name}`}
             onClick={() => setExpanded(value => !value)}
           >
             {expanded ? <CaretUpIcon size="1.1rem" /> : <CaretDownIcon size="1.1rem" />}

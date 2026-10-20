@@ -18,8 +18,8 @@ export async function createUserViaAdmin(user: NewUser): Promise<NewUser> {
   const adminLogin = await api.post('/api/auth/login', { data: ADMIN });
   expect(
     adminLogin.ok(),
-    'No se pudo iniciar sesión como admin. Revisá que ADMIN_USERNAME y ADMIN_PASSWORD ' +
-      'de apps/api/.env.e2e coincidan con ADMIN de src/support/env.ts.'
+    'No se pudo iniciar sesión como admin. Revisá ADMIN_USERNAME y ADMIN_PASSWORD ' +
+      'de apps/api/.env.e2e y que el seed haya corrido.'
   ).toBeTruthy();
 
   const created = await api.post('/api/admin/users', { data: user });

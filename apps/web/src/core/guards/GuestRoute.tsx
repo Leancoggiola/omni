@@ -1,6 +1,8 @@
 import { FC } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { Center, Loader } from '@mantine/core';
+import { Center } from '@mantine/core';
+
+import { LoadingState } from '@/shared/ui';
 
 import { useAuth } from '../auth';
 
@@ -10,7 +12,7 @@ export const GuestRoute: FC = () => {
   if (isLoading) {
     return (
       <Center h="100vh">
-        <Loader />
+        <LoadingState py="none" />
       </Center>
     );
   }
