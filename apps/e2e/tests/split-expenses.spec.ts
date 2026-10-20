@@ -71,7 +71,7 @@ test.describe('juntadas', () => {
     await expect(page.getByText('Carne')).toBeVisible();
     await expect(page.getByText('Total: $10.000,00')).toBeVisible();
 
-    const settlements = page.getByText('¿Quién le debe a quién?').locator('..');
+    const settlements = split.settlements();
     await expect(settlements).toContainText('Bruno');
     await expect(settlements).toContainText('Ana');
     await expect(settlements).toContainText('$5.000,00');

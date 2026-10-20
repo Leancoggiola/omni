@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 
 /**
  * Valores compartidos por la config de Playwright y los fixtures.
- * Las credenciales del admin deben coincidir con `apps/api/.env.e2e`, que es lo que consume el seed.
+ * Las credenciales del admin se leen de `apps/api/.env.e2e`, que es también lo que consume el seed.
  */
 
 /**
@@ -73,8 +73,8 @@ export const WEB_ENV: Record<string, string> = {
 };
 
 export const ADMIN = {
-  username: 'e2eadmin',
-  password: 'e2eadminpassword',
+  username: readApiEnvE2e('ADMIN_USERNAME'),
+  password: readApiEnvE2e('ADMIN_PASSWORD'),
 };
 
 /** usernameSchema exige 6-20 caracteres alfanuméricos, sin guiones ni guiones bajos. */
