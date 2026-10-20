@@ -89,10 +89,12 @@ test.describe('juntadas', () => {
     await split.deleteExpenseButton().click();
     await expect(page.getByText('Esta acción no se puede deshacer.')).toBeVisible();
     await page.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(page.getByRole('dialog')).toBeHidden();
     await expect(page.getByText('Chorizos')).toBeVisible();
 
     await split.deleteExpenseButton().click();
     await page.getByRole('button', { name: 'Eliminar', exact: true }).click();
+    await expect(page.getByRole('dialog')).toBeHidden();
     await expect(page.getByText('Chorizos')).toBeHidden();
   });
 
@@ -138,6 +140,7 @@ test.describe('juntadas', () => {
     await split.optionsButton().click();
     await page.getByRole('menuitem', { name: 'Eliminar juntada' }).click();
     await page.getByRole('button', { name: 'Eliminar', exact: true }).click();
+    await expect(page.getByRole('dialog')).toBeHidden();
 
     await expect(page.getByText('Picada')).toBeHidden();
   });
