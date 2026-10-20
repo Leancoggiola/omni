@@ -167,6 +167,6 @@ Tipos y schemas compartidos entre API, Web y Mobile. Importan desde `@omni/share
 shared/src/
   auth/     ← LoginPayload, ProfileResponse, User, schemas Zod
   media/    ← MediaItem, tipos de media, schemas
-  users/    ← UpdateProfilePayload, UserStats, schemas
+  users/    ← UpdateProfilePayload, schemas
   index.ts
 ```

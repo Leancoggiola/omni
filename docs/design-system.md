@@ -168,7 +168,7 @@ Diferencias aceptadas: en mobile los botones de acción van a lo ancho (`fullWid
 
 ### Notificaciones
 
-`notifySuccess` / `notifyError` / `notifyWarning` / `notifyInfo` desde `@/shared/ui`. En web las features **no** importan `@mantine/notifications` directo; en mobile **no** usan `Alert.alert`.
+`notifySuccess` / `notifyError` desde `@/shared/ui` (mobile suma `notifyWarning`). En web las features **no** importan `@mantine/notifications` directo; en mobile **no** usan `Alert.alert`.
 
 Mismo diseño en las dos plataformas (#68): **abajo** (web `bottom-center`; mobile encima de la tab bar, que le informa su alto con `useSetNotificationsBottomOffset` desde `MeasuredTabBar` mientras las tabs tienen el foco; si no, sobre el inset inferior o encima del teclado), **compacto** (padding xs/sm, título 12/700, mensaje 12 dimmed, X chica), **ícono suelto sin chip** y lavado **D**: una barra de 3 px del color del estado a la izquierda y el lavado horizontal que se desvanece al 90 %.
 
