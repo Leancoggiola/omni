@@ -1,4 +1,4 @@
-import { contrastRatio, SEMANTIC, WCAG_AA_TEXT } from '@omni/shared/theme';
+import { contrastRatio, SEMANTIC, semanticDark, semanticLight, WCAG_AA_TEXT } from '@omni/shared/theme';
 
 /**
  * Regresión de contraste: cada relleno con texto encima (Button y Badge filled, segmento activo)
@@ -52,6 +52,27 @@ describe.each(['light', 'dark'] as const)('contraste de texto de SEMANTIC (%s)',
     ['atenuado sobre canvas', s.dimmed, s.body],
     ['atenuado sobre card', s.dimmed, s.card],
     ['link sobre canvas', s.anchor, s.body],
+  ])('%s llega a AA', (_name, text, background) => {
+    expect(contrastRatio(text, background)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+  });
+});
+
+/**
+ * Los hovers del atenuado y del link (#137) también llegan a AA sobre el canvas y la card. No están en
+ * `SEMANTIC` (mobile no tiene hover), así que se leen de `semanticLight` / `semanticDark`; el link hover
+ * solo existe en claro.
+ */
+describe('contraste de los hovers de texto', () => {
+  const light = SEMANTIC.light;
+  const dark = SEMANTIC.dark;
+
+  it.each([
+    ['atenuado hover sobre canvas (claro)', semanticLight['--mantine-color-text-dimmed-hover'], light.body],
+    ['atenuado hover sobre card (claro)', semanticLight['--mantine-color-text-dimmed-hover'], light.card],
+    ['link hover sobre canvas (claro)', semanticLight['--mantine-color-text-link-hover'], light.body],
+    ['link hover sobre card (claro)', semanticLight['--mantine-color-text-link-hover'], light.card],
+    ['atenuado hover sobre canvas (oscuro)', semanticDark['--mantine-color-text-dimmed-hover'], dark.body],
+    ['atenuado hover sobre card (oscuro)', semanticDark['--mantine-color-text-dimmed-hover'], dark.card],
   ])('%s llega a AA', (_name, text, background) => {
     expect(contrastRatio(text, background)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
   });
