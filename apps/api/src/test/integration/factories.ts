@@ -15,10 +15,6 @@ function nextId(prefix: string): string {
   return `${prefix}-${String(sequence).padStart(4, '0')}`;
 }
 
-export function resetFactorySequence(): void {
-  sequence = 0;
-}
-
 export interface CreateUserOptions {
   username?: string;
   name?: string;
@@ -43,12 +39,6 @@ export async function createUser(options: CreateUserOptions = {}) {
 
 export function toJwtUser(user: { id: string; username: string; role: string }): TestJwtUser {
   return { userId: user.id, username: user.username, role: user.role };
-}
-
-export async function createUserPreferences(userId: string, options: { notifications?: boolean } = {}) {
-  return prisma.userPreferences.create({
-    data: { id: nextId('prefs'), userId, notifications: options.notifications ?? true },
-  });
 }
 
 export interface CreateFriendOptions {

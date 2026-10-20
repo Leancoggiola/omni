@@ -22,7 +22,6 @@ export function createMockAuthValue(overrides: Partial<MockAuthValue> = {}): Moc
 function defaultAuthValue(): MockAuthValue {
   return {
     user: createMockSessionUser(),
-    isAuthenticated: true,
     isLoading: false,
     error: undefined,
     login: async () => {},

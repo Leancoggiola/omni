@@ -21,35 +21,6 @@ export const SWR_KEYS = {
     search: '/api/media/search',
     listItem: (id: string) => `/api/media/list/${id}`,
   },
-  gym: {
-    plans: '/api/gym/plans',
-    plan: (id: string) => `/api/gym/plans/${id}`,
-    planArchive: (id: string) => `/api/gym/plans/${id}/archive`,
-    exercises: '/api/gym/exercises',
-    exercise: (id: string) => `/api/gym/exercises/${id}`,
-    exerciseWeight: (id: string) => `/api/gym/exercises/${id}/weight`,
-  },
-  pantry: {
-    summary: '/api/pantry/summary',
-    products: '/api/pantry/products',
-    productsSuggest: '/api/pantry/products/suggest',
-    product: (id: string) => `/api/pantry/products/${id}`,
-    shoppingList: '/api/pantry/shopping-list',
-    shoppingListGenerate: '/api/pantry/shopping-list/generate',
-    shoppingListItems: '/api/pantry/shopping-list/items',
-    shoppingListItem: (id: string) => `/api/pantry/shopping-list/items/${id}`,
-    shoppingListItemComplete: (id: string) => `/api/pantry/shopping-list/items/${id}/complete`,
-    shoppingListChecked: '/api/pantry/shopping-list/checked',
-  },
-  expenses: {
-    summary: '/api/expenses/summary',
-    list: '/api/expenses',
-    expense: (id: string) => `/api/expenses/${id}`,
-    reminders: '/api/expenses/reminders',
-    reminder: (id: string) => `/api/expenses/reminders/${id}`,
-    reminderComplete: (id: string) => `/api/expenses/reminders/${id}/complete`,
-    reminderSnooze: (id: string) => `/api/expenses/reminders/${id}/snooze`,
-  },
   splitExpenses: {
     friends: '/api/split-expenses/friends',
     friendsSuggest: '/api/split-expenses/friends/suggest',
@@ -60,11 +31,6 @@ export const SWR_KEYS = {
     gatheringExpenses: (gatheringId: string) => `/api/split-expenses/gatherings/${gatheringId}/expenses`,
     gatheringExpense: (gatheringId: string, expenseId: string) =>
       `/api/split-expenses/gatherings/${gatheringId}/expenses/${expenseId}`,
-  },
-  notifications: {
-    digest: '/api/notifications/digest',
-    devices: '/api/notifications/devices',
-    device: (id: string) => `/api/notifications/devices/${id}`,
   },
   holidays: {
     today: '/api/holidays/today',

@@ -17,7 +17,6 @@ import {
 import { paginationSchema } from '@omni/shared/common';
 import { addGymExerciseSchema, updateGymExerciseWeightSchema } from '@omni/shared/gym';
 import { addMediaFormSchema, addMediaItemSchema, searchMediaSchema } from '@omni/shared/media';
-import { registerNotificationDeviceSchema } from '@omni/shared/notifications';
 import {
   addShoppingListItemSchema,
   completeShoppingListItemSchema,
@@ -109,12 +108,10 @@ describe('cotas de entrada', () => {
   it('limita el largo de búsquedas, tokens e ids', () => {
     const long = 'a'.repeat(5000);
     expect(searchMediaSchema.safeParse({ query: 'fight' }).success).toBe(true);
-    expect(registerNotificationDeviceSchema.safeParse({ platform: 'WEB', token: 'abc' }).success).toBe(true);
     expect(refreshTokenBodySchema.safeParse({ refreshToken: 'abc' }).success).toBe(true);
     expect(addGatheringExpenseSchema.safeParse({ participantId: 'p1', amount: 1 }).success).toBe(true);
     expect(searchMediaSchema.safeParse({ query: long }).success).toBe(false);
     expect(listPantryProductsSchema.safeParse({ q: long }).success).toBe(false);
-    expect(registerNotificationDeviceSchema.safeParse({ platform: 'WEB', token: long }).success).toBe(false);
     expect(refreshTokenBodySchema.safeParse({ refreshToken: long }).success).toBe(false);
     expect(addShoppingListItemSchema.safeParse({ pantryProductId: long, quantityToBuy: 1 }).success).toBe(false);
     expect(addGatheringExpenseSchema.safeParse({ participantId: long, amount: 1 }).success).toBe(false);

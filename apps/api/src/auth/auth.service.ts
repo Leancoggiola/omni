@@ -8,8 +8,8 @@ import * as usersService from '../users/users.service';
 import { lockUserSessions, prisma } from '../common/db';
 import type { PrismaTransactionClient } from '../common/db/prisma';
 import { clearCookies, setAccessCookie, setRefreshCookie } from '../common/utils/cookies';
+import { toSessionUser } from '@omni/shared/auth';
 import type { AuthTokensResponse, Role } from '@omni/shared/auth';
-import { toSessionUser } from './auth.mappers';
 
 /** Al pasar este tope, cada sesión nueva borra las más viejas del usuario. */
 export const MAX_SESSIONS_PER_USER = 10;

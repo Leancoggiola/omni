@@ -37,28 +37,14 @@ describe('Banner', () => {
     expect(announce).toHaveBeenCalledWith('Usuario o contraseña incorrectos');
   });
 
-  it('announce={false} no anuncia (aviso fijo de la pantalla) pero sigue siendo una alerta', () => {
-    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
-    announce.mockClear();
+  it('con ícono sigue siendo una alerta con el mensaje', () => {
     render(
-      <Banner color="info" announce={false}>
+      <Banner color="info" icon={WarningCircleIcon}>
         Modo de prueba
       </Banner>
     );
 
     expect(screen.getByRole('alert', { name: 'Modo de prueba' })).toBeTruthy();
-    expect(announce).not.toHaveBeenCalled();
-  });
-
-  it('con título: título en el color, mensaje en el texto normal y se leen juntos', () => {
-    render(
-      <Banner color="warning" title="Atención" icon={WarningCircleIcon}>
-        Revisá los datos
-      </Banner>
-    );
-
-    expect(screen.getByText('Atención')).toHaveProp('color', '$warning');
-    expect(screen.getByText('Revisá los datos')).toHaveProp('color', '$color');
-    expect(screen.getByRole('alert', { name: 'Atención. Revisá los datos' })).toBeTruthy();
+    expect(screen.getByText('Modo de prueba')).toHaveProp('color', '$info');
   });
 });

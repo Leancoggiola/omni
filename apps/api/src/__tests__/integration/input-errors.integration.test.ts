@@ -96,7 +96,6 @@ describe('errores de entrada (integration)', () => {
     it.each([
       ['PATCH', `/api/media/list/${longId}`, { status: 'watched' }],
       ['DELETE', `/api/media/list/${longId}`, undefined],
-      ['DELETE', `/api/notifications/devices/${longId}`, undefined],
       ['DELETE', `/api/admin/users/${longId}`, undefined],
       ['PATCH', `/api/split-expenses/friends/${longId}`, { name: 'Ana' }],
       ['DELETE', `/api/split-expenses/friends/${longId}`, undefined],
@@ -268,8 +267,23 @@ describe('errores de entrada (integration)', () => {
   });
 
   describe('guards', () => {
-    it('DELETE /notifications/devices/:deviceId autentica antes de validar el id', async () => {
-      const res = await request(app).delete(`/api/notifications/devices/${'a'.repeat(65)}`);
+    it('una ruta protegida autentica con el JWT de la cookie de acceso', async () => {
+      const token = authHeader(toJwtUser(user)).replace('Bearer ', '');
+
+      const res = await request(app).get('/api/users/profile').set('Cookie', `access_token=${token}`);
+
+      expect(res.status).toBe(200);
+    });
+
+    it('un JWT inválido responde 401 con el formato de error estándar', async () => {
+      const res = await request(app).get('/api/users/profile').set('Authorization', 'Bearer no-es-un-jwt');
+
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ statusCode: 401, message: expect.any(String) });
+    });
+
+    it('DELETE /media/list/:id autentica antes de validar el id', async () => {
+      const res = await request(app).delete(`/api/media/list/${'a'.repeat(65)}`);
 
       expect(res.status).toBe(401);
     });
@@ -279,21 +293,6 @@ describe('errores de entrada (integration)', () => {
 
       expect(res.status).toBe(403);
       expect(res.body).toEqual({ statusCode: 403, message: 'Acceso denegado: se requiere rol ADMIN' });
-    });
-
-    it('authenticateNotifications rechaza un JWT inválido con el formato de error estándar', async () => {
-      const res = await request(app).get('/api/notifications/digest').set('Authorization', 'Bearer no-es-un-jwt');
-
-      expect(res.status).toBe(401);
-      expect(res.body).toEqual({ statusCode: 401, message: expect.any(String) });
-    });
-
-    it('authenticateNotifications acepta un JWT en la cookie de acceso', async () => {
-      const token = authHeader(toJwtUser(user)).replace('Bearer ', '');
-
-      const res = await request(app).get('/api/notifications/digest').set('Cookie', `access_token=${token}`);
-
-      expect(res.status).toBe(200);
     });
   });
 });

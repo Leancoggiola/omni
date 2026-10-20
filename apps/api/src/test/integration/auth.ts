@@ -9,7 +9,7 @@ export interface TestJwtUser {
 }
 
 /** Firma un token que acepta la estrategia jwt real — en integración no se mockea ningún middleware. */
-export function signAccessToken(user: TestJwtUser): string {
+function signAccessToken(user: TestJwtUser): string {
   return jwt.sign({ sub: user.userId, username: user.username, role: user.role }, config.jwt.accessSecret, {
     expiresIn: '15m',
   });

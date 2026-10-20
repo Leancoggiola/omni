@@ -60,10 +60,6 @@ export function notifyWarning(message: string) {
   show('warning', 'Atención', message);
 }
 
-export function notifyInfo(message: string) {
-  show('info', 'Info', message);
-}
-
 /**
  * Mensaje para mostrar al usuario: el de la API (`ApiError`, ya en español) o `fallback`. Un error de red, de parseo
  * o cualquier otro llega con un mensaje técnico y en inglés ("Network request failed"), así que no se muestra.

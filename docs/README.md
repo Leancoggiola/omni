@@ -45,9 +45,9 @@
 ### API
 
 | Doc                                        | Contenido                         |
-| ------------------------------------------ | --------------------------------- | --- | -------------------------------------------------------------- | ------------------------------------------- |
+| ------------------------------------------ | --------------------------------- |
 | [prisma.md](./api/prisma.md)               | Migraciones Prisma                |
-| [route-testing.md](./api/route-testing.md) | Tests de integración de endpoints |     | [lifestyle-notifications.md](./api/lifestyle-notifications.md) | Notificaciones (digest, push, Raspberry Pi) |
+| [route-testing.md](./api/route-testing.md) | Tests de integración de endpoints |
 
 ### Ops
 
