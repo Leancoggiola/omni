@@ -1,5 +1,5 @@
 # ── Stage 1: Base ──────────────────────────────────────────────
-FROM node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS base
+FROM node:26-alpine@sha256:6f08a523443ddedf52941874c203475b0ad503e859ad70cb26ab8be9a517dbd5 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
@@ -33,7 +33,7 @@ RUN pnpm turbo build --filter=api
 RUN pnpm --filter=api deploy --prod --legacy /app/deployed
 
 # ── Stage 5: Runner ───────────────────────────────────────────
-FROM node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS runner
+FROM node:26-alpine@sha256:6f08a523443ddedf52941874c203475b0ad503e859ad70cb26ab8be9a517dbd5 AS runner
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 appgroup && \
