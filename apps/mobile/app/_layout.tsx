@@ -6,7 +6,7 @@ import { useColorScheme } from 'react-native';
 import { TamaguiProvider, Theme } from 'tamagui';
 import { StatusBar } from 'expo-status-bar';
 
-import { AuthProvider } from '@/core/auth';
+import { AuthProvider, useAuth } from '@/core/auth';
 import { AuthGate } from '@/core/authGate';
 import { SWRProvider } from '@/core/providers';
 import { ServerWakeNotice } from '@/core/serverWake';
@@ -25,6 +25,13 @@ function holdSplash() {
 }
 
 holdSplash();
+
+/** Alimenta `ColorSchemeProvider` con el tema del perfil de la sesión (`null` sin sesión). */
+function ProfileColorSchemeProvider({ children }: PropsWithChildren) {
+  const { user } = useAuth();
+
+  return <ColorSchemeProvider profileTheme={user?.theme ?? null}>{children}</ColorSchemeProvider>;
+}
 
 function ThemedRoot({ children }: PropsWithChildren) {
   const { colorScheme } = useColorSchemeControl();
@@ -58,7 +65,7 @@ export default function RootLayout() {
     <TamaguiProvider config={tamaguiConfig} defaultTheme={systemScheme === 'dark' ? 'dark' : 'light'}>
       <SWRProvider>
         <AuthProvider>
-          <ColorSchemeProvider>
+          <ProfileColorSchemeProvider>
             <ThemedRoot>
               <NotificationsProvider>
                 <ConfirmProvider>
@@ -69,7 +76,7 @@ export default function RootLayout() {
                 </ConfirmProvider>
               </NotificationsProvider>
             </ThemedRoot>
-          </ColorSchemeProvider>
+          </ProfileColorSchemeProvider>
         </AuthProvider>
       </SWRProvider>
     </TamaguiProvider>

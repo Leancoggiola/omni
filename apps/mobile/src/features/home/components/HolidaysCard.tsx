@@ -7,7 +7,7 @@ import { Paragraph, XStack, YStack } from 'tamagui';
 import { useColorSchemeControl } from '@/core/theme';
 import { ErrorState } from '@/shared/ui';
 import { gradientPoints } from '@/theme/gradient';
-import { BRAND, GRADIENT_STOPS, RADIUS, SEMANTIC } from '@omni/shared/theme';
+import { BRAND, GRADIENT_STOPS, RADIUS, SEMANTIC, SPACING } from '@omni/shared/theme';
 
 import { useHolidayCarousel, useTodayHolidays } from '../hooks';
 
@@ -81,14 +81,14 @@ export function HolidaysCard() {
           style={StyleSheet.absoluteFill}
         />
 
-        <XStack gap="$3" padding="$3" alignItems="flex-start" minHeight={CARD_MIN_HEIGHT}>
-          <YStack backgroundColor={s.white} borderRadius="$3" padding="$2">
+        <XStack gap={SPACING.sm} padding={SPACING.sm} alignItems="flex-start" minHeight={CARD_MIN_HEIGHT}>
+          <YStack backgroundColor={s.white} borderRadius={RADIUS.md} padding={SPACING.xs}>
             <ConfettiIcon size={20} color={BRAND[7]} />
           </YStack>
 
           <YStack
             flex={1}
-            gap="$1"
+            gap={SPACING['3xs']}
             accessible
             accessibilityLabel={`Efemérides de hoy. ${itemLabel}`}
             accessibilityRole={hasCarousel ? 'button' : undefined}

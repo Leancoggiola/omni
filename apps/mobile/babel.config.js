@@ -8,10 +8,8 @@ module.exports = function (api) {
         {
           components: ['tamagui'],
           config: './src/theme/tamagui.config.ts',
-          logTimings: true,
         },
       ],
-      'react-native-reanimated/plugin',
     ],
   };
 };
