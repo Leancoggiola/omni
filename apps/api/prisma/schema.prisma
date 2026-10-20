@@ -34,7 +34,6 @@ model User {
   gatherings    Gathering[]
   personalExpenses PersonalExpense[]
   expenseReminders ExpenseReminder[]
-  notificationDevices NotificationDevice[]
 }
 
 model UserPreferences {
@@ -303,25 +302,4 @@ model ExpenseReminder {
   updatedAt   DateTime                  @updatedAt
 
   @@index([userId, status, dueDate])
-}
-
-enum NotificationPlatform {
-  WEB
-  MOBILE
-  RASPBERRY_PI
-}
-
-model NotificationDevice {
-  id         String               @id @default(cuid())
-  userId     String
-  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  platform   NotificationPlatform
-  token      String
-  label      String?
-  isActive   Boolean              @default(true)
-  lastSeenAt DateTime?
-  createdAt  DateTime             @default(now())
-
-  @@unique([userId, platform, token])
-  @@index([userId, isActive])
 }

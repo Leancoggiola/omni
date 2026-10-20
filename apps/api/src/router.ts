@@ -7,7 +7,6 @@ import gymRoutes from './gym/gym.routes';
 import pantryRoutes from './pantry/pantry.routes';
 import splitExpensesRoutes from './split-expenses/split-expenses.routes';
 import expensesRoutes from './expenses/expenses.routes';
-import notificationsRoutes from './notifications/notifications.routes';
 import holidaysRoutes from './holidays/holidays.routes';
 
 const router = Router();
@@ -20,7 +19,6 @@ router.use('/gym', gymRoutes);
 router.use('/pantry', pantryRoutes);
 router.use('/split-expenses', splitExpensesRoutes);
 router.use('/expenses', expensesRoutes);
-router.use('/notifications', notificationsRoutes);
 router.use('/holidays', holidaysRoutes);
 
 export default router;

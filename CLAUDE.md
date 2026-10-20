@@ -10,7 +10,7 @@ Cada app tiene su propio `CLAUDE.md` con sus convenciones; se carga al trabajar 
 
 | Ruta                    | Rol                                                     |
 | ----------------------- | ------------------------------------------------------- |
-| `apps/api/`             | REST — 10 features en `src/*`, ver `router.ts`          |
+| `apps/api/`             | REST — 9 features en `src/*`, ver `router.ts`           |
 | `apps/web/`             | SPA — `auth`, `home`, `media`, `profile`                |
 | `apps/mobile/`          | Expo Android — paridad con web                          |
 | `apps/e2e/`             | Suite E2E de la web (Playwright)                        |

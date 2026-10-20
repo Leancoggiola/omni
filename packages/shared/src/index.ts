@@ -6,7 +6,6 @@ export * from './gym';
 export * from './pantry';
 export * from './split-expenses';
 export * from './expenses';
-export * from './notifications';
 export * from './holidays';
 export * from './common';
 export * from './navigation';

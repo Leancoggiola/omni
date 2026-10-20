@@ -16,7 +16,7 @@ apps/api/src/
   config.ts · main.ts · router.ts
 ```
 
-Features: `auth`, `media`, `users`, `admin`, `gym`, `pantry`, `expenses`, `split-expenses`, `notifications`, `holidays`. Registrar en `src/router.ts` con `router.use('/<feature>', featureRoutes)`.
+Features: `auth`, `media`, `users`, `admin`, `gym`, `pantry`, `expenses`, `split-expenses`, `holidays`. Registrar en `src/router.ts` con `router.use('/<feature>', featureRoutes)`.
 
 ```ts
 import { prisma } from '../common/db';
