@@ -27,7 +27,6 @@ model User {
   refreshTokens RefreshToken[]
   mediaItems    MediaItem[]
   preferences   UserPreferences?
-  stats         UserStats?
   gymPlans      GymPlan[]
   pantryProducts PantryProduct[]
   pantryShoppingListItems PantryShoppingListItem[]
@@ -76,18 +75,6 @@ model MediaItem {
 
   @@unique([userId, tmdbId, mediaType])
   @@index([userId])
-}
-
-model UserStats {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  totalMovies   Int      @default(0)
-  totalTvShows  Int      @default(0)
-  totalWatched  Int      @default(0)
-  totalWatching Int      @default(0)
-  totalToWatch  Int      @default(0)
-  updatedAt     DateTime @updatedAt
 }
 
 enum GymPlanStatus {

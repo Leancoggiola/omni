@@ -40,14 +40,3 @@ export interface AdminUser {
 export interface AdminUsersResponse {
   users: AdminUser[];
 }
-
-export interface UserStats {
-  id: string;
-  userId: string;
-  totalMovies: number;
-  totalTvShows: number;
-  totalWatched: number;
-  totalWatching: number;
-  totalToWatch: number;
-  updatedAt: string;
-}
