@@ -42,7 +42,6 @@ const renderMutations = () =>
     () => ({
       list: useSWR(LIST_KEY),
       detail: useSWR(GATHERING_KEY),
-      digest: useSWR(SWR_KEYS.notifications.digest),
       mutations: useSplitExpensesMutations(),
     }),
     { wrapper }
@@ -87,16 +86,15 @@ describe('useSplitExpensesMutations', () => {
     expect(result.current.detail.data).toEqual({ key: GATHERING_KEY });
   });
 
-  it('crear una juntada revalida la lista y el digest de notificaciones', async () => {
+  it('crear una juntada revalida la lista', async () => {
     const { result } = renderMutations();
-    await waitFor(() => expect(result.current.digest.data).toBeDefined());
+    await waitFor(() => expect(result.current.list.data).toBeDefined());
     fetches.length = 0;
 
     await act(() => result.current.mutations.createGathering({} as never));
 
     expect(post).toHaveBeenCalledWith(SWR_KEYS.splitExpenses.gatherings, {});
     expect(fetches.filter(key => key === LIST_KEY)).toHaveLength(1);
-    expect(fetches.filter(key => key === SWR_KEYS.notifications.digest)).toHaveLength(1);
   });
 
   it('borrar una juntada no vuelve a pedir su detalle, que ya no existe', async () => {

@@ -45,7 +45,7 @@ describe('ProtectedRoute', () => {
   });
 
   it('no muestra nada protegido mientras verifica la sesión', () => {
-    mockAuth.value = createMockAuthValue({ user: null, isAuthenticated: false, isLoading: true });
+    mockAuth.value = createMockAuthValue({ user: null, isLoading: true });
     renderRoute();
 
     expect(screen.queryByText('Mi lista')).not.toBeInTheDocument();
@@ -53,7 +53,7 @@ describe('ProtectedRoute', () => {
   });
 
   it('redirige al login, recordando la ruta, si no hay sesión ni error', () => {
-    mockAuth.value = createMockAuthValue({ user: null, isAuthenticated: false });
+    mockAuth.value = createMockAuthValue({ user: null });
     renderRoute();
 
     expect(screen.getByText('Login desde /media')).toBeInTheDocument();
@@ -62,7 +62,6 @@ describe('ProtectedRoute', () => {
   it.each([401, 403])('redirige al login si la API rechazó la sesión con un %i', status => {
     mockAuth.value = createMockAuthValue({
       user: null,
-      isAuthenticated: false,
       error: new ApiError('La sesión ya no es válida', status),
     });
     renderRoute();
@@ -78,7 +77,6 @@ describe('ProtectedRoute', () => {
     const retry = vi.fn().mockResolvedValue(undefined);
     mockAuth.value = createMockAuthValue({
       user: null,
-      isAuthenticated: false,
       error,
       retry,
     });

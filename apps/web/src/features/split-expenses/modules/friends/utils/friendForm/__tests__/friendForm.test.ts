@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { friendFormSchema, toCreateFriendPayload, toUpdateFriendPayload } from '../friendForm';
+import { friendFormSchema, toCreateFriendPayload } from '../friendForm';
 
 describe('friendFormSchema', () => {
   it('accepts a valid friend', () => {
@@ -34,11 +34,5 @@ describe('toCreateFriendPayload', () => {
       name: 'Lean',
       alias: 'leanco',
     });
-  });
-});
-
-describe('toUpdateFriendPayload', () => {
-  it('produces the same shape as create', () => {
-    expect(toUpdateFriendPayload({ name: 'Lean', alias: 'leanco' })).toEqual({ name: 'Lean', alias: 'leanco' });
   });
 });

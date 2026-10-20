@@ -6,6 +6,6 @@ export type { ImageLightboxOptions } from './lightbox';
 export { LightboxProvider, openImageLightbox } from './lightbox';
 export { LoadingState } from './LoadingState';
 export { LogoAvatar } from './LogoAvatar';
-export { getErrorMessage, notifyError, notifyInfo, notifyPersistent, notifySuccess, notifyWarning } from './notify';
+export { getErrorMessage, notifyError, notifyPersistent, notifySuccess } from './notify';
 export { PageHeader } from './PageHeader';
 export { UserAvatar } from './UserAvatar';
