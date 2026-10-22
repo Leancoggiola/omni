@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Request, Response } from 'express';
 
+import { HttpError } from '../common/http';
 import { errorHandler } from '../common/utils/error-handler';
 
 function run(err: unknown) {
@@ -33,6 +34,14 @@ describe('errorHandler', () => {
 
   it('respeta el status de un error propio aunque traiga un code', () => {
     expect(run({ status: 403, message: 'Prohibido', code: 'P2002' })).toMatchObject({ status: 403 });
+  });
+
+  it('responde con el status y el mensaje de un HttpError, que además conserva su stack', () => {
+    const err = new HttpError(409, 'Ya existe');
+
+    expect(err).toBeInstanceOf(Error);
+    expect(err.stack).toContain('HttpError');
+    expect(run(err)).toMatchObject({ status: 409, body: { statusCode: 409, message: 'Ya existe' } });
   });
 
   it('conserva el detalle de validación', () => {

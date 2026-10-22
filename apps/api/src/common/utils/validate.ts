@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import { HttpError } from '../http';
 
 type ValidationTarget = 'body' | 'query' | 'params';
 
@@ -33,11 +34,7 @@ export function validate(schema: z.ZodType, target: ValidationTarget = 'body') {
       next();
     } catch (err) {
       if (err instanceof z.ZodError) {
-        next({
-          status: 400,
-          message: 'Error de validación',
-          errors: z.flattenError(err).fieldErrors,
-        });
+        next(new HttpError(400, 'Error de validación', z.flattenError(err).fieldErrors));
       } else {
         next(err);
       }

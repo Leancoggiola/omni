@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { idParamsSchema } from '@omni/shared/common';
-import type { NextFunction, Request, Response } from 'express';
 import {
   addGatheringExpenseSchema,
   createGatheringSchema,
@@ -15,6 +14,7 @@ import {
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
 import { createRateLimiter, validate } from '../common/utils';
 import * as splitService from './split-expenses.service';
+import { validatedQuery } from '../common/http';
 
 const suggestLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
@@ -28,137 +28,85 @@ const suggestLimiter = createRateLimiter({
 const router = Router();
 router.use(authenticateJwt);
 
-router.get('/friends', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await splitService.listFriends(userId));
-  } catch (err) {
-    next(err);
-  }
+router.get('/friends', async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await splitService.listFriends(userId));
 });
 
-router.get('/friends/suggest', suggestLimiter, validate(suggestSplitFriendsSchema, 'query'), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await splitService.suggestFriends(userId, req.query as unknown as SuggestSplitFriendsParams));
-  } catch (err) {
-    next(err);
-  }
+router.get('/friends/suggest', suggestLimiter, validate(suggestSplitFriendsSchema, 'query'), async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await splitService.suggestFriends(userId, validatedQuery<SuggestSplitFriendsParams>(req)));
 });
 
-router.post('/friends', validate(createSplitFriendSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.status(201).json(await splitService.createFriend(userId, req.body));
-  } catch (err) {
-    next(err);
-  }
+router.post('/friends', validate(createSplitFriendSchema), async (req, res) => {
+  const { userId } = req.user!;
+  res.status(201).json(await splitService.createFriend(userId, req.body));
 });
 
 router.patch(
   '/friends/:friendId',
   validate(idParamsSchema('friendId'), 'params'),
   validate(updateSplitFriendSchema),
-  async (req, res, next) => {
-    try {
-      const { userId } = req.user as { userId: string };
-      res.json(await splitService.updateFriend(userId, req.params.friendId as string, req.body));
-    } catch (err) {
-      next(err);
-    }
+  async (req, res) => {
+    const { userId } = req.user!;
+    res.json(await splitService.updateFriend(userId, req.params.friendId as string, req.body));
   }
 );
 
-router.delete('/friends/:friendId', validate(idParamsSchema('friendId'), 'params'), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    await splitService.deleteFriend(userId, req.params.friendId as string);
-    res.status(204).send();
-  } catch (err) {
-    next(err);
-  }
+router.delete('/friends/:friendId', validate(idParamsSchema('friendId'), 'params'), async (req, res) => {
+  const { userId } = req.user!;
+  await splitService.deleteFriend(userId, req.params.friendId as string);
+  res.status(204).send();
 });
 
-router.get('/gatherings', validate(listGatheringsSchema, 'query'), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await splitService.listGatherings(userId, req.query as unknown as ListGatheringsParams));
-  } catch (err) {
-    next(err);
-  }
+router.get('/gatherings', validate(listGatheringsSchema, 'query'), async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await splitService.listGatherings(userId, validatedQuery<ListGatheringsParams>(req)));
 });
 
-router.get('/gatherings/:gatheringId', validate(idParamsSchema('gatheringId'), 'params'), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await splitService.getGathering(userId, req.params.gatheringId as string));
-  } catch (err) {
-    next(err);
-  }
+router.get('/gatherings/:gatheringId', validate(idParamsSchema('gatheringId'), 'params'), async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await splitService.getGathering(userId, req.params.gatheringId as string));
 });
 
-router.post('/gatherings', validate(createGatheringSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.status(201).json(await splitService.createGathering(userId, req.body));
-  } catch (err) {
-    next(err);
-  }
+router.post('/gatherings', validate(createGatheringSchema), async (req, res) => {
+  const { userId } = req.user!;
+  res.status(201).json(await splitService.createGathering(userId, req.body));
 });
 
 router.patch(
   '/gatherings/:gatheringId/settled',
   validate(idParamsSchema('gatheringId'), 'params'),
   validate(toggleGatheringSettledSchema),
-  async (req, res, next) => {
-    try {
-      const { userId } = req.user as { userId: string };
-      res.json(await splitService.toggleGatheringSettled(userId, req.params.gatheringId as string, req.body));
-    } catch (err) {
-      next(err);
-    }
+  async (req, res) => {
+    const { userId } = req.user!;
+    res.json(await splitService.toggleGatheringSettled(userId, req.params.gatheringId as string, req.body));
   }
 );
 
-router.delete('/gatherings/:gatheringId', validate(idParamsSchema('gatheringId'), 'params'), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    await splitService.deleteGathering(userId, req.params.gatheringId as string);
-    res.status(204).send();
-  } catch (err) {
-    next(err);
-  }
+router.delete('/gatherings/:gatheringId', validate(idParamsSchema('gatheringId'), 'params'), async (req, res) => {
+  const { userId } = req.user!;
+  await splitService.deleteGathering(userId, req.params.gatheringId as string);
+  res.status(204).send();
 });
 
 router.post(
   '/gatherings/:gatheringId/expenses',
   validate(idParamsSchema('gatheringId'), 'params'),
   validate(addGatheringExpenseSchema),
-  async (req, res, next) => {
-    try {
-      const { userId } = req.user as { userId: string };
-      res.status(201).json(await splitService.addGatheringExpense(userId, req.params.gatheringId as string, req.body));
-    } catch (err) {
-      next(err);
-    }
+  async (req, res) => {
+    const { userId } = req.user!;
+    res.status(201).json(await splitService.addGatheringExpense(userId, req.params.gatheringId as string, req.body));
   }
 );
 
 router.delete(
   '/gatherings/:gatheringId/expenses/:expenseId',
   validate(idParamsSchema('gatheringId', 'expenseId'), 'params'),
-  async (req, res, next) => {
-    try {
-      const { userId } = req.user as { userId: string };
-      await splitService.deleteGatheringExpense(
-        userId,
-        req.params.gatheringId as string,
-        req.params.expenseId as string
-      );
-      res.status(204).send();
-    } catch (err) {
-      next(err);
-    }
+  async (req, res) => {
+    const { userId } = req.user!;
+    await splitService.deleteGatheringExpense(userId, req.params.gatheringId as string, req.params.expenseId as string);
+    res.status(204).send();
   }
 );
 

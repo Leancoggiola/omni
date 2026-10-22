@@ -39,7 +39,7 @@ describe('wikipedia.service', () => {
   it('devuelve 502 cuando Wikipedia responde con error', async () => {
     fetchMock.mockResolvedValue(new Response('boom', { status: 503, statusText: 'Service Unavailable' }));
 
-    await expect(fetchHolidays('09', '13')).rejects.toEqual({
+    await expect(fetchHolidays('09', '13')).rejects.toMatchObject({
       status: 502,
       message: 'Error de Wikipedia: Service Unavailable',
     });
@@ -48,7 +48,7 @@ describe('wikipedia.service', () => {
   it('devuelve 502 cuando no se puede contactar a Wikipedia', async () => {
     fetchMock.mockRejectedValue(new TypeError('fetch failed'));
 
-    await expect(fetchHolidays('09', '13')).rejects.toEqual({
+    await expect(fetchHolidays('09', '13')).rejects.toMatchObject({
       status: 502,
       message: 'No se pudo contactar a Wikipedia',
     });
@@ -57,7 +57,7 @@ describe('wikipedia.service', () => {
   it('devuelve 504 cuando el request vence', async () => {
     fetchMock.mockRejectedValue(timeoutError());
 
-    await expect(fetchHolidays('09', '13')).rejects.toEqual({
+    await expect(fetchHolidays('09', '13')).rejects.toMatchObject({
       status: 504,
       message: 'Wikipedia no respondió a tiempo',
     });
@@ -66,7 +66,7 @@ describe('wikipedia.service', () => {
   it('devuelve 502 cuando el body no es JSON válido', async () => {
     fetchMock.mockResolvedValue(new Response('<html>no es json</html>', { status: 200 }));
 
-    await expect(fetchHolidays('09', '13')).rejects.toEqual({
+    await expect(fetchHolidays('09', '13')).rejects.toMatchObject({
       status: 502,
       message: 'Wikipedia devolvió una respuesta inválida',
     });
@@ -77,7 +77,7 @@ describe('wikipedia.service', () => {
     vi.spyOn(res, 'json').mockRejectedValue(timeoutError());
     fetchMock.mockResolvedValue(res);
 
-    await expect(fetchHolidays('09', '13')).rejects.toEqual({
+    await expect(fetchHolidays('09', '13')).rejects.toMatchObject({
       status: 504,
       message: 'Wikipedia no respondió a tiempo',
     });

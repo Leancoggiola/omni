@@ -1,10 +1,17 @@
 import { Router } from 'express';
 import { idParamsSchema } from '@omni/shared/common';
-import type { Request, Response, NextFunction } from 'express';
-import { searchMediaSchema, addMediaItemSchema, updateMediaItemSchema, filterMediaSchema } from '@omni/shared/media';
+import {
+  searchMediaSchema,
+  addMediaItemSchema,
+  updateMediaItemSchema,
+  filterMediaSchema,
+  type FilterMediaParams,
+} from '@omni/shared/media';
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
 import { createRateLimiter, validate } from '../common/utils';
 import * as mediaService from './media.service';
+import { validatedQuery } from '../common/http';
+import type { z } from 'zod';
 
 const searchLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
@@ -19,68 +26,39 @@ const router = Router();
 
 router.use(authenticateJwt);
 
-router.get(
-  '/search',
-  searchLimiter,
-  validate(searchMediaSchema, 'query'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { query, page, type } = req.query as any;
-      const result = await mediaService.search(query, page ?? 1, type ?? 'multi');
-      res.json(result);
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-router.get('/list', validate(filterMediaSchema, 'query'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    const result = await mediaService.getList(userId, req.query as any);
-    res.json(result);
-  } catch (err) {
-    next(err);
-  }
+router.get('/search', searchLimiter, validate(searchMediaSchema, 'query'), async (req, res) => {
+  const { query, page, type } = validatedQuery<z.infer<typeof searchMediaSchema>>(req);
+  const result = await mediaService.search(query, page, type);
+  res.json(result);
 });
 
-router.post('/list', validate(addMediaItemSchema), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    const result = await mediaService.addToList(userId, req.body);
-    res.status(201).json(result);
-  } catch (err) {
-    next(err);
-  }
+router.get('/list', validate(filterMediaSchema, 'query'), async (req, res) => {
+  const { userId } = req.user!;
+  const result = await mediaService.getList(userId, validatedQuery<FilterMediaParams>(req));
+  res.json(result);
+});
+
+router.post('/list', validate(addMediaItemSchema), async (req, res) => {
+  const { userId } = req.user!;
+  const result = await mediaService.addToList(userId, req.body);
+  res.status(201).json(result);
 });
 
 router.patch(
   '/list/:id',
   validate(idParamsSchema('id'), 'params'),
   validate(updateMediaItemSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { userId } = req.user as { userId: string };
-      const result = await mediaService.updateStatus(userId, req.params.id as string, req.body);
-      res.json(result);
-    } catch (err) {
-      next(err);
-    }
+  async (req, res) => {
+    const { userId } = req.user!;
+    const result = await mediaService.updateStatus(userId, req.params.id as string, req.body);
+    res.json(result);
   }
 );
 
-router.delete(
-  '/list/:id',
-  validate(idParamsSchema('id'), 'params'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { userId } = req.user as { userId: string };
-      await mediaService.removeFromList(userId, req.params.id as string);
-      res.status(204).send();
-    } catch (err) {
-      next(err);
-    }
-  }
-);
+router.delete('/list/:id', validate(idParamsSchema('id'), 'params'), async (req, res) => {
+  const { userId } = req.user!;
+  await mediaService.removeFromList(userId, req.params.id as string);
+  res.status(204).send();
+});
 
 export default router;

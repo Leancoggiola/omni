@@ -16,6 +16,7 @@ import { paginationSkipTake } from '@omni/shared/common';
 
 import { prisma } from '../common/db';
 import { decimalToNumber, normalizeName, toIsoDateString, toIsoDateTimeString } from '../common/utils/lifestyle';
+import { HttpError } from '../common/http';
 
 function mapProduct(row: PrismaPantryProduct, today = startOfTodayInAppTz()): PantryProduct {
   const quantity = decimalToNumber(row.quantity) ?? 0;
@@ -42,7 +43,7 @@ function computeQuantityToBuy(quantity: number, minQuantity: number): number {
 
 async function getOwnedProduct(userId: string, productId: string) {
   const product = await prisma.pantryProduct.findFirst({ where: { id: productId, userId } });
-  if (!product) throw { status: 404, message: 'Producto no encontrado' };
+  if (!product) throw new HttpError(404, 'Producto no encontrado');
   return product;
 }
 
@@ -123,7 +124,7 @@ export async function createProduct(userId: string, dto: CreatePantryProductPayl
   const existing = await prisma.pantryProduct.findUnique({
     where: { userId_nameNormalized: { userId, nameNormalized } },
   });
-  if (existing) throw { status: 409, message: 'Ya existe un producto con ese nombre' };
+  if (existing) throw new HttpError(409, 'Ya existe un producto con ese nombre');
 
   const product = await prisma.pantryProduct.create({
     data: {
@@ -149,7 +150,7 @@ export async function updateProduct(userId: string, productId: string, dto: Upda
       where: { userId_nameNormalized: { userId, nameNormalized } },
     });
     if (conflict && conflict.id !== productId) {
-      throw { status: 409, message: 'Ya existe un producto con ese nombre' };
+      throw new HttpError(409, 'Ya existe un producto con ese nombre');
     }
   }
 
@@ -315,8 +316,8 @@ export async function completeShoppingListItem(userId: string, itemId: string, d
     const item = await tx.pantryShoppingListItem.findFirst({
       where: { id: itemId, userId },
     });
-    if (!item) throw { status: 404, message: 'Ítem no encontrado' };
-    if (item.checked) throw { status: 409, message: 'El ítem ya estaba marcado' };
+    if (!item) throw new HttpError(404, 'Ítem no encontrado');
+    if (item.checked) throw new HttpError(409, 'El ítem ya estaba marcado');
 
     const quantityPurchased = dto.quantityPurchased ?? decimalToNumber(item.quantityToBuy) ?? 1;
     const nameNormalized = normalizeName(item.name);
@@ -326,14 +327,14 @@ export async function completeShoppingListItem(userId: string, itemId: string, d
     const existingId = item.pantryProductId ?? existingByName?.id;
     const target = existingId ? { existingId } : dto.category ? { newCategory: dto.category } : null;
     if (!target) {
-      throw { status: 400, message: 'La categoría es obligatoria para productos nuevos' };
+      throw new HttpError(400, 'La categoría es obligatoria para productos nuevos');
     }
 
     const claimed = await tx.pantryShoppingListItem.updateMany({
       where: { id: itemId, userId, checked: false },
       data: { checked: true },
     });
-    if (claimed.count === 0) throw { status: 409, message: 'El ítem ya estaba marcado' };
+    if (claimed.count === 0) throw new HttpError(409, 'El ítem ya estaba marcado');
 
     const linkedRow =
       'existingId' in target
@@ -358,7 +359,7 @@ export async function completeShoppingListItem(userId: string, itemId: string, d
 
 export async function deleteShoppingListItem(userId: string, itemId: string) {
   const item = await prisma.pantryShoppingListItem.findFirst({ where: { id: itemId, userId } });
-  if (!item) throw { status: 404, message: 'Ítem no encontrado' };
+  if (!item) throw new HttpError(404, 'Ítem no encontrado');
   await prisma.pantryShoppingListItem.delete({ where: { id: itemId } });
 }
 

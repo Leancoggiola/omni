@@ -1,12 +1,13 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Request } from 'express';
+import type { Role } from '../../generated/prisma/client';
 import { config, JWT_ALGORITHM } from '../../config';
 
 interface JwtPayload {
   sub: string;
   username: string;
-  role: string;
+  role: Role;
 }
 
 passport.use(

@@ -21,7 +21,7 @@ class LogoutStrategy extends Strategy {
   override name = 'logout';
 
   override authenticate(req: Request) {
-    this.success({ refreshToken: extractLogoutRefreshToken(req) });
+    this.success({ refreshToken: extractLogoutRefreshToken(req) } as unknown as Express.User);
   }
 }
 

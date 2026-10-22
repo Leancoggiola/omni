@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import type { NextFunction, Request, Response } from 'express';
 
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
 import { createRateLimiter } from '../common/utils';
@@ -19,12 +18,8 @@ const router = Router();
 
 router.use(authenticateJwt);
 
-router.get('/today', holidaysLimiter, async (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    res.json(await holidaysService.getTodayHolidays());
-  } catch (err) {
-    next(err);
-  }
+router.get('/today', holidaysLimiter, async (_req, res) => {
+  res.json(await holidaysService.getTodayHolidays());
 });
 
 export default router;
