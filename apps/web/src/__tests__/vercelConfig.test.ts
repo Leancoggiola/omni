@@ -22,7 +22,6 @@ const headerRoute = routes.find(route => route.headers?.['Content-Security-Polic
 const assetsRoute = routes.find(route => route.src === '/assets/(.*)' && route.headers);
 const apiRoute = routes.find(route => route.src === '/api/(.*)');
 
-/** Con `routes` presente Vercel ignora `headers` y `rewrites`: las cabeceras tienen que vivir dentro de `routes`. */
 describe('vercel.json', () => {
   it('no mezcla routes con headers ni rewrites', () => {
     expect(config.headers).toBeUndefined();
