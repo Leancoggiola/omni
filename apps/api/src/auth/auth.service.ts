@@ -29,7 +29,7 @@ export const MAX_GRACE_SIBLINGS = 2;
  * tarda lo mismo exista o no la cuenta y no revela qué usernames están registrados. Es una constante para que
  * ningún login, ni el primero tras arrancar, pague un costo distinto.
  */
-const DUMMY_PASSWORD_HASH = '$2b$12$E9mheTnBYQr8IG4ruH0QeOWAnRY2auJWScRrKAPCY/05r3snwbZJi';
+export const DUMMY_PASSWORD_HASH = '$2b$12$E9mheTnBYQr8IG4ruH0QeOWAnRY2auJWScRrKAPCY/05r3snwbZJi';
 
 /** Trae las preferencias junto con el usuario: login arma la sesión sin volver a la base. */
 export async function validateUser(username: string, password: string) {
