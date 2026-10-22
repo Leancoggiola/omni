@@ -20,9 +20,8 @@ import { useTodayHolidays } from '../../hooks';
 import { HolidayProgress } from './HolidayProgress';
 import { useHolidayCarousel } from './utils';
 
+import { HOLIDAY_CAROUSEL_DURATION_MS } from '@omni/shared/holidays';
 import { ArrowSquareOutIcon, ConfettiIcon } from '@phosphor-icons/react';
-
-const HOLIDAY_DURATION = 3000;
 
 export const HolidaysCard: FC = () => {
   const { holidays, isLoading, error, mutate } = useTodayHolidays();
@@ -32,9 +31,13 @@ export const HolidaysCard: FC = () => {
   const [hovered, setHovered] = useState(false);
   const [focusWithin, setFocusWithin] = useState(false);
 
-  const { currentIndex, currentItem, isAutoPlaying, next } = useHolidayCarousel(holidays.items, HOLIDAY_DURATION, {
-    paused: hovered || focusWithin,
-  });
+  const { currentIndex, currentItem, isAutoPlaying, next } = useHolidayCarousel(
+    holidays.items,
+    HOLIDAY_CAROUSEL_DURATION_MS,
+    {
+      paused: hovered || focusWithin,
+    }
+  );
 
   if (error) {
     return <ErrorState message="No se pudieron cargar las efemérides de hoy" onRetry={() => mutate()} />;
@@ -122,7 +125,11 @@ export const HolidaysCard: FC = () => {
         </ActionIcon>
       </Group>
       {isCarousel && (
-        <HolidayProgress key={`${currentIndex}-${isAutoPlaying}`} duration={HOLIDAY_DURATION} running={isAutoPlaying} />
+        <HolidayProgress
+          key={`${currentIndex}-${isAutoPlaying}`}
+          duration={HOLIDAY_CAROUSEL_DURATION_MS}
+          running={isAutoPlaying}
+        />
       )}
     </Paper>
   );

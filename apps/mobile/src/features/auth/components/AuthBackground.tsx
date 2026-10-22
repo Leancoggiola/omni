@@ -1,17 +1,18 @@
 import { BRAND, TERRACOTTA } from '@omni/shared/theme';
-import { useEffect, useState } from 'react';
-import { AccessibilityInfo, StyleSheet, useWindowDimensions, View, type ViewStyle } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
   interpolate,
   useAnimatedStyle,
-  useReducedMotion,
   useSharedValue,
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+
+import { useReduceMotion } from '@/shared/ui';
 
 /** Mismo ancho de corte que el `@media (max-width: 480px)` del fondo de web. */
 const SMALL_SCREEN = 480;
@@ -92,11 +93,7 @@ function BlobShape({ blob, id, animate }: { blob: Blob; id: string; animate: boo
  * no recibe toques ni lo lee TalkBack.
  */
 export function AuthBackground() {
-  const [reducedMotion, setReducedMotion] = useState(useReducedMotion());
-  useEffect(() => {
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReducedMotion);
-    return () => subscription.remove();
-  }, []);
+  const reducedMotion = useReduceMotion();
 
   return (
     <View

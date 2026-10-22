@@ -1,5 +1,11 @@
 // tamagui-ignore
-import { MEDIA_STATUS_LABELS, MEDIA_STATUSES } from '@omni/shared/media';
+import {
+  buildMediaTmdbKey,
+  DEFAULT_MEDIA_FILTERS,
+  filterMediaItems,
+  hasActiveFilters,
+  MEDIA_STATUS_OPTIONS,
+} from '@omni/shared/media';
 import { SPACING } from '@omni/shared/theme';
 import { FilmSlateIcon, PlusIcon } from 'phosphor-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -26,12 +32,8 @@ import { AddMediaSheet } from './components/AddMediaSheet';
 import { MediaListItem } from './components/MediaListItem';
 import { MediaToolbar } from './components/MediaToolbar';
 import { useMediaMutations, useMyMediaList } from './hooks';
-import { DEFAULT_MEDIA_FILTERS, filterMediaItems, hasActiveFilters, type MediaListFilters } from './utils/filterMedia';
-import { buildMediaTmdbKey } from './utils/tmdb';
 
-import type { MediaItem, MediaStatus, MediaType } from '@omni/shared/media';
-
-const STATUS_OPTIONS = MEDIA_STATUSES.map(value => ({ value, label: MEDIA_STATUS_LABELS[value] }));
+import type { MediaItem, MediaListFilters, MediaStatus, MediaType } from '@omni/shared/media';
 
 export function MediaScreen() {
   const [filters, setFilters] = useState<MediaListFilters>(DEFAULT_MEDIA_FILTERS);
@@ -88,7 +90,7 @@ export function MediaScreen() {
         const status = await actionSheet({
           title: 'Cambiar estado',
           description: item.title,
-          options: STATUS_OPTIONS,
+          options: MEDIA_STATUS_OPTIONS,
           value: item.status,
         });
         if (!status || status === item.status) return;

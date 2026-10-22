@@ -38,14 +38,16 @@ apps/mobile/
 
 ## API paths
 
-Todos los endpoints en `src/shared/api/keys.ts` como `API_KEYS`.
+Todos los endpoints en `API_PATHS` de `@omni/shared/api` (el mismo mapa que web); `src/shared/api/keys.ts` lo re-exporta como `API_KEYS`.
 
 ```ts
 import { api, API_KEYS } from '@/shared/api';
 await api.get(API_KEYS.media.list);
 ```
 
-Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/api/...'` fuera de `keys.ts`.
+Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/api/...'` fuera de ese mapa.
+
+El núcleo HTTP (request, 401 → refresh single-flight → reintento, parseo de errores y 204) es `createApiClient` de `@omni/shared/api`. `src/shared/api/client.ts` es el adaptador: `getAuthHeaders` con el Bearer de `tokenStorage`, el refresh con `{ refreshToken }` y `logoutSession` (que espera al refresh con `waitForRefresh`).
 
 ## Cold start de la API
 
@@ -67,7 +69,7 @@ import useSWRImmutable from 'swr/immutable';
 
 Return: dominio + `isLoading` + `error` (+ `isMutating` si aplica). Paridad de patrones con web: skill `swr-hooks`.
 
-`SWRProvider` (`core/providers`, por encima de `AuthProvider`: la sesión y los datos comparten caché) usa una caché a nivel de módulo, porque expo-router vuelve a montar el layout raíz al redirigir (login → tabs) y una creada al montar se perdería; pone el `fetcher`, los reintentos (`SWR_RETRY_OPTIONS`: 3, sin reintentar 4xx salvo 408 y 429) y `initFocus` con `AppState`: los `useSWR` revalidan al volver a primer plano, los `useSWRImmutable` no. Sin NetInfo no hay `initReconnect`. Las listas y el perfil llevan "tirar para actualizar" con `usePullToRefresh(refresh)` de `@/shared/ui` (`refreshControl`).
+`SWRProvider` (`core/providers`, por encima de `AuthProvider`: la sesión y los datos comparten caché) usa una caché a nivel de módulo, porque expo-router vuelve a montar el layout raíz al redirigir (login → tabs) y una creada al montar se perdería; pone el `fetcher`, los reintentos (`SWR_RETRY_OPTIONS` de `@omni/shared/api`, igual que web: 3, sin reintentar 4xx salvo 408 y 429) y `initFocus` con `AppState`: los `useSWR` revalidan al volver a primer plano, los `useSWRImmutable` no. Sin NetInfo no hay `initReconnect`. Las listas y el perfil llevan "tirar para actualizar" con `usePullToRefresh(refresh)` de `@/shared/ui` (`refreshControl`).
 
 ## Auth
 
@@ -78,7 +80,7 @@ Return: dominio + `isLoading` + `error` (+ `isMutating` si aplica). Paridad de p
 - Solo un **401/403 del refresh** limpia los tokens y avisa (`setOnAuthFailure` → `AuthProvider.clearSession`). Un 5xx, un 429 o un error de red propagan el error y conservan la sesión: el `ApiError` que llega al hook es el del refresh, no el 401 original. Si la sesión cambió mientras el refresh volaba (logout, login nuevo), su resultado se descarta. Los hooks de datos reintentan un 429 y no los demás 4xx.
 - Logout: `logoutSession()` del client espera un refresh en curso (hasta 3 s), lee el refresh token vigente al enviar y hace `POST` con `{ refreshToken }` sin pasar por el refresh por 401 (la API no responde 401 al logout); sin refresh token guardado no hace ningún request. `AuthProvider.logout` limpia tokens y caché de SWR aunque falle el POST, y al POST lo espera hasta 8 s (con la API colgada no espera su tope de 100 s); si falla el borrado en SecureStore, la UI igual sale de la sesión y el error se relanza para que quien llama avise (`MoreScreen` y `ProfileScreen` ya lo hacen).
 - Al arrancar con token, si `/auth/profile` falla por red, timeout, 5xx, 408 o 429 (`isSessionUnverified`), `AuthGate` muestra un `ErrorState` con "Reintentar" (`retrySession`) y "Cerrar sesión" en vez de mandar al login: la sesión puede seguir siendo válida. Un 4xx que no sea 408 ni 429 sí manda al login. El hook de sesión recibe `SWR_RETRY_OPTIONS` directamente. `login()` cachea la sesión con `globalMutate` antes de activar la key, así no pide el perfil de nuevo.
-- Errores al usuario: `getErrorMessage(err, fallback)` muestra `err.message` solo si es `ApiError` (ya en español); un error de red o de parseo usa el fallback.
+- Errores al usuario: `getErrorMessage(err, fallback)` (de `@omni/shared/api`, re-exportado por `@/shared/ui`) muestra `err.message` solo si es `ApiError` (ya en español); un error de red o de parseo usa el fallback.
 - Web usa cookies; no mezclar estrategias en el mismo client.
 
 ## UI compartida (`@/shared/ui`)

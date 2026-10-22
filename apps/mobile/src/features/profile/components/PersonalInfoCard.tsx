@@ -1,12 +1,10 @@
 import { SPACING } from '@omni/shared/theme';
-import { PHONE_MAX_LENGTH } from '@omni/shared/users';
+import { buildProfileUpdates, normalizeOptionalText, PHONE_MAX_LENGTH } from '@omni/shared/users';
 import { EnvelopeSimpleIcon, FloppyDiskIcon, PhoneIcon, UserIcon } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
 import { YStack } from 'tamagui';
 
 import { Button, getErrorMessage, notifyError, notifySuccess, SectionCard, TextField } from '@/shared/ui';
-
-import { buildProfileUpdates, normalizePhone } from '../utils/profileForm';
 
 import type { UpdateProfilePayload, UserProfile } from '@omni/shared/users';
 
@@ -31,7 +29,7 @@ export function PersonalInfoCard({ profile, onSave, onFieldFocus }: PersonalInfo
   }
   const submitting = useRef(false);
 
-  const updates = buildProfileUpdates(profile, phone);
+  const updates = buildProfileUpdates(profile, { phone });
   const dirty = Object.keys(updates).length > 0;
 
   const handleSave = async () => {
@@ -40,7 +38,7 @@ export function PersonalInfoCard({ profile, onSave, onFieldFocus }: PersonalInfo
     setSaving(true);
     try {
       await onSave(updates);
-      setPhone(current => (current === phone ? (normalizePhone(phone) ?? '') : current));
+      setPhone(current => (current === phone ? (normalizeOptionalText(phone) ?? '') : current));
       notifySuccess('Cambios guardados correctamente');
     } catch (err) {
       notifyError(getErrorMessage(err, 'No se pudieron guardar los cambios'));

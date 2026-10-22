@@ -1,4 +1,4 @@
-import { MEDIA_STATUS_LABELS, MEDIA_STATUSES } from '@omni/shared/media';
+import { getTmdbResultKey, getTmdbResultTitle, MEDIA_STATUS_OPTIONS, resolveMediaType } from '@omni/shared/media';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { MagnifyingGlassIcon, XIcon } from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
@@ -20,12 +20,9 @@ import {
 } from '@/shared/ui';
 
 import { MIN_SEARCH_LENGTH, useMediaSearch } from '../hooks';
-import { getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from '../utils/tmdb';
 import { TmdbResultRow } from './TmdbResultRow';
 
 import type { MediaStatus, MediaType } from '@omni/shared/media';
-
-const STATUS_OPTIONS = MEDIA_STATUSES.map(value => ({ value, label: MEDIA_STATUS_LABELS[value] }));
 
 type Selection = { key: string; tmdbId: number; mediaType: MediaType };
 
@@ -211,7 +208,12 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
             <Paragraph fontSize={FONT_SIZE.md} fontWeight="600">
               Estado
             </Paragraph>
-            <SegmentedControl data={STATUS_OPTIONS} value={status} onChange={setStatus} accessibilityLabel="Estado" />
+            <SegmentedControl
+              data={MEDIA_STATUS_OPTIONS}
+              value={status}
+              onChange={setStatus}
+              accessibilityLabel="Estado"
+            />
           </YStack>
           <Button fullWidth disabled={!selection} loading={submitting} onPress={() => void handleSubmit()}>
             Agregar

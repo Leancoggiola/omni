@@ -1,6 +1,6 @@
 export type {
-  MediaFilters,
   MediaItem,
+  MediaListFilters,
   MediaStatus,
   MediaType,
   TmdbMediaResult,

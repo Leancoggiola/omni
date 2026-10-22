@@ -1,12 +1,4 @@
-import { ApiError } from '@/shared/api/ApiError';
-
-import {
-  autoCloseMs,
-  enqueueNotification,
-  getErrorMessage,
-  type NotificationRequest,
-  type NotificationVariant,
-} from './notify';
+import { autoCloseMs, enqueueNotification, type NotificationRequest, type NotificationVariant } from './notify';
 
 function request(id: number, variant: NotificationVariant): NotificationRequest {
   return { id, variant, title: variant, message: `#${id}` };
@@ -56,21 +48,5 @@ describe('autoCloseMs', () => {
     for (const variant of ['success', 'info', 'warning'] as const) {
       expect(autoCloseMs(variant)).toBe(4000);
     }
-  });
-});
-
-describe('getErrorMessage', () => {
-  it('muestra el mensaje de un ApiError', () => {
-    expect(getErrorMessage(new ApiError('Ya está en tu lista', 409), 'fallback')).toBe('Ya está en tu lista');
-  });
-
-  it.each([
-    ['un error de red', new TypeError('Network request failed')],
-    ['un error de parseo', new SyntaxError('JSON Parse error: Unexpected character: <')],
-    ['un Error cualquiera', new Error('boom')],
-    ['un valor que no es Error', 'boom'],
-    ['un ApiError sin mensaje', new ApiError('', 500)],
-  ])('usa el fallback ante %s', (_label, err) => {
-    expect(getErrorMessage(err, 'No se pudo guardar')).toBe('No se pudo guardar');
   });
 });

@@ -1,21 +1,11 @@
-import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS, MEDIA_TYPES } from '@omni/shared/media';
+import { MEDIA_STATUS_FILTER_OPTIONS, MEDIA_TYPE_FILTER_OPTIONS } from '@omni/shared/media';
 import { SPACING } from '@omni/shared/theme';
 import { MagnifyingGlassIcon } from 'phosphor-react-native';
 import { XStack, YStack } from 'tamagui';
 
 import { SectionCard, SegmentedControl, Select, TextField } from '@/shared/ui';
 
-import type { MediaListFilters } from '../utils/filterMedia';
-
-const TYPE_OPTIONS = [
-  { value: 'all', label: 'Todos' },
-  ...MEDIA_TYPES.map(value => ({ value, label: MEDIA_TYPE_LABELS[value] })),
-] as const;
-
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'Todos' },
-  ...MEDIA_STATUSES.map(value => ({ value, label: MEDIA_STATUS_LABELS[value] })),
-] as const;
+import type { MediaListFilters } from '@omni/shared/media';
 
 const TYPE_SELECT_WIDTH = 132;
 
@@ -43,7 +33,7 @@ export function MediaToolbar({ filters, onChange }: MediaToolbarProps) {
           </YStack>
           <YStack width={TYPE_SELECT_WIDTH}>
             <Select
-              data={TYPE_OPTIONS}
+              data={MEDIA_TYPE_FILTER_OPTIONS}
               value={filters.mediaType}
               onChange={mediaType => onChange({ ...filters, mediaType })}
               accessibilityLabel="Tipo"
@@ -52,7 +42,7 @@ export function MediaToolbar({ filters, onChange }: MediaToolbarProps) {
         </XStack>
       </SectionCard>
       <SegmentedControl
-        data={STATUS_OPTIONS}
+        data={MEDIA_STATUS_FILTER_OPTIONS}
         value={filters.status}
         onChange={status => onChange({ ...filters, status })}
         accessibilityLabel="Estado"

@@ -29,9 +29,11 @@ features/<name>/
 
 ## API paths
 
-Todos los endpoints en `src/shared/api/keys.ts` como `SWR_KEYS`. Rutas dinámicas como helpers (`listItem: (id) => ...`), nunca inline.
+Todos los endpoints en `API_PATHS` de `@omni/shared/api` (`packages/shared/src/api/paths.ts`, el mismo mapa que mobile); `src/shared/api/keys.ts` lo re-exporta como `SWR_KEYS`. Rutas dinámicas como helpers (`listItem: (id) => ...`), nunca inline.
 
-**Prohibido:** literales `'/api/...'` fuera de `keys.ts`. Verificación: `pnpm --filter web check-api-paths`.
+**Prohibido:** literales `'/api/...'` fuera de ese mapa. Verificación: `pnpm --filter web check-api-paths`.
+
+El núcleo HTTP (request JSON, 401 → refresh single-flight → reintento, parseo de errores y 204) es `createApiClient` de `@omni/shared/api`, con sus tests en `packages/shared`. `src/shared/api/client.ts` es el adaptador de cookies: `credentials: 'include'`, el refresh (`true` renovó, `false` con 401/403, lanza ante cualquier otra respuesta) y `setOnAuthFailure`, que se avisa una vez por refresh fallido.
 
 ## Cold start de la API
 
@@ -47,6 +49,8 @@ La API (Render free) duerme y tarda ~1 min en despertar (tope de espera: 90 s, e
 | Write, misma key                 | `useSWRMutation` + `populateCache: true, revalidate: false` |
 | Write, update optimista          | `useSWRConfig().mutate` + `optimisticData`                  |
 | Write, invalidar varias keys     | `useSWRConfig().mutate` + `startsWith`                      |
+
+El `SWRConfig` global (`core/providers/SWRProvider.tsx`) aplica `SWR_RETRY_OPTIONS` de `@omni/shared/api`, igual que mobile: 3 reintentos, salvo los 4xx que no son 408 ni 429. El `error` aparece desde el primer fallo y los reintentos siguen en segundo plano.
 
 Un hook por carpeta, nombre de función = nombre de carpeta. Return: dominio + `isLoading` + `error` (+ `isMutating` en mutations). `buildQueryString` para query params.
 
@@ -176,7 +180,7 @@ Referencia: `ProfileSectionCard` acepta este caso vía su prop de borde cuando s
 
 Helpers en `@/shared/ui`. Mutaciones en hooks del módulo; las pages orquestan, no llaman `api.*`.
 
-`getErrorMessage(err, fallback)` muestra `err.message` solo si es un `ApiError` (el mensaje de la API, en español); cualquier otro error (red, parseo, un `new Error('…')` propio) muestra el fallback. Un mensaje propio para el usuario va en el fallback o en un `ApiError`.
+`getErrorMessage(err, fallback)` (de `@omni/shared/api`, re-exportado por `@/shared/ui`) muestra `err.message` solo si es un `ApiError` (el mensaje de la API, en español); cualquier otro error (red, parseo, un `new Error('…')` propio) muestra el fallback. Un mensaje propio para el usuario va en el fallback o en un `ApiError`.
 
 ## Imágenes ampliables
 

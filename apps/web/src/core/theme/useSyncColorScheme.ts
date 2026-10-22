@@ -5,9 +5,12 @@ import { useAuth } from '@/core/auth';
 
 import { getSessionColorScheme } from './sessionColorScheme';
 
+import { resolveColorScheme } from '@omni/shared/theme';
+
 /**
  * Aplica el tema del perfil al iniciar sesión, salvo que el usuario lo haya cambiado con el toggle
- * en esta sesión. El override se descarta al iniciar sesión (ver AuthContext).
+ * en esta sesión (`resolveColorScheme`; `auto` lo resuelve Mantine con el sistema). El override se
+ * descarta al iniciar sesión (ver AuthContext).
  */
 export function useSyncColorScheme() {
   const { user } = useAuth();
@@ -24,7 +27,7 @@ export function useSyncColorScheme() {
     }
     if (syncedRef.current) return;
 
-    setColorScheme(getSessionColorScheme() ?? user.theme);
+    setColorScheme(resolveColorScheme({ override: getSessionColorScheme(), profileTheme: user.theme, system: 'auto' }));
     syncedRef.current = true;
   }, [user, setColorScheme]);
 }

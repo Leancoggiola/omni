@@ -1,33 +1,41 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export function useHolidayCarousel<T>(items: T[], duration = 3000) {
+import { useReduceMotion } from '@/shared/ui';
+
+import { clampCarouselIndex, nextCarouselIndex } from '@omni/shared/holidays';
+
+/**
+ * Carrusel de efemérides (= `useHolidayCarousel` de web): avanza solo cada `duration` ms mientras haya más de un ítem.
+ * Con "reducir movimiento" del sistema no avanza solo (`isAutoPlaying` false), también si se activa con la pantalla
+ * abierta; `next` sigue funcionando para avanzar a mano.
+ */
+export function useHolidayCarousel<T>(items: T[], duration: number) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const reduceMotion = useReduceMotion();
+  const count = items.length;
+
+  const safeIndex = clampCarouselIndex(currentIndex, count);
 
   const next = useCallback(() => {
-    setCurrentIndex(prev => {
-      if (items.length === 0) {
-        return 0;
-      }
+    setCurrentIndex(prev => nextCarouselIndex(prev, count));
+  }, [count]);
 
-      return (prev + 1) % items.length;
-    });
-  }, [items.length]);
+  const isAutoPlaying = count > 1 && !reduceMotion;
 
   useEffect(() => {
-    if (items.length <= 1) {
+    if (!isAutoPlaying) {
       return;
     }
 
     const timeout = setTimeout(next, duration);
 
     return () => clearTimeout(timeout);
-  }, [currentIndex, items.length, duration, next]);
-
-  const safeIndex = items.length ? currentIndex % items.length : 0;
+  }, [safeIndex, isAutoPlaying, duration, next]);
 
   return {
     currentIndex: safeIndex,
     currentItem: items[safeIndex],
+    isAutoPlaying,
     next,
   };
 }

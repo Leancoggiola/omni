@@ -11,6 +11,10 @@ export type { SessionUser };
 
 export interface AuthContextValue {
   user: SessionUser | null;
+  /**
+   * Primera carga de la sesión. Con un error ya no cuenta como carga, aunque SWR esté reintentando en segundo plano
+   * (`SWR_RETRY_OPTIONS`): los guards siguen mostrando el error, o el login, en vez de volver al spinner.
+   */
   isLoading: boolean;
   error: Error | undefined;
   login: (username: string, password: string) => Promise<void>;
@@ -78,9 +82,11 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     return () => clearOnAuthFailure();
   }, [clearSession]);
 
+  const isLoadingSession = isLoading && !error;
+
   const value = useMemo(
-    () => ({ user, isLoading, error, login, logout, clearSession, retry }),
-    [user, isLoading, error, login, logout, clearSession, retry]
+    () => ({ user, isLoading: isLoadingSession, error, login, logout, clearSession, retry }),
+    [user, isLoadingSession, error, login, logout, clearSession, retry]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

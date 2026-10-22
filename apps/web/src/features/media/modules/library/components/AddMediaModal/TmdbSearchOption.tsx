@@ -1,10 +1,9 @@
 import { memo } from 'react';
 import { Combobox, Group, Image, Stack, Text } from '@mantine/core';
 
-import { getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from '../../../_shared/utils/tmdb';
-
 import type { TmdbMediaResult } from '../../../_shared/types';
 
+import { getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from '@omni/shared/media';
 import { MEDIA_TYPE_LABELS, TMDB_POSTER_W500 } from '@omni/shared/media';
 
 interface TmdbSearchOptionProps {

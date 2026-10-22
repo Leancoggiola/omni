@@ -7,11 +7,11 @@ import { Paragraph, XStack, YStack } from 'tamagui';
 import { useColorSchemeControl } from '@/core/theme';
 import { ErrorState } from '@/shared/ui';
 import { gradientPoints } from '@/theme/gradient';
+import { HOLIDAY_CAROUSEL_DURATION_MS } from '@omni/shared/holidays';
 import { BRAND, GRADIENT_STOPS, RADIUS, SEMANTIC, SPACING } from '@omni/shared/theme';
 
 import { useHolidayCarousel, useTodayHolidays } from '../hooks';
 
-const HOLIDAY_DURATION = 3000;
 const CARD_MIN_HEIGHT = 60;
 /** `activate` es el doble toque de VoiceOver/TalkBack sobre el elemento enfocado. */
 const CAROUSEL_A11Y_ACTIONS = [{ name: 'activate', label: 'Siguiente efeméride' }];
@@ -37,7 +37,10 @@ function HolidayProgress({ duration, color }: { duration: number; color: string 
 export function HolidaysCard() {
   const { holidays, isLoading, error, retry } = useTodayHolidays();
   const { colorScheme } = useColorSchemeControl();
-  const { currentIndex, currentItem, next } = useHolidayCarousel(holidays.items, HOLIDAY_DURATION);
+  const { currentIndex, currentItem, isAutoPlaying, next } = useHolidayCarousel(
+    holidays.items,
+    HOLIDAY_CAROUSEL_DURATION_MS
+  );
 
   const isDark = colorScheme === 'dark';
   const s = SEMANTIC[colorScheme];
@@ -124,10 +127,10 @@ export function HolidaysCard() {
           </Pressable>
         </XStack>
 
-        {hasCarousel && (
+        {isAutoPlaying && (
           <HolidayProgress
             key={currentIndex}
-            duration={HOLIDAY_DURATION}
+            duration={HOLIDAY_CAROUSEL_DURATION_MS}
             color={isDark ? s.white : SEMANTIC.light.primary}
           />
         )}

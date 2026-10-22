@@ -13,7 +13,9 @@ import {
   useMyMediaList,
 } from './modules';
 
-import type { MediaFilters, MediaItem, MediaStatus, MediaType } from './modules';
+import type { MediaItem, MediaListFilters, MediaStatus, MediaType } from './modules';
+
+import { hasActiveFilters } from '@omni/shared/media';
 
 export const MediaPage: FC = () => {
   const [searchText, setSearchText] = useState('');
@@ -23,12 +25,9 @@ export const MediaPage: FC = () => {
   const [addOpened, setAddOpened] = useState(false);
   const deletingIds = useRef(new Set<string>());
 
-  const filters = useMemo<MediaFilters>(
-    () => ({
-      ...(statusFilter !== 'all' && { status: statusFilter }),
-      ...(typeFilter !== 'all' && { mediaType: typeFilter }),
-    }),
-    [statusFilter, typeFilter]
+  const filters = useMemo<MediaListFilters>(
+    () => ({ status: statusFilter, mediaType: typeFilter, query: searchText }),
+    [statusFilter, typeFilter, searchText]
   );
 
   const {
@@ -107,7 +106,7 @@ export const MediaPage: FC = () => {
         isLoading={listLoading}
         error={listError}
         onRetry={() => retryList()}
-        searchText={searchText}
+        hasActiveFilters={hasActiveFilters(filters)}
         displayMode={displayMode}
         onAdd={() => setAddOpened(true)}
         onStatusChange={handleStatusChange}

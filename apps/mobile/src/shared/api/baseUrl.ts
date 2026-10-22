@@ -1,4 +1,4 @@
-import { ApiError } from './ApiError';
+import { ApiError } from '@omni/shared/api';
 
 function getBaseUrl(): string {
   const base = (typeof process !== 'undefined' ? process.env.EXPO_PUBLIC_API_URL : undefined)?.replace(/\/$/, '');

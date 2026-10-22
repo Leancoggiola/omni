@@ -1,6 +1,8 @@
-import { extractIsoDateKey, formatDateToIsoDateTime, parseIsoDateStringToDate } from '@/shared/dates';
+import { extractIsoDateKey, parseIsoDateStringToDate } from '@/shared/dates';
 
 import type { ProfileTheme, UpdatePreferencesPayload, UpdateProfilePayload, UserProfile } from '@omni/shared/users';
+
+import { buildProfileUpdates as buildSharedProfileUpdates } from '@omni/shared/users';
 
 export interface ProfileFormValues {
   phone: string;
@@ -9,11 +11,6 @@ export interface ProfileFormValues {
   theme: ProfileTheme;
 }
 
-const normalizeOptional = (value: string): string | null => {
-  const trimmed = value.trim();
-  return trimmed === '' ? null : trimmed;
-};
-
 export const toProfileFormValues = (profile: UserProfile): ProfileFormValues => ({
   phone: profile.phone ?? '',
   birthDate: profile.birthDate ? parseIsoDateStringToDate(profile.birthDate) : null,
@@ -21,19 +18,9 @@ export const toProfileFormValues = (profile: UserProfile): ProfileFormValues => 
   theme: profile.preferences?.theme ?? 'light',
 });
 
-export const buildProfileUpdates = (profile: UserProfile, values: ProfileFormValues): UpdateProfilePayload => {
-  const updates: UpdateProfilePayload = {};
-  const phone = normalizeOptional(values.phone);
-  const birthDate = values.birthDate ? formatDateToIsoDateTime(values.birthDate) : null;
-
-  if (phone !== profile.phone) updates.phone = phone;
-
-  if (extractIsoDateKey(values.birthDate) !== extractIsoDateKey(profile.birthDate)) {
-    updates.birthDate = birthDate;
-  }
-
-  return updates;
-};
+/** `buildProfileUpdates` de `@omni/shared/users` con la fecha del `DatePicker` pasada a día de calendario. */
+export const buildProfileUpdates = (profile: UserProfile, values: ProfileFormValues): UpdateProfilePayload =>
+  buildSharedProfileUpdates(profile, { phone: values.phone, birthDate: extractIsoDateKey(values.birthDate) });
 
 export const buildPreferencesUpdates = (profile: UserProfile, values: ProfileFormValues): UpdatePreferencesPayload => {
   const prefs = profile.preferences;

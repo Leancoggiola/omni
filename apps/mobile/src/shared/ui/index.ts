@@ -31,4 +31,5 @@ export { EmptyState, ErrorState, LoadingState } from './states';
 export { StatusPill } from './StatusPill';
 export { Title } from './Title';
 export { usePullToRefresh } from './usePullToRefresh';
+export { useReduceMotion } from './useReduceMotion';
 export { UserAvatar } from './UserAvatar';

@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Modal } from 'react-native';
 
-import { ApiError } from '@/shared/api/ApiError';
+import { ApiError } from '@omni/shared/api';
 
 import { SHEET_EXIT_MS } from '@/shared/ui';
 

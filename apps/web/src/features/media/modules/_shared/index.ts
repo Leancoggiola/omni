@@ -1,7 +1,7 @@
 export { useMediaMutations } from './hooks';
 export type {
-  MediaFilters,
   MediaItem,
+  MediaListFilters,
   MediaStatus,
   MediaType,
   TmdbMediaResult,
@@ -9,4 +9,4 @@ export type {
   TmdbSearchResponse,
   TmdbTvDetail,
 } from './types';
-export { buildMediaTmdbKey, getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from './utils';
+export { buildMediaTmdbKey, getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from '@omni/shared/media';

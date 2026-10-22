@@ -1,11 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiError } from '../ApiError';
-import { api } from '../client';
-import { fetcher } from '../fetcher';
+import { api, fetcher } from '../client';
 import { SWR_KEYS } from '../keys';
-import { ensureRefreshed } from '../refreshSession';
 import { ensureServerAwake, fetchWithWake } from '../serverWake';
+
+import { ApiError } from '@omni/shared/api';
 
 const JSON_HEADERS = new Headers({ 'content-type': 'application/json' });
 const HTML_HEADERS = new Headers({ 'content-type': 'text/html; charset=utf-8' });
@@ -88,17 +87,22 @@ describe('api and fetcher integration', () => {
   });
 
   it('the refresh retries right away after a proxy 504, inside the rotation grace of the API', async () => {
+    let resourceCalls = 0;
     let refreshCalls = 0;
     vi.stubGlobal(
       'fetch',
       vi.fn((url: string) => {
         if (url === SWR_KEYS.health) return Promise.resolve(jsonResponse({ status: 'ok' }));
-        refreshCalls += 1;
-        return Promise.resolve(refreshCalls === 1 ? htmlResponse(504) : jsonResponse({ ok: true }));
+        if (url === SWR_KEYS.auth.refresh) {
+          refreshCalls += 1;
+          return Promise.resolve(refreshCalls === 1 ? htmlResponse(504) : jsonResponse({ ok: true }));
+        }
+        resourceCalls += 1;
+        return Promise.resolve(resourceCalls === 1 ? jsonResponse({ message: 'No' }, 401) : jsonResponse({ ok: 1 }));
       })
     );
 
-    await expect(ensureRefreshed()).resolves.toBe(true);
+    await expect(fetcher('/api/resource')).resolves.toEqual({ ok: 1 });
     expect(refreshCalls).toBe(2);
   });
 

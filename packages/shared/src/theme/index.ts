@@ -29,4 +29,5 @@ export {
   BLACK,
 } from './tokens';
 export { contrastRatio, pickOnFill, WCAG_AA_TEXT } from './contrast';
+export { resolveColorScheme } from './colorScheme';
 export type { ColorScheme } from './tokens';

@@ -3,20 +3,15 @@ import useSWRImmutable from 'swr/immutable';
 
 import { SWR_KEYS } from '@/shared/api';
 
-import type { MediaFilters, MediaItem } from '../../../_shared/types';
+import type { MediaItem, MediaListFilters } from '../../../_shared/types';
 
-export function useMyMediaList(filters: MediaFilters = {}) {
+import { DEFAULT_MEDIA_FILTERS, filterMediaItems } from '@omni/shared/media';
+
+/** La lista completa en una sola key (`allItems`); `data` es la misma lista con los filtros aplicados en el cliente. */
+export function useMyMediaList(filters: MediaListFilters = DEFAULT_MEDIA_FILTERS) {
   const { data, isLoading, error, mutate } = useSWRImmutable<MediaItem[]>(SWR_KEYS.media.list);
 
-  const filtered = useMemo(() => {
-    if (!data) return data;
-
-    return data.filter(item => {
-      if (filters.status && item.status !== filters.status) return false;
-      if (filters.mediaType && item.mediaType !== filters.mediaType) return false;
-      return true;
-    });
-  }, [data, filters.mediaType, filters.status]);
+  const filtered = useMemo(() => (data ? filterMediaItems(data, filters) : data), [data, filters]);
 
   return { data: filtered, allItems: data, isLoading, error, mutate };
 }
