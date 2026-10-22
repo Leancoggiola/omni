@@ -5,6 +5,7 @@ import { getErrorMessage, notifyError } from '@/shared/ui';
 
 import type { AddGatheringExpensePayload, GatheringParticipantSummary } from '@omni/shared/split-expenses';
 
+import { MONEY_FORMAT } from '@omni/shared/common';
 import { GATHERING_EXPENSE_DESCRIPTION_MAX } from '@omni/shared/split-expenses';
 import { PlusIcon } from '@phosphor-icons/react';
 
@@ -60,10 +61,7 @@ export const AddExpenseForm: FC<AddExpenseFormProps> = ({ participants, onAdd })
         min={0}
         step={1}
         hideControls
-        prefix="$"
-        thousandSeparator="."
-        decimalSeparator=","
-        decimalScale={2}
+        {...MONEY_FORMAT}
         w="8rem"
       />
       <TextInput

@@ -40,7 +40,7 @@ const renderList = (displayMode: string, props: Partial<ComponentProps<typeof My
     <MyMediaList
       items={[item]}
       isLoading={false}
-      searchText=""
+      hasActiveFilters={false}
       displayMode={displayMode}
       onAdd={vi.fn()}
       onStatusChange={vi.fn()}

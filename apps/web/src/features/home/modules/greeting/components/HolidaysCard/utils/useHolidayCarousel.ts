@@ -1,20 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useReducedMotion } from '@mantine/hooks';
 
+import { clampCarouselIndex, nextCarouselIndex } from '@omni/shared/holidays';
+
 interface HolidayCarouselOptions {
   /** Frena el auto-avance (hover o foco dentro de la card). `next` sigue funcionando. */
   paused?: boolean;
 }
 
-export function useHolidayCarousel<T>(items: T[], duration = 3000, { paused = false }: HolidayCarouselOptions = {}) {
+export function useHolidayCarousel<T>(items: T[], duration: number, { paused = false }: HolidayCarouselOptions = {}) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const reduceMotion = useReducedMotion();
   const count = items.length;
 
-  const safeIndex = count ? currentIndex % count : 0;
+  const safeIndex = clampCarouselIndex(currentIndex, count);
 
   const next = useCallback(() => {
-    setCurrentIndex(prev => (count === 0 ? 0 : ((prev % count) + 1) % count));
+    setCurrentIndex(prev => nextCarouselIndex(prev, count));
   }, [count]);
 
   const isAutoPlaying = count > 1 && !paused && !reduceMotion;

@@ -1,14 +1,15 @@
+import type { ColorScheme } from '@omni/shared/theme';
 import type { ProfileTheme } from '@omni/shared/users';
 
 const STORAGE_KEY = 'omni-session-color-scheme';
 
-const isProfileTheme = (value: string | null): value is ProfileTheme => value === 'light' || value === 'dark';
+const isColorScheme = (value: string | null): value is ColorScheme => value === 'light' || value === 'dark';
 
 /** Tema elegido con el toggle durante la sesión; pisa al del perfil hasta el logout o el cierre de la pestaña. */
-export function getSessionColorScheme(): ProfileTheme | null {
+export function getSessionColorScheme(): ColorScheme | null {
   try {
     const value = sessionStorage.getItem(STORAGE_KEY);
-    return isProfileTheme(value) ? value : null;
+    return isColorScheme(value) ? value : null;
   } catch {
     return null;
   }

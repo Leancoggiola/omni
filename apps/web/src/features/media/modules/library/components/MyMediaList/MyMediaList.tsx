@@ -1,4 +1,4 @@
-import { FC, useMemo } from 'react';
+import { FC } from 'react';
 import { Button, SimpleGrid, Stack, useMantineTheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 
@@ -16,19 +16,23 @@ interface MyMediaListProps {
   isLoading: boolean;
   error?: unknown;
   onRetry: () => void | Promise<unknown>;
-  searchText: string;
+  hasActiveFilters: boolean;
   displayMode: string;
   onAdd: () => void;
   onStatusChange: (id: string, status: MediaStatus) => void;
   onDelete: (item: MediaItem) => void | Promise<void>;
 }
 
+/**
+ * Lista ya filtrada (`useMyMediaList`). Sin ítems distingue "sin resultados" (hay filtros activos, como en mobile) de
+ * "lista vacía" (con el botón de agregar).
+ */
 export const MyMediaList: FC<MyMediaListProps> = ({
   items,
   isLoading,
   error,
   onRetry,
-  searchText,
+  hasActiveFilters,
   displayMode,
   onAdd,
   onStatusChange,
@@ -38,12 +42,6 @@ export const MyMediaList: FC<MyMediaListProps> = ({
   const isWide = useMediaQuery(`(min-width: ${theme.breakpoints.sm})`, undefined, {
     getInitialValueInEffect: false,
   });
-  const filteredItems = useMemo(() => {
-    if (!items) return [];
-    const q = searchText.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter(item => item.title.toLowerCase().includes(q));
-  }, [items, searchText]);
 
   if (error) {
     return <ErrorState message="No se pudo cargar tu lista" onRetry={onRetry} />;
@@ -54,6 +52,10 @@ export const MyMediaList: FC<MyMediaListProps> = ({
   }
 
   if (!items || items.length === 0) {
+    if (hasActiveFilters) {
+      return <EmptyState icon={<FilmSlateIcon />} title="No hay resultados" />;
+    }
+
     return (
       <EmptyState
         icon={<FilmSlateIcon />}
@@ -67,20 +69,16 @@ export const MyMediaList: FC<MyMediaListProps> = ({
     );
   }
 
-  if (filteredItems.length === 0) {
-    return <EmptyState icon={<FilmSlateIcon />} title="No hay resultados" />;
-  }
-
   return (
     <Stack gap="md">
       {isWide && displayMode === 'grid' ? (
         <SimpleGrid cols={{ base: 3, lg: 4 }} spacing="md">
-          {filteredItems.map(item => (
+          {items.map(item => (
             <MediaCard key={item.id} item={item} onStatusChange={onStatusChange} onDelete={onDelete} />
           ))}
         </SimpleGrid>
       ) : (
-        filteredItems.map(item => (
+        items.map(item => (
           <MediaListItem key={item.id} item={item} onStatusChange={onStatusChange} onDelete={onDelete} />
         ))
       )}

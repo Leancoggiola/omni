@@ -10,7 +10,7 @@ import { TmdbSearchField } from './TmdbSearchField';
 import type { MediaStatus, MediaType } from '../../../_shared/types';
 import type { AddMediaFormValues } from '../../utils/addMediaForm';
 
-import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS, TMDB_POSTER_W500 } from '@omni/shared/media';
+import { MEDIA_STATUS_OPTIONS, MEDIA_TYPE_OPTIONS, TMDB_POSTER_W500 } from '@omni/shared/media';
 
 interface AddMediaFormProps {
   loading: boolean;
@@ -79,17 +79,8 @@ export const AddMediaForm: FC<AddMediaFormProps> = ({ loading, existingTmdbIds, 
         />
 
         <SimpleGrid cols={2} spacing="md">
-          <Select
-            label="Tipo"
-            data={Object.entries(MEDIA_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
-            disabled
-            {...form.getInputProps('mediaType')}
-          />
-          <Select
-            label="Estado"
-            data={MEDIA_STATUSES.map(value => ({ value, label: MEDIA_STATUS_LABELS[value] }))}
-            {...form.getInputProps('status')}
-          />
+          <Select label="Tipo" data={MEDIA_TYPE_OPTIONS} disabled {...form.getInputProps('mediaType')} />
+          <Select label="Estado" data={MEDIA_STATUS_OPTIONS} {...form.getInputProps('status')} />
         </SimpleGrid>
 
         {posterPreviewUrl && (
