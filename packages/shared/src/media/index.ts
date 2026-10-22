@@ -19,3 +19,12 @@ export {
 } from './constants';
 export { addMediaItemSchema, updateMediaItemSchema, searchMediaSchema, filterMediaSchema } from './schemas';
 export type { AddMediaItemPayload, UpdateMediaItemPayload, FilterMediaParams, MediaFilters } from './schemas';
+export { buildMediaTmdbKey, getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from './tmdb';
+export {
+  DEFAULT_MEDIA_FILTERS,
+  MEDIA_STATUS_OPTIONS,
+  MEDIA_TYPE_OPTIONS,
+  filterMediaItems,
+  hasActiveFilters,
+} from './filters';
+export type { MediaListFilters } from './filters';
