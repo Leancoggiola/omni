@@ -3,10 +3,8 @@ import { Group, Paper, Select, Stack, Tabs, TextInput } from '@mantine/core';
 
 import type { MediaStatus, MediaType } from '../../../_shared/types';
 
-import { MEDIA_STATUS_OPTIONS, MEDIA_TYPE_OPTIONS } from '@omni/shared/media';
+import { MEDIA_STATUS_FILTER_OPTIONS, MEDIA_TYPE_FILTER_OPTIONS } from '@omni/shared/media';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react';
-
-const TYPE_FILTER_OPTIONS = [{ value: 'all', label: 'Todos' }, ...MEDIA_TYPE_OPTIONS];
 
 interface MediaListToolbarProps {
   searchText: string;
@@ -40,7 +38,7 @@ export const MediaListToolbar: FC<MediaListToolbarProps> = ({
           />
           <Select
             aria-label="Tipo de contenido"
-            data={TYPE_FILTER_OPTIONS}
+            data={MEDIA_TYPE_FILTER_OPTIONS}
             value={typeFilter}
             onChange={val => onTypeFilterChange((val as MediaType | 'all') || 'all')}
             w={{ base: '100%', xs: '8.75rem' }}
@@ -55,8 +53,7 @@ export const MediaListToolbar: FC<MediaListToolbarProps> = ({
         color="brand"
       >
         <Tabs.List>
-          <Tabs.Tab value="all">Todos</Tabs.Tab>
-          {MEDIA_STATUS_OPTIONS.map(({ value, label }) => (
+          {MEDIA_STATUS_FILTER_OPTIONS.map(({ value, label }) => (
             <Tabs.Tab key={value} value={value}>
               {label}
             </Tabs.Tab>

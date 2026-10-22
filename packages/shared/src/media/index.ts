@@ -22,7 +22,9 @@ export type { AddMediaItemPayload, UpdateMediaItemPayload, FilterMediaParams, Me
 export { buildMediaTmdbKey, getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from './tmdb';
 export {
   DEFAULT_MEDIA_FILTERS,
+  MEDIA_STATUS_FILTER_OPTIONS,
   MEDIA_STATUS_OPTIONS,
+  MEDIA_TYPE_FILTER_OPTIONS,
   MEDIA_TYPE_OPTIONS,
   filterMediaItems,
   hasActiveFilters,

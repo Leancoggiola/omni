@@ -2,9 +2,26 @@ import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS, MEDIA_TYPES } f
 
 import type { MediaItem, MediaStatus, MediaType } from './types';
 
-export const MEDIA_STATUS_OPTIONS = MEDIA_STATUSES.map(value => ({ value, label: MEDIA_STATUS_LABELS[value] }));
+type Option<T extends string> = { readonly value: T; readonly label: string };
 
-export const MEDIA_TYPE_OPTIONS = MEDIA_TYPES.map(value => ({ value, label: MEDIA_TYPE_LABELS[value] }));
+export const MEDIA_STATUS_OPTIONS: readonly Option<MediaStatus>[] = MEDIA_STATUSES.map(value => ({
+  value,
+  label: MEDIA_STATUS_LABELS[value],
+}));
+
+export const MEDIA_TYPE_OPTIONS: readonly Option<MediaType>[] = MEDIA_TYPES.map(value => ({
+  value,
+  label: MEDIA_TYPE_LABELS[value],
+}));
+
+const ALL_OPTION: Option<'all'> = { value: 'all', label: 'Todos' };
+
+export const MEDIA_STATUS_FILTER_OPTIONS: readonly Option<MediaStatus | 'all'>[] = [
+  ALL_OPTION,
+  ...MEDIA_STATUS_OPTIONS,
+];
+
+export const MEDIA_TYPE_FILTER_OPTIONS: readonly Option<MediaType | 'all'>[] = [ALL_OPTION, ...MEDIA_TYPE_OPTIONS];
 
 export type MediaListFilters = {
   status: MediaStatus | 'all';

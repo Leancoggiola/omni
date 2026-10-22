@@ -4,9 +4,11 @@ import {
   DEFAULT_MEDIA_FILTERS,
   filterMediaItems,
   hasActiveFilters,
+  MEDIA_STATUS_FILTER_OPTIONS,
   MEDIA_STATUS_LABELS,
   MEDIA_STATUS_OPTIONS,
   MEDIA_STATUSES,
+  MEDIA_TYPE_FILTER_OPTIONS,
   MEDIA_TYPE_OPTIONS,
 } from '..';
 
@@ -43,6 +45,12 @@ describe('opciones de media', () => {
       { value: 'movie', label: 'Película' },
       { value: 'tv', label: 'Serie' },
     ]);
+  });
+
+  it('las de filtro suman "Todos" adelante', () => {
+    expect(MEDIA_STATUS_FILTER_OPTIONS[0]).toEqual({ value: 'all', label: 'Todos' });
+    expect(MEDIA_STATUS_FILTER_OPTIONS.slice(1)).toEqual([...MEDIA_STATUS_OPTIONS]);
+    expect(MEDIA_TYPE_FILTER_OPTIONS.map(o => o.value)).toEqual(['all', 'movie', 'tv']);
   });
 });
 
