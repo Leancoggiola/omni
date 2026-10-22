@@ -110,9 +110,6 @@ importers:
       passport-local:
         specifier: 1.0.0
         version: 1.0.0
-      pg:
-        specifier: 8.16.3
-        version: 8.16.3
       pino:
         specifier: 10.3.1
         version: 10.3.1

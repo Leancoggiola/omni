@@ -29,7 +29,8 @@ cp apps/api/.env.example apps/api/.env
 | `ORIGIN_SECRET`          | Prod      | Secret que Vercel envía como `x-origin-secret`. En producción la API no arranca sin él; en dev, vacío desactiva el guard.                                                                                                                       |
 | `RATE_LIMIT_GLOBAL_MAX`  | —         | Máximo de requests por IP cada 15 min. Default: `300`.                                                                                                                                                                                          |
 | `RATE_LIMIT_DISABLED`    | —         | `true` apaga los rate limits (la suite E2E sale desde una sola IP). Se ignora en producción.                                                                                                                                                    |
-| `NODE_ENV`               | —         | `production` activa las validaciones estrictas de arranque (`ORIGIN_SECRET`, secretos JWT) y las cookies `secure`. El Docker ya lo define; `test` lo usan las suites.                                                                           |
+| `NODE_ENV`               | —         | `production` activa las validaciones estrictas de arranque (`ORIGIN_SECRET`, secretos JWT) y las cookies `secure`. El Docker ya lo define; `test` lo usan las suites. `prisma db seed` aborta si no está definido.                              |
+| `SEED_DEMO`              | —         | `true` hace que `prisma db seed` siembre además `demouser1`, `demouser2` (con `ADMIN_PASSWORD`) y películas de demo. Se rechaza con `NODE_ENV=production`.                                                                                      |
 | `RENDER_GIT_COMMIT`      | —         | Lo inyecta Render; `/api/health` lo devuelve para que el pipeline sepa que el deploy nuevo está vivo. No se define a mano.                                                                                                                      |
 
 ### Cómo obtener las URLs de Supabase
@@ -70,7 +71,7 @@ cd apps/api
 # 1. Aplicar migraciones
 pnpm prisma migrate deploy
 
-# 2. Crear usuario admin y datos de desarrollo
+# 2. Crear usuario admin (con SEED_DEMO=true, también datos de demo)
 pnpm prisma db seed
 ```
 
