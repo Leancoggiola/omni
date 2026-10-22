@@ -1,10 +1,8 @@
--- Cuentas de demo del seed anterior: sus usernames no cumplen el mínimo del login y nunca pudieron iniciar sesión.
 DELETE FROM "User"
 WHERE "username" IN ('user1', 'user2')
   AND "role" = 'USER'
-  AND "email" IN ('juan@example.com', 'maria@example.com');
+  AND lower("email") IN ('juan@example.com', 'maria@example.com');
 
--- Normalizar el email a minúsculas. Si dos cuentas chocarían, se aborta antes de tocar nada.
 DO $$
 DECLARE
   colliding text;
@@ -22,6 +20,23 @@ BEGIN
 END $$;
 
 UPDATE "User" SET "email" = lower("email") WHERE "email" IS NOT NULL AND "email" <> lower("email");
+
+DO $$
+DECLARE
+  invalid text;
+BEGIN
+  SELECT string_agg(DISTINCT found.v, ', ') INTO invalid FROM (
+    SELECT 'UserPreferences.theme=' || "theme" AS v FROM "UserPreferences" WHERE "theme" NOT IN ('light', 'dark', 'auto')
+    UNION ALL
+    SELECT 'MediaItem.mediaType=' || "mediaType" FROM "MediaItem" WHERE "mediaType" NOT IN ('movie', 'tv')
+    UNION ALL
+    SELECT 'MediaItem.status=' || "status" FROM "MediaItem" WHERE "status" NOT IN ('to_watch', 'watching', 'watched')
+  ) found;
+
+  IF invalid IS NOT NULL THEN
+    RAISE EXCEPTION 'Valores fuera del enum: %', invalid;
+  END IF;
+END $$;
 
 -- CreateEnum
 CREATE TYPE "Theme" AS ENUM ('light', 'dark', 'auto');
@@ -45,7 +60,7 @@ ALTER TABLE "MediaItem"
   ALTER COLUMN "status" TYPE "MediaStatus" USING "status"::"MediaStatus",
   ALTER COLUMN "status" SET DEFAULT 'to_watch';
 
--- DropIndex (cubiertos por el prefijo de un índice único)
+-- DropIndex
 DROP INDEX IF EXISTS "MediaItem_userId_idx";
 
 -- DropIndex

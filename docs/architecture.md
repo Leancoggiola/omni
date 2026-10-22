@@ -48,7 +48,8 @@ src/
   generated/
     prisma/               ← Cliente Prisma generado (no editar)
   config.ts               ← Variables de entorno validadas
-  main.ts                 ← Bootstrap de Express
+  app.ts                  ← createApp(): stack de middlewares de Express
+  main.ts                 ← Bootstrap: conecta la base y escucha
   router.ts               ← Router principal
   __tests__/              ← Tests de utilidades comunes
 ```

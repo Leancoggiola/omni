@@ -13,7 +13,7 @@ apps/api/src/
   <feature>/
     <feature>.routes.ts   HTTP, validate, middleware auth, res.json, next(err)
     <feature>.service.ts  Prisma, TMDB, reglas de negocio — sin req/res
-  config.ts · main.ts · router.ts
+  config.ts · app.ts · main.ts · router.ts
 ```
 
 Features: `auth`, `media`, `users`, `admin`, `gym`, `pantry`, `expenses`, `split-expenses`, `holidays`. Registrar en `src/router.ts` con `router.use('/<feature>', featureRoutes)`.
