@@ -87,6 +87,29 @@ describe('client web (cableado de createApiClient)', () => {
     expect(onAuthFailure).not.toHaveBeenCalled();
   });
 
+  it('un error de red en el refresh se propaga y no cierra la sesión', async () => {
+    const onAuthFailure = vi.fn();
+    setOnAuthFailure(onAuthFailure);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) =>
+        url === SWR_KEYS.auth.refresh || url === SWR_KEYS.health
+          ? Promise.reject(new TypeError('Failed to fetch'))
+          : Promise.resolve(jsonResponse({ message: 'No' }, 401))
+      )
+    );
+
+    vi.useFakeTimers();
+    try {
+      const assertion = expect(api.patch('/api/resource', {})).rejects.toThrow('Failed to fetch');
+      await vi.advanceTimersByTimeAsync(2_000);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(onAuthFailure).not.toHaveBeenCalled();
+  });
+
   it('clearOnAuthFailure deja de avisar', async () => {
     const onAuthFailure = vi.fn();
     setOnAuthFailure(onAuthFailure);

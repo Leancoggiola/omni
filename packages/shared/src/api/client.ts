@@ -46,7 +46,8 @@ function sameAuthHeaders(a: AuthHeaders | null, b: AuthHeaders | null): boolean 
  *
  * El refresh es single-flight: todos los 401 que llegan mientras vuela esperan el mismo resultado (o el mismo error,
  * que se propaga tal cual). `refresh` devuelve `true` si renovó y `false` si la sesión ya no es válida; en ese caso se
- * avisa `onAuthFailure` una sola vez por refresh fallido y el request lanza su 401. `waitForRefresh(maxMs)` espera a
+ * avisa `onAuthFailure` una sola vez por refresh fallido (no debe lanzar: corre dentro del single-flight y su error
+ * le llegaría a todos los requests en espera) y el request lanza su 401. `waitForRefresh(maxMs)` espera a
  * que no quede un refresh en curso, con tope por cada uno (el logout de mobile, para no mandar un token ya rotado).
  */
 export function createApiClient({

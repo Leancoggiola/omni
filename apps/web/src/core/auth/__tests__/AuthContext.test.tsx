@@ -6,10 +6,9 @@ import { api, ApiError, SWR_KEYS } from '@/shared/api';
 
 import { AuthProvider, useAuth } from '../AuthContext';
 
-import { SWR_RETRY_OPTIONS } from '@omni/shared/api';
-
 import type { ReactNode } from 'react';
 
+import { SWR_RETRY_OPTIONS } from '@omni/shared/api';
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 const failure = vi.hoisted(() => ({ callback: null as (() => void) | null }));

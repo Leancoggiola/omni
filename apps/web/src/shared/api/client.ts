@@ -37,10 +37,6 @@ async function refreshSession(): Promise<boolean> {
   throw await toApiError(res);
 }
 
-/**
- * Instancia web del núcleo HTTP de `@omni/shared/api`: sesión por cookies (`credentials: 'include'`), sin headers de
- * auth, y `fetchWithWake` para el cold start. Un refresh fallido avisa una vez al callback de `setOnAuthFailure`.
- */
 const client = createApiClient({
   fetch: (url, init) => fetchWithWake(url, init),
   credentials: 'include',

@@ -64,12 +64,12 @@ export const ProfilePage: FC = () => {
     [updateProfile, updatePreferences]
   );
 
-  if (isLoading) {
-    return <LoadingState />;
-  }
-
   if (error) {
     return <ErrorState message="No se pudo cargar tu perfil" onRetry={() => mutate()} />;
+  }
+
+  if (isLoading) {
+    return <LoadingState />;
   }
 
   if (!profile) {
