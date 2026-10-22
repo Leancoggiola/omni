@@ -47,7 +47,7 @@
     "happy-dom": "20.14.0",
     "sass-embedded": "1.99.0",
     "typescript": "6.0.3",
-    "vite": "8.0.16",
+    "vite": "8.1.6",
     "vitest": "5.0.0"
   }
 }
