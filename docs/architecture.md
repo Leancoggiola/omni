@@ -161,12 +161,20 @@ Componentes usados en 2+ features → `shared/ui/<Component>/`.
 
 ## `packages/shared/`
 
-Tipos y schemas compartidos entre API, Web y Mobile. Importan desde `@omni/shared`.
+Tipos, schemas y lógica pura compartidos entre API, Web y Mobile. Se importan por subpath (`@omni/shared/media`): no hay entrada raíz. Tiene su propio runner de tests (Vitest).
 
 ```
 shared/src/
-  auth/     ← LoginPayload, ProfileResponse, User, schemas Zod
-  media/    ← MediaItem, tipos de media, schemas
-  users/    ← UpdateProfilePayload, schemas
-  index.ts
+  auth/            ← ROLES/Role, schemas de login y alta de usuario, toSessionUser, tipos de sesión
+  users/           ← perfil, contraseña, preferencias
+  media/           ← MediaItem, tipos y estados, schemas, tipos de TMDB
+  gym/             ← planes y ejercicios
+  expenses/        ← gastos personales y recordatorios
+  split-expenses/  ← amigos, juntadas, balances y liquidaciones
+  pantry/          ← alacena, lista de compras, alertas
+  holidays/        ← tipos de efemérides
+  common/          ← paginación, cotas de entrada, fechas en la zona de la app, roundMoney
+  theme/           ← tokens de color, medidas, contrastRatio
+  navigation/      ← NAV_REGISTRY (navbar web, tabs y "Más" mobile)
+  server-wake/     ← createServerWake: cold start de la API
 ```
