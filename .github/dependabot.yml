@@ -45,6 +45,10 @@ updates:
       interval: monthly
       day: monday
     open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: node
+        update-types:
+          - version-update:semver-major
     labels:
       - dependencies
     commit-message:

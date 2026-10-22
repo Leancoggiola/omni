@@ -15,7 +15,7 @@
     "@omni/eslint-config": "workspace:*",
     "@playwright/test": "1.58.2",
     "@omni/typescript-config": "workspace:*",
-    "@types/node": "22.19.3",
+    "@types/node": "24.19.2",
     "eslint": "9.39.2",
     "typescript": "6.0.3"
   }

@@ -18,7 +18,7 @@ Carpeta local de secretos (fuera del repo): `D:\Proyectos\Secrets\omni`.
 
 Sin `omni-release.jks` no se pueden publicar actualizaciones del APK instalado (habría que desinstalar y reinstalar). Sin `age-key-recovery.txt` y sin la clave A no se pueden abrir los backups. Ninguno de estos archivos se sube al repo (`*.jks`, `*.keystore`, `age-key*`, `*.age` y `*.dump` están en `.gitignore`).
 
-En una PC nueva: instalar `gh` (y `gh auth login`), `age` (`winget install FiloSottile.age`), Java 17 (`keytool`) y Node 22 con pnpm.
+En una PC nueva: instalar `gh` (y `gh auth login`), `age` (`winget install FiloSottile.age`), Java 17 (`keytool`) y Node 24 con pnpm.
 
 ---
 
