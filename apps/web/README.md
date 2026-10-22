@@ -16,25 +16,33 @@ pnpm dev
 pnpm dev:web
 ```
 
-La web hace proxy de `/api` → `http://localhost:3000`.
+La web hace proxy de `/api` → `http://localhost:3000` (o `API_PORT`, si está definido).
 
 ## Estructura
 
-Ver [docs/architecture.md](../../docs/architecture.md) (sección `apps/web`).
+Convenciones y reglas de la app: [CLAUDE.md](./CLAUDE.md). Árbol y capas: [docs/architecture.md](../../docs/architecture.md) (sección `apps/web`).
 
 - **Nuevo feature:** [docs/web/new-feature.md](../../docs/web/new-feature.md)
 - **Rule + script:** [docs/web/tooling.md](../../docs/web/tooling.md)
 
 ```bash
-pnpm web:new-feature gym --register-route
+pnpm web:new-feature gym --path /gym --register-route
 ```
 
 ## Scripts
 
-| Comando                         | Descripción         |
-| ------------------------------- | ------------------- |
-| `pnpm --filter web dev`         | Dev server          |
-| `pnpm --filter web build`       | Build producción    |
-| `pnpm --filter web check-types` | TypeScript          |
-| `pnpm --filter web test`        | Vitest              |
-| `pnpm web:new-feature <name>`   | Scaffold de feature |
+Desde `apps/web` (o con `pnpm --filter web <script>` desde la raíz):
+
+| Comando                             | Descripción                               |
+| ----------------------------------- | ----------------------------------------- |
+| `pnpm --filter web dev`             | Dev server                                |
+| `pnpm --filter web build`           | Build producción (`tsc` + `vite build`)   |
+| `pnpm --filter web preview`         | Sirve el build de producción              |
+| `pnpm --filter web check-types`     | TypeScript                                |
+| `pnpm --filter web lint`            | ESLint sobre `src/`                       |
+| `pnpm --filter web check-api-paths` | Verifica que no haya paths `/api` sueltos |
+| `pnpm --filter web test`            | Vitest                                    |
+| `pnpm --filter web test:watch`      | Vitest en modo watch                      |
+| `pnpm --filter web test:coverage`   | Vitest con coverage                       |
+
+Generadores desde la raíz: `pnpm web:new-feature <name>`, `pnpm web:new-hook`, `pnpm web:new-component`, `pnpm web:new-test`.

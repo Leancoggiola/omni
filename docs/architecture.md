@@ -21,7 +21,7 @@ omni/
   docs/         ← Esta carpeta
   CLAUDE.md       ← Contexto raíz para Claude Code (+ un CLAUDE.md por app)
   .claude/        ← Subagents, commands, skills (propias y de terceros), hooks, permisos
-  .mcp.json       ← MCP del proyecto (Supabase, CodeGraph, Mantine)
+  .mcp.json       ← MCP del proyecto (Supabase, CodeGraph, Mantine, Playwright)
   .codegraph/     ← Índice CodeGraph (local, no commitear *.db)
 ```
 
@@ -34,23 +34,32 @@ src/
   common/                 ← Utilidades transversales
     db/
       prisma.ts           ← PrismaClient singleton
+      session-lock.ts     ← lockUserSessions (advisory lock de sesiones)
+      check-database.ts
       index.ts
     utils/
       logger.ts           ← Pino logger
+      http-logger.ts      ← pino-http con redact de credenciales
       error-handler.ts    ← Express error handler middleware
       validate.ts         ← Zod validation middleware
+      rate-limit.ts       ← createRateLimiter (apagable con RATE_LIMIT_DISABLED)
+      client-ip.ts · origin-guard.ts · no-store.ts · not-found.ts
+      cookies.ts          ← set/clear de la sesión
+      lifestyle.ts
       index.ts
     index.ts              ← Barril: re-exporta db + utils
-  auth/                   ← Feature ejemplo: routes + service (+ middleware/, strategies/)
-    auth.routes.ts
-    auth.service.ts
-  <resto de features>/    ← Mismo patrón routes+service — ver router.ts y skill `api-structure`
+  health/                 ← /api/health y /api/health/ready (antes del guard)
+  auth/                   ← Routes + service (+ middleware/, strategies/)
+  media/ · users/ · admin/ · pantry/ · gym/ · expenses/ · split-expenses/ · holidays/
+                          ← Mismo patrón routes + service
   generated/
     prisma/               ← Cliente Prisma generado (no editar)
   config.ts               ← Variables de entorno validadas
   main.ts                 ← Bootstrap de Express
   router.ts               ← Router principal
-  __tests__/              ← Tests de utilidades comunes
+  __tests__/              ← Tests unitarios (schemas, utils, reglas)
+    integration/          ← *.integration.test.ts (Supertest + Postgres real)
+  test/                   ← Helpers de integración (createIntegrationApp, factories, resetTestDb…) y setupEnv.ts
 ```
 
 ### Convenciones API
@@ -62,7 +71,7 @@ src/
 | Imports de utils | `import { validate, logger } from "../common/utils"`           |
 | Naming           | `camelCase` para funciones, `PascalCase` para interfaces/types |
 
-Detalle de la lista real de features y checklist para agregar una nueva: skill `api-structure`.
+Detalle de la estructura y convenciones: [apps/api/CLAUDE.md](../apps/api/CLAUDE.md). Checklist para agregar una feature: `/new-feature`.
 
 ---
 
@@ -76,7 +85,7 @@ src/
     navigation/
       nav-registry.tsx
   features/               ← Dominio de producto (1 navbar item = 1 feature)
-    home/ · auth/ · media/ · profile/ · ...
+    home/ · auth/ · media/ · profile/ · admin/ · split-expenses/
   shared/
     api/                  ← client, fetcher, SWR_KEYS
     ui/                   ← componentes cross-feature (UserAvatar, …)
@@ -115,14 +124,14 @@ Cada feature usa `modules/<nombre>/` (sub-dominios), carpetas por componente/hoo
 
 ## Paralelo Web ↔ API
 
-| Concepto               | API                                         | Web                                                      |
-| ---------------------- | ------------------------------------------- | -------------------------------------------------------- |
-| Utilidades compartidas | `common/db/`, `common/utils/`               | `shared/api/`                                            |
-| Módulos de producto    | `auth/`, `media/`, `users/`                 | `features/auth/`, `features/media/`, `features/profile/` |
-| Setup global           | `config.ts`, `main.ts`                      | `core/`, `layouts/`, `main.tsx`                          |
-| Servicios              | `*.service.ts`                              | hooks en `features/*/modules/*/hooks/`                   |
-| Validación             | `common/utils/validate.ts` (Zod middleware) | Schemas de `@omni/shared`                                |
-| Auth                   | Cookie **o** Bearer JWT                     | Cookies `httpOnly` + `credentials: 'include'`            |
+| Concepto               | API                                                                                                   | Web                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Utilidades compartidas | `common/db/`, `common/utils/`                                                                         | `shared/api/`                                                                        |
+| Módulos de producto    | `auth/`, `admin/`, `media/`, `users/`, `pantry/`, `gym/`, `expenses/`, `split-expenses/`, `holidays/` | `features/auth/`, `features/media/`, `features/profile/`, `features/split-expenses/` |
+| Setup global           | `config.ts`, `main.ts`                                                                                | `core/`, `layouts/`, `main.tsx`                                                      |
+| Servicios              | `*.service.ts`                                                                                        | hooks en `features/*/modules/*/hooks/`                                               |
+| Validación             | `common/utils/validate.ts` (Zod middleware)                                                           | Schemas de `@omni/shared`                                                            |
+| Auth                   | Cookie **o** Bearer JWT                                                                               | Cookies `httpOnly` + `credentials: 'include'`                                        |
 
 ### Auth dual (web + mobile)
 
