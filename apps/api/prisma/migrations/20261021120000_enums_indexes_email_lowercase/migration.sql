@@ -1,8 +1,3 @@
-DELETE FROM "User"
-WHERE "username" IN ('user1', 'user2')
-  AND "role" = 'USER'
-  AND lower("email") IN ('juan@example.com', 'maria@example.com');
-
 DO $$
 DECLARE
   colliding text;
