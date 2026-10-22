@@ -1,32 +1,11 @@
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import passport from 'passport';
-
-import '../../auth/strategies/jwt.strategy';
-import '../../auth/strategies/jwt-refresh.strategy';
-import '../../auth/strategies/logout.strategy';
-import '../../auth/strategies/local.strategy';
-
-import router from '../../router';
-import healthRoutes from '../../health/health.routes';
-import { apiNotFound, errorHandler, noStore, originGuard } from '../../common/utils';
+import { createApp } from '../../app';
 
 /**
- * Replica el stack de middleware de main.ts, sin helmet, CORS, rate limiter ni logging:
- * ninguno afecta el comportamiento bajo test y el limiter directamente lo rompe.
- * Acá passport corre de verdad: la autenticación se ejercita, no se mockea.
- * El origin guard queda montado pero sin `ORIGIN_SECRET` no actúa; su lógica se cubre con tests unitarios.
+ * Es `createApp()` tal cual: los tests ejercitan el mismo stack que producción, passport incluido.
+ * El rate limiter se apaga con `RATE_LIMIT_DISABLED` (lo fija `setupIntegrationEnv`) porque toda la suite sale desde
+ * la misma IP y lo agotaría. El origin guard queda montado pero sin `ORIGIN_SECRET` no actúa; su lógica se cubre con
+ * tests unitarios.
  */
 export function createIntegrationApp() {
-  const app = express();
-  app.use('/api', noStore);
-  app.use('/api/health', healthRoutes);
-  app.use('/api', originGuard);
-  app.use(express.json());
-  app.use(cookieParser());
-  app.use(passport.initialize());
-  app.use('/api', router);
-  app.use('/api', apiNotFound);
-  app.use(errorHandler);
-  return app;
+  return createApp();
 }
