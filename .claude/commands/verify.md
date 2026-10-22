@@ -8,9 +8,9 @@ Detectá qué áreas cambiaron con `git diff --name-only develop...HEAD` más `g
 | Cambió             | Comandos                                                                                                                                                                           |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `packages/shared/` | `pnpm --filter @omni/shared check-types` · `pnpm --filter @omni/shared lint` · `pnpm --filter @omni/shared test`, y la verificación de **api**, **web** y **mobile** (la consumen) |
-| `apps/api/`        | `docker compose up -d db-test` · `pnpm --filter api db:test:reset` · `pnpm --filter api check-types` · `pnpm --filter api test`                                                    |
+| `apps/api/`        | `docker compose up -d db-test` · `pnpm --filter api db:test:reset` · `pnpm --filter api check-types` · `pnpm --filter api lint` · `pnpm --filter api test`                         |
 | `apps/web/`        | `pnpm --filter web check-types` · `pnpm --filter web lint` · `pnpm --filter web check-api-paths` · `pnpm --filter web test`                                                        |
-| `apps/mobile/`     | `pnpm --filter mobile check-types` · `pnpm --filter mobile lint` · `pnpm --filter mobile test`                                                                                     |
+| `apps/mobile/`     | `pnpm --filter mobile check-types` · `pnpm --filter mobile lint` · `pnpm --filter mobile check-api-paths` · `pnpm --filter mobile test`                                            |
 | `apps/e2e/`        | `docker compose up -d db-e2e` · `pnpm --filter e2e test:e2e`                                                                                                                       |
 
 $ARGUMENTS puede forzar áreas (ej. `/verify web api`) o pedir `e2e` además de lo detectado.

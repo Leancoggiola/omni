@@ -47,6 +47,8 @@ jobs:
 
       - run: pnpm --filter web check-api-paths
 
+      - run: pnpm --filter mobile check-api-paths
+
       - run: pnpm format:check
 
   audit:

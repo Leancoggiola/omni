@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import '@/shared/dates/dayjs';
 import { DISPLAY_DATE_FORMAT } from '../constants';
 import {
   extractIsoDateKey,
@@ -9,6 +8,8 @@ import {
   formatIsoDateStringForDisplay,
   parseIsoDateStringToDate,
 } from '../format';
+
+import '@/shared/dates/dayjs';
 
 describe('shared dates format', () => {
   const localMay15 = new Date(1990, 4, 15);

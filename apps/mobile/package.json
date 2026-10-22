@@ -6,7 +6,8 @@
     "start": "expo start --dev-client",
     "dev": "expo start --dev-client",
     "android": "expo start --dev-client --android",
-    "lint": "expo lint",
+    "lint": "eslint . --max-warnings 0",
+    "check-api-paths": "node ../../scripts/check-api-paths.mjs mobile",
     "check-types": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -44,6 +45,7 @@
     "tamagui": "2.7.7"
   },
   "devDependencies": {
+    "@omni/eslint-config": "workspace:*",
     "@tamagui/babel-plugin": "2.7.7",
     "@testing-library/react-native": "13.3.3",
     "@types/jest": "29.5.14",

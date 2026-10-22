@@ -20,7 +20,7 @@
     "db:studio": "prisma studio",
     "db:test:reset": "tsx src/test/integration/resetTestDb.ts",
     "db:e2e:reset": "tsx src/test/integration/resetTestDb.ts .env.e2e --seed",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\""
+    "lint": "eslint \"{src,prisma}/**/*.ts\" --max-warnings 0"
   },
   "dependencies": {
     "@omni/shared": "workspace:*",

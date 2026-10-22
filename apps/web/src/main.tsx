@@ -13,12 +13,12 @@ import { ConfirmProvider, LightboxProvider } from '@/shared/ui';
 import { THEME } from '@/theme/config';
 import { cssVariablesResolver } from '@/theme/css-variables';
 
-import '@/shared/dates/dayjs';
-
 import '@mantine/core/styles.layer.css';
 import '@mantine/dates/styles.layer.css';
 import '@mantine/lightbox/styles.layer.css';
 import '@mantine/notifications/styles.layer.css';
+
+import '@/shared/dates/dayjs';
 
 const colorSchemeManager = createSessionColorSchemeManager();
 

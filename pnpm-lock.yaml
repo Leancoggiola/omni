@@ -47,9 +47,6 @@ importers:
       eslint:
         specifier: 9.39.2
         version: 9.39.2(jiti@2.7.0)
-      eslint-plugin-react-hooks:
-        specifier: 7.1.1
-        version: 7.1.1(eslint@9.39.2(jiti@2.7.0))
       husky:
         specifier: 9.1.7
         version: 9.1.7
@@ -292,6 +289,9 @@ importers:
         specifier: 2.7.7
         version: 2.7.7(react-dom@19.2.8(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
     devDependencies:
+      '@omni/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
       '@tamagui/babel-plugin':
         specifier: 2.7.7
         version: 2.7.7(react-dom@19.2.8(react@19.1.0))(react@19.1.0)
@@ -410,9 +410,6 @@ importers:
       eslint-plugin-react-hooks:
         specifier: 7.1.1
         version: 7.1.1(eslint@9.39.2(jiti@2.7.0))
-      eslint-plugin-simple-import-sort:
-        specifier: 13.0.0
-        version: 13.0.0(eslint@9.39.2(jiti@2.7.0))
       happy-dom:
         specifier: 20.14.0
         version: 20.14.0
@@ -434,6 +431,9 @@ importers:
       eslint-config-prettier:
         specifier: 10.1.8
         version: 10.1.8(eslint@9.39.5(jiti@2.7.0))
+      eslint-plugin-simple-import-sort:
+        specifier: 13.0.0
+        version: 13.0.0(eslint@9.39.5(jiti@2.7.0))
       typescript-eslint:
         specifier: 8.59.2
         version: 8.59.2(eslint@9.39.5(jiti@2.7.0))(typescript@6.0.3)
@@ -15197,9 +15197,9 @@ snapshots:
       string.prototype.matchall: 4.0.12
       string.prototype.repeat: 1.0.0
 
-  eslint-plugin-simple-import-sort@13.0.0(eslint@9.39.2(jiti@2.7.0)):
+  eslint-plugin-simple-import-sort@13.0.0(eslint@9.39.5(jiti@2.7.0)):
     dependencies:
-      eslint: 9.39.2(jiti@2.7.0)
+      eslint: 9.39.5(jiti@2.7.0)
 
   eslint-scope@8.4.0:
     dependencies:

@@ -45,7 +45,7 @@ import { api, API_KEYS } from '@/shared/api';
 await api.get(API_KEYS.media.list);
 ```
 
-Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/api/...'` fuera de ese mapa.
+Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/api/...'` fuera de ese mapa. Verificación: `pnpm --filter mobile check-api-paths`.
 
 El núcleo HTTP (request, 401 → refresh single-flight → reintento, parseo de errores y 204) es `createApiClient` de `@omni/shared/api`. `src/shared/api/client.ts` es el adaptador: `getAuthHeaders` con el Bearer de `tokenStorage`, el refresh con `{ refreshToken }` y `logoutSession` (que espera al refresh con `waitForRefresh`).
 
@@ -109,7 +109,7 @@ Misma API que `@/shared/ui` de web. Las features no arman estas piezas a mano:
 
 - Medidas: `RADIUS` / `SPACING` / `FONT_SIZE` de `@omni/shared/theme` como números (`padding={SPACING.md}`); sombras con `elevation('sm')` de `@/theme/elevation`. No usar tokens `$4` de Tamagui como medida (`padding="$4"`, `gap="$2"`, `borderRadius="$4"`) en código nuevo (ver `docs/design-system.md`). La prop `size` de los componentes de Tamagui (`<Button size="$4">`, `Spinner`) es otra cosa: elige una variante del componente (alto, padding y fuente juntos) y se sigue usando.
 - Colores: tokens de tema (`$accentSurface`, `$destructive`, …) en props de Tamagui; para valores crudos (íconos Phosphor, gradientes), `useSemanticColors()` de `@/core/theme`.
-- Las features usan las primitivas: ESLint (`eslint.config.js`, con test en `eslint.config.test.js`) prohíbe importar `Button`, `Input` y `Switch` de `tamagui` en `src/features` y `app`, y `Spinner` y `Alert.alert` en cualquier archivo. Feedback: `notify*`; confirmar: `confirm()`; elegir: `actionSheet()`.
+- Las features usan las primitivas: ESLint (`eslint.config.mjs`, con test en `eslint.config.test.js`) prohíbe importar `Button`, `Input` y `Switch` de `tamagui` en `src/features` y `app`, `Spinner` y `Alert.alert` en cualquier archivo, un feature que importe otro y los hex o colores nombrados fuera de tests. Feedback: `notify*`; confirmar: `confirm()`; elegir: `actionSheet()`.
 - Un formulario en bottom sheet que tiene que tapar las tabs (p. ej. `AddMediaSheet`) va dentro de un `Modal` de RN con el `Sheet` sin `modal`: el portal de Tamagui (`<Sheet modal>`) crashea en Fabric con "The specified child already has a parent". Tamagui no llama a `onAnimationComplete` al cerrar, así que el `Modal` se oculta con un tiempo fijo; mientras está visible tapa los toasts, por eso el error va en un `Banner` adentro y el éxito se avisa al cerrar.
 
 ## Botones de acción
@@ -141,5 +141,5 @@ A diferencia de web (alineados a la derecha), en mobile van **centrados y full-w
 ## Verificación
 
 ```bash
-pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile test
+pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile check-api-paths && pnpm --filter mobile test
 ```

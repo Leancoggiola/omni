@@ -6,6 +6,8 @@ import { GRADIENTS } from './gradients';
 import { COLOR_PALETTE } from './palettes';
 import { FONT_SIZES, HEADING_SIZES, LINE_HEIGHTS, RADIUS, SHADOWS, SPACING } from './tokens';
 
+import { BLACK, WHITE } from '@omni/shared/theme';
+
 export const THEME = createTheme({
   fontFamily: '"Montserrat", sans-serif',
   primaryColor: 'brand',
@@ -14,8 +16,8 @@ export const THEME = createTheme({
 
   cursorType: 'pointer',
   autoContrast: true,
-  black: '#0a0a0a',
-  white: '#ffffff',
+  black: BLACK,
+  white: WHITE,
 
   colors: COLOR_PALETTE,
 

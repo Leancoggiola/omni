@@ -25,6 +25,8 @@ export {
   semanticLight,
   semanticDark,
   onFill,
+  WHITE,
+  BLACK,
 } from './tokens';
 export { contrastRatio, pickOnFill, WCAG_AA_TEXT } from './contrast';
 export { resolveColorScheme } from './colorScheme';

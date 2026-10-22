@@ -22,7 +22,7 @@ features/<name>/
   modules/_shared/        # compartido entre módulos del mismo feature
 ```
 
-- **Prohibido:** `features/A` → `features/B`. UI usada en 2+ features → `shared/ui/`.
+- **Prohibido:** `features/A` → `features/B` (lo hace cumplir ESLint). UI usada en 2+ features → `shared/ui/`.
 - Navbar: clave en `NAV_REGISTRY` / `MAIN_NAV_ORDER` de `@omni/shared/navigation` (compartido con mobile) + ícono en `NAV_ICONS` de `app/navigation/nav-registry.tsx`.
 - Scaffolding: `pnpm web:new-feature <name> --register-route`.
 - Referencias: `home` (simple), `media` (multi-módulo + SWR), `profile` (forms + PATCH), `split-expenses` (CRUD anidado).
