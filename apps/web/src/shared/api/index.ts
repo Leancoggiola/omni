@@ -1,5 +1,4 @@
-export { api } from './client';
-export { ApiError, fetcher } from './fetcher';
+export { api, clearOnAuthFailure, fetcher, setOnAuthFailure } from './client';
 export { buildQueryString, SWR_KEYS } from './keys';
-export { clearOnAuthFailure, setOnAuthFailure } from './refreshSession';
 export { subscribeServerWake } from './serverWake';
+export { ApiError } from '@omni/shared/api';

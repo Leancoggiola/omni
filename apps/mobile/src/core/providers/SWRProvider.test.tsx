@@ -4,7 +4,7 @@ import { AppState, Text, type AppStateStatus } from 'react-native';
 import useSWR from 'swr';
 import useSWRImmutable from 'swr/immutable';
 
-import { ApiError } from '@/shared/api/ApiError';
+import { ApiError } from '@omni/shared/api';
 
 import { initAppStateFocus, SWRProvider } from './SWRProvider';
 

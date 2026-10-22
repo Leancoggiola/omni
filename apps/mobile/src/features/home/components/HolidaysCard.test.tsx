@@ -13,7 +13,7 @@ jest.mock('@/core/theme', () => ({
 jest.mock('expo-linear-gradient', () => ({ LinearGradient: () => null }));
 jest.mock('../hooks', () => ({
   useTodayHolidays: () => mockUseTodayHolidays(),
-  useHolidayCarousel: () => ({ currentIndex: 0, currentItem: null, next: jest.fn() }),
+  useHolidayCarousel: () => ({ currentIndex: 0, currentItem: null, isAutoPlaying: false, next: jest.fn() }),
 }));
 
 const HOLIDAYS = {

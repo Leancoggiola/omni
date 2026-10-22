@@ -1,5 +1,3 @@
-import { ApiError } from '@/shared/api';
-
 export type NotificationVariant = 'success' | 'error' | 'warning' | 'info';
 
 export type NotificationRequest = {
@@ -60,10 +58,4 @@ export function notifyWarning(message: string) {
   show('warning', 'Atención', message);
 }
 
-/**
- * Mensaje para mostrar al usuario: el de la API (`ApiError`, ya en español) o `fallback`. Un error de red, de parseo
- * o cualquier otro llega con un mensaje técnico y en inglés ("Network request failed"), así que no se muestra.
- */
-export function getErrorMessage(err: unknown, fallback: string): string {
-  return err instanceof ApiError && err.message ? err.message : fallback;
-}
+export { getErrorMessage } from '@omni/shared/api';

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useTodayHolidays } from '../hooks';
-import { STALE_DAY_RETRY_MS } from '../hooks/useTodayHolidays/useTodayHolidays';
 
+import { HOLIDAY_STALE_DAY_RETRY_MS as STALE_DAY_RETRY_MS } from '@omni/shared/holidays';
 import { act, renderHook } from '@testing-library/react';
 
 const useSWRImmutable = vi.fn();
@@ -44,12 +44,12 @@ describe('useTodayHolidays', () => {
     vi.useRealTimers();
   });
 
-  it('versiona la key con el día y reintenta errores de forma acotada', () => {
+  it('versiona la key con el día y conserva el día anterior mientras carga', () => {
     useSWRImmutable.mockReturnValue(swrState({ isLoading: true }));
     renderHook(() => useTodayHolidays());
     expect(useSWRImmutable).toHaveBeenCalledWith(
       expect.stringContaining('date=2026-10-07'),
-      expect.objectContaining({ keepPreviousData: true, shouldRetryOnError: true, errorRetryCount: 3 })
+      expect.objectContaining({ keepPreviousData: true })
     );
   });
 

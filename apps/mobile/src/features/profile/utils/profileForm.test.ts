@@ -1,25 +1,4 @@
-import { buildProfileUpdates, normalizePhone, validatePasswordForm } from './profileForm';
-
-describe('normalizePhone', () => {
-  it('recorta y trata vacío como sin teléfono', () => {
-    expect(normalizePhone('  +54 11 5555  ')).toBe('+54 11 5555');
-    expect(normalizePhone('   ')).toBeNull();
-    expect(normalizePhone('')).toBeNull();
-  });
-});
-
-describe('buildProfileUpdates', () => {
-  it('sin cambios no manda nada (el botón queda deshabilitado)', () => {
-    expect(buildProfileUpdates({ phone: '123' }, '123')).toEqual({});
-    expect(buildProfileUpdates({ phone: '123' }, ' 123 ')).toEqual({});
-    expect(buildProfileUpdates({ phone: null }, '')).toEqual({});
-  });
-
-  it('manda solo el teléfono, nunca la fecha de nacimiento', () => {
-    expect(buildProfileUpdates({ phone: null }, '123')).toEqual({ phone: '123' });
-    expect(buildProfileUpdates({ phone: '123' }, '')).toEqual({ phone: null });
-  });
-});
+import { validatePasswordForm } from './profileForm';
 
 describe('validatePasswordForm', () => {
   it('acepta la contraseña actual y dos contraseñas nuevas iguales de 8 a 72 caracteres', () => {

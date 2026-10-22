@@ -1,195 +1,125 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { api } from '../client';
+import { api, clearOnAuthFailure, fetcher, setOnAuthFailure } from '../client';
 import { SWR_KEYS } from '../keys';
-import { clearOnAuthFailure, setOnAuthFailure } from '../refreshSession';
 
 const JSON_HEADERS = new Headers({ 'content-type': 'application/json' });
 
-describe('api client', () => {
+const jsonResponse = (body: unknown, status = 200) => ({
+  ok: status < 400,
+  status,
+  statusText: '',
+  headers: JSON_HEADERS,
+  json: () => Promise.resolve(body),
+});
+
+type Route = (init: RequestInit) => ReturnType<typeof jsonResponse>;
+
+const stubApi = (routes: Record<string, Route>) => {
+  const fetchMock = vi.fn((url: string, init: RequestInit = {}) =>
+    Promise.resolve(routes[url]?.(init) ?? jsonResponse({ message: 'Not found' }, 404))
+  );
+  vi.stubGlobal('fetch', fetchMock);
+  return fetchMock;
+};
+
+describe('client web (cableado de createApiClient)', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     clearOnAuthFailure();
   });
 
-  it('returns parsed json on success', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        headers: JSON_HEADERS,
-        status: 200,
-        json: () => Promise.resolve({ ok: true }),
-      })
-    );
-
-    await expect(api.post('/api/resource', { a: 1 })).resolves.toEqual({ ok: true });
-  });
-
-  it('returns undefined on 204 No Content', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        headers: JSON_HEADERS,
-        status: 204,
-      })
-    );
-
-    await expect(api.delete('/api/resource')).resolves.toBeUndefined();
-  });
-
-  it('throws ApiError on failure with message from body', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        headers: JSON_HEADERS,
-        status: 400,
-        statusText: 'Bad Request',
-        json: () => Promise.resolve({ message: 'Invalid' }),
-      })
-    );
-
-    await expect(api.post('/api/resource')).rejects.toMatchObject({
-      name: 'ApiError',
-      message: 'Invalid',
-      status: 400,
+  it('fetcher y api mandan la cookie de sesión al path sin base', async () => {
+    const fetchMock = stubApi({
+      '/api/media/list': () => jsonResponse([]),
+      '/api/resource': () => jsonResponse({ ok: true }),
     });
+
+    await expect(fetcher('/api/media/list')).resolves.toEqual([]);
+    await expect(api.post('/api/resource', { a: 1 })).resolves.toEqual({ ok: true });
+
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ method: 'GET', credentials: 'include' });
+    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({ method: 'POST', credentials: 'include', body: '{"a":1}' });
   });
 
-  it('retries once after a successful silent refresh on 401', async () => {
-    const calls: string[] = [];
-    let resourceCallCount = 0;
+  it('ante un 401 refresca con un POST con cookie y reintenta', async () => {
+    let resourceCalls = 0;
+    const fetchMock = stubApi({
+      [SWR_KEYS.auth.refresh]: () => jsonResponse({}),
+      '/api/resource': () => (++resourceCalls === 1 ? jsonResponse({ message: 'No' }, 401) : jsonResponse({ ok: 1 })),
+    });
 
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string) => {
-        calls.push(url);
-        if (url === SWR_KEYS.auth.refresh) {
-          return Promise.resolve({ ok: true, headers: JSON_HEADERS, json: () => Promise.resolve({}) });
-        }
-        resourceCallCount += 1;
-        if (resourceCallCount === 1) {
-          return Promise.resolve({
-            ok: false,
-            headers: JSON_HEADERS,
-            status: 401,
-            statusText: 'Unauthorized',
-            json: () => Promise.resolve({}),
-          });
-        }
-        return Promise.resolve({
-          ok: true,
-          headers: JSON_HEADERS,
-          status: 200,
-          json: () => Promise.resolve({ data: 'ok' }),
-        });
-      })
-    );
+    await expect(api.patch('/api/resource', {})).resolves.toEqual({ ok: 1 });
 
-    await expect(api.post('/api/resource', { a: 1 })).resolves.toEqual({ data: 'ok' });
-    expect(calls).toEqual(['/api/resource', SWR_KEYS.auth.refresh, '/api/resource']);
+    const urls = fetchMock.mock.calls.map(([url]) => url);
+    expect(urls).toEqual(['/api/resource', SWR_KEYS.auth.refresh, '/api/resource']);
+    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({ method: 'POST', credentials: 'include', body: '{}' });
   });
 
-  it('notifies auth failure and throws when refresh fails', async () => {
+  it.each([401, 403])('un refresh con %i avisa a setOnAuthFailure una sola vez', async status => {
     const onAuthFailure = vi.fn();
     setOnAuthFailure(onAuthFailure);
+    stubApi({
+      [SWR_KEYS.auth.refresh]: () => jsonResponse({ message: 'Sesión inválida' }, status),
+      '/api/a': () => jsonResponse({ message: 'No' }, 401),
+      '/api/b': () => jsonResponse({ message: 'No' }, 401),
+    });
 
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string) => {
-        if (url === SWR_KEYS.auth.refresh) {
-          return Promise.resolve({ ok: false, status: 401, headers: JSON_HEADERS, json: () => Promise.resolve({}) });
-        }
-        return Promise.resolve({
-          ok: false,
-          headers: JSON_HEADERS,
-          status: 401,
-          statusText: 'Unauthorized',
-          json: () => Promise.resolve({}),
-        });
-      })
-    );
+    const results = await Promise.allSettled([fetcher('/api/a'), fetcher('/api/b')]);
 
-    await expect(api.patch('/api/resource', {})).rejects.toMatchObject({ status: 401 });
+    expect(results.map(r => r.status)).toEqual(['rejected', 'rejected']);
     expect(onAuthFailure).toHaveBeenCalledTimes(1);
   });
 
-  it.each([429, 503])('does not close the session when the refresh answers %i', async refreshStatus => {
+  it.each([429, 500])('un refresh con %i propaga su ApiError y no cierra la sesión', async status => {
     const onAuthFailure = vi.fn();
     setOnAuthFailure(onAuthFailure);
+    stubApi({
+      [SWR_KEYS.auth.refresh]: () => jsonResponse({ message: 'Intentá más tarde' }, status),
+      '/api/resource': () => jsonResponse({ message: 'No' }, 401),
+    });
 
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string) => {
-        if (url === SWR_KEYS.auth.refresh) {
-          return Promise.resolve({
-            ok: false,
-            status: refreshStatus,
-            statusText: 'Unavailable',
-            headers: JSON_HEADERS,
-            json: () => Promise.resolve({ message: 'Servicio no disponible' }),
-          });
-        }
-        return Promise.resolve({
-          ok: false,
-          headers: JSON_HEADERS,
-          status: 401,
-          statusText: 'Unauthorized',
-          json: () => Promise.resolve({}),
-        });
-      })
-    );
-
-    await expect(api.patch('/api/resource', {})).rejects.toMatchObject({ status: refreshStatus });
+    await expect(fetcher('/api/resource')).rejects.toMatchObject({
+      name: 'ApiError',
+      status,
+      message: 'Intentá más tarde',
+    });
     expect(onAuthFailure).not.toHaveBeenCalled();
   });
 
-  it('does not close the session when the refresh fails with a network error', async () => {
+  it('un error de red en el refresh se propaga y no cierra la sesión', async () => {
     const onAuthFailure = vi.fn();
     setOnAuthFailure(onAuthFailure);
-
     vi.stubGlobal(
       'fetch',
-      vi.fn((url: string) => {
-        if (url === SWR_KEYS.auth.refresh || url === SWR_KEYS.health) {
-          return Promise.reject(new TypeError('Failed to fetch'));
-        }
-        return Promise.resolve({
-          ok: false,
-          headers: JSON_HEADERS,
-          status: 401,
-          statusText: 'Unauthorized',
-          json: () => Promise.resolve({}),
-        });
-      })
+      vi.fn((url: string) =>
+        url === SWR_KEYS.auth.refresh || url === SWR_KEYS.health
+          ? Promise.reject(new TypeError('Failed to fetch'))
+          : Promise.resolve(jsonResponse({ message: 'No' }, 401))
+      )
     );
 
     vi.useFakeTimers();
-    const promise = api.patch('/api/resource', {});
-    const assertion = expect(promise).rejects.toThrow('Failed to fetch');
-    await vi.advanceTimersByTimeAsync(2_000);
-    await assertion;
-    vi.useRealTimers();
+    try {
+      const assertion = expect(api.patch('/api/resource', {})).rejects.toThrow('Failed to fetch');
+      await vi.advanceTimersByTimeAsync(2_000);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
     expect(onAuthFailure).not.toHaveBeenCalled();
   });
 
-  it('does not attempt refresh when login itself returns 401', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        headers: JSON_HEADERS,
-        status: 401,
-        statusText: 'Unauthorized',
-        json: () => Promise.resolve({ message: 'Credenciales inválidas' }),
-      })
-    );
-
-    await expect(api.post(SWR_KEYS.auth.login, { username: 'x', password: 'y' })).rejects.toMatchObject({
-      status: 401,
+  it('clearOnAuthFailure deja de avisar', async () => {
+    const onAuthFailure = vi.fn();
+    setOnAuthFailure(onAuthFailure);
+    clearOnAuthFailure();
+    stubApi({
+      [SWR_KEYS.auth.refresh]: () => jsonResponse({}, 401),
+      '/api/resource': () => jsonResponse({ message: 'No' }, 401),
     });
-    expect(fetch).toHaveBeenCalledTimes(1);
+
+    await expect(fetcher('/api/resource')).rejects.toMatchObject({ status: 401 });
+    expect(onAuthFailure).not.toHaveBeenCalled();
   });
 });

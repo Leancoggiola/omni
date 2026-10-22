@@ -1,6 +1,6 @@
-import { ApiError } from './ApiError';
 import { SWR_KEYS } from './keys';
 
+import { ApiError } from '@omni/shared/api';
 import { createServerWake } from '@omni/shared/server-wake';
 
 /**

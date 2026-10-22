@@ -9,7 +9,7 @@ import {
   type PropsWithChildren,
 } from 'react';
 import { useColorScheme } from 'react-native';
-import { SEMANTIC } from '@omni/shared/theme';
+import { resolveColorScheme, SEMANTIC } from '@omni/shared/theme';
 
 import type { ProfileTheme } from '@omni/shared/users';
 
@@ -26,7 +26,7 @@ interface ColorSchemeContextValue {
 const ColorSchemeContext = createContext<ColorSchemeContextValue | null>(null);
 
 /**
- * Tema efectivo: el override del toggle pisa al del perfil mientras la app esté abierta.
+ * Tema efectivo (`resolveColorScheme`): el override del toggle pisa al del perfil mientras la app esté abierta.
  * `profileTheme` es el tema del perfil, o `null` sin sesión; quien monta el provider lo saca de la sesión
  * (así este módulo no depende de `core/auth`). Sin sesión o con tema `auto` se sigue el esquema del
  * sistema. El override se descarta al quedar sin sesión: logout, o refresh fallido (el client avisa vía
@@ -40,8 +40,7 @@ export const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ profileTheme
     if (profileTheme === null) setOverride(null);
   }, [profileTheme]);
 
-  const profileScheme = profileTheme === null || profileTheme === 'auto' ? systemScheme : profileTheme;
-  const colorScheme = override ?? profileScheme;
+  const colorScheme = resolveColorScheme({ override, profileTheme, system: systemScheme });
 
   const toggle = useCallback(() => {
     setOverride(colorScheme === 'dark' ? 'light' : 'dark');

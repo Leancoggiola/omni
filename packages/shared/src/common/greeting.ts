@@ -1,3 +1,4 @@
+/** Saludo según la hora local de `date`: "Buenos días" de 6 a 12, "Buenas tardes" de 12 a 20 y "Buenas noches" el resto. */
 export function getTimeGreeting(date: Date = new Date()): string {
   const hour = date.getHours();
 

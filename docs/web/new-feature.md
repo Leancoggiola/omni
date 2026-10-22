@@ -44,7 +44,7 @@ export const protectedRoutes = [homeRoute, mediaRoute, profileRoute, gymRoute];
 
 ## 5. Datos (SWR)
 
-- Keys en [`shared/api/keys.ts`](../../apps/web/src/shared/api/keys.ts)
+- Keys en `API_PATHS` de [`@omni/shared/api`](../../packages/shared/src/api/paths.ts) (web los usa como `SWR_KEYS`)
 - Hooks en `features/<name>/modules/<module>/hooks/`
 - Import: `import { api, SWR_KEYS } from '@/shared/api'`
 
