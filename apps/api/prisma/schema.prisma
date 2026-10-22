@@ -12,6 +12,23 @@ enum Role {
   USER
 }
 
+enum Theme {
+  light
+  dark
+  auto
+}
+
+enum MediaType {
+  movie
+  tv
+}
+
+enum MediaStatus {
+  to_watch
+  watching
+  watched
+}
+
 model User {
   id            String           @id @default(cuid())
   username      String           @unique
@@ -41,7 +58,7 @@ model UserPreferences {
   userId        String   @unique
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   notifications Boolean  @default(false)
-  theme         String   @default("light")
+  theme         Theme    @default(light)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -65,15 +82,14 @@ model MediaItem {
   userId               String
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tmdbId               Int
-  mediaType            String // 'movie' | 'tv'
+  mediaType            MediaType
   title                String
   posterPath           String?
-  status               String   @default("to_watch") // 'to_watch' | 'watching' | 'watched'
+  status               MediaStatus @default(to_watch)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
   @@unique([userId, tmdbId, mediaType])
-  @@index([userId])
 }
 
 enum GymPlanStatus {
@@ -104,7 +120,6 @@ model GymPlanDay {
   exercises GymExercise[]
 
   @@unique([planId, label])
-  @@index([planId])
 }
 
 model GymExercise {
@@ -193,7 +208,6 @@ model SplitFriend {
   participants   GatheringParticipant[]
 
   @@unique([userId, nameNormalized])
-  @@index([userId])
 }
 
 model Gathering {
@@ -222,7 +236,6 @@ model GatheringParticipant {
   expenses    GatheringExpense[]
 
   @@unique([gatheringId, displayName])
-  @@index([gatheringId])
 }
 
 model GatheringExpense {
