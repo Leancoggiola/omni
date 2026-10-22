@@ -1,5 +1,7 @@
-const { defineConfig } = require('eslint/config');
-const expoConfig = require('eslint-config-expo/flat');
+import { featureIsolation, hardcodedColorSelectors } from '@omni/eslint-config';
+import expoConfig from 'eslint-config-expo/flat.js';
+import { defineConfig } from 'eslint/config';
+import { join } from 'node:path';
 
 const SPINNER_MESSAGE = 'Usar Spinner de @/shared/ui: trae el color de marca (Tamagui no le aplica defaultProps).';
 const SPINNER_PATHS = [
@@ -36,10 +38,19 @@ const NAMESPACE_IMPORT = {
     'Importar de tamagui por nombre: `import * as` esquiva la regla que prohíbe Button, Input, Switch y Spinner.',
 };
 
-module.exports = defineConfig([
+const TEST_FILES = ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}', 'src/test/**/*.{ts,tsx}'];
+
+const JEST_GLOBALS = Object.fromEntries(
+  ['describe', 'it', 'expect', 'beforeAll', 'afterAll', 'beforeEach', 'afterEach', 'jest', '__dirname'].map(name => [
+    name,
+    'readonly',
+  ])
+);
+
+export default defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*'],
+    ignores: ['dist/*', '.expo/', '.tamagui/', 'coverage/', 'android/', 'ios/'],
   },
   {
     rules: {
@@ -48,11 +59,29 @@ module.exports = defineConfig([
     },
   },
   {
+    files: ['src/**/*.{ts,tsx}', 'app/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': ['error', ...ALERT_SELECTORS, ...hardcodedColorSelectors],
+    },
+  },
+  {
     files: ['src/features/**/*.{ts,tsx}', 'app/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', { paths: [...SPINNER_PATHS, ...RAW_CONTROLS_PATHS] }],
-      'no-restricted-syntax': ['error', ...ALERT_SELECTORS, NAMESPACE_IMPORT],
+      'no-restricted-syntax': ['error', ...ALERT_SELECTORS, NAMESPACE_IMPORT, ...hardcodedColorSelectors],
     },
+  },
+  ...featureIsolation({
+    featuresDir: join(import.meta.dirname, 'src/features'),
+    paths: [...SPINNER_PATHS, ...RAW_CONTROLS_PATHS],
+  }),
+  {
+    files: TEST_FILES,
+    rules: { 'no-restricted-syntax': ['error', ...ALERT_SELECTORS] },
+  },
+  {
+    files: ['*.test.js'],
+    languageOptions: { globals: JEST_GLOBALS },
   },
   {
     files: ['src/shared/ui/Spinner.tsx'],

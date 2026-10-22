@@ -72,9 +72,37 @@ const CASES = [
     code: "import { Spinner } from 'tamagui';\nexport const x = Spinner;\n",
     rule: IMPORTS,
   },
+  {
+    name: 'import de otro feature',
+    file: 'src/features/home/N.tsx',
+    code: "import { y } from '@/features/media/MediaScreen';\nexport const x = y;\n",
+    rule: IMPORTS,
+  },
+  {
+    name: 'hex suelto',
+    file: 'src/features/x/O.tsx',
+    code: "export const x = '#c4622d';\n",
+    rule: ALERT,
+  },
+  {
+    name: 'color nombrado de Mantine',
+    file: 'src/features/x/P.tsx',
+    code: 'export const x = <View color="red" />;\n',
+    rule: ALERT,
+  },
 ];
 
 const ALLOWED = [
+  {
+    name: 'import del propio feature',
+    file: 'src/features/home/Q.tsx',
+    code: "import { HomeScreen as y } from '@/features/home/HomeScreen';\nexport const x = y;\n",
+  },
+  {
+    name: 'hex en un test',
+    file: 'src/features/x/R.test.tsx',
+    code: "export const x = '#c4622d';\n",
+  },
   {
     name: 'Button de tamagui en shared/ui (primitivas)',
     file: 'src/shared/ui/L.tsx',
@@ -113,7 +141,7 @@ beforeAll(() => {
   results = JSON.parse(stdout.trim().split('\n').pop());
 }, 120000);
 
-describe('eslint.config.js', () => {
+describe('eslint.config.mjs', () => {
   CASES.forEach((testCase, index) => {
     it(`prohíbe ${testCase.name}`, () => {
       expect(results[index]).toContain(testCase.rule);

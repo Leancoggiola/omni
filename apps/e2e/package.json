@@ -9,7 +9,7 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
     "check-types": "tsc --noEmit",
-    "lint": "eslint \"{src,tests}/**/*.ts\""
+    "lint": "eslint . --max-warnings 0"
   },
   "devDependencies": {
     "@omni/eslint-config": "workspace:*",

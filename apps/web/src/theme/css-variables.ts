@@ -8,7 +8,7 @@ import {
   type VariantColorsResolver,
 } from '@mantine/core';
 
-import { onFill, semanticDark, semanticLight } from '@omni/shared/theme';
+import { onFill, semanticDark, semanticLight, WHITE } from '@omni/shared/theme';
 
 /** Core Mantine vars mapped from the full semantic token set. */
 const mantineCoreLight = {
@@ -54,7 +54,7 @@ function onFilledVariables(theme: MantineTheme, scheme: 'light' | 'dark'): Recor
       const fill = scale[shade];
       if (!fill || !HEX_COLOR.test(fill)) return [];
       const text = onFill(fill);
-      const hoverShade = text === '#ffffff' ? Math.min(shade + 1, 9) : Math.max(shade - 1, 0);
+      const hoverShade = text === WHITE ? Math.min(shade + 1, 9) : Math.max(shade - 1, 0);
       const hover = scale[hoverShade] ?? fill;
       return [
         [onFilledVar(color), text],

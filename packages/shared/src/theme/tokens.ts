@@ -53,12 +53,16 @@ export const SURFACE = {
   dark: '#211E1C',
 } as const;
 
+/** Blanco y negro base del tema de Mantine (`theme.white` / `theme.black`). */
+export const WHITE = '#ffffff';
+export const BLACK = '#0a0a0a';
+
 /**
  * Texto sobre un relleno de color (Button/Badge filled, segmento activo): blanco o el canvas oscuro, el
  * que más contraste da. Es el `autoContrast` de los dos clientes, pero calculado por esquema: el de
  * Mantine decide con el tono de claro y en oscuro dejaba texto blanco sobre el shade 4 (~3:1).
  */
-export const onFill = (fill: string): string => pickOnFill(fill, ['#ffffff', CANVAS.dark]);
+export const onFill = (fill: string): string => pickOnFill(fill, [WHITE, CANVAS.dark]);
 
 /** Semantic Colors */
 export const BLUE = {

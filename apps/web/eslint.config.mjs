@@ -1,21 +1,28 @@
-import { baseConfig } from '@omni/eslint-config';
+import { baseConfig, featureIsolation, hardcodedColorSelectors, importSortConfig } from '@omni/eslint-config';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
-import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import { defineConfig } from 'eslint/config';
+import { join } from 'node:path';
 
-/** Orden de imports: externos (react, mantine…), alias `@/`, relativos, tipos y CSS. */
-const IMPORT_GROUPS = [
-  ['^react', '^@mantine', '^[a-z]'],
-  ['^@/'],
-  ['^\.\./', '^\./'],
-  ['^.*\\u0000$'],
-  ['^.+\\.s?css$'],
-];
+const NO_DEFAULT_EXPORT = {
+  selector: 'ExportDefaultDeclaration',
+  message: 'Use named exports instead of default exports in components.',
+};
 
-const MANTINE_DEFAULT_COLORS = '(red|pink|grape|violet|indigo|blue|cyan|teal|green|lime|yellow|orange)';
+const TEST_FILES = ['**/*.{test,spec}.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'];
 
-export default [
+export default defineConfig([
   ...baseConfig,
+  importSortConfig,
+  ...featureIsolation({ featuresDir: join(import.meta.dirname, 'src/features') }),
+
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    rules: {
+      'no-console': 'error',
+      'no-restricted-syntax': ['error', ...hardcodedColorSelectors],
+    },
+  },
 
   {
     files: ['**/*.tsx'],
@@ -35,51 +42,16 @@ export default [
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
 
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: 'ExportDefaultDeclaration',
-          message: 'Use named exports instead of default exports in components.',
-        },
-        {
-          selector: `JSXAttribute[name.name=/^(color|c|bg)$/][value.value=/^${MANTINE_DEFAULT_COLORS}(\\.[0-9])?$/]`,
-          message: 'Usá los alias semánticos (destructive, error, success, brand…) en lugar de colores de Mantine.',
-        },
-      ],
+      'no-restricted-syntax': ['error', NO_DEFAULT_EXPORT, ...hardcodedColorSelectors],
     },
   },
 
   {
-    files: ['**/*.ts', '**/*.tsx'],
-    plugins: { 'simple-import-sort': simpleImportSort },
-    rules: {
-      'simple-import-sort/imports': [
-        'error',
-        {
-          groups: IMPORT_GROUPS,
-        },
-      ],
-      'simple-import-sort/exports': 'error',
-    },
-  },
-
-  {
-    files: ['**/*.ts', '**/*.tsx'],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          argsIgnorePattern: '^_',
-          destructuredArrayIgnorePattern: '^_',
-          ignoreRestSiblings: true,
-        },
-      ],
-      'no-console': 'error',
-    },
+    files: TEST_FILES,
+    rules: { 'no-restricted-syntax': ['error', NO_DEFAULT_EXPORT] },
   },
 
   {
     ignores: ['node_modules/', 'dist/', 'coverage/', '.vite/'],
   },
-];
+]);

@@ -3,6 +3,6 @@ import { baseConfig } from '@omni/eslint-config';
 export default [
   ...baseConfig,
   {
-    ignores: ['dist/'],
+    ignores: ['dist/', 'coverage/'],
   },
 ];
