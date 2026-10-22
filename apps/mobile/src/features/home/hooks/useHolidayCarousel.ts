@@ -1,33 +1,46 @@
 import { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 
-export function useHolidayCarousel<T>(items: T[], duration = 3000) {
+import { clampCarouselIndex, nextCarouselIndex } from '@omni/shared/holidays';
+
+/**
+ * Carrusel de efemérides (= `useHolidayCarousel` de web): avanza solo cada `duration` ms mientras haya más de un ítem.
+ * Con "reducir movimiento" del sistema no avanza solo (`isAutoPlaying` false), también si se activa con la pantalla
+ * abierta; `next` sigue funcionando para avanzar a mano.
+ */
+export function useHolidayCarousel<T>(items: T[], duration: number) {
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  const next = useCallback(() => {
-    setCurrentIndex(prev => {
-      if (items.length === 0) {
-        return 0;
-      }
-
-      return (prev + 1) % items.length;
-    });
-  }, [items.length]);
+  const [reduceMotion, setReduceMotion] = useState(useReducedMotion());
+  const count = items.length;
 
   useEffect(() => {
-    if (items.length <= 1) {
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => subscription.remove();
+  }, []);
+
+  const safeIndex = clampCarouselIndex(currentIndex, count);
+
+  const next = useCallback(() => {
+    setCurrentIndex(prev => nextCarouselIndex(prev, count));
+  }, [count]);
+
+  const isAutoPlaying = count > 1 && !reduceMotion;
+
+  useEffect(() => {
+    if (!isAutoPlaying) {
       return;
     }
 
     const timeout = setTimeout(next, duration);
 
     return () => clearTimeout(timeout);
-  }, [currentIndex, items.length, duration, next]);
-
-  const safeIndex = items.length ? currentIndex % items.length : 0;
+  }, [safeIndex, isAutoPlaying, duration, next]);
 
   return {
     currentIndex: safeIndex,
     currentItem: items[safeIndex],
+    isAutoPlaying,
     next,
   };
 }

@@ -1,21 +1,15 @@
-import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS, MEDIA_TYPES } from '@omni/shared/media';
+import { MEDIA_STATUS_OPTIONS, MEDIA_TYPE_OPTIONS } from '@omni/shared/media';
 import { SPACING } from '@omni/shared/theme';
 import { MagnifyingGlassIcon } from 'phosphor-react-native';
 import { XStack, YStack } from 'tamagui';
 
 import { SectionCard, SegmentedControl, Select, TextField } from '@/shared/ui';
 
-import type { MediaListFilters } from '../utils/filterMedia';
+import type { MediaListFilters } from '@omni/shared/media';
 
-const TYPE_OPTIONS = [
-  { value: 'all', label: 'Todos' },
-  ...MEDIA_TYPES.map(value => ({ value, label: MEDIA_TYPE_LABELS[value] })),
-] as const;
+const TYPE_OPTIONS = [{ value: 'all', label: 'Todos' } as const, ...MEDIA_TYPE_OPTIONS];
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'Todos' },
-  ...MEDIA_STATUSES.map(value => ({ value, label: MEDIA_STATUS_LABELS[value] })),
-] as const;
+const STATUS_OPTIONS = [{ value: 'all', label: 'Todos' } as const, ...MEDIA_STATUS_OPTIONS];
 
 const TYPE_SELECT_WIDTH = 132;
 
