@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '24'
   VERCEL_CLI_VERSION: '60.1.3'
   API_URL: 'https://omni-api-gwer.onrender.com'
   APK_REPO: 'Leancoggiola/omni-apk'
