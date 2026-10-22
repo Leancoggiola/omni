@@ -69,11 +69,11 @@ feat(api)!: remove legacy /v1 endpoints   # BREAKING CHANGE → major
 
 ## Hooks locales (Husky)
 
-| Hook         | Cuándo corre           | Qué hace                                               |
-| ------------ | ---------------------- | ------------------------------------------------------ |
-| `pre-commit` | Antes de cada commit   | `lint-staged`: eslint + prettier sobre archivos staged |
-| `commit-msg` | Al escribir el mensaje | `commitlint` valida el formato del mensaje             |
-| `pre-push`   | Antes de hacer push    | `prettier --check` + `tsc --noEmit` en todo el repo    |
+| Hook         | Cuándo corre           | Qué hace                                                                                        |
+| ------------ | ---------------------- | ----------------------------------------------------------------------------------------------- |
+| `pre-commit` | Antes de cada commit   | `lint-staged`: eslint (config de cada app, `--max-warnings 0`) + prettier sobre archivos staged |
+| `commit-msg` | Al escribir el mensaje | `commitlint` valida el formato del mensaje                                                      |
+| `pre-push`   | Antes de hacer push    | `prettier --check` + `tsc --noEmit` en todo el repo                                             |
 
 Si un hook falla, el commit/push se cancela.
 
@@ -117,10 +117,10 @@ git commit -m "feat(api): add user avatar endpoint"
 
 ## Configuración
 
-| Archivo                         | Propósito                                |
-| ------------------------------- | ---------------------------------------- |
-| `.releaserc.json`               | Plugins y config de semantic-release     |
-| `commitlint.config.ts`          | Reglas de formato de commits             |
-| `lint-staged.config.mjs`        | Qué corre lint-staged sobre qué archivos |
-| `.husky/`                       | Hooks de git                             |
-| `.github/workflows/release.yml` | Workflow de CI para releases             |
+| Archivo                                       | Propósito                                |
+| --------------------------------------------- | ---------------------------------------- |
+| `.releaserc.json`                             | Plugins y config de semantic-release     |
+| `commitlint.config.ts`                        | Reglas de formato de commits             |
+| `lint-staged.config.mjs` (raíz y uno por app) | Qué corre lint-staged sobre qué archivos |
+| `.husky/`                                     | Hooks de git                             |
+| `.github/workflows/release.yml`               | Workflow de CI para releases             |
