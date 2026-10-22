@@ -6,12 +6,13 @@ Nueva feature: `/new-feature`. Contratos: `packages/shared/CLAUDE.md`.
 
 ```
 apps/api/src/
+  common/http/        HttpError, validatedQuery y la augmentación de Express.User
   common/db/          prisma singleton, lockUserSessions (advisory lock de sesiones)
   common/utils/       validate, logger, http-logger (pino-http con redact), error-handler, rate-limit, client-ip, origin-guard, no-store,
-                      cookies (set/clear de la sesión), not-found (404 JSON bajo /api)
+                      cookies (set/clear de la sesión), password (hashPassword), not-found (404 JSON bajo /api)
   health/             /api/health (liveness) y /api/health/ready (SELECT 1); públicos, antes del guard
   <feature>/
-    <feature>.routes.ts   HTTP, validate, middleware auth, res.json, next(err)
+    <feature>.routes.ts   HTTP, validate, middleware auth, res.json
     <feature>.service.ts  Prisma, TMDB, reglas de negocio — sin req/res
   config.ts · app.ts · main.ts · router.ts
 ```
@@ -41,7 +42,7 @@ Schema: `prisma/schema.prisma`. No editar `src/generated/`. Migraciones desde `a
 `validate(schema)` para body; `validate(schema, 'query')` para query params.
 
 ```ts
-router.post('/list', validate(addMediaItemSchema), async (req, res, next) => { ... });
+router.post('/list', validate(addMediaItemSchema), async (req, res) => { ... });
 ```
 
 > `validate` define `req.query` como propiedad propia para que la coerción de Zod persista: en Express 5 el getter de `req.query` reparsea el query string en **cada** acceso y descartaría los valores convertidos.
@@ -59,7 +60,7 @@ router.post('/list', validate(addMediaItemSchema), async (req, res, next) => { .
 
 ## Errores
 
-Delegar con `next(err)`; el handler global vive en `common/utils/error-handler.ts`.
+Las rutas no llevan `try/catch`: Express 5 propaga los rechazos de los handlers async al handler global (`common/utils/error-handler.ts`). Los errores de dominio se lanzan con `throw new HttpError(status, message)` de `common/http`, nunca con un literal. En rutas autenticadas, `req.user!` tiene `userId`, `username` y `role`; el query ya validado se lee con `validatedQuery<T>(req)`.
 
 ## Consultas
 
