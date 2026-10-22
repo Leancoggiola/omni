@@ -1,28 +1,17 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { AccessibilityInfo } from 'react-native';
 
 import { useHolidayCarousel } from './useHolidayCarousel';
 
-const mockReducedMotion = jest.fn();
+const mockReduceMotion = jest.fn();
 
-jest.mock('react-native-reanimated', () => ({
-  useReducedMotion: () => mockReducedMotion(),
+jest.mock('@/shared/ui', () => ({
+  useReduceMotion: () => mockReduceMotion(),
 }));
 
 describe('useHolidayCarousel', () => {
-  const remove = jest.fn();
-  const addListener = jest.spyOn(AccessibilityInfo, 'addEventListener');
-  let onReduceMotionChanged: (enabled: boolean) => void = () => undefined;
-
   beforeEach(() => {
     jest.useFakeTimers();
-    mockReducedMotion.mockReturnValue(false);
-    remove.mockClear();
-    addListener.mockReset();
-    addListener.mockImplementation((_event, handler) => {
-      onReduceMotionChanged = handler as unknown as (enabled: boolean) => void;
-      return { remove } as unknown as ReturnType<typeof AccessibilityInfo.addEventListener>;
-    });
+    mockReduceMotion.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -44,8 +33,19 @@ describe('useHolidayCarousel', () => {
     expect(result.current.currentItem).toBe('a');
   });
 
+  it('con un solo ítem no avanza', () => {
+    const items = ['a'];
+    const { result } = renderHook(() => useHolidayCarousel(items, 1000));
+
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+    expect(result.current.isAutoPlaying).toBe(false);
+    expect(result.current.currentItem).toBe('a');
+  });
+
   it('con "reducir movimiento" no avanza solo, pero next sí', () => {
-    mockReducedMotion.mockReturnValue(true);
+    mockReduceMotion.mockReturnValue(true);
     const items = ['a', 'b'];
     const { result } = renderHook(() => useHolidayCarousel(items, 1000));
 
@@ -59,18 +59,17 @@ describe('useHolidayCarousel', () => {
     expect(result.current.currentItem).toBe('b');
   });
 
-  it('frena si "reducir movimiento" se activa con la pantalla abierta, y desuscribe al desmontar', () => {
+  it('frena si "reducir movimiento" se activa con la pantalla abierta', () => {
     const items = ['a', 'b'];
-    const { result, unmount } = renderHook(() => useHolidayCarousel(items, 1000));
+    const { result, rerender } = renderHook(() => useHolidayCarousel(items, 1000));
 
-    act(() => onReduceMotionChanged(true));
+    mockReduceMotion.mockReturnValue(true);
+    rerender({});
     act(() => {
       jest.advanceTimersByTime(5000);
     });
+
     expect(result.current.isAutoPlaying).toBe(false);
     expect(result.current.currentItem).toBe('a');
-
-    unmount();
-    expect(remove).toHaveBeenCalledTimes(1);
   });
 });

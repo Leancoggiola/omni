@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AccessibilityInfo } from 'react-native';
-import { useReducedMotion } from 'react-native-reanimated';
+
+import { useReduceMotion } from '@/shared/ui';
 
 import { clampCarouselIndex, nextCarouselIndex } from '@omni/shared/holidays';
 
@@ -11,13 +11,8 @@ import { clampCarouselIndex, nextCarouselIndex } from '@omni/shared/holidays';
  */
 export function useHolidayCarousel<T>(items: T[], duration: number) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [reduceMotion, setReduceMotion] = useState(useReducedMotion());
+  const reduceMotion = useReduceMotion();
   const count = items.length;
-
-  useEffect(() => {
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
-    return () => subscription.remove();
-  }, []);
 
   const safeIndex = clampCarouselIndex(currentIndex, count);
 
