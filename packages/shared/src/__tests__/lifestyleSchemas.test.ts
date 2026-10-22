@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { createGatheringSchema } from '@omni/shared/split-expenses';
-import { addShoppingListItemSchema } from '@omni/shared/pantry';
+import { createGatheringSchema } from '../split-expenses';
+import { addShoppingListItemSchema } from '../pantry';
 
 describe('split-expenses schemas', () => {
   it('accepts gathering date as YYYY-MM-DD', () => {

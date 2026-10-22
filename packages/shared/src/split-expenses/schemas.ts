@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { isoDateStringSchema } from '../common/dates';
 import { AMOUNT_MAX_12_2, GATHERING_PARTICIPANTS_MAX, SEARCH_QUERY_MAX_LENGTH, idSchema } from '../common/limits';
 import { paginationSchema } from '../common/pagination';
-import type { FriendFormValues, NewGatheringFormValues } from './types';
 import {
   GATHERING_EXPENSE_DESCRIPTION_MAX,
   GATHERING_NAME_MAX,
@@ -74,23 +73,3 @@ export type ToggleGatheringSettledPayload = z.infer<typeof toggleGatheringSettle
 export const listGatheringsSchema = paginationSchema;
 
 export type ListGatheringsParams = z.infer<typeof listGatheringsSchema>;
-
-export const friendFormSchema: z.ZodType<FriendFormValues> = z.object({
-  name: z.string().trim().min(1, 'Ingresá un nombre').max(SPLIT_FRIEND_NAME_MAX),
-  alias: splitFriendAliasSchema,
-});
-
-const gatheringParticipantDraftSchema = z.object({
-  key: z.string(),
-  friendId: z.string().nullable(),
-  displayName: z.string().trim().min(1).max(SPLIT_FRIEND_NAME_MAX),
-});
-
-export const newGatheringFormSchema: z.ZodType<NewGatheringFormValues> = z.object({
-  name: z.string().trim().min(1, 'Ingresá un nombre').max(GATHERING_NAME_MAX),
-  date: isoDateStringSchema,
-  participants: z
-    .array(gatheringParticipantDraftSchema)
-    .min(1, 'Agregá al menos un participante')
-    .max(GATHERING_PARTICIPANTS_MAX),
-});

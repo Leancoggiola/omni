@@ -4,19 +4,13 @@ import { schemaResolver, useForm } from '@mantine/form';
 
 import { getErrorMessage } from '@/shared/ui';
 
-import { INITIAL_ADD_MEDIA_FORM_VALUES } from '../../utils/addMediaForm';
+import { addMediaFormSchema, INITIAL_ADD_MEDIA_FORM_VALUES } from '../../utils/addMediaForm';
 import { TmdbSearchField } from './TmdbSearchField';
 
 import type { MediaStatus, MediaType } from '../../../_shared/types';
-import type { AddMediaFormValues } from '@omni/shared/media';
+import type { AddMediaFormValues } from '../../utils/addMediaForm';
 
-import {
-  addMediaFormSchema,
-  MEDIA_STATUS_LABELS,
-  MEDIA_STATUSES,
-  MEDIA_TYPE_LABELS,
-  TMDB_POSTER_W500,
-} from '@omni/shared/media';
+import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS, TMDB_POSTER_W500 } from '@omni/shared/media';
 
 interface AddMediaFormProps {
   loading: boolean;

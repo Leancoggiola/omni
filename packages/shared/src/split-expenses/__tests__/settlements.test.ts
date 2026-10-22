@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeBalances, computeSettlements } from '@omni/shared/split-expenses';
+import { computeBalances, computeSettlements } from '..';
 
 describe('computeSettlements', () => {
   it('settles Marco owes Lean case from design', () => {

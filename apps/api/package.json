@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@omni/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
+    "@omni/typescript-config": "workspace:*",
     "@types/bcrypt": "6.0.0",
     "@types/cookie-parser": "1.4.10",
     "@types/cors": "2.8.19",

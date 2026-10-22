@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { refreshTokenBodySchema } from '@omni/shared/auth';
+import { refreshTokenBodySchema } from '..';
 
 describe('refreshTokenBodySchema', () => {
   it('accepts empty body for cookie-based clients', () => {

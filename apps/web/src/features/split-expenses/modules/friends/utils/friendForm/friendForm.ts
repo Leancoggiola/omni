@@ -1,6 +1,18 @@
-import type { CreateSplitFriendPayload, FriendFormValues } from '@omni/shared/split-expenses';
+import { z } from 'zod';
 
-import { friendFormSchema } from '@omni/shared/split-expenses';
+import type { CreateSplitFriendPayload } from '@omni/shared/split-expenses';
+
+import { createSplitFriendSchema, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
+
+export interface FriendFormValues {
+  name: string;
+  alias: string;
+}
+
+export const friendFormSchema: z.ZodType<FriendFormValues> = z.object({
+  name: z.string().trim().min(1, 'Ingresá un nombre').max(SPLIT_FRIEND_NAME_MAX),
+  alias: createSplitFriendSchema.shape.alias,
+});
 
 export const INITIAL_FRIEND_FORM_VALUES: FriendFormValues = {
   name: '',
@@ -13,6 +25,3 @@ export function toCreateFriendPayload(values: FriendFormValues): CreateSplitFrie
     alias: values.alias.trim(),
   };
 }
-
-export { friendFormSchema };
-export type { FriendFormValues };

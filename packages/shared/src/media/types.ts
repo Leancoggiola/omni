@@ -14,19 +14,6 @@ export interface MediaItem {
   updatedAt: string;
 }
 
-export interface MediaFilters {
-  status?: MediaStatus;
-  mediaType?: MediaType;
-}
-
-/** Client form state for adding media from TMDB search */
-export interface AddMediaFormValues {
-  titleQuery: string;
-  tmdbId: number | null;
-  mediaType: MediaType;
-  status: MediaStatus;
-}
-
 export interface TmdbMediaResult {
   id: number;
   media_type?: string;

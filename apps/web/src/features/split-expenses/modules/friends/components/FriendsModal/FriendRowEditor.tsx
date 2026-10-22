@@ -3,9 +3,11 @@ import { ActionIcon, Group, Stack, Text, TextInput } from '@mantine/core';
 
 import { getErrorMessage, notifyError, notifySuccess } from '@/shared/ui';
 
+import { friendFormSchema } from '../../utils/friendForm';
+
 import type { SplitFriend, UpdateSplitFriendPayload } from '@omni/shared/split-expenses';
 
-import { friendFormSchema, SPLIT_FRIEND_ALIAS_MAX, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
+import { SPLIT_FRIEND_ALIAS_MAX, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
 import { CheckIcon, XIcon } from '@phosphor-icons/react';
 
 interface FriendRowEditorProps {

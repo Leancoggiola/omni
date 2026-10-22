@@ -6,24 +6,24 @@ import {
   AMOUNT_MAX_12_2,
   idParamsSchema,
   isoDateStringSchema,
-} from '@omni/shared/common';
-import { refreshTokenBodySchema } from '@omni/shared/auth';
+  paginationSchema,
+} from '../common';
+import { refreshTokenBodySchema } from '../auth';
 import {
   completeExpenseReminderSchema,
   createExpenseReminderSchema,
   createPersonalExpenseSchema,
   updatePersonalExpenseSchema,
-} from '@omni/shared/expenses';
-import { paginationSchema } from '@omni/shared/common';
-import { addGymExerciseSchema, updateGymExerciseWeightSchema } from '@omni/shared/gym';
-import { addMediaFormSchema, addMediaItemSchema, searchMediaSchema } from '@omni/shared/media';
+} from '../expenses';
+import { addGymExerciseSchema, updateGymExerciseWeightSchema } from '../gym';
+import { addMediaItemSchema, searchMediaSchema } from '../media';
 import {
   addShoppingListItemSchema,
   completeShoppingListItemSchema,
   createPantryProductSchema,
   listPantryProductsSchema,
-} from '@omni/shared/pantry';
-import { addGatheringExpenseSchema, createGatheringSchema } from '@omni/shared/split-expenses';
+} from '../pantry';
+import { addGatheringExpenseSchema, createGatheringSchema } from '../split-expenses';
 
 describe('isoDateStringSchema', () => {
   it.each(['2026-02-31', '2026-02-29', '2026-04-31', '2026-13-01', '2026-00-10', '2026-1-1', 'ayer'])(
@@ -100,9 +100,6 @@ describe('cotas de entrada', () => {
     expect(addMediaItemSchema.safeParse({ tmdbId: -1, mediaType: 'movie' }).success).toBe(false);
     expect(addMediaItemSchema.safeParse({ tmdbId: 0, mediaType: 'movie' }).success).toBe(false);
     expect(addMediaItemSchema.safeParse({ tmdbId: 550, mediaType: 'movie' }).success).toBe(true);
-    expect(
-      addMediaFormSchema.safeParse({ titleQuery: '', tmdbId: -5, mediaType: 'movie', status: 'to_watch' }).success
-    ).toBe(false);
   });
 
   it('limita el largo de búsquedas, tokens e ids', () => {

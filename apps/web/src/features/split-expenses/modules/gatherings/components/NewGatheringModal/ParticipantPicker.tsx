@@ -4,7 +4,7 @@ import { useDebouncedValue } from '@mantine/hooks';
 
 import { useSplitFriendsSuggest } from '../../../friends';
 
-import type { GatheringParticipantDraft } from '@omni/shared/split-expenses';
+import type { GatheringParticipantDraft } from '../../utils/newGatheringForm';
 
 import { SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
 import { PlusIcon, XIcon } from '@phosphor-icons/react';

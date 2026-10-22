@@ -1,6 +1,7 @@
 import type { ProfileTheme } from '../users/types';
 
-export type Role = 'ADMIN' | 'USER';
+export const ROLES = ['ADMIN', 'USER'] as const;
+export type Role = (typeof ROLES)[number];
 
 export const ROLE_LABELS: Record<Role, string> = {
   ADMIN: 'Administrador',

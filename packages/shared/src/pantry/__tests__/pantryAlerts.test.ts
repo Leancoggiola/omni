@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { isExpiringSoon, isLowStock } from '@omni/shared/pantry';
-import { startOfTodayInAppTz } from '@omni/shared/common';
+import { isExpiringSoon, isLowStock } from '..';
+import { startOfTodayInAppTz } from '../../common';
 
 describe('pantry alerts', () => {
   it('detects low stock when quantity is at or below minimum', () => {

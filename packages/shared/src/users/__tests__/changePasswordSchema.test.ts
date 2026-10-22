@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { createUserSchema } from '@omni/shared/auth';
-import { changePasswordSchema, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '@omni/shared/users';
+import { createUserSchema } from '../../auth';
+import { changePasswordSchema, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '..';
 
 const valid = { currentPassword: 'actual-123', newPassword: 'x'.repeat(PASSWORD_MIN_LENGTH) };
 
