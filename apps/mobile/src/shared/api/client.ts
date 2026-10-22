@@ -86,11 +86,6 @@ async function getAuthHeaders(): Promise<Record<string, string> | null> {
   return accessToken ? { Authorization: `Bearer ${accessToken}` } : null;
 }
 
-/**
- * Instancia mobile del núcleo HTTP de `@omni/shared/api`: Bearer desde SecureStore, la base de `EXPO_PUBLIC_API_URL`
- * (`toUrl`) y `fetchWithWake` para el cold start. Si el access token cambió desde que salió el request (otro refresh
- * ya rotó), reintenta sin rotar de nuevo.
- */
 const client = createApiClient({
   fetch: (url, init) => fetchWithWake(url, init),
   toUrl,

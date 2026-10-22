@@ -8,8 +8,6 @@ import { SWR_RETRY_OPTIONS } from '@omni/shared/api';
 
 import type { FC, PropsWithChildren } from 'react';
 
-export { isClientError, SWR_RETRY_OPTIONS } from '@omni/shared/api';
-
 /**
  * En React Native SWR no se entera de que la app volvió a primer plano: avisa con `AppState` cuando pasa de
  * `background`/`inactive` a `active`. Devuelve la función que desuscribe.

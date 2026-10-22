@@ -168,7 +168,7 @@ describe('api client', () => {
       expect(onAuthFailure).toHaveBeenCalledTimes(1);
     });
 
-    it('un refresh exitoso que termina después de cerrar la sesión no la revive', async () => {
+    it('un refresh exitoso que termina después de cerrar la sesión no la revive y avisa que no hay sesión', async () => {
       const gate = deferred<unknown>();
       respondWith(apiWithAccess('access-2', () => gate.promise));
 
@@ -179,6 +179,7 @@ describe('api client', () => {
 
       await expect(request).rejects.toMatchObject({ status: 401 });
       expect(await storage.getTokens()).toBeNull();
+      expect(onAuthFailure).toHaveBeenCalledTimes(1);
     });
 
     it('un refresh rechazado que termina después de un login nuevo no borra la sesión nueva', async () => {
@@ -207,6 +208,7 @@ describe('api client', () => {
         gate.resolve(jsonResponse({ message: 'Intentá más tarde' }, status));
 
         await expect(request).rejects.toMatchObject({ status: 401 });
+        expect(onAuthFailure).toHaveBeenCalledTimes(1);
       }
     );
 

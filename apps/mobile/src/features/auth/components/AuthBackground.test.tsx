@@ -33,6 +33,7 @@ describe('AuthBackground', () => {
     remove.mockClear();
     addListener.mockReset();
     addListener.mockReturnValue({ remove } as unknown as ReturnType<typeof AccessibilityInfo.addEventListener>);
+    jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockReturnValue(new Promise(() => undefined));
   });
 
   it('anima las tres manchas', () => {

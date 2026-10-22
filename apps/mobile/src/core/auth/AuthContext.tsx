@@ -12,8 +12,6 @@ import {
 import useSWRImmutable from 'swr/immutable';
 import { useSWRConfig } from 'swr';
 
-import { isClientError, SWR_RETRY_OPTIONS } from '@/core/providers';
-
 import {
   api,
   ApiError,
@@ -26,6 +24,8 @@ import {
   setOnAuthFailure,
   setTokens,
 } from '@/shared/api';
+
+import { isClientError, SWR_RETRY_OPTIONS } from '@omni/shared/api';
 
 import type { AuthTokensResponse, ProfileResponse, SessionUser } from '@omni/shared/auth';
 
