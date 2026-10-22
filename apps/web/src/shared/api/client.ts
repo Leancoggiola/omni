@@ -1,35 +1,54 @@
-import { ApiError } from './ApiError';
-import { ensureRefreshed, notifyAuthFailure, shouldSkipRefresh } from './refreshSession';
+import { SWR_KEYS } from './keys';
 import { fetchWithWake } from './serverWake';
 
-type HttpMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+import { createApiClient, toApiError } from '@omni/shared/api';
 
-async function request<T = unknown>(url: string, method: HttpMethod, body?: unknown, retried = false): Promise<T> {
-  const res = await fetchWithWake(url, {
-    method,
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: body != null ? JSON.stringify(body) : undefined,
-  });
+let onAuthFailure: (() => void) | null = null;
 
-  if (res.status === 401 && !retried && !shouldSkipRefresh(url)) {
-    const ok = await ensureRefreshed();
-    if (ok) return request<T>(url, method, body, true);
-    notifyAuthFailure();
-  }
-
-  if (!res.ok) {
-    const info = await res.json().catch(() => ({}));
-    throw new ApiError((info as Record<string, string>).message || res.statusText, res.status, info);
-  }
-
-  if (res.status === 204) return undefined as T;
-  return res.json();
+/** Registra el callback invocado cuando el refresh silencioso falla (sesión inválida). */
+export function setOnAuthFailure(callback: () => void): void {
+  onAuthFailure = callback;
 }
 
+/** Limpia el callback registrado (ej. al desmontar el AuthProvider). */
+export function clearOnAuthFailure(): void {
+  onAuthFailure = null;
+}
+
+/**
+ * `true` si el refresh renovó la cookie de sesión y `false` solo si la API la declara inválida (401/403). Cualquier
+ * otra respuesta (5xx, 429) o un error de red lanza: no prueba que la sesión se haya perdido, así que no la cierra. Se
+ * pide como idempotente: la API acepta la misma cookie dentro de su gracia de rotación, y repetirlo enseguida ante un
+ * timeout o un 504 evita quedar fuera de ella (lo que revocaría todas las sesiones).
+ */
+async function refreshSession(): Promise<boolean> {
+  const res = await fetchWithWake(
+    SWR_KEYS.auth.refresh,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    },
+    { idempotent: true }
+  );
+  if (res.ok) return true;
+  if (res.status === 401 || res.status === 403) return false;
+  throw await toApiError(res);
+}
+
+const client = createApiClient({
+  fetch: (url, init) => fetchWithWake(url, init),
+  credentials: 'include',
+  refresh: refreshSession,
+  onAuthFailure: () => onAuthFailure?.(),
+});
+
 export const api = {
-  post: <T = unknown>(url: string, body?: unknown) => request<T>(url, 'POST', body),
-  put: <T = unknown>(url: string, body?: unknown) => request<T>(url, 'PUT', body),
-  patch: <T = unknown>(url: string, body?: unknown) => request<T>(url, 'PATCH', body),
-  delete: <T = unknown>(url: string) => request<T>(url, 'DELETE'),
+  post: client.post,
+  put: client.put,
+  patch: client.patch,
+  delete: client.delete,
 };
+
+export const { fetcher } = client;

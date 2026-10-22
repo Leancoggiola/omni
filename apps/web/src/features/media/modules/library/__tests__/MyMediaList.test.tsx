@@ -40,7 +40,7 @@ const renderList = (displayMode: string, props: Partial<ComponentProps<typeof My
     <MyMediaList
       items={[item]}
       isLoading={false}
-      searchText=""
+      hasActiveFilters={false}
       displayMode={displayMode}
       onAdd={vi.fn()}
       onStatusChange={vi.fn()}
@@ -73,6 +73,20 @@ describe('MyMediaList', () => {
     renderList('list');
 
     expect(screen.getByRole('button', { name: 'Eliminar The Matrix' })).toBeInTheDocument();
+  });
+
+  it('sin ítems y sin filtros muestra la lista vacía con Agregar; con filtros, sin resultados', () => {
+    stubViewport(true);
+    const { unmount } = renderList('grid', { items: [] });
+
+    expect(screen.getByText('Tu lista está vacía')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Agregar' })).toBeInTheDocument();
+    unmount();
+
+    renderList('grid', { items: [], hasActiveFilters: true });
+
+    expect(screen.getByText('No hay resultados')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Agregar' })).not.toBeInTheDocument();
   });
 
   it('si falla la carga ofrece reintentar', () => {

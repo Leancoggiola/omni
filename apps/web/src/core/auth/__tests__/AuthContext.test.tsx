@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '../AuthContext';
 
 import type { ReactNode } from 'react';
 
+import { SWR_RETRY_OPTIONS } from '@omni/shared/api';
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 const failure = vi.hoisted(() => ({ callback: null as (() => void) | null }));
@@ -188,5 +189,31 @@ describe('AuthProvider: sesión local y caché de SWR', () => {
 
     await waitFor(() => expect(result.current.auth.user).not.toBeNull());
     expect(result.current.auth.error).toBeUndefined();
+  });
+
+  it('con un error, los reintentos automáticos de SWR no vuelven a poner la sesión en carga', async () => {
+    profileFetcher.mockRejectedValue(new ApiError('Servicio no disponible', 503));
+    const loadingAfterError: boolean[] = [];
+    const { result } = renderHook(
+      () => {
+        const auth = useAuth();
+        if (auth.error) loadingAfterError.push(auth.isLoading);
+        return auth;
+      },
+      {
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <SWRConfig
+            value={{ provider: () => new Map(), fetcher: profileFetcher, ...SWR_RETRY_OPTIONS, errorRetryInterval: 1 }}
+          >
+            <AuthProvider>{children}</AuthProvider>
+          </SWRConfig>
+        ),
+      }
+    );
+
+    await waitFor(() => expect(profileFetcher.mock.calls.length).toBeGreaterThan(2));
+
+    expect(result.current.error).toMatchObject({ status: 503 });
+    expect(loadingAfterError).not.toContain(true);
   });
 });

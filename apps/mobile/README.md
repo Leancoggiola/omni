@@ -60,7 +60,7 @@ apps/mobile/
   src/theme/           # Tamagui config
 ```
 
-Paths HTTP solo en `src/shared/api/keys.ts` (`API_KEYS`).
+Paths HTTP solo en `API_PATHS` de `@omni/shared/api`, re-exportado como `API_KEYS` por `src/shared/api/keys.ts`.
 
 ## Tooling agentes
 

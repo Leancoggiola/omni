@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Fail if /api/ string literals appear outside shared/api/keys.ts
+ * Fail if /api/ string literals appear in apps/web/src. The endpoint map lives in @omni/shared/api (API_PATHS,
+ * packages/shared/src/api/paths.ts, outside this scan) and shared/api/keys.ts re-exports it as SWR_KEYS.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -41,7 +42,7 @@ walk(srcRoot);
 if (violations.length > 0) {
   console.error('Found /api/ literals outside shared/api/keys.ts:\n');
   violations.forEach(v => console.error(`  ${v}`));
-  console.error('\nUse SWR_KEYS from @/shared/api instead.');
+  console.error('\nUse SWR_KEYS from @/shared/api (API_PATHS of @omni/shared/api) instead.');
   process.exit(1);
 }
 

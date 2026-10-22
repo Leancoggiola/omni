@@ -2,11 +2,12 @@ import { FC, useCallback, useMemo } from 'react';
 import { Combobox, TextInput, useCombobox } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 
-import { getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from '../../../_shared/utils/tmdb';
 import { useMediaSearch } from '../../../search/hooks/useMediaSearch';
 import { TmdbSearchOption } from './TmdbSearchOption';
 
 import type { MediaType } from '../../../_shared/types';
+
+import { getTmdbResultKey, getTmdbResultTitle, resolveMediaType } from '@omni/shared/media';
 
 const MIN_QUERY_LENGTH = 2;
 

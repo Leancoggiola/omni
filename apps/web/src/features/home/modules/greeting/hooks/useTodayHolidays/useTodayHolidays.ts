@@ -7,47 +7,35 @@ import { useToday } from '../useToday';
 
 import type { TodayHolidays } from '@omni/shared/holidays';
 
-/** Espera antes de reintentar cuando el servidor todavía responde con el día anterior. */
-export const STALE_DAY_RETRY_MS = 30_000;
+import { emptyTodayHolidays, HOLIDAY_STALE_DAY_RETRY_MS, isStaleHolidayDay } from '@omni/shared/holidays';
 
 /**
  * `date` solo versiona la cache key: el servidor decide el día. Al cruzar la medianoche la key cambia y SWR
  * refetchea; con `keepPreviousData`, `data` conserva el día anterior mientras carga el nuevo, y como en SWR 2
- * `isLoading` es true igual, solo se considera "cargando" si no hay nada para mostrar. El provider global no
- * reintenta errores y la card ofrece "Reintentar" a mano y además acá se habilita un reintento automático acotado.
+ * `isLoading` es true igual, solo se considera "cargando" si no hay nada para mostrar. Los errores siguen la política
+ * de reintentos global (`SWRProvider`) y la card ofrece además "Reintentar" a mano.
  *
- * Con el reloj del cliente adelantado la key ya es del día nuevo pero el servidor contestó con el anterior.
- * Como la key es immutable quedaría fija: se vuelve a pedir cada `STALE_DAY_RETRY_MS` hasta que el servidor
- * también cambie de día (un timeout único no alcanza: SWR conserva la misma referencia de `data` y nada lo
- * re-dispararía). La comparación es de strings YYYY-MM-DD: con el reloj atrasado no hay nada que corregir.
+ * Si el servidor contestó con el día anterior (`isStaleHolidayDay`), como la key es immutable quedaría fija: se
+ * vuelve a pedir cada `HOLIDAY_STALE_DAY_RETRY_MS` hasta que el servidor también cambie de día (un timeout único no
+ * alcanza: SWR conserva la misma referencia de `data` y nada lo re-dispararía).
  */
 export function useTodayHolidays() {
   const dateKey = useToday();
 
   const { data, isLoading, error, mutate } = useSWRImmutable<TodayHolidays>(
     `${SWR_KEYS.holidays.today}${buildQueryString({ date: dateKey })}`,
-    { keepPreviousData: true, shouldRetryOnError: true, errorRetryCount: 3 }
+    { keepPreviousData: true }
   );
 
-  const isStaleDay = !isLoading && !error && !!data && data.date < dateKey;
+  const isStaleDay = !isLoading && !error && !!data && isStaleHolidayDay(data, dateKey);
 
   useEffect(() => {
     if (!isStaleDay) return;
-    const interval = setInterval(() => void mutate(), STALE_DAY_RETRY_MS);
+    const interval = setInterval(() => void mutate(), HOLIDAY_STALE_DAY_RETRY_MS);
     return () => clearInterval(interval);
   }, [isStaleDay, mutate]);
 
-  const fallback = useMemo<TodayHolidays>(
-    () => ({
-      date: dateKey,
-      month: dateKey.slice(5, 7),
-      day: dateKey.slice(8, 10),
-      count: 0,
-      sourceUrl: 'https://wikipedia.org',
-      items: [],
-    }),
-    [dateKey]
-  );
+  const fallback = useMemo(() => emptyTodayHolidays(dateKey), [dateKey]);
 
   return { holidays: data ?? fallback, isLoading: isLoading && !data, error, mutate };
 }

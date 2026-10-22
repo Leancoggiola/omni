@@ -9,7 +9,7 @@ description: Patrones SWR del proyecto para apps/web. Usar al crear, modificar o
 
 ## Imports y keys
 
-Keys en `apps/web/src/shared/api/keys.ts`, exportadas por `@/shared/api`. Nunca URLs literales en hooks.
+Keys en `API_PATHS` de `@omni/shared/api` (compartido con mobile), re-exportadas como `SWR_KEYS` por `@/shared/api`. Nunca URLs literales en hooks.
 
 ```ts
 import { api, SWR_KEYS, buildQueryString } from '@/shared/api';
@@ -167,4 +167,4 @@ mutate((key: unknown) => typeof key === 'string' && key.startsWith(SWR_KEYS.spli
 
 ## Reintento en pantallas
 
-Todo hook de lectura que alimente un `ErrorState` expone `mutate` y la pantalla lo pasa como `onRetry` (el provider global tiene `shouldRetryOnError: false`). Se pasa la promesa (`() => mutate()`, sin `void`): `ErrorState` deja el botón en `loading` hasta que resuelve.
+Todo hook de lectura que alimente un `ErrorState` expone `mutate` y la pantalla lo pasa como `onRetry` (el provider global reintenta con `SWR_RETRY_OPTIONS`, pero el `error` se muestra desde el primer fallo). Se pasa la promesa (`() => mutate()`, sin `void`): `ErrorState` deja el botón en `loading` hasta que resuelve.

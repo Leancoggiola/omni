@@ -2,10 +2,11 @@ import { Paper, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core';
 
 import { useAuth } from '@/core/auth';
 
-import { getTimeGreeting } from '../../utils/getTimeGreeting';
 import { HolidaysCard } from '../HolidaysCard';
 
 import type { FC } from 'react';
+
+import { getTimeGreeting } from '@omni/shared/common';
 
 export const HomeMainCard: FC = () => {
   const { user, isLoading } = useAuth();
