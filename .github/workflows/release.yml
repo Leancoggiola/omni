@@ -334,7 +334,7 @@ jobs:
 
           MANIFEST=$("$BUILD_TOOLS/aapt2" dump xmltree --file AndroidManifest.xml "$APK")
           if grep -Eq 'usesCleartextTraffic\([^)]*\)=(true|\(type 0x12\)0xffffffff)' <<< "$MANIFEST"; then
-            echo "::error::El manifest del APK tiene usesCleartextTraffic=true. En producción tiene que estar apagado (APP_VARIANT=production en app.config.ts)."
+            echo "::error::El manifest del APK tiene usesCleartextTraffic=true. El build de release no puede permitir HTTP en claro (ver apps/mobile/README.md)."
             exit 1
           fi
 
