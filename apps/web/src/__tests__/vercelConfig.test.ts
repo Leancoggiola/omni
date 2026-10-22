@@ -29,6 +29,7 @@ describe('vercel.json', () => {
   });
 
   it('manda las cabeceras de seguridad en todo menos /api y sigue evaluando rutas', () => {
+    expect(headerRoute).toBeDefined();
     expect(headerRoute?.continue).toBe(true);
     expect(new RegExp(`^${headerRoute?.src}$`).test('/')).toBe(true);
     expect(new RegExp(`^${headerRoute?.src}$`).test('/assets/index.js')).toBe(true);
@@ -65,11 +66,13 @@ describe('vercel.json', () => {
   });
 
   it('cachea /assets como inmutable y sigue evaluando rutas', () => {
+    expect(assetsRoute).toBeDefined();
     expect(assetsRoute?.continue).toBe(true);
     expect(assetsRoute?.headers?.['Cache-Control']).toBe('public, max-age=31536000, immutable');
   });
 
   it('conserva el proxy de /api con el secret de origen', () => {
+    expect(apiRoute).toBeDefined();
     expect(apiRoute?.dest).toBe('https://omni-api-gwer.onrender.com/api/$1');
     expect(apiRoute?.transforms).toEqual([
       expect.objectContaining({ type: 'request.headers', target: { key: 'x-origin-secret' }, args: '$ORIGIN_SECRET' }),
