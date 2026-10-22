@@ -1,21 +1,19 @@
-import type { User } from '../generated/prisma/client';
+import type { Role, User } from '../generated/prisma/client';
 import type { CreateUserPayload } from '@omni/shared/auth';
 import type { ChangePasswordPayload, UpdateProfilePayload, UpdatePreferencesPayload } from '@omni/shared/users';
 import * as bcrypt from 'bcrypt';
 import { lockUserSessions, prisma } from '../common/db';
+import { hashPassword } from '../common/utils/password';
+import { HttpError } from '../common/http';
 
-const BCRYPT_ROUNDS = 12;
-
-export async function create(
-  dto: Omit<CreateUserPayload, 'role'> & { password: string; role?: string }
-): Promise<User> {
+export async function create(dto: Omit<CreateUserPayload, 'role'> & { password: string; role?: Role }): Promise<User> {
   return prisma.user.create({
     data: {
       username: dto.username.toLowerCase(),
       name: dto.name,
-      email: dto.email ?? null,
+      email: dto.email?.toLowerCase() ?? null,
       password: dto.password,
-      role: (dto.role as 'ADMIN' | 'USER') ?? 'USER',
+      role: dto.role ?? 'USER',
     },
   });
 }
@@ -37,7 +35,7 @@ export async function findByUsernameForLogin(username: string) {
 
 /** Returns user WITH password (kept for future password recovery via email). */
 export async function findByEmail(email: string): Promise<User | null> {
-  return prisma.user.findUnique({ where: { email } });
+  return prisma.user.findUnique({ where: { email: email.toLowerCase() } });
 }
 
 export async function findById(id: string) {
@@ -49,14 +47,10 @@ export async function findById(id: string) {
 }
 
 export async function getProfile(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    omit: { password: true },
-    include: { preferences: true },
-  });
+  const user = await findById(userId);
 
   if (!user) {
-    throw { status: 404, message: 'Usuario no encontrado' };
+    throw new HttpError(404, 'Usuario no encontrado');
   }
 
   return user;
@@ -95,14 +89,14 @@ export async function updateProfile(userId: string, dto: UpdateProfilePayload) {
  * descarta con una actual incorrecta lo acota el `passwordLimiter` de la ruta.
  */
 export async function changePassword(userId: string, { currentPassword, newPassword }: ChangePasswordPayload) {
-  const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+  const hashedPassword = await hashPassword(newPassword);
 
   await prisma.$transaction(async tx => {
     await lockUserSessions(tx, userId);
     const user = await tx.user.findUnique({ where: { id: userId }, select: { password: true } });
-    if (!user) throw { status: 401, message: 'Usuario no encontrado' };
+    if (!user) throw new HttpError(401, 'Usuario no encontrado');
     if (!(await bcrypt.compare(currentPassword, user.password))) {
-      throw { status: 400, message: 'La contraseña actual es incorrecta' };
+      throw new HttpError(400, 'La contraseña actual es incorrecta');
     }
     await tx.user.update({
       where: { id: userId },

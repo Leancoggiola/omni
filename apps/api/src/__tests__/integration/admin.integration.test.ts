@@ -82,6 +82,24 @@ describe('admin users routes (integration)', () => {
       expect(res.body.message).toBe('El correo electrónico ya está en uso');
     });
 
+    it('guarda el email en minúsculas y lo trata sin distinguir mayúsculas', async () => {
+      const created = await request(app)
+        .post('/api/admin/users')
+        .set('Authorization', adminAuth)
+        .send({ ...payload, email: 'Mixed.Case@Example.com' });
+
+      expect(created.status).toBe(201);
+      expect(created.body.user.email).toBe('mixed.case@example.com');
+
+      const duplicate = await request(app)
+        .post('/api/admin/users')
+        .set('Authorization', adminAuth)
+        .send({ ...payload, username: 'newuser02', email: 'MIXED.CASE@example.com' });
+
+      expect(duplicate.status).toBe(409);
+      expect(duplicate.body.message).toBe('El correo electrónico ya está en uso');
+    });
+
     it('rechaza un body inválido con 400', async () => {
       const res = await request(app)
         .post('/api/admin/users')

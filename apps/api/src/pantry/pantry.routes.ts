@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { idParamsSchema } from '@omni/shared/common';
-import type { NextFunction, Request, Response } from 'express';
 import {
   addShoppingListItemSchema,
   completeShoppingListItemSchema,
@@ -14,6 +13,7 @@ import {
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
 import { createRateLimiter, validate } from '../common/utils';
 import * as pantryService from './pantry.service';
+import { validatedQuery } from '../common/http';
 
 const suggestLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
@@ -27,139 +27,82 @@ const suggestLimiter = createRateLimiter({
 const router = Router();
 router.use(authenticateJwt);
 
-router.get('/summary', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await pantryService.getSummary(userId));
-  } catch (err) {
-    next(err);
-  }
+router.get('/summary', async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await pantryService.getSummary(userId));
 });
 
-router.get('/products', validate(listPantryProductsSchema, 'query'), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await pantryService.listProducts(userId, req.query as unknown as ListPantryProductsParams));
-  } catch (err) {
-    next(err);
-  }
+router.get('/products', validate(listPantryProductsSchema, 'query'), async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await pantryService.listProducts(userId, validatedQuery<ListPantryProductsParams>(req)));
 });
 
-router.get(
-  '/products/suggest',
-  suggestLimiter,
-  validate(suggestPantryProductsSchema, 'query'),
-  async (req, res, next) => {
-    try {
-      const { userId } = req.user as { userId: string };
-      res.json(await pantryService.suggestProducts(userId, req.query as unknown as SuggestPantryProductsParams));
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-router.get('/products/:productId', validate(idParamsSchema('productId'), 'params'), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await pantryService.getProduct(userId, req.params.productId as string));
-  } catch (err) {
-    next(err);
-  }
+router.get('/products/suggest', suggestLimiter, validate(suggestPantryProductsSchema, 'query'), async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await pantryService.suggestProducts(userId, validatedQuery<SuggestPantryProductsParams>(req)));
 });
 
-router.post('/products', validate(createPantryProductSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.status(201).json(await pantryService.createProduct(userId, req.body));
-  } catch (err) {
-    next(err);
-  }
+router.get('/products/:productId', validate(idParamsSchema('productId'), 'params'), async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await pantryService.getProduct(userId, req.params.productId as string));
+});
+
+router.post('/products', validate(createPantryProductSchema), async (req, res) => {
+  const { userId } = req.user!;
+  res.status(201).json(await pantryService.createProduct(userId, req.body));
 });
 
 router.patch(
   '/products/:productId',
   validate(idParamsSchema('productId'), 'params'),
   validate(updatePantryProductSchema),
-  async (req, res, next) => {
-    try {
-      const { userId } = req.user as { userId: string };
-      res.json(await pantryService.updateProduct(userId, req.params.productId as string, req.body));
-    } catch (err) {
-      next(err);
-    }
+  async (req, res) => {
+    const { userId } = req.user!;
+    res.json(await pantryService.updateProduct(userId, req.params.productId as string, req.body));
   }
 );
 
-router.delete('/products/:productId', validate(idParamsSchema('productId'), 'params'), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    await pantryService.deleteProduct(userId, req.params.productId as string);
-    res.status(204).send();
-  } catch (err) {
-    next(err);
-  }
+router.delete('/products/:productId', validate(idParamsSchema('productId'), 'params'), async (req, res) => {
+  const { userId } = req.user!;
+  await pantryService.deleteProduct(userId, req.params.productId as string);
+  res.status(204).send();
 });
 
-router.get('/shopping-list', async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await pantryService.listShoppingList(userId));
-  } catch (err) {
-    next(err);
-  }
+router.get('/shopping-list', async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await pantryService.listShoppingList(userId));
 });
 
-router.post('/shopping-list/generate', async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.json(await pantryService.generateShoppingList(userId));
-  } catch (err) {
-    next(err);
-  }
+router.post('/shopping-list/generate', async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await pantryService.generateShoppingList(userId));
 });
 
-router.post('/shopping-list/items', validate(addShoppingListItemSchema), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    res.status(201).json(await pantryService.addShoppingListItem(userId, req.body));
-  } catch (err) {
-    next(err);
-  }
+router.post('/shopping-list/items', validate(addShoppingListItemSchema), async (req, res) => {
+  const { userId } = req.user!;
+  res.status(201).json(await pantryService.addShoppingListItem(userId, req.body));
 });
 
 router.patch(
   '/shopping-list/items/:itemId/complete',
   validate(idParamsSchema('itemId'), 'params'),
   validate(completeShoppingListItemSchema),
-  async (req, res, next) => {
-    try {
-      const { userId } = req.user as { userId: string };
-      res.json(await pantryService.completeShoppingListItem(userId, req.params.itemId as string, req.body));
-    } catch (err) {
-      next(err);
-    }
+  async (req, res) => {
+    const { userId } = req.user!;
+    res.json(await pantryService.completeShoppingListItem(userId, req.params.itemId as string, req.body));
   }
 );
 
-router.delete('/shopping-list/items/:itemId', validate(idParamsSchema('itemId'), 'params'), async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    await pantryService.deleteShoppingListItem(userId, req.params.itemId as string);
-    res.status(204).send();
-  } catch (err) {
-    next(err);
-  }
+router.delete('/shopping-list/items/:itemId', validate(idParamsSchema('itemId'), 'params'), async (req, res) => {
+  const { userId } = req.user!;
+  await pantryService.deleteShoppingListItem(userId, req.params.itemId as string);
+  res.status(204).send();
 });
 
-router.delete('/shopping-list/checked', async (req, res, next) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    await pantryService.clearCheckedShoppingList(userId);
-    res.status(204).send();
-  } catch (err) {
-    next(err);
-  }
+router.delete('/shopping-list/checked', async (req, res) => {
+  const { userId } = req.user!;
+  await pantryService.clearCheckedShoppingList(userId);
+  res.status(204).send();
 });
 
 export default router;

@@ -2,12 +2,11 @@
   "extends": "@omni/typescript-config/base.json",
   "compilerOptions": {
     "noEmit": true,
-    "rootDir": "./src",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "types": ["node"],
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src"],
+  "include": ["src", "prisma", "prisma.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

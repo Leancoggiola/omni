@@ -20,6 +20,7 @@ import type {
 
 import { prisma } from '../common/db';
 import { decimalToNumber, normalizeName, toIsoDateString, toIsoDateTimeString } from '../common/utils/lifestyle';
+import { HttpError } from '../common/http';
 
 function mapFriend(row: Pick<PrismaSplitFriend, 'id' | 'name' | 'alias' | 'createdAt' | 'updatedAt'>): SplitFriend {
   return {
@@ -37,7 +38,7 @@ function mapFriendSuggest(row: Pick<PrismaSplitFriend, 'id' | 'name' | 'alias'>)
 
 function assertGatheringEditable(gathering: { isSettled: boolean }) {
   if (gathering.isSettled) {
-    throw { status: 409, message: 'La juntada está saldada' };
+    throw new HttpError(409, 'La juntada está saldada');
   }
 }
 
@@ -67,7 +68,7 @@ export async function getGathering(userId: string, gatheringId: string): Promise
       },
     },
   });
-  if (!gathering) throw { status: 404, message: 'Juntada no encontrada' };
+  if (!gathering) throw new HttpError(404, 'Juntada no encontrada');
 
   const participantById = new Map(gathering.participants.map(p => [p.id, p]));
   const totals = await loadParticipantTotals([gathering.id]);
@@ -113,7 +114,7 @@ export async function getGathering(userId: string, gatheringId: string): Promise
 
 async function getOwnedFriend(userId: string, friendId: string) {
   const friend = await prisma.splitFriend.findFirst({ where: { id: friendId, userId } });
-  if (!friend) throw { status: 404, message: 'Amigo no encontrado' };
+  if (!friend) throw new HttpError(404, 'Amigo no encontrado');
   return friend;
 }
 
@@ -149,7 +150,7 @@ export async function createFriend(userId: string, dto: CreateSplitFriendPayload
   const existing = await prisma.splitFriend.findUnique({
     where: { userId_nameNormalized: { userId, nameNormalized } },
   });
-  if (existing) throw { status: 409, message: 'Ya existe un amigo con ese nombre' };
+  if (existing) throw new HttpError(409, 'Ya existe un amigo con ese nombre');
 
   const friend = await prisma.splitFriend.create({
     data: {
@@ -175,7 +176,7 @@ export async function updateFriend(
       where: { userId_nameNormalized: { userId, nameNormalized } },
     });
     if (conflict && conflict.id !== friendId) {
-      throw { status: 409, message: 'Ya existe un amigo con ese nombre' };
+      throw new HttpError(409, 'Ya existe un amigo con ese nombre');
     }
   }
 
@@ -244,7 +245,7 @@ export async function createGathering(userId: string, dto: CreateGatheringPayloa
   const participantsData = dto.participants.map(participant => {
     if ('friendId' in participant) {
       const friend = friendById.get(participant.friendId);
-      if (!friend) throw { status: 404, message: 'Amigo no encontrado' };
+      if (!friend) throw new HttpError(404, 'Amigo no encontrado');
       return { displayName: friend.name, friendId: friend.id };
     }
     return { displayName: participant.name.trim(), friendId: null };
@@ -252,7 +253,7 @@ export async function createGathering(userId: string, dto: CreateGatheringPayloa
 
   const names = participantsData.map(p => p.displayName.toLowerCase());
   if (new Set(names).size !== names.length) {
-    throw { status: 409, message: 'Participantes duplicados en la juntada' };
+    throw new HttpError(409, 'Participantes duplicados en la juntada');
   }
 
   const gathering = await prisma.gathering.create({
@@ -269,7 +270,7 @@ export async function createGathering(userId: string, dto: CreateGatheringPayloa
 
 export async function toggleGatheringSettled(userId: string, gatheringId: string, dto: ToggleGatheringSettledPayload) {
   const gathering = await prisma.gathering.findFirst({ where: { id: gatheringId, userId } });
-  if (!gathering) throw { status: 404, message: 'Juntada no encontrada' };
+  if (!gathering) throw new HttpError(404, 'Juntada no encontrada');
 
   await prisma.gathering.update({
     where: { id: gatheringId },
@@ -284,7 +285,7 @@ export async function toggleGatheringSettled(userId: string, gatheringId: string
 
 export async function deleteGathering(userId: string, gatheringId: string) {
   const gathering = await prisma.gathering.findFirst({ where: { id: gatheringId, userId } });
-  if (!gathering) throw { status: 404, message: 'Juntada no encontrada' };
+  if (!gathering) throw new HttpError(404, 'Juntada no encontrada');
   await prisma.gathering.delete({ where: { id: gatheringId } });
 }
 
@@ -293,11 +294,11 @@ export async function addGatheringExpense(userId: string, gatheringId: string, d
     where: { id: gatheringId, userId },
     include: { participants: true },
   });
-  if (!gathering) throw { status: 404, message: 'Juntada no encontrada' };
+  if (!gathering) throw new HttpError(404, 'Juntada no encontrada');
   assertGatheringEditable(gathering);
 
   const participant = gathering.participants.find(p => p.id === dto.participantId);
-  if (!participant) throw { status: 404, message: 'Participante no encontrado en la juntada' };
+  if (!participant) throw new HttpError(404, 'Participante no encontrado en la juntada');
 
   await prisma.gatheringExpense.create({
     data: {
@@ -316,7 +317,7 @@ export async function deleteGatheringExpense(userId: string, gatheringId: string
     where: { id: expenseId, gatheringId, gathering: { userId } },
     include: { gathering: true },
   });
-  if (!expense) throw { status: 404, message: 'Gasto no encontrado' };
+  if (!expense) throw new HttpError(404, 'Gasto no encontrado');
   assertGatheringEditable(expense.gathering);
   await prisma.gatheringExpense.delete({ where: { id: expenseId } });
 }

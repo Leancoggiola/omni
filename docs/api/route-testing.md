@@ -54,14 +54,14 @@ Consecuencias a tener presentes:
 
 Todos en `apps/api/src/test/integration/`:
 
-| Helper                        | Uso                                                                        |
-| ----------------------------- | -------------------------------------------------------------------------- |
-| `createIntegrationApp()`      | Express con el stack de `main.ts` menos helmet, CORS, rate limit y logging |
-| `authHeader(user)`            | Firma un JWT real que passport valida — no hay middleware mockeado         |
-| `toJwtUser(user)`             | Convierte una fila de `User` en el payload del token                       |
-| `createUser()`, `create…()`   | Factories determinísticas, sin datos aleatorios                            |
-| `findRecordedCall(model, op)` | Devuelve los `args` que recibió Prisma — para assertear el SQL emitido     |
-| `withSavepoint(fn)`           | Aísla una request que provoca un error de base de datos                    |
+| Helper                        | Uso                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| `createIntegrationApp()`      | `createApp()` tal cual; el rate limit se apaga con `RATE_LIMIT_DISABLED` |
+| `authHeader(user)`            | Firma un JWT real que passport valida — no hay middleware mockeado       |
+| `toJwtUser(user)`             | Convierte una fila de `User` en el payload del token                     |
+| `createUser()`, `create…()`   | Factories determinísticas, sin datos aleatorios                          |
+| `findRecordedCall(model, op)` | Devuelve los `args` que recibió Prisma — para assertear el SQL emitido   |
+| `withSavepoint(fn)`           | Aísla una request que provoca un error de base de datos                  |
 
 ---
 

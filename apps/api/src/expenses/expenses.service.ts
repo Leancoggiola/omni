@@ -25,6 +25,7 @@ import {
 
 import { prisma } from '../common/db';
 import { decimalToNumber, toIsoDateString, toIsoDateTimeString } from '../common/utils/lifestyle';
+import { HttpError } from '../common/http';
 
 function mapExpense(row: PrismaPersonalExpense): PersonalExpense {
   return {
@@ -67,17 +68,17 @@ function mapReminder(row: PrismaExpenseReminder, today = startOfTodayInAppTz()):
   };
 }
 
-const reminderChanged = () => ({ status: 409, message: 'El recordatorio cambió mientras se procesaba, reintentá' });
+const reminderChanged = () => new HttpError(409, 'El recordatorio cambió mientras se procesaba, reintentá');
 
 async function getOwnedExpense(userId: string, expenseId: string) {
   const expense = await prisma.personalExpense.findFirst({ where: { id: expenseId, userId } });
-  if (!expense) throw { status: 404, message: 'Gasto no encontrado' };
+  if (!expense) throw new HttpError(404, 'Gasto no encontrado');
   return expense;
 }
 
 async function getOwnedReminder(userId: string, reminderId: string) {
   const reminder = await prisma.expenseReminder.findFirst({ where: { id: reminderId, userId } });
-  if (!reminder) throw { status: 404, message: 'Recordatorio no encontrado' };
+  if (!reminder) throw new HttpError(404, 'Recordatorio no encontrado');
   return reminder;
 }
 
@@ -193,7 +194,7 @@ export async function createReminder(userId: string, dto: CreateExpenseReminderP
 export async function updateReminder(userId: string, reminderId: string, dto: UpdateExpenseReminderPayload) {
   const current = await getOwnedReminder(userId, reminderId);
   if (current.status === 'COMPLETED') {
-    throw { status: 409, message: 'No se puede editar un recordatorio completado' };
+    throw new HttpError(409, 'No se puede editar un recordatorio completado');
   }
   const newDueDate = dto.dueDate !== undefined ? parseIsoDateString(dto.dueDate) : undefined;
   const claimed = await prisma.expenseReminder.updateMany({
@@ -225,9 +226,9 @@ export async function completeReminder(userId: string, reminderId: string, dto: 
 
   const result = await prisma.$transaction(async tx => {
     const reminder = await tx.expenseReminder.findFirst({ where: { id: reminderId, userId } });
-    if (!reminder) throw { status: 404, message: 'Recordatorio no encontrado' };
+    if (!reminder) throw new HttpError(404, 'Recordatorio no encontrado');
     if (reminder.status !== 'PENDING') {
-      throw { status: 409, message: 'El recordatorio ya está completado' };
+      throw new HttpError(409, 'El recordatorio ya está completado');
     }
 
     const claimed = await tx.expenseReminder.updateMany({
@@ -263,7 +264,7 @@ export async function completeReminder(userId: string, reminderId: string, dto: 
 export async function snoozeReminder(userId: string, reminderId: string, dto: SnoozeExpenseReminderPayload) {
   const reminder = await getOwnedReminder(userId, reminderId);
   if (reminder.status !== 'PENDING') {
-    throw { status: 409, message: 'Solo se pueden posponer recordatorios pendientes' };
+    throw new HttpError(409, 'Solo se pueden posponer recordatorios pendientes');
   }
 
   let dueDate: Date;

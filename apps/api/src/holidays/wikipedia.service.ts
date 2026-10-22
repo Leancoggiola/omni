@@ -1,15 +1,16 @@
 import type { WikipediaHolidaysResponse } from '@omni/shared/holidays';
 
 import { config } from '../config';
+import { HttpError } from '../common/http';
 
 const REQUEST_TIMEOUT_MS = 8_000;
 
 /** Traduce una falla de red o de lectura del body al error HTTP que expone la API. */
-function upstreamError(err: unknown, fallbackMessage: string): { status: number; message: string } {
+function upstreamError(err: unknown, fallbackMessage: string): HttpError {
   if (err instanceof Error && err.name === 'TimeoutError') {
-    return { status: 504, message: 'Wikipedia no respondió a tiempo' };
+    return new HttpError(504, 'Wikipedia no respondió a tiempo');
   }
-  return { status: 502, message: fallbackMessage };
+  return new HttpError(502, fallbackMessage);
 }
 
 /**
@@ -38,7 +39,7 @@ export async function fetchHolidays(month: string, day: string): Promise<Wikiped
     return { holidays: [] };
   }
   if (!res.ok) {
-    throw { status: 502, message: `Error de Wikipedia: ${res.statusText}` };
+    throw new HttpError(502, `Error de Wikipedia: ${res.statusText}`);
   }
 
   try {

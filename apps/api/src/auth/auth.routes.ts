@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import type { Request, Response, NextFunction } from 'express';
 import * as authService from './auth.service';
 import { createRateLimiter, validate } from '../common/utils';
 import { loginSchema, refreshTokenBodySchema } from '@omni/shared/auth';
@@ -8,6 +7,9 @@ import {
   authenticateJwt,
   authenticateJwtRefresh,
   authenticateLogout,
+  getLoginUser,
+  getRefreshSession,
+  getLogoutToken,
 } from './middleware/auth.middleware';
 
 const authLimiter = createRateLimiter({
@@ -30,60 +32,31 @@ const refreshLimiter = createRateLimiter({
 
 const router = Router();
 
-router.post(
-  '/login',
-  authLimiter,
-  validate(loginSchema),
-  authenticateLocal,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const result = await authService.login(req.user as authService.LoginUser, res);
-      res.json(result);
-    } catch (err) {
-      next(err);
-    }
-  }
-);
+router.post('/login', authLimiter, validate(loginSchema), authenticateLocal, async (req, res) => {
+  const result = await authService.login(getLoginUser(req), res);
+  res.json(result);
+});
 
-router.post(
-  '/refresh',
-  refreshLimiter,
-  validate(refreshTokenBodySchema),
-  authenticateJwtRefresh,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { userId, refreshToken } = req.user as { userId: string; refreshToken: string };
-      const result = await authService.refresh(userId, refreshToken, res);
-      res.json(result);
-    } catch (err) {
-      next(err);
-    }
-  }
-);
+router.post('/refresh', refreshLimiter, validate(refreshTokenBodySchema), authenticateJwtRefresh, async (req, res) => {
+  const { userId, refreshToken } = getRefreshSession(req);
+  const result = await authService.refresh(userId, refreshToken, res);
+  res.json(result);
+});
 
 /**
  * Sin `authenticateJwt` ni limiter propio: el logout se identifica con el refresh token que extrae la estrategia
  * `logout` (body de mobile o cookie de la web), así funciona con el access token vencido y siempre borra las cookies.
  * Un limiter propio respondería 429 sin borrarlas; queda el global.
  */
-router.post('/logout', authenticateLogout, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { refreshToken } = req.user as { refreshToken: string | undefined };
-    const result = await authService.logout(refreshToken, res);
-    res.json(result);
-  } catch (err) {
-    next(err);
-  }
+router.post('/logout', authenticateLogout, async (req, res) => {
+  const result = await authService.logout(getLogoutToken(req), res);
+  res.json(result);
 });
 
-router.get('/profile', authenticateJwt, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as { userId: string };
-    const result = await authService.getProfile(userId);
-    res.json(result);
-  } catch (err) {
-    next(err);
-  }
+router.get('/profile', authenticateJwt, async (req, res) => {
+  const { userId } = req.user!;
+  const result = await authService.getProfile(userId);
+  res.json(result);
 });
 
 export default router;

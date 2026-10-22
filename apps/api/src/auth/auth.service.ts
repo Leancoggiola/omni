@@ -10,6 +10,7 @@ import type { PrismaTransactionClient } from '../common/db/prisma';
 import { clearCookies, setAccessCookie, setRefreshCookie } from '../common/utils/cookies';
 import { toSessionUser } from '@omni/shared/auth';
 import type { AuthTokensResponse, Role } from '@omni/shared/auth';
+import { HttpError } from '../common/http';
 
 /** Al pasar este tope, cada sesión nueva borra las más viejas del usuario. */
 export const MAX_SESSIONS_PER_USER = 10;
@@ -28,7 +29,7 @@ export const MAX_GRACE_SIBLINGS = 2;
  * tarda lo mismo exista o no la cuenta y no revela qué usernames están registrados. Es una constante para que
  * ningún login, ni el primero tras arrancar, pague un costo distinto.
  */
-const DUMMY_PASSWORD_HASH = '$2b$12$E9mheTnBYQr8IG4ruH0QeOWAnRY2auJWScRrKAPCY/05r3snwbZJi';
+export const DUMMY_PASSWORD_HASH = '$2b$12$E9mheTnBYQr8IG4ruH0QeOWAnRY2auJWScRrKAPCY/05r3snwbZJi';
 
 /** Trae las preferencias junto con el usuario: login arma la sesión sin volver a la base. */
 export async function validateUser(username: string, password: string) {
@@ -83,7 +84,7 @@ type RotationOutcome = { issued: SignedTokens } | { rejected: 'graceExhausted' |
 export async function refresh(userId: string, rawRefreshToken: string, res: Response): Promise<AuthTokensResponse> {
   const user = await usersService.findById(userId);
   if (!user) {
-    throw { status: 401, message: 'Usuario no encontrado' };
+    throw new HttpError(401, 'Usuario no encontrado');
   }
 
   const tokenHash = hashRefreshToken(rawRefreshToken);
@@ -128,17 +129,14 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
     return { user: toSessionUser(user), ...sendTokens(res, outcome.issued) };
   }
   if (outcome.rejected === 'graceExhausted') {
-    throw { status: 401, message: 'La sesión ya no es válida' };
+    throw new HttpError(401, 'La sesión ya no es válida');
   }
   if (outcome.rejected === 'unknown') {
     clearCookies(res);
-    throw { status: 401, message: 'La sesión ya no es válida' };
+    throw new HttpError(401, 'La sesión ya no es válida');
   }
   clearCookies(res);
-  throw {
-    status: 401,
-    message: 'Token de refresco no reconocido. Todas las sesiones han sido revocadas.',
-  };
+  throw new HttpError(401, 'Token de refresco no reconocido. Todas las sesiones han sido revocadas.');
 }
 
 /**
@@ -175,7 +173,7 @@ export async function logout(rawRefreshToken: string | undefined, res: Response)
 export async function getProfile(userId: string) {
   const user = await usersService.findById(userId);
   if (!user) {
-    throw { status: 401, message: 'Usuario no encontrado' };
+    throw new HttpError(401, 'Usuario no encontrado');
   }
   return { user: toSessionUser(user) };
 }

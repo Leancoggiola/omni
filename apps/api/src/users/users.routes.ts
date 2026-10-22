@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import type { Request, Response, NextFunction } from 'express';
 import { updateProfileSchema, changePasswordSchema, updatePreferencesSchema } from '@omni/shared/users';
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
 import { clearCookies, createRateLimiter, validate } from '../common/utils';
@@ -16,71 +15,35 @@ const passwordLimiter = createRateLimiter({
 
 const router = Router();
 
-router.get('/profile', authenticateJwt, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as any;
-    const profile = await usersService.getProfile(userId);
-    res.json({ user: profile });
-  } catch (err) {
-    next(err);
-  }
+router.get('/profile', authenticateJwt, async (req, res) => {
+  const { userId } = req.user!;
+  const profile = await usersService.getProfile(userId);
+  res.json({ user: profile });
 });
 
-router.patch(
-  '/profile',
-  authenticateJwt,
-  validate(updateProfileSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { userId } = req.user as any;
-      const user = await usersService.updateProfile(userId, req.body);
-      res.json({ user });
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-router.patch(
-  '/password',
-  authenticateJwt,
-  passwordLimiter,
-  validate(changePasswordSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { userId } = req.user as any;
-      await usersService.changePassword(userId, req.body);
-      res.json({ message: 'Contraseña actualizada exitosamente' });
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-router.delete('/account', authenticateJwt, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { userId } = req.user as any;
-    await usersService.deleteAccount(userId);
-    clearCookies(res);
-    res.json({ message: 'Cuenta eliminada exitosamente' });
-  } catch (err) {
-    next(err);
-  }
+router.patch('/profile', authenticateJwt, validate(updateProfileSchema), async (req, res) => {
+  const { userId } = req.user!;
+  const user = await usersService.updateProfile(userId, req.body);
+  res.json({ user });
 });
 
-router.patch(
-  '/preferences',
-  authenticateJwt,
-  validate(updatePreferencesSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { userId } = req.user as any;
-      const preferences = await usersService.updatePreferences(userId, req.body);
-      res.json({ preferences });
-    } catch (err) {
-      next(err);
-    }
-  }
-);
+router.patch('/password', authenticateJwt, passwordLimiter, validate(changePasswordSchema), async (req, res) => {
+  const { userId } = req.user!;
+  await usersService.changePassword(userId, req.body);
+  res.json({ message: 'Contraseña actualizada exitosamente' });
+});
+
+router.delete('/account', authenticateJwt, async (req, res) => {
+  const { userId } = req.user!;
+  await usersService.deleteAccount(userId);
+  clearCookies(res);
+  res.json({ message: 'Cuenta eliminada exitosamente' });
+});
+
+router.patch('/preferences', authenticateJwt, validate(updatePreferencesSchema), async (req, res) => {
+  const { userId } = req.user!;
+  const preferences = await usersService.updatePreferences(userId, req.body);
+  res.json({ preferences });
+});
 
 export default router;

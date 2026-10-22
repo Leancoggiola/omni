@@ -93,13 +93,15 @@ pnpm prisma db push
 
 ### `pnpm prisma db seed`
 
-Ejecuta el script `prisma/seed.ts` manualmente. Crea el usuario admin y datos de desarrollo.
+Ejecuta el script `prisma/seed.ts` manualmente. Crea el usuario admin y, solo con `SEED_DEMO=true`, usuarios y películas de demo.
 
 ```bash
 pnpm prisma db seed
 ```
 
-> Requiere `ADMIN_USERNAME` y `ADMIN_PASSWORD` en el `.env`.
+> Requiere `ADMIN_USERNAME` y `ADMIN_PASSWORD` en el `.env`, y `NODE_ENV` definido: el seed aborta si no lo está.
+>
+> Con `SEED_DEMO=true` siembra además `demouser1` y `demouser2` (con la contraseña de `ADMIN_PASSWORD`) y películas de ejemplo para el admin. Con `NODE_ENV=production` la demo se rechaza.
 
 ---
 

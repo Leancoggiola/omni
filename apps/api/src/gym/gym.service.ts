@@ -13,6 +13,7 @@ import type { GymPlan, GymPlanDay, GymExercise as PrismaGymExercise } from '../g
 import { prisma, type PrismaTransactionClient } from '../common/db';
 import { decimalToNumber, toIsoDateTimeString } from '../common/utils/lifestyle';
 import { paginationSkipTake } from '@omni/shared/common';
+import { HttpError } from '../common/http';
 
 const planDetailInclude = {
   days: {
@@ -52,14 +53,14 @@ function mapPlanDetail(plan: GymPlan & { days: (GymPlanDay & { exercises: Prisma
 
 async function getOwnedPlan(userId: string, planId: string) {
   const plan = await prisma.gymPlan.findFirst({ where: { id: planId, userId } });
-  if (!plan) throw { status: 404, message: 'Plan no encontrado' };
+  if (!plan) throw new HttpError(404, 'Plan no encontrado');
   return plan;
 }
 
 async function getOwnedActivePlan(userId: string, planId: string) {
   const plan = await getOwnedPlan(userId, planId);
   if (plan.status === 'ARCHIVED') {
-    throw { status: 409, message: 'El plan está archivado' };
+    throw new HttpError(409, 'El plan está archivado');
   }
   return plan;
 }
@@ -101,7 +102,7 @@ export async function getPlan(userId: string, planId: string): Promise<GymPlanDe
     where: { id: planId, userId },
     include: planDetailInclude,
   });
-  if (!plan) throw { status: 404, message: 'Plan no encontrado' };
+  if (!plan) throw new HttpError(404, 'Plan no encontrado');
   return mapPlanDetail(plan);
 }
 
@@ -110,7 +111,7 @@ async function getOwnedExercise(userId: string, exerciseId: string) {
     where: { id: exerciseId, day: { plan: { userId } } },
     include: { day: { include: { plan: true } } },
   });
-  if (!exercise) throw { status: 404, message: 'Ejercicio no encontrado' };
+  if (!exercise) throw new HttpError(404, 'Ejercicio no encontrado');
   return exercise;
 }
 
@@ -175,7 +176,7 @@ export async function addExercise(userId: string, dto: AddGymExercisePayload) {
       { id: string }[]
     >`SELECT "id" FROM "GymPlanDay" WHERE "id" = ${day.id} FOR UPDATE`;
     if (locked.length === 0) {
-      throw { status: 409, message: 'El día cambió mientras se agregaba el ejercicio, reintentá' };
+      throw new HttpError(409, 'El día cambió mientras se agregaba el ejercicio, reintentá');
     }
 
     const maxOrder = await tx.gymExercise.aggregate({
@@ -200,7 +201,7 @@ export async function addExercise(userId: string, dto: AddGymExercisePayload) {
 export async function updateExercise(userId: string, exerciseId: string, dto: UpdateGymExercisePayload) {
   const exercise = await getOwnedExercise(userId, exerciseId);
   if (exercise.day.plan.status === 'ARCHIVED') {
-    throw { status: 409, message: 'El plan está archivado' };
+    throw new HttpError(409, 'El plan está archivado');
   }
 
   await prisma.$transaction(async tx => {
@@ -230,7 +231,7 @@ export async function updateExercise(userId: string, exerciseId: string, dto: Up
 export async function updateExerciseWeight(userId: string, exerciseId: string, dto: UpdateGymExerciseWeightPayload) {
   const exercise = await getOwnedExercise(userId, exerciseId);
   if (exercise.day.plan.status === 'ARCHIVED') {
-    throw { status: 409, message: 'El plan está archivado' };
+    throw new HttpError(409, 'El plan está archivado');
   }
 
   const updated = await prisma.gymExercise.update({
@@ -244,7 +245,7 @@ export async function updateExerciseWeight(userId: string, exerciseId: string, d
 export async function deleteExercise(userId: string, exerciseId: string) {
   const exercise = await getOwnedExercise(userId, exerciseId);
   if (exercise.day.plan.status === 'ARCHIVED') {
-    throw { status: 409, message: 'El plan está archivado' };
+    throw new HttpError(409, 'El plan está archivado');
   }
 
   await prisma.$transaction(async tx => {
