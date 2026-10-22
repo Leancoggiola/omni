@@ -18,7 +18,7 @@ apps/e2e/
 - Los locators van en un page object, no sueltos en el spec.
 - Precondiciones por API (`page.request`, que ya va autenticado); acciones por UI.
 - Nada de esperas por tiempo: usar los auto-wait de `expect(locator)`.
-- La suite **nunca** toca la base de datos: los usuarios se crean por `POST /api/admin/users`.
+- La base E2E se resetea una vez por corrida, en `globalSetup` (`db:e2e:reset`: migraciones + seed del admin). Los tests solo hablan HTTP; los usuarios se crean por `POST /api/admin/users`.
 
 ## Aislamiento
 

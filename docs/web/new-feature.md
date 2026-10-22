@@ -63,8 +63,9 @@ pnpm --filter web test
 
 ## Referencia
 
-| Feature   | Cuándo copiar                                                        |
-| --------- | -------------------------------------------------------------------- |
-| `home`    | Feature simple, un módulo, sin SWR                                   |
-| `media`   | Multi-módulo (`search`, `library`, `_shared`), hooks SWR + mutations |
-| `profile` | Forms Mantine, PATCH utils, `useProfile`, security actions           |
+| Feature          | Cuándo copiar                                                        |
+| ---------------- | -------------------------------------------------------------------- |
+| `home`           | Feature simple, un módulo, sin SWR                                   |
+| `media`          | Multi-módulo (`search`, `library`, `_shared`), hooks SWR + mutations |
+| `profile`        | Forms Mantine, PATCH utils, `useProfile`, security actions           |
+| `split-expenses` | CRUD anidado (ver [apps/web/CLAUDE.md](../../apps/web/CLAUDE.md))    |

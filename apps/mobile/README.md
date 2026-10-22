@@ -54,9 +54,9 @@ Primera vez en device/emulador: `pnpm prebuild` y luego build del dev client (`n
 ```
 apps/mobile/
   app/                 # Expo Router (login, tabs)
-  src/core/auth/       # AuthProvider + SecureStore
-  src/shared/api/      # API_KEYS, client Bearer
-  src/features/        # auth, home, media, profile
+  src/core/auth/       # AuthProvider
+  src/shared/api/      # API_KEYS, client Bearer, tokenStorage (SecureStore)
+  src/features/        # auth, home, media, more, pantry, profile
   src/theme/           # Tamagui config
 ```
 

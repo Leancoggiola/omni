@@ -71,11 +71,12 @@ Lo que más pesa en Windows es **Microsoft Defender** escaneando cada archivo qu
 
 ## Relación con web
 
-| Tema      | Web            | Mobile               |
-| --------- | -------------- | -------------------- |
-| UI        | Mantine        | Tamagui              |
-| Auth      | Cookies        | Bearer + SecureStore |
-| Paths     | `SWR_KEYS`     | `API_KEYS`           |
-| Contratos | `@omni/shared` | `@omni/shared`       |
+| Tema           | Web                                                                     | Mobile                                                 |
+| -------------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| UI             | Mantine                                                                 | Tamagui                                                |
+| Auth           | Cookies                                                                 | Bearer + SecureStore                                   |
+| Paths          | `SWR_KEYS`                                                              | `API_KEYS`                                             |
+| Contratos      | `@omni/shared`                                                          | `@omni/shared`                                         |
+| React Compiler | No activado (ver [#29](https://github.com/Leancoggiola/omni/issues/29)) | **Activo** (`experiments.reactCompiler` en `app.json`) |
 
 Nuevo feature: [new-feature.md](./new-feature.md). Web: [web/tooling.md](../web/tooling.md).

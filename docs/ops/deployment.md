@@ -40,7 +40,7 @@ flowchart TD
   T["push a main / dispatch"] --> REL["release<br/>semantic-release"]
   REL --> API["deploy-api<br/>hook Render + espera un commit que incluya el sha"]
   API --> WEB["deploy-web<br/>vercel pull/build/deploy + smoke"]
-  REL --> APK["build-apk<br/>Gradle + firma + omni-apk"]
+  WEB --> APK["build-apk<br/>Gradle + firma + omni-apk"]
   REL --> SYNC["sync-develop<br/>back-merge main a develop"]
 ```
 

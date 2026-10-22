@@ -12,7 +12,7 @@ apps/mobile/
     profile.tsx           # ruta de stack sobre las tabs (se abre solo desde la tarjeta de usuario de "Más")
     (tabs)/index|media|pantry|more.tsx
   src/
-    core/auth/            # AuthProvider, SecureStore
+    core/auth/            # AuthProvider (sesión; los tokens se leen y escriben vía `@/shared/api`, módulo `tokenStorage`)
     core/authGate/        # AuthGate: spinner, login, ErrorState de sesión sin verificar o el Stack
     core/providers/       # SWRProvider (caché, reintentos, foco con AppState)
     core/serverWake/      # ServerWakeNotice (aviso de cold start)
@@ -26,6 +26,8 @@ apps/mobile/
 - Imports: `@/shared/api`, `@/shared/ui`, `@/core/auth`, `@/features/...`, `@/theme/...`.
 - **Prohibido:** feature A → feature B.
 - Contratos desde `@omni/shared/*`; no duplicar schemas.
+- **React Compiler activo** en mobile (`experiments.reactCompiler: true` en `app.json`). Web no lo tiene activado.
+- **Tokens:** SecureStore vive en `src/shared/api/tokenStorage.ts` (una sola clave con access y refresh). Solo ese módulo habla con `expo-secure-store`.
 
 ## Navegación
 

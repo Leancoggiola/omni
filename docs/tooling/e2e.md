@@ -59,11 +59,11 @@ pnpm --filter e2e exec playwright test -g "abre el poster"
 
 `playwright.config.ts` levanta tres `webServer`:
 
-| Servidor     | Comando                             | Puerto | Por qué                                                                                  |
-| ------------ | ----------------------------------- | ------ | ---------------------------------------------------------------------------------------- |
-| Stub externo | `node src/support/externalStub.mjs` | 3199   | La API llama a TMDB y a Wikipedia **desde el servidor**, así que `page.route` no alcanza |
-| API          | `pnpm --filter api dev:e2e`         | 3000   | Carga `apps/api/.env.e2e`. El puerto es fijo: el proxy de Vite apunta ahí                |
-| Web          | `pnpm --filter web dev`             | 5173   | El proxy `/api` hace que todo sea mismo-origen y las cookies funcionen                   |
+| Servidor     | Comando                             | Puerto        | Por qué                                                                                                               |
+| ------------ | ----------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Stub externo | `node src/support/externalStub.mjs` | 3199          | La API llama a TMDB y a Wikipedia **desde el servidor**, así que `page.route` no alcanza                              |
+| API          | `pnpm --filter api dev:e2e`         | 3000 + offset | Carga `apps/api/.env.e2e`. El harness pasa `API_PORT` a la API como `PORT`, y el proxy de Vite lo lee como `API_PORT` |
+| Web          | `pnpm --filter web dev`             | 5173          | El proxy `/api` hace que todo sea mismo-origen y las cookies funcionen                                                |
 
 `reuseExistingServer` está en `false` a propósito: reusar una API de desarrollo haría que la suite escriba sobre la base de dev sin avisar.
 
@@ -169,7 +169,7 @@ Si falla la app entera y no un locator, mirá los `[WebServer]` de la salida: ah
 
 El job `E2E` de `.github/workflows/ci.yml` corre en **PR hacia `develop`/`main`** y en el **nightly** (`schedule`), no en cada push: levantar api + web es lento.
 
-Está en `continue-on-error: true` hasta comprobar que la suite es estable; después hay que volverlo bloqueante.
+El job usa `continue-on-error: ${{ github.base_ref != 'main' }}`: es **bloqueante** en PRs a `main` e **informativo** en PRs a `develop` y en el nightly. Así la suite se prueba en `develop` antes de bloquear un merge a `main`.
 
 Usa `services: postgres` en el puerto 5434 y cachea los browsers según la versión de `@playwright/test`.
 
