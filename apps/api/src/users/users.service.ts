@@ -1,4 +1,4 @@
-import type { User } from '../generated/prisma/client';
+import type { Role, User } from '../generated/prisma/client';
 import type { CreateUserPayload } from '@omni/shared/auth';
 import type { ChangePasswordPayload, UpdateProfilePayload, UpdatePreferencesPayload } from '@omni/shared/users';
 import * as bcrypt from 'bcrypt';
@@ -6,16 +6,14 @@ import { lockUserSessions, prisma } from '../common/db';
 import { hashPassword } from '../common/utils/password';
 import { HttpError } from '../common/http';
 
-export async function create(
-  dto: Omit<CreateUserPayload, 'role'> & { password: string; role?: string }
-): Promise<User> {
+export async function create(dto: Omit<CreateUserPayload, 'role'> & { password: string; role?: Role }): Promise<User> {
   return prisma.user.create({
     data: {
       username: dto.username.toLowerCase(),
       name: dto.name,
       email: dto.email?.toLowerCase() ?? null,
       password: dto.password,
-      role: (dto.role as 'ADMIN' | 'USER') ?? 'USER',
+      role: dto.role ?? 'USER',
     },
   });
 }
