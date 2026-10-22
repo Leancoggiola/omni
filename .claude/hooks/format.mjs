@@ -31,6 +31,5 @@ try {
     stdio: ['ignore', 'ignore', 'pipe'],
   });
 } catch (err) {
-  // Non-blocking: a syntax error mid-edit must not stop Claude.
   process.stderr.write(String(err.stderr ?? err.message));
 }
