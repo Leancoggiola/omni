@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { addGymExerciseSchema, updateGymExerciseWeightSchema } from '@omni/shared/gym';
+import { addGymExerciseSchema, updateGymExerciseWeightSchema } from '..';
 
 describe('gym schemas', () => {
   it('accepts valid exercise payload', () => {

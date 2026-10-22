@@ -1,6 +1,8 @@
-import { ADMIN_NAV_ORDER, MAIN_NAV_ORDER, MOBILE_TAB_KEYS, NAV_KEYS } from '@omni/shared/navigation';
+import { describe, expect, it } from 'vitest';
 
-import type { NavKey } from '@omni/shared/navigation';
+import { ADMIN_NAV_ORDER, MAIN_NAV_ORDER, MOBILE_TAB_KEYS, NAV_KEYS } from '..';
+
+import type { NavKey } from '..';
 
 describe('registro de navegación', () => {
   const ordered: readonly NavKey[] = [...MAIN_NAV_ORDER, ...ADMIN_NAV_ORDER];

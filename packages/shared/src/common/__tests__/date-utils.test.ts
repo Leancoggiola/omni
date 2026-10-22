@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { addOneMonthSameDay, nextMonthlyOccurrence, roundMoney, startOfTodayInAppTz } from '@omni/shared/common';
+import { addOneMonthSameDay, nextMonthlyOccurrence, roundMoney, startOfTodayInAppTz } from '..';
 
 const iso = (date: Date) => date.toISOString().slice(0, 10);
 const utc = (year: number, month: number, day: number) => new Date(Date.UTC(year, month - 1, day));

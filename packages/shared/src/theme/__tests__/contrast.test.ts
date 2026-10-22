@@ -1,4 +1,6 @@
-import { contrastRatio, SEMANTIC, semanticDark, semanticLight, WCAG_AA_TEXT } from '@omni/shared/theme';
+import { describe, expect, it } from 'vitest';
+
+import { contrastRatio, SEMANTIC, semanticDark, semanticLight, WCAG_AA_TEXT } from '..';
 
 /**
  * Regresión de contraste: cada relleno con texto encima (Button y Badge filled, segmento activo)
