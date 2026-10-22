@@ -41,7 +41,7 @@ Flujo: `develop` → branch `feat/#N-…` / `fix/#N-…` → PR a `develop` → 
 
 0. **Estados de UI compartidos** — web y mobile: `LoadingState` / `EmptyState` / `ErrorState` de `@/shared/ui`. El `error` de SWR se renderiza siempre; nunca se muestra como estado vacío.
 1. **Un feature no importa otro** del mismo cliente — la UI compartida vive en `@/shared/ui` (web y mobile, misma API: `PageHeader`↔`ScreenHeader`, `notify*`, `confirm`).
-2. **URLs HTTP centralizadas** — web: `SWR_KEYS`; mobile: `API_KEYS`. Nunca literales `/api/` en features.
+2. **URLs HTTP centralizadas** — `API_PATHS` de `@omni/shared/api` (web lo usa como `SWR_KEYS`; mobile, como `API_KEYS`). Nunca literales `/api/` en features.
 3. **Contrato compartido** — `packages/shared`; API `validate()`; clientes mismos Zod/tipos.
 4. **Color y tokens** — todo nace en `packages/shared/src/theme/tokens.ts`. Nunca hex sueltos ni `color="green"`/`"blue"` de Mantine: usar los alias semánticos. Ver [docs/design-system.md](docs/design-system.md).
 5. **Orden full-stack** — `shared` → `api` → hooks + UI del cliente (web y/o mobile).
