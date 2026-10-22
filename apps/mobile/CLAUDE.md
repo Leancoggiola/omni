@@ -45,7 +45,7 @@ import { api, API_KEYS } from '@/shared/api';
 await api.get(API_KEYS.media.list);
 ```
 
-Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/api/...'` fuera de ese mapa.
+Base URL: `EXPO_PUBLIC_API_URL` (sin slash final). **Prohibido:** literales `'/api/...'` fuera de ese mapa. Verificación: `pnpm --filter mobile check-api-paths`.
 
 El núcleo HTTP (request, 401 → refresh single-flight → reintento, parseo de errores y 204) es `createApiClient` de `@omni/shared/api`. `src/shared/api/client.ts` es el adaptador: `getAuthHeaders` con el Bearer de `tokenStorage`, el refresh con `{ refreshToken }` y `logoutSession` (que espera al refresh con `waitForRefresh`).
 
@@ -141,5 +141,5 @@ A diferencia de web (alineados a la derecha), en mobile van **centrados y full-w
 ## Verificación
 
 ```bash
-pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile test
+pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile check-api-paths && pnpm --filter mobile test
 ```
