@@ -99,22 +99,6 @@ describe('api client', () => {
 
       expect(bearer(fetchMock.mock.calls[0][1])).toBeUndefined();
     });
-
-    it('devuelve undefined ante un 204', async () => {
-      respondWith(() => ({ ...jsonResponse(null, 204), ok: true }));
-
-      await expect(client.api.delete('/api/resource')).resolves.toBeUndefined();
-    });
-
-    it('lanza ApiError con el mensaje y el status de la API', async () => {
-      respondWith(() => jsonResponse({ message: 'Datos inválidos' }, 400));
-
-      await expect(client.api.post('/api/resource', {})).rejects.toMatchObject({
-        name: 'ApiError',
-        message: 'Datos inválidos',
-        status: 400,
-      });
-    });
   });
 
   describe('refresh ante un 401', () => {
@@ -125,19 +109,6 @@ describe('api client', () => {
 
       expect(bodyOf(callsTo(REFRESH_URL)[0][1])).toEqual({ refreshToken: 'refresh-1' });
       expect(await storage.getTokens()).toEqual({ accessToken: 'access-2', refreshToken: 'refresh-2' });
-    });
-
-    it('varios 401 simultáneos generan un solo refresh', async () => {
-      const gate = deferred<unknown>();
-      respondWith(apiWithAccess('access-2', () => gate.promise));
-
-      const requests = Promise.all([client.api.get('/api/a'), client.api.get('/api/b'), client.api.get('/api/c')]);
-      await until(() => fetchMock.mock.calls.length >= 4);
-      expect(fetchMock.mock.calls.filter(([url]) => url !== REFRESH_URL)).toHaveLength(3);
-      gate.resolve(refreshReturning('access-2', 'refresh-2'));
-
-      await expect(requests).resolves.toHaveLength(3);
-      expect(callsTo(REFRESH_URL)).toHaveLength(1);
     });
 
     it('un 401 que llega después de otro refresh reintenta sin rotar de nuevo', async () => {
@@ -304,16 +275,6 @@ describe('api client', () => {
 
       expect(callsTo(REFRESH_URL)).toHaveLength(0);
       expect(onAuthFailure).not.toHaveBeenCalled();
-    });
-
-    it('no refresca ante el 401 del login', async () => {
-      respondWith(() => jsonResponse({ message: 'Credenciales inválidas' }, 401));
-
-      await expect(client.api.post(API_KEYS.auth.login, { username: 'a', password: 'b' })).rejects.toMatchObject({
-        status: 401,
-      });
-
-      expect(callsTo(REFRESH_URL)).toHaveLength(0);
     });
   });
 

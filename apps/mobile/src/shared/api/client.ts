@@ -1,14 +1,14 @@
-import { ApiError } from './ApiError';
 import { toUrl } from './baseUrl';
 import { API_KEYS } from './keys';
 import { fetchWithWake } from './serverWake';
 import { clearTokens, getAccessToken, getRefreshToken, getTokens, setTokens } from './tokenStorage';
 
+import { ApiError, createApiClient, toApiError } from '@omni/shared/api';
+
 import type { AuthTokensResponse } from '@omni/shared/auth';
 
 export { ApiError };
 
-let refreshPromise: Promise<boolean> | null = null;
 let onAuthFailure: (() => void) | null = null;
 
 /** Registra el callback invocado cuando el refresh falla (sesión inválida), igual que en web. */
@@ -19,20 +19,6 @@ export function setOnAuthFailure(callback: () => void): void {
 /** Limpia el callback registrado (ej. al desmontar el AuthProvider). */
 export function clearOnAuthFailure(): void {
   onAuthFailure = null;
-}
-
-/**
- * Avisa que la sesión ya no es válida para que la UI la cierre. Se llama desde dentro del
- * single-flight, así que dispara una vez por refresh fallido y no una por cada request con 401.
- */
-function notifyAuthFailure(): void {
-  onAuthFailure?.();
-}
-
-/** Arma el `ApiError` de una respuesta no OK con el `message` del body si lo trae, o el `statusText` si no. */
-async function toApiError(res: Response): Promise<ApiError> {
-  const info = (await res.json().catch(() => ({}))) as { message?: string };
-  return new ApiError(info.message || res.statusText, res.status, info);
 }
 
 /**
@@ -48,20 +34,18 @@ async function sessionChangedDuringRefresh(
 }
 
 /**
- * Pide un par nuevo con el refresh token guardado. Solo un 401/403 significa que la sesión ya no es válida:
- * limpia los tokens y avisa. Un 5xx, un 429 o un error de red no dicen nada de la sesión, así que se propagan
- * (el `ApiError` es el del refresh, no el 401 original) y los tokens se conservan para reintentar después.
- * Si mientras tanto la sesión cambió, el resultado del refresh se descarta. Se pide como idempotente: la API acepta el
- * mismo refresh token dentro de su gracia de rotación, y repetirlo enseguida ante un timeout o un 504 evita quedar
- * fuera de ella con el token viejo (lo que revocaría todas las sesiones). La comprobación y la escritura no son
- * atómicas: un logout o login que caiga entre las dos lecturas y escrituras de SecureStore puede quedar pisado.
+ * Pide un par nuevo con el refresh token guardado. Solo un 401/403 significa que la sesión ya no es válida: limpia los
+ * tokens y devuelve `false` (el núcleo avisa a `setOnAuthFailure` una vez). Un 5xx, un 429 o un error de red no dicen
+ * nada de la sesión, así que se propagan (el `ApiError` es el del refresh, no el 401 original) y los tokens se
+ * conservan para reintentar después. Si mientras tanto la sesión cambió, el resultado del refresh se descarta. Se pide
+ * como idempotente: la API acepta el mismo refresh token dentro de su gracia de rotación, y repetirlo enseguida ante un
+ * timeout o un 504 evita quedar fuera de ella con el token viejo (lo que revocaría todas las sesiones). La
+ * comprobación y la escritura no son atómicas: un logout o login que caiga entre las dos lecturas y escrituras de
+ * SecureStore puede quedar pisado.
  */
 async function refreshAccessToken(): Promise<boolean> {
   const tokens = await getTokens();
-  if (!tokens) {
-    notifyAuthFailure();
-    return false;
-  }
+  if (!tokens) return false;
 
   const res = await fetchWithWake(
     toUrl(API_KEYS.auth.refresh),
@@ -77,7 +61,6 @@ async function refreshAccessToken(): Promise<boolean> {
     const { changed, hasSession } = await sessionChangedDuringRefresh(tokens.refreshToken);
     if (changed) return hasSession;
     await clearTokens();
-    notifyAuthFailure();
     return false;
   }
 
@@ -94,99 +77,49 @@ async function refreshAccessToken(): Promise<boolean> {
   return true;
 }
 
-async function ensureRefreshed(): Promise<boolean> {
-  if (!refreshPromise) {
-    refreshPromise = refreshAccessToken().finally(() => {
-      refreshPromise = null;
-    });
-  }
-  return refreshPromise;
+/**
+ * `Authorization: Bearer` con el access token guardado, o `null` sin sesión. Un fallo de SecureStore cuenta como sin
+ * sesión: el request sale igual, sin `Authorization`, y un 401 no dispara el refresh.
+ */
+async function getAuthHeaders(): Promise<Record<string, string> | null> {
+  const accessToken = await getAccessToken().catch(() => null);
+  return accessToken ? { Authorization: `Bearer ${accessToken}` } : null;
 }
-
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-
-const NO_REFRESH_PATHS: string[] = [API_KEYS.auth.login, API_KEYS.auth.refresh, API_KEYS.auth.logout];
 
 /**
- * Decide qué hacer con un 401 según el access token que viajó en ese request: si coincide con el guardado hay
- * que refrescar; si ya cambió (otro request refrescó mientras éste volaba) alcanza con reintentar, sin rotar de
- * nuevo; si ya no hay sesión no se refresca.
+ * Instancia mobile del núcleo HTTP de `@omni/shared/api`: Bearer desde SecureStore, la base de `EXPO_PUBLIC_API_URL`
+ * (`toUrl`) y `fetchWithWake` para el cold start. Si el access token cambió desde que salió el request (otro refresh
+ * ya rotó), reintenta sin rotar de nuevo.
  */
-async function recoverFromUnauthorized(sentAccessToken: string | null): Promise<boolean> {
-  const currentAccessToken = await getAccessToken().catch(() => null);
-  if (currentAccessToken === null) return false;
-  if (currentAccessToken === sentAccessToken) return ensureRefreshed();
-  return true;
-}
-
-async function request<T = unknown>(path: string, method: HttpMethod, body?: unknown, retried = false): Promise<T> {
-  const accessToken = await getAccessToken().catch(() => null);
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
-  }
-
-  const res = await fetchWithWake(toUrl(path), {
-    method,
-    headers,
-    body: body != null ? JSON.stringify(body) : undefined,
-  });
-
-  if (res.status === 401 && !retried && !NO_REFRESH_PATHS.includes(path)) {
-    const ok = await recoverFromUnauthorized(accessToken);
-    if (ok) return request<T>(path, method, body, true);
-  }
-
-  if (!res.ok) throw await toApiError(res);
-
-  if (res.status === 204) return undefined as T;
-  return res.json();
-}
+const client = createApiClient({
+  fetch: (url, init) => fetchWithWake(url, init),
+  toUrl,
+  getAuthHeaders,
+  refresh: refreshAccessToken,
+  onAuthFailure: () => onAuthFailure?.(),
+});
 
 const LOGOUT_REFRESH_WAIT_MS = 3_000;
 
 /**
- * Espera a que termine el refresh en curso, hasta `LOGOUT_REFRESH_WAIT_MS`: un refresh colgado (ej. esperando que
- * la API despierte) no puede demorar el logout. Si se agota el tiempo se sigue con el token que haya guardado; si
- * ya se rotó, la API borra también los sucesores recién rotados.
- */
-async function waitForRefreshToSettle(): Promise<void> {
-  while (refreshPromise) {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timedOut = await Promise.race([
-      refreshPromise.then(
-        () => false,
-        () => false
-      ),
-      new Promise<boolean>(resolve => {
-        timer = setTimeout(() => resolve(true), LOGOUT_REFRESH_WAIT_MS);
-      }),
-    ]);
-    clearTimeout(timer);
-    if (timedOut) return;
-  }
-}
-
-/**
- * Cierra la sesión en el servidor con el refresh token vigente al momento de enviar. Espera un refresh en curso
- * (con tope) para no mandar un token que ya se rotó, y no pasa por el refresh por 401: el logout de la API no
- * devuelve 401. Sin refresh token guardado no hay sesión que cerrar en el servidor y no hace ningún request.
+ * Cierra la sesión en el servidor con el refresh token vigente al momento de enviar. Espera un refresh en curso (hasta
+ * `LOGOUT_REFRESH_WAIT_MS`, para no mandar un token que ya se rotó; un refresh colgado no puede demorar el logout) y no
+ * pasa por el refresh por 401: el logout de la API no devuelve 401. Sin refresh token guardado no hay sesión que
+ * cerrar en el servidor y no hace ningún request.
  */
 export async function logoutSession(): Promise<void> {
-  await waitForRefreshToSettle();
+  await client.waitForRefresh(LOGOUT_REFRESH_WAIT_MS);
   const refreshToken = await getRefreshToken();
   if (!refreshToken) return;
-  await request(API_KEYS.auth.logout, 'POST', { refreshToken });
+  await client.post(API_KEYS.auth.logout, { refreshToken });
 }
 
 export const api = {
-  get: <T = unknown>(path: string) => request<T>(path, 'GET'),
-  post: <T = unknown>(path: string, body?: unknown) => request<T>(path, 'POST', body),
-  put: <T = unknown>(path: string, body?: unknown) => request<T>(path, 'PUT', body),
-  patch: <T = unknown>(path: string, body?: unknown) => request<T>(path, 'PATCH', body),
-  delete: <T = unknown>(path: string) => request<T>(path, 'DELETE'),
+  get: client.get,
+  post: client.post,
+  put: client.put,
+  patch: client.patch,
+  delete: client.delete,
 };
 
-export const fetcher = <T = unknown>(path: string) => api.get<T>(path);
+export const { fetcher } = client;

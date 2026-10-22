@@ -2,23 +2,13 @@ import { useState } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { SWRConfig, type Cache, type State, type SWRConfiguration } from 'swr';
 
-import { ApiError, fetcher } from '@/shared/api';
+import { fetcher } from '@/shared/api';
+
+import { SWR_RETRY_OPTIONS } from '@omni/shared/api';
 
 import type { FC, PropsWithChildren } from 'react';
 
-/**
- * Un 4xx no se arregla reintentando (401 ya pasó por el refresh del client, 404 no va a aparecer). Un 408 y un 429
- * sí: son transitorios, y el 429 también llega cuando el que lo devuelve es el refresh (el client propaga su
- * `ApiError`). Es la única definición: la usan `SWR_RETRY_OPTIONS` (qué reintenta SWR, también en el hook de sesión)
- * y `AuthProvider` (un 4xx así manda al login; red, timeout, 5xx, 408 y 429 dejan la sesión sin verificar).
- */
-export const isClientError = (err: unknown): boolean =>
-  err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 408 && err.status !== 429;
-
-export const SWR_RETRY_OPTIONS = {
-  errorRetryCount: 3,
-  shouldRetryOnError: (err: unknown) => !isClientError(err),
-} satisfies SWRConfiguration;
+export { isClientError, SWR_RETRY_OPTIONS } from '@omni/shared/api';
 
 /**
  * En React Native SWR no se entera de que la app volvió a primer plano: avisa con `AppState` cuando pasa de

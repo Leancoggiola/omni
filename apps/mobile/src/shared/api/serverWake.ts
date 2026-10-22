@@ -1,6 +1,6 @@
 import { createServerWake } from '@omni/shared/server-wake';
 
-import { ApiError } from './ApiError';
+import { ApiError } from '@omni/shared/api';
 import { toUrl } from './baseUrl';
 import { API_KEYS } from './keys';
 

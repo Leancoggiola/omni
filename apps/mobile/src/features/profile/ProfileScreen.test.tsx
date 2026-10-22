@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { RefreshControl } from 'react-native';
 
-import { ApiError } from '@/shared/api/ApiError';
+import { ApiError } from '@omni/shared/api';
 import { confirm, notifyError, notifySuccess, notifyWarning } from '@/shared/ui';
 
 import { ProfileScreen } from './ProfileScreen';
