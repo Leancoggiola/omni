@@ -97,7 +97,10 @@ Las de Mantine/Supabase son de terceros: se actualizan con `npx skills add … -
 ```bash
 pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test
 pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile test
+pnpm --filter @omni/shared check-types && pnpm --filter @omni/shared lint && pnpm --filter @omni/shared test
 ```
+
+El CI ya corre los tests de shared dentro de `pnpm turbo test:coverage`.
 
 Si tocaste API, los tests de integración necesitan la base efímera levantada:
 
