@@ -1,0 +1,1 @@
+export { useSplitFriends } from './useSplitFriends';

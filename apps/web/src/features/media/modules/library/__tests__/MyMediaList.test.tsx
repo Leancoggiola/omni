@@ -1,0 +1,100 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { renderWithProviders } from '@/__tests__/helpers';
+
+import { MyMediaList } from '../components/MyMediaList';
+
+import type { MediaItem } from '../../_shared/types';
+import type { ComponentProps } from 'react';
+
+import { fireEvent, screen } from '@testing-library/react';
+
+const item: MediaItem = {
+  id: 'm1',
+  userId: 'u1',
+  tmdbId: 603,
+  mediaType: 'movie',
+  title: 'The Matrix',
+  posterPath: null,
+  status: 'to_watch',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+/** Solo `(min-width: 48em)` (el `sm` de Mantine) responde según el ancho simulado. */
+const stubViewport = (wide: boolean) => {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: query.includes('min-width') ? wide : false,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+    onchange: null,
+  }));
+};
+
+const renderList = (displayMode: string, props: Partial<ComponentProps<typeof MyMediaList>> = {}) =>
+  renderWithProviders(
+    <MyMediaList
+      items={[item]}
+      isLoading={false}
+      hasActiveFilters={false}
+      displayMode={displayMode}
+      onAdd={vi.fn()}
+      onStatusChange={vi.fn()}
+      onDelete={vi.fn()}
+      onRetry={vi.fn()}
+      {...props}
+    />
+  );
+
+describe('MyMediaList', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('por debajo de sm muestra la lista aunque el modo sea grilla', () => {
+    stubViewport(false);
+    renderList('grid');
+
+    expect(screen.getByRole('button', { name: 'Eliminar The Matrix' })).toBeInTheDocument();
+  });
+
+  it('desde sm con modo grilla muestra la grilla con el tacho a la vista, sin hover', () => {
+    stubViewport(true);
+    renderList('grid');
+
+    expect(screen.getByRole('button', { name: 'Eliminar The Matrix' })).toBeInTheDocument();
+    expect(screen.getByText('The Matrix')).toBeInTheDocument();
+  });
+
+  it('desde sm con modo lista muestra la lista', () => {
+    stubViewport(true);
+    renderList('list');
+
+    expect(screen.getByRole('button', { name: 'Eliminar The Matrix' })).toBeInTheDocument();
+  });
+
+  it('sin ítems y sin filtros muestra la lista vacía con Agregar; con filtros, sin resultados', () => {
+    stubViewport(true);
+    const { unmount } = renderList('grid', { items: [] });
+
+    expect(screen.getByText('Tu lista está vacía')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Agregar' })).toBeInTheDocument();
+    unmount();
+
+    renderList('grid', { items: [], hasActiveFilters: true });
+
+    expect(screen.getByText('No hay resultados')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Agregar' })).not.toBeInTheDocument();
+  });
+
+  it('si falla la carga ofrece reintentar', () => {
+    const onRetry = vi.fn();
+    stubViewport(true);
+    renderList('grid', { error: new Error('x'), onRetry });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(onRetry).toHaveBeenCalledOnce();
+  });
+});

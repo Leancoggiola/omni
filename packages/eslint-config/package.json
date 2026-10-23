@@ -1,13 +1,14 @@
 {
-  "name": "@aio-app/eslint-config",
+  "name": "@omni/eslint-config",
   "version": "0.0.0",
-  "main": "index.mjs",
+  "private": true,
+  "exports": {
+    ".": "./index.mjs"
+  },
   "license": "MIT",
   "dependencies": {
     "typescript-eslint": "8.59.2",
-    "eslint-config-prettier": "10.1.8"
-  },
-  "publishConfig": {
-    "access": "public"
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-simple-import-sort": "13.0.0"
   }
 }

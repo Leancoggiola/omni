@@ -10,6 +10,17 @@ node_modules
 .env.local
 .env.development.local
 .env.test.local
+.env.*
+!.env.example
+!.env.test
+!.env.e2e
+
+# Claves y backups
+*.jks
+*.keystore
+age-key*
+*.age
+*.dump
 .env.production.local
 
 # Testing
@@ -17,8 +28,13 @@ node_modules
 blob-report/
 coverage
 test-results/
+test-results-*/
 playwright/.cache/
 playwright-report/
+playwright-report-*/
+.playwright-mcp/
+apps/e2e/.auth/
+apps/e2e/.auth-*/
 
 
 # Turbo
@@ -52,6 +68,9 @@ apps/api/src/generated/
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# Claude Code — overrides personales
+.claude/settings.local.json
+
 # Debug
 logs
 *.log
@@ -66,9 +85,10 @@ pnpm-debug.log*
 
 postman-collection.json
 
-# MCPs
-.playwright-mcp
-.playwright-output/
-*.playwright-*.md
-*.playwright-*.png
-*.playwright-*.log
+# CodeGraph — índice local (commitear solo README + .gitignore aquí)
+.codegraph/*
+!.codegraph/README.md
+!.codegraph/.gitignore
+
+# Artefactos locales de exploración (no fuente)
+media-full-list.yml

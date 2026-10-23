@@ -1,2 +1,14 @@
+if [ "$CI" != "true" ] && [ "$ALLOW_PROTECTED_PUSH" != "1" ]; then
+  while read -r _ _ remote_ref _; do
+    case "$remote_ref" in
+      refs/heads/main | refs/heads/develop)
+        echo "Push rechazado: ${remote_ref#refs/heads/} está protegida y solo recibe cambios por PR." >&2
+        echo "Si de verdad hace falta (hotfix de emergencia), repetí el push con ALLOW_PROTECTED_PUSH=1." >&2
+        exit 1
+        ;;
+    esac
+  done
+fi
+
 pnpm format:check
 pnpm turbo check-types

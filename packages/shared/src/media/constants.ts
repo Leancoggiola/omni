@@ -11,10 +11,12 @@ export const MEDIA_TYPE_LABELS: Record<MediaType, string> = {
 };
 
 export const MEDIA_STATUS_LABELS: Record<MediaStatus, string> = {
-  to_watch: 'Quiero Ver',
+  to_watch: 'Pendiente',
   watching: 'Viendo',
-  watched: 'Ya Vi',
+  watched: 'Vista',
 };
 
 export const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
-export const TMDB_POSTER_W300 = `${TMDB_IMAGE_BASE}/w300`;
+export const TMDB_POSTER_W500 = `${TMDB_IMAGE_BASE}/w500`;
+/** Miniaturas de listas (póster de ~56 dp en mobile): w500 baja ~10 veces más bytes de los que se ven. */
+export const TMDB_POSTER_W185 = `${TMDB_IMAGE_BASE}/w185`;

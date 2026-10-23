@@ -1,3 +1,57 @@
+.action_icon_root {
+  &[data-variant='subtle']:hover {
+    background: transparent;
+    border-color: transparent;
+  }
+}
+
+.alert_body {
+  &:has(> :only-child) {
+    justify-content: center;
+  }
+}
+
+.appshell_navbar {
+  background-color: var(--mantine-color-default);
+  /* A warm wash needs far more opacity to read over the near-white light surface
+     than it does over the dark one, so each scheme sets its own mix. */
+  background-image:
+    radial-gradient(150% 60% at 0% 0%, var(--navbar-glow-top) 0%, transparent 62%),
+    radial-gradient(130% 55% at 0% 100%, var(--navbar-glow-bottom) 0%, transparent 68%);
+}
+
+:root[data-mantine-color-scheme='light'] .appshell_navbar {
+  --navbar-glow-top: color-mix(in srgb, var(--mantine-color-terracotta-4) 42%, transparent);
+  --navbar-glow-bottom: color-mix(in srgb, var(--mantine-color-brand-3) 60%, transparent);
+}
+
+:root[data-mantine-color-scheme='dark'] .appshell_navbar {
+  --navbar-glow-top: color-mix(in srgb, var(--mantine-color-terracotta-6) 24%, transparent);
+  --navbar-glow-bottom: color-mix(in srgb, var(--mantine-color-brand-6) 18%, transparent);
+}
+
+.combobox_option {
+  &[data-combobox-selected],
+  &[data-combobox-active] {
+    color: var(--mantine-color-white);
+    background-color: var(--mantine-color-brand-6) !important;
+    svg {
+      opacity: 1;
+    }
+  }
+
+  &:hover:where(:not([data-combobox-disabled])) {
+    background-color: var(--mantine-color-surfaces-hover);
+  }
+}
+
+.modal_content {
+  padding: var(--mantine-spacing-none) !important;
+}
+.modal_header {
+  background: transparent;
+}
+
 .navlink_root {
   padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
 
@@ -5,15 +59,22 @@
 
   &[data-active] {
     color: var(--mantine-color-white);
-    background-image: linear-gradient(to right, var(--mantine-color-primary-5), var(--mantine-color-primary-7));
+    background-image: linear-gradient(to right, var(--mantine-color-brand-5), var(--mantine-color-brand-7));
   }
   &:hover {
-    background-color: var(--mantine-color-primary-2);
+    background-color: var(--mantine-color-surfaces-hover);
   }
   /* NavLink root styles */
 }
 
 .navlink_label {
-  font-size: 1rem;
+  font-size: var(--mantine-font-size-md);
   font-weight: 600;
+}
+
+.tabs_tab {
+  &[data-active] {
+    background: var(--mantine-color-default);
+    font-weight: 700;
+  }
 }

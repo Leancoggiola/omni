@@ -12,6 +12,23 @@ enum Role {
   USER
 }
 
+enum Theme {
+  light
+  dark
+  auto
+}
+
+enum MediaType {
+  movie
+  tv
+}
+
+enum MediaStatus {
+  to_watch
+  watching
+  watched
+}
+
 model User {
   id            String           @id @default(cuid())
   username      String           @unique
@@ -27,7 +44,13 @@ model User {
   refreshTokens RefreshToken[]
   mediaItems    MediaItem[]
   preferences   UserPreferences?
-  stats         UserStats?
+  gymPlans      GymPlan[]
+  pantryProducts PantryProduct[]
+  pantryShoppingListItems PantryShoppingListItem[]
+  splitFriends  SplitFriend[]
+  gatherings    Gathering[]
+  personalExpenses PersonalExpense[]
+  expenseReminders ExpenseReminder[]
 }
 
 model UserPreferences {
@@ -35,20 +58,23 @@ model UserPreferences {
   userId        String   @unique
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   notifications Boolean  @default(false)
-  theme         String   @default("light")
+  theme         Theme    @default(light)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash         String    @unique
+  previousTokenHash String?
+  rotatedAt         DateTime?
+  expiresAt         DateTime
+  createdAt         DateTime  @default(now())
 
   @@index([userId])
+  @@index([previousTokenHash])
 }
 
 model MediaItem {
@@ -56,26 +82,237 @@ model MediaItem {
   userId               String
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tmdbId               Int
-  mediaType            String // 'movie' | 'tv'
+  mediaType            MediaType
   title                String
   posterPath           String?
-  streamingReleaseDate String?
-  status               String   @default("to_watch") // 'to_watch' | 'watching' | 'watched'
+  status               MediaStatus @default(to_watch)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
   @@unique([userId, tmdbId, mediaType])
-  @@index([userId])
 }
 
-model UserStats {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  totalMovies   Int      @default(0)
-  totalTvShows  Int      @default(0)
-  totalWatched  Int      @default(0)
-  totalWatching Int      @default(0)
-  totalToWatch  Int      @default(0)
-  updatedAt     DateTime @updatedAt
+enum GymPlanStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model GymPlan {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String?
+  status     GymPlanStatus  @default(ACTIVE)
+  archivedAt DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  days       GymPlanDay[]
+
+  @@index([userId, status])
+}
+
+model GymPlanDay {
+  id        String        @id @default(cuid())
+  planId    String
+  plan      GymPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  label     String
+  sortOrder Int           @default(0)
+  exercises GymExercise[]
+
+  @@unique([planId, label])
+}
+
+model GymExercise {
+  id              String     @id @default(cuid())
+  dayId           String
+  day             GymPlanDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  name            String
+  sets            Int?
+  reps            String
+  currentWeightKg Decimal?   @db.Decimal(8, 2)
+  sortOrder       Int        @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([dayId])
+}
+
+enum PantryUnit {
+  UNITS
+  PACKAGES
+}
+
+enum PantryCategory {
+  DAIRY
+  MEAT
+  FRUIT
+  VEGETABLE
+  GRAINS
+  BEVERAGES
+  SNACKS
+  CONDIMENTS
+  FROZEN
+  CLEANING
+}
+
+enum PantryShoppingSource {
+  AUTO
+  MANUAL
+}
+
+model PantryProduct {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  nameNormalized String
+  category       PantryCategory
+  unit           PantryUnit
+  quantity       Decimal        @db.Decimal(10, 2)
+  minQuantity    Decimal?       @db.Decimal(10, 2)
+  expiresAt      DateTime?      @db.Date
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  shoppingItems  PantryShoppingListItem[]
+
+  @@unique([userId, nameNormalized])
+  @@index([userId, category])
+}
+
+model PantryShoppingListItem {
+  id              String               @id @default(cuid())
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pantryProductId String?
+  pantryProduct   PantryProduct?       @relation(fields: [pantryProductId], references: [id], onDelete: SetNull)
+  name            String
+  source          PantryShoppingSource
+  quantityToBuy   Decimal              @db.Decimal(10, 2)
+  unit            PantryUnit
+  checked         Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([userId, checked])
+}
+
+model SplitFriend {
+  id             String                 @id @default(cuid())
+  userId         String
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  nameNormalized String
+  alias          String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  participants   GatheringParticipant[]
+
+  @@unique([userId, nameNormalized])
+}
+
+model Gathering {
+  id           String                 @id @default(cuid())
+  userId       String
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  date         DateTime               @db.Date
+  isSettled    Boolean                @default(false)
+  settledAt    DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  participants GatheringParticipant[]
+  expenses     GatheringExpense[]
+
+  @@index([userId, isSettled, date])
+}
+
+model GatheringParticipant {
+  id          String             @id @default(cuid())
+  gatheringId String
+  gathering   Gathering          @relation(fields: [gatheringId], references: [id], onDelete: Cascade)
+  friendId    String?
+  friend      SplitFriend?       @relation(fields: [friendId], references: [id], onDelete: SetNull)
+  displayName String
+  expenses    GatheringExpense[]
+
+  @@unique([gatheringId, displayName])
+}
+
+model GatheringExpense {
+  id            String               @id @default(cuid())
+  gatheringId   String
+  gathering     Gathering            @relation(fields: [gatheringId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   GatheringParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  amount        Decimal              @db.Decimal(12, 2)
+  description   String?
+  createdAt     DateTime             @default(now())
+
+  @@index([gatheringId])
+}
+
+enum ExpenseCategory {
+  FOOD
+  TRANSPORT
+  ENTERTAINMENT
+  HEALTH
+  EDUCATION
+  HOME
+  CLOTHING
+  SERVICES
+  SUBSCRIPTIONS
+  OTHER
+}
+
+enum ExpenseReminderPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ExpenseReminderRecurrence {
+  ONCE
+  MONTHLY
+}
+
+enum ExpenseReminderStatus {
+  PENDING
+  COMPLETED
+}
+
+model PersonalExpense {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  concept    String
+  amount     Decimal          @db.Decimal(12, 2)
+  category   ExpenseCategory
+  date       DateTime         @db.Date
+  notes      String?
+  reminderId String?
+  reminder   ExpenseReminder? @relation(fields: [reminderId], references: [id], onDelete: SetNull)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([reminderId])
+  @@index([userId, date])
+  @@index([userId, category, date])
+}
+
+model ExpenseReminder {
+  id          String                    @id @default(cuid())
+  userId      String
+  user        User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  dueDate     DateTime                  @db.Date
+  anchorDay   Int
+  priority    ExpenseReminderPriority   @default(MEDIUM)
+  recurrence  ExpenseReminderRecurrence
+  status      ExpenseReminderStatus     @default(PENDING)
+  expenses    PersonalExpense[]
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+
+  @@index([userId, status, dueDate])
 }

@@ -23,14 +23,48 @@ updates:
     schedule:
       interval: monthly
       day: monday
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 3
     groups:
       security-actions:
         applies-to: security-updates
         patterns:
           - '*'
+      actions:
+        applies-to: version-updates
+        patterns:
+          - '*'
     labels:
       - ci
-      - security
+      - dependencies
     commit-message:
-      prefix: 'fix(ci)'
+      prefix: 'ci'
+
+  - package-ecosystem: docker
+    directory: /apps/api
+    schedule:
+      interval: monthly
+      day: monday
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: node
+        update-types:
+          - version-update:semver-major
+    labels:
+      - dependencies
+    commit-message:
+      prefix: 'build'
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: postgres
+        update-types:
+          - version-update:semver-major
+    labels:
+      - dependencies
+    commit-message:
+      prefix: 'build'

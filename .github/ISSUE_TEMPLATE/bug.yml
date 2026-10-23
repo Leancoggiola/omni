@@ -1,0 +1,82 @@
+name: Bug
+description: Error o comportamiento inesperado
+title: '[Bug] '
+labels: ['tipo:bug']
+body:
+  - type: textarea
+    id: resumen
+    attributes:
+      label: Resumen
+      description: Qué falla en una frase
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - api
+        - web
+        - mobile
+        - shared
+        - infra
+        - docs
+      multiple: true
+    validations:
+      required: true
+
+  - type: dropdown
+    id: prioridad
+    attributes:
+      label: Prioridad
+      options:
+        - p0
+        - p1
+        - p2
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Comportamiento esperado
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamiento actual
+    validations:
+      required: true
+
+  - type: textarea
+    id: entorno
+    attributes:
+      label: Entorno
+      placeholder: |
+        - Cliente: web / mobile / api
+        - Browser u OS:
+        - Branch / commit:
+    validations:
+      required: false
+
+  - type: textarea
+    id: extras
+    attributes:
+      label: Capturas / logs / links
+    validations:
+      required: false

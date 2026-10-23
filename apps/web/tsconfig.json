@@ -1,5 +1,5 @@
 {
-  "extends": "@repo/typescript-config/vite.json",
+  "extends": "@omni/typescript-config/vite.json",
   "include": ["src", "vite.config.ts"],
   "compilerOptions": {
     "jsx": "react-jsx",
@@ -7,11 +7,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@/features/*": ["src/app/features/*"],
-      "@/core/*": ["src/app/core/*"],
-      "@/components/*": ["src/app/components/*"],
-      "@/hooks/*": ["src/app/hooks/*"],
-      "@/common/*": ["src/common/*"],
+      "@/app/*": ["src/app/*"],
+      "@/features/*": ["src/features/*"],
+      "@/shared/*": ["src/shared/*"],
+      "@/core/*": ["src/core/*"],
+      "@/layouts/*": ["src/layouts/*"],
       "@/theme/*": ["src/theme/*"],
       "@/assets/*": ["src/assets/*"]
     }

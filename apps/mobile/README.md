@@ -1,0 +1,76 @@
+# Mobile — Omni (Expo)
+
+App Android con **Expo Router**, **Tamagui**, **SWR** y `@omni/shared`. Paridad con web: auth, home, media, profile.
+
+## Requisitos
+
+- Node ≥ 24 (ver `.nvmrc` de la raíz), pnpm
+- API corriendo (`pnpm dev:api`) escuchando en la red local
+- Development Build (no Expo Go): Tamagui + SecureStore
+
+## Configurar API para el celular
+
+1. Misma Wi‑Fi que la PC.
+2. Creá `apps/mobile/.env`:
+
+```bash
+EXPO_PUBLIC_API_URL=http://192.168.x.x:3000
+```
+
+Reemplazá por la IP LAN de tu máquina (`ipconfig` en Windows).
+
+3. La API ya puede bind a `0.0.0.0` en prod; en local asegurate de poder alcanzar el puerto 3000 desde el device.
+4. El HTTP sin cifrar para desarrollo lo habilitan los manifests de `debug` que genera el prebuild; el build release solo admite HTTPS. Por eso en desarrollo se usa el dev-client con `expo run:android` (variant debug); un release o preview apuntando a `http://` no es un caso soportado.
+
+## Scripts
+
+Desde la raíz:
+
+```bash
+pnpm dev:mobile
+```
+
+Desde `apps/mobile`:
+
+```bash
+pnpm prebuild          # genera android/ (dev client)
+pnpm android           # Metro + Android
+pnpm check-types
+pnpm lint
+```
+
+Primera vez en device/emulador: `pnpm prebuild` y luego build del dev client (`npx expo run:android`). Setup de Windows (Android Studio, JDK 17, variables de entorno, emulador), tiempos y problemas conocidos: [docs/mobile/tooling.md](../../docs/mobile/tooling.md#correr-la-app-en-un-emulador-android-windows).
+
+## Auth
+
+- Login/refresh devuelven `accessToken` + `refreshToken` (además de cookies para web).
+- Tokens en `expo-secure-store`, access y refresh en una sola clave.
+- Requests: `Authorization: Bearer <access>`.
+- 401 → refresh automático → reintento. Solo un 401/403 del refresh cierra la sesión; un error transitorio la conserva.
+- Logout: manda el refresh token vigente en el body y limpia la sesión local.
+
+## Estructura
+
+```
+apps/mobile/
+  app/                 # Expo Router (login, tabs)
+  src/core/auth/       # AuthProvider
+  src/shared/api/      # API_KEYS, client Bearer, tokenStorage (SecureStore)
+  src/features/        # auth, home, media, more, pantry, profile
+  src/theme/           # Tamagui config
+```
+
+Paths HTTP solo en `API_PATHS` de `@omni/shared/api`, re-exportado como `API_KEYS` por `src/shared/api/keys.ts`.
+
+## Tooling agentes
+
+Ver [docs/mobile/tooling.md](../../docs/mobile/tooling.md) y [CLAUDE.md](../../CLAUDE.md).
+
+## Instalar el APK de producción
+
+1. En el celular, abrir los releases de `Leancoggiola/omni-apk` (repo privado) e iniciar sesión.
+2. Bajar `omni-vX.Y.Z.apk`.
+3. Permitir la instalación desde **orígenes desconocidos** para la app desde la que lo abrís.
+4. Instalar. Las versiones nuevas se instalan encima.
+
+Detalle y runbooks en [docs/ops/deployment.md](../../docs/ops/deployment.md).

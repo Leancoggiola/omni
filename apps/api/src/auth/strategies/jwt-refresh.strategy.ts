@@ -1,19 +1,33 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Request } from 'express';
-import { config } from '../../config';
+import { config, JWT_ALGORITHM } from '../../config';
+
+function extractRefreshToken(req: Request): string | null {
+  const fromHeader = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+  if (fromHeader) return fromHeader;
+
+  const fromCookie = req?.cookies?.refresh_token;
+  if (typeof fromCookie === 'string' && fromCookie.length > 0) return fromCookie;
+
+  const fromBody = req?.body?.refreshToken;
+  if (typeof fromBody === 'string' && fromBody.length > 0) return fromBody;
+
+  return null;
+}
 
 passport.use(
   'jwt-refresh',
   new JwtStrategy(
     {
-      jwtFromRequest: ExtractJwt.fromExtractors([(req: Request) => req?.cookies?.refresh_token ?? null]),
+      jwtFromRequest: extractRefreshToken,
+      algorithms: [JWT_ALGORITHM],
       ignoreExpiration: false,
       secretOrKey: config.jwt.refreshSecret,
       passReqToCallback: true,
     },
     (req: Request, payload: { sub: string }, done) => {
-      const refreshToken = req.cookies?.refresh_token;
+      const refreshToken = extractRefreshToken(req);
       return done(null, { userId: payload.sub, refreshToken });
     }
   )

@@ -1,0 +1,87 @@
+# API — convenciones
+
+Nueva feature: `/new-feature`. Contratos: `packages/shared/CLAUDE.md`.
+
+## Estructura
+
+```
+apps/api/src/
+  common/http/        HttpError, validatedQuery y la augmentación de Express.User
+  common/db/          prisma singleton, lockUserSessions (advisory lock de sesiones)
+  common/utils/       validate, logger, http-logger (pino-http con redact), error-handler, rate-limit, client-ip, origin-guard, no-store,
+                      cookies (set/clear de la sesión), password (hashPassword), not-found (404 JSON bajo /api)
+  health/             /api/health (liveness) y /api/health/ready (SELECT 1); públicos, antes del guard
+  <feature>/
+    <feature>.routes.ts   HTTP, validate, middleware auth, res.json
+    <feature>.service.ts  Prisma, TMDB, reglas de negocio — sin req/res
+  config.ts · app.ts · main.ts · router.ts
+```
+
+Features: `auth`, `media`, `users`, `admin`, `gym`, `pantry`, `expenses`, `split-expenses`, `holidays`. Registrar en `src/router.ts` con `router.use('/<feature>', featureRoutes)`.
+
+```ts
+import { prisma } from '../common/db';
+import { validate, logger } from '../common/utils';
+import { someSchema } from '@omni/shared/<domain>';
+```
+
+No redefinir schemas Zod si ya existen en `@omni/shared`.
+
+## Detrás del proxy de Vercel
+
+- `ORIGIN_SECRET` es **obligatorio en producción** (el arranque falla sin él). El origin guard exige el header `x-origin-secret` en `/api/*` y solo confía en `x-real-ip` si el request lo pasó; fuera de producción, sin secreto, el guard no actúa.
+- `/api/health` y `/api/health/ready` se montan antes del guard y del rate limit global: Render y el keep-alive pegan directo. `/ready` tiene su propio limiter.
+- Las cookies de sesión se emiten y borran siempre con `setAccessCookie`/`setRefreshCookie`/`clearCookies` de `common/utils`: el borrado solo funciona si `path` y opciones coinciden.
+
+## Prisma
+
+Schema: `prisma/schema.prisma`. No editar `src/generated/`. Migraciones desde `apps/api/`: `pnpm db:migrate` — ver `docs/api/prisma.md`.
+
+## Validación
+
+`validate(schema)` para body; `validate(schema, 'query')` para query params.
+
+```ts
+router.post('/list', validate(addMediaItemSchema), async (req, res) => { ... });
+```
+
+> `validate` define `req.query` como propiedad propia para que la coerción de Zod persista: en Express 5 el getter de `req.query` reparsea el query string en **cada** acceso y descartaría los valores convertidos.
+
+## Auth
+
+- Rutas protegidas: `authenticateJwt` (cookie `access_token` **o** `Authorization: Bearer`).
+- Login/refresh: setean cookies (web) **y** devuelven `accessToken` + `refreshToken` en el JSON (mobile).
+- Refresh acepta token por cookie, Bearer o body `{ refreshToken }`.
+- Logout no usa `authenticateJwt`: `authenticateLogout` (estrategia `logout`, nunca rechaza) extrae el refresh token del body o, si no, de la cookie. El handler no lee `req.cookies` directo: las rutas que mutan y usan cookies van detrás de `passport.authenticate` con `session: false`, que CodeQL reconoce. Es idempotente y siempre llama a `clearCookies`.
+- Refresh tokens: en la base va el sha256 (`hashRefreshToken`), nunca bcrypt. Toda escritura de `RefreshToken` va en una transacción que empieza con `lockUserSessions(tx, userId)`. Ver "Auth dual" en `docs/architecture.md`.
+- El logger HTTP (`createHttpLogger`) redacta los headers con credenciales: no montar `pino-http` directo.
+- Admin: `authenticateJwt` + `requireAdmin`.
+- Tipos: `AuthTokensResponse`, `refreshTokenBodySchema` en `@omni/shared/auth`.
+
+## Errores
+
+Las rutas no llevan `try/catch`: Express 5 propaga los rechazos de los handlers async al handler global (`common/utils/error-handler.ts`). Los errores de dominio se lanzan con `throw new HttpError(status, message)` de `common/http`, nunca con un literal. En rutas autenticadas, `req.user!` tiene `userId`, `username` y `role`; el query ya validado se lee con `validatedQuery<T>(req)`.
+
+## Consultas
+
+Evitar N+1: resolver colecciones con un `findMany({ where: { id: { in: ids } } })` en vez de un query por ítem dentro de un loop.
+
+## Rate limiting
+
+Usar `createRateLimiter` de `common/utils`, no `express-rate-limit` directo: permite apagar los límites fuera de producción con `RATE_LIMIT_DISABLED`, que es lo que necesita la suite E2E (los límites son por IP). Patrón en `auth.routes.ts`, `media.routes.ts`, `users.routes.ts`.
+
+## Tests
+
+| Capa        | Archivo                                        | Mock service | BD  |
+| ----------- | ---------------------------------------------- | ------------ | --- |
+| Integración | `__tests__/integration/*.integration.test.ts`  | No           | Sí  |
+| Unitarios   | `__tests__/*.test.ts` (schemas, utils, reglas) | No           | No  |
+
+Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet (`tmdb.service`). Patrón completo: `docs/api/route-testing.md`.
+
+```bash
+docker compose up -d db-test
+pnpm --filter api db:test:reset
+pnpm --filter api test        # unit + integración
+pnpm --filter api test:unit   # solo unit, sin Docker
+```

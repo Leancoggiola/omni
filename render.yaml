@@ -1,9 +1,11 @@
 services:
   - type: web
-    name: aio-app-api
+    name: omni-api
     runtime: docker
-    repo: https://github.com/Leancoggiola/aio-app
+    repo: https://github.com/Leancoggiola/omni
     branch: main
+    # Entre comillas: un parser YAML 1.1 leería off como false. El deploy lo dispara release.yml.
+    autoDeployTrigger: 'off'
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
     plan: free
@@ -26,4 +28,6 @@ services:
       - key: ADMIN_USERNAME
         sync: false
       - key: ADMIN_PASSWORD
+        sync: false
+      - key: ORIGIN_SECRET
         sync: false

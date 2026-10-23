@@ -8,7 +8,7 @@ passport.use(
     try {
       const user = await authService.validateUser(username, password);
       if (!user) return done(null, false, { message: 'Credenciales inválidas' });
-      return done(null, user);
+      return done(null, user as unknown as Express.User);
     } catch (err) {
       return done(err);
     }

@@ -1,24 +1,62 @@
+import type { TmdbMediaResult, TmdbMovieDetail, TmdbSearchResponse, TmdbTvDetail } from '@omni/shared/media';
 import { config } from '../config';
-import type { TmdbSearchResponse, TmdbMediaResult, TmdbMovieDetail, TmdbTvDetail } from '@aio-app/shared/media';
+import { logger } from '../common/utils/logger';
+import { HttpError } from '../common/http';
 
-export type { TmdbSearchResponse, TmdbMediaResult, TmdbMovieDetail, TmdbTvDetail };
+export type { TmdbMediaResult, TmdbMovieDetail, TmdbSearchResponse, TmdbTvDetail };
 
+const REQUEST_TIMEOUT_MS = 8_000;
+
+/**
+ * Traduce una falla de TMDB al error HTTP que expone la API. Un 401/403 de TMDB es un problema de credenciales de la
+ * API hacia TMDB, no de la sesión del usuario: se reenvía como 502 para que los clientes no lo lean como sesión vencida.
+ */
+function upstreamError(err: unknown): HttpError {
+  logger.warn({ err }, 'TMDB inalcanzable');
+  if (err instanceof Error && err.name === 'TimeoutError') {
+    return new HttpError(504, 'TMDB no respondió a tiempo');
+  }
+  return new HttpError(502, 'No se pudo contactar a TMDB');
+}
+
+function upstreamStatusError(status: number): HttpError {
+  if (status === 404) return new HttpError(404, 'No se encontró el título en TMDB');
+  logger.warn({ upstreamStatus: status }, 'TMDB respondió con error');
+  return new HttpError(502, 'Error de TMDB');
+}
+
+/**
+ * Autentica con el "API Read Access Token" de TMDB en `Authorization: Bearer`, así la credencial no queda en la URL.
+ * El `signal` cubre también la lectura del body: un timeout en `res.json()` se rechaza con el mismo `TimeoutError`.
+ */
 async function get<T>(path: string, params: Record<string, string | number> = {}): Promise<T> {
   const url = new URL(`${config.tmdb.baseUrl}${path}`);
-  url.searchParams.set('api_key', config.tmdb.apiKey);
-  url.searchParams.set('language', 'es-ES');
+  url.searchParams.set('language', 'en-US');
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, String(value));
   }
 
-  const res = await fetch(url.toString());
-  if (!res.ok) {
-    throw {
-      status: res.status,
-      message: `Error de TMDB API: ${res.statusText}`,
-    };
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${config.tmdb.apiKey}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (err) {
+    throw upstreamError(err);
   }
-  return res.json() as Promise<T>;
+
+  if (!res.ok) {
+    throw upstreamStatusError(res.status);
+  }
+
+  try {
+    return (await res.json()) as T;
+  } catch (err) {
+    if (err instanceof Error && err.name === 'TimeoutError') throw upstreamError(err);
+    logger.warn({ err }, 'TMDB devolvió una respuesta inválida');
+    throw new HttpError(502, 'TMDB devolvió una respuesta inválida');
+  }
 }
 
 export async function searchMulti(query: string, page = 1): Promise<TmdbSearchResponse> {

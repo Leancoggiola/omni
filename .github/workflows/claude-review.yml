@@ -1,0 +1,40 @@
+name: Claude Review
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Claude Review
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@89de2884dfb82a6f05363c853c717419cd72bc8a # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          use_sticky_comment: true
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Revisá este PR siguiendo las instrucciones de `.claude/agents/review.md`
+            y las reglas de `CLAUDE.md` y del `CLAUDE.md` de cada app tocada.
+            Obtené el diff con `git diff origin/${{ github.base_ref }}...HEAD`. Comentarios puntuales como inline comments;
+            el resumen por severidad en un único comentario del PR. Respondé en español.
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(git diff origin/*),Bash(git log:*),Bash(git show:*),Bash(gh pr view:*),Read,Grep,Glob"

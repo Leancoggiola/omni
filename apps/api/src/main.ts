@@ -1,62 +1,23 @@
+import { createApp } from './app';
 import { config } from './config';
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
-import passport from 'passport';
-import pinoHttp from 'pino-http';
-import rateLimit from 'express-rate-limit';
-
-import './auth/strategies/jwt.strategy';
-import './auth/strategies/jwt-refresh.strategy';
-import './auth/strategies/local.strategy';
-
-import router from './router';
-import { errorHandler, logger } from './common/utils';
-import { prisma } from './common/db';
+import { logger } from './common/utils';
+import { checkDatabaseConnection, prisma } from './common/db';
 
 async function bootstrap() {
   await prisma.$connect();
-  logger.info('Connected to PostgreSQL');
 
-  const app = express();
+  if (config.isProduction) {
+    logger.info('Connected to PostgreSQL');
+  } else {
+    const dbOk = await checkDatabaseConnection();
+    if (dbOk) {
+      logger.info('PostgreSQL: conexión verificada');
+    } else {
+      logger.warn('La API arrancó sin conexión a la base de datos');
+    }
+  }
 
-  app.use(helmet());
-  app.use(
-    cors({
-      origin: config.corsOrigin,
-      credentials: true,
-    })
-  );
-
-  // Global rate limiter: 100 requests per 15 minutes per IP
-  app.use(
-    rateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 100,
-      standardHeaders: true,
-      legacyHeaders: false,
-      message: {
-        statusCode: 429,
-        message: 'Demasiadas solicitudes, intenta de nuevo más tarde',
-      },
-    })
-  );
-
-  app.use(express.json());
-  app.use(cookieParser());
-  app.use(passport.initialize());
-  app.use(pinoHttp({ logger }));
-
-  app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok' });
-  });
-
-  app.use('/api', router);
-
-  app.use(errorHandler);
-
-  app.listen(config.port, '0.0.0.0', () => {
+  createApp().listen(config.port, '0.0.0.0', () => {
     logger.info(`API running on http://0.0.0.0:${config.port}`);
   });
 }

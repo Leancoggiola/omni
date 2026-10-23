@@ -1,8 +1,8 @@
-import type { MediaType, AddMediaItemPayload, FilterMediaParams, UpdateMediaItemPayload } from '@aio-app/shared/media';
+import type { AddMediaItemPayload, FilterMediaParams, UpdateMediaItemPayload } from '@omni/shared/media';
 
 import { prisma } from '../common/db';
 import * as tmdbService from './tmdb.service';
-import { recalculateStats } from '../users/stats.service';
+import { HttpError } from '../common/http';
 
 export async function search(query: string, page: number, type: string) {
   switch (type) {
@@ -13,13 +13,6 @@ export async function search(query: string, page: number, type: string) {
     default:
       return tmdbService.searchMulti(query, page);
   }
-}
-
-export async function getTmdbDetail(type: MediaType, tmdbId: number) {
-  if (type === 'movie') {
-    return tmdbService.getMovieDetail(tmdbId);
-  }
-  return tmdbService.getTvDetail(tmdbId);
 }
 
 export async function addToList(userId: string, dto: AddMediaItemPayload) {
@@ -34,7 +27,7 @@ export async function addToList(userId: string, dto: AddMediaItemPayload) {
   });
 
   if (existing) {
-    throw { status: 409, message: 'Este elemento ya está en tu lista' };
+    throw new HttpError(409, 'Este elemento ya está en tu lista');
   }
 
   let title: string;
@@ -61,8 +54,6 @@ export async function addToList(userId: string, dto: AddMediaItemPayload) {
     },
   });
 
-  await recalculateStats(userId);
-
   return item;
 }
 
@@ -83,15 +74,13 @@ export async function updateStatus(userId: string, itemId: string, dto: UpdateMe
   });
 
   if (!item) {
-    throw { status: 404, message: 'Elemento no encontrado' };
+    throw new HttpError(404, 'Elemento no encontrado');
   }
 
   const updated = await prisma.mediaItem.update({
     where: { id: itemId },
     data: { status: dto.status },
   });
-
-  await recalculateStats(userId);
 
   return updated;
 }
@@ -102,10 +91,8 @@ export async function removeFromList(userId: string, itemId: string): Promise<vo
   });
 
   if (!item) {
-    throw { status: 404, message: 'Elemento no encontrado' };
+    throw new HttpError(404, 'Elemento no encontrado');
   }
 
   await prisma.mediaItem.delete({ where: { id: itemId } });
-
-  await recalculateStats(userId);
 }

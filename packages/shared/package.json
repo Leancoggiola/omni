@@ -1,38 +1,38 @@
 {
-  "name": "@aio-app/shared",
+  "name": "@omni/shared",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts",
+    "./api": "./src/api/index.ts",
     "./auth": "./src/auth/index.ts",
     "./media": "./src/media/index.ts",
-    "./users": "./src/users/index.ts"
-  },
-  "typesVersions": {
-    "*": {
-      "auth": [
-        "src/auth/index.ts"
-      ],
-      "media": [
-        "src/media/index.ts"
-      ],
-      "users": [
-        "src/users/index.ts"
-      ]
-    }
+    "./users": "./src/users/index.ts",
+    "./theme": "./src/theme/index.ts",
+    "./gym": "./src/gym/index.ts",
+    "./expenses": "./src/expenses/index.ts",
+    "./split-expenses": "./src/split-expenses/index.ts",
+    "./pantry": "./src/pantry/index.ts",
+    "./holidays": "./src/holidays/index.ts",
+    "./common": "./src/common/index.ts",
+    "./navigation": "./src/navigation/index.ts",
+    "./server-wake": "./src/server-wake/index.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@aio-app/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
-    "typescript": "6.0.3"
+    "@omni/eslint-config": "workspace:*",
+    "@omni/typescript-config": "workspace:*",
+    "@vitest/coverage-v8": "5.0.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.0"
   }
 }

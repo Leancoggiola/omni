@@ -1,0 +1,102 @@
+import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
+import { WarningCircleIcon, type Icon } from 'phosphor-react-native';
+import { Paragraph, XStack, YStack } from 'tamagui';
+
+import { useSemanticColors } from '@/core/theme';
+
+import { Button } from './button/Button';
+import { Spinner } from './Spinner';
+
+import type { ReactNode } from 'react';
+
+/**
+ * Estados de UI compartidos, mismo contrato que `@/shared/ui` de web (regla de oro 0): el `error`
+ * de SWR se muestra con `ErrorState`, nunca como lista vacía.
+ */
+
+export function LoadingState({ size = 'large' }: { size?: 'small' | 'large' }) {
+  return (
+    <YStack paddingVertical={SPACING.xl} alignItems="center" justifyContent="center">
+      <Spinner size={size} />
+    </YStack>
+  );
+}
+
+const INDICATOR_SIZE = 56;
+
+type EmptyStateProps = {
+  icon: Icon;
+  title: string;
+  /** Debajo del título, típicamente un Button. */
+  action?: ReactNode;
+};
+
+export function EmptyState({ icon: IconComponent, title, action }: EmptyStateProps) {
+  const colors = useSemanticColors();
+
+  return (
+    <YStack
+      backgroundColor="$backgroundStrong"
+      borderWidth={1}
+      borderColor="$borderColor"
+      borderRadius={RADIUS.md}
+      padding={SPACING.xl}
+      gap={SPACING.md}
+      alignItems="center"
+    >
+      <YStack
+        width={INDICATOR_SIZE}
+        height={INDICATOR_SIZE}
+        borderRadius={RADIUS.full}
+        backgroundColor="$dimmedSurface"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <IconComponent size={28} color={colors.dimmed} />
+      </YStack>
+      <Paragraph fontSize={FONT_SIZE.lg} fontWeight="600" textAlign="center">
+        {title}
+      </Paragraph>
+      {action}
+    </YStack>
+  );
+}
+
+type ErrorStateProps = {
+  message?: string;
+  onRetry?: () => void;
+  retrying?: boolean;
+};
+
+/** Error con "Reintentar" opcional; `retrying` lo muestra cargando mientras el reintento está en curso. */
+export function ErrorState({
+  message = 'No se pudieron cargar los datos',
+  onRetry,
+  retrying = false,
+}: ErrorStateProps) {
+  const colors = useSemanticColors();
+
+  return (
+    <YStack
+      backgroundColor="$errorSurface"
+      borderWidth={1}
+      borderColor="$destructive"
+      borderRadius={RADIUS.lg}
+      padding={SPACING.md}
+      gap={SPACING.md}
+      accessibilityRole="alert"
+    >
+      <XStack gap={SPACING.sm} alignItems="center">
+        <WarningCircleIcon size={20} color={colors.destructive} />
+        <Paragraph flex={1} fontSize={FONT_SIZE.md}>
+          {message}
+        </Paragraph>
+      </XStack>
+      {onRetry ? (
+        <Button fullWidth size="sm" variant="outline" color="destructive" loading={retrying} onPress={onRetry}>
+          Reintentar
+        </Button>
+      ) : null}
+    </YStack>
+  );
+}

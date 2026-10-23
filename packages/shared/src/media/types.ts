@@ -1,5 +1,3 @@
-// ── Domain types ──────────────────────────────────────────────
-
 export type MediaType = 'movie' | 'tv';
 export type MediaStatus = 'to_watch' | 'watching' | 'watched';
 
@@ -11,18 +9,10 @@ export interface MediaItem {
   mediaType: MediaType;
   title: string;
   posterPath: string | null;
-  streamingReleaseDate: string | null;
   status: MediaStatus;
   createdAt: string;
   updatedAt: string;
 }
-
-export interface MediaFilters {
-  status?: MediaStatus;
-  mediaType?: MediaType;
-}
-
-// ── TMDB API response shapes ─────────────────────────────────
 
 export interface TmdbMediaResult {
   id: number;

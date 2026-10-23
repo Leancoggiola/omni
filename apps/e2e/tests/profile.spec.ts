@@ -1,0 +1,73 @@
+import { expect, test } from '../src/fixtures/test';
+import { ProfilePage } from '../src/pages/ProfilePage';
+
+test.describe('perfil', () => {
+  test('guarda el teléfono y lo conserva al recargar', async ({ page, freshUser }) => {
+    await freshUser('tel');
+    const profile = new ProfilePage(page);
+    await profile.goto();
+
+    await profile.phoneField().fill('+54 11 5555 5555');
+    await profile.saveButton().click();
+
+    await expect(page.getByRole('alert').filter({ hasText: 'Listo' })).toBeVisible();
+    await page.reload();
+    await expect(profile.phoneField()).toHaveValue('+54 11 5555 5555');
+  });
+
+  test('cambia las preferencias de tema y notificaciones', async ({ page, freshUser }) => {
+    await freshUser('pref');
+    const profile = new ProfilePage(page);
+    await profile.goto();
+    await expect(profile.notificationsSwitch()).not.toBeChecked();
+
+    await profile.toggleNotifications();
+    await profile.selectTheme('Oscuro');
+    await profile.saveButton().click();
+
+    await expect(page.getByRole('alert').filter({ hasText: 'Listo' })).toBeVisible();
+    await page.reload();
+    await expect(profile.notificationsSwitch()).toBeChecked();
+    await expect(profile.themeOption('Oscuro')).toBeChecked();
+  });
+
+  test('rechaza una confirmación de contraseña que no coincide', async ({ page, freshUser }) => {
+    const user = await freshUser('pwbad');
+    const profile = new ProfilePage(page);
+    await profile.goto();
+
+    await profile.changePassword(user.password, 'contrasena-nueva-1', 'otra-cosa-distinta');
+
+    await expect(page.getByText('Las contraseñas no coinciden')).toBeVisible();
+  });
+
+  test('cambia la contraseña y permite iniciar sesión con la nueva', async ({ page, freshUser }) => {
+    const user = await freshUser('pwok');
+    const profile = new ProfilePage(page);
+    await profile.goto();
+    const newPassword = 'contrasena-nueva-1';
+
+    await profile.changePassword(user.password, newPassword);
+
+    await expect(page.getByRole('alert').filter({ hasText: 'Listo' })).toBeVisible();
+
+    const login = await page.request.post('/api/auth/login', {
+      data: { username: user.username, password: newPassword },
+    });
+    expect(login.ok()).toBeTruthy();
+  });
+
+  test('rechaza una contraseña actual incorrecta y conserva la contraseña vigente', async ({ page, freshUser }) => {
+    const user = await freshUser('pwwrong');
+    const profile = new ProfilePage(page);
+    await profile.goto();
+
+    await profile.changePassword('no-es-la-actual-1', 'contrasena-nueva-1');
+
+    await expect(page.getByText('La contraseña actual es incorrecta')).toBeVisible();
+    const login = await page.request.post('/api/auth/login', {
+      data: { username: user.username, password: user.password },
+    });
+    expect(login.ok()).toBeTruthy();
+  });
+});

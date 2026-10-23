@@ -1,0 +1,248 @@
+# Design system
+
+Fuente única de color y tokens para **web** (Mantine) y **mobile** (Tamagui).
+
+Todo el color nace en `packages/shared/src/theme/tokens.ts`. Ningún cliente define hex propios: si un color no existe como token, se agrega ahí primero.
+
+---
+
+## Identidad
+
+Paleta cálida **terracota + marrón**, con **sage** como contrapunto para "completado".
+
+| Rol                | Escala       | Base      | Uso                                                          |
+| ------------------ | ------------ | --------- | ------------------------------------------------------------ |
+| Primario           | `BRAND`      | `#7A4530` | `primaryColor` de Mantine, nav activo, gradientes, links     |
+| Acento             | `TERRACOTTA` | `#C1440E` | Chips de íconos, badges destacados, estado "en curso", glows |
+| Éxito / completado | `SAGE`       | `#57764B` | Confirmaciones, "saldado", estado "vista"                    |
+| Neutro cálido      | `CANVAS`     | —         | Fondo de página (`#F4F0EB` light / `#141313` dark)           |
+| Superficie         | `SURFACE`    | —         | Cards y paneles (`#FFFDFB` light / `#211E1C` dark)           |
+
+Reglas:
+
+- **Nunca blanco puro ni gris frío** como fondo de página o card. El patrón es _canvas cálido + card cálida un tono más clara_.
+- **`BRAND` vs `TERRACOTTA`**: brand es la estructura (nav activo, títulos, gradiente principal); terracota es el acento puntual. Si todo es terracota deja de ser acento.
+- **Nada de verdes/azules crudos de Mantine.** `color="green"` o `color="blue"` rompen la paleta — usar los alias semánticos (`success`, `info`, `warning`, `destructive`). En web, ESLint marca los literales `color`/`c`/`bg` con un color por defecto de Mantine (`red`, `blue`…), pero es una red parcial: no ve expresiones (`color={cond ? 'red' : 'blue'}`), spreads ni `gray`/`dark`, que se usan a propósito para controles neutros (`gray` = `dimmed`).
+
+---
+
+## Arquitectura de tokens
+
+```
+packages/shared/src/theme/tokens.ts     escalas crudas + semanticLight/semanticDark + SEMANTIC
+        │
+        ├── apps/web/src/theme/palettes.ts        escalas → MantineColorsTuple
+        ├── apps/web/src/theme/css-variables.ts   semantic* → CSS vars por esquema
+        └── apps/mobile/src/theme/tamagui.config.ts   SEMANTIC → themes de Tamagui
+```
+
+### Capas
+
+1. **Escalas crudas** (`BRAND`, `TERRACOTTA`, `SAGE`, `GRAY`, …) — objetos de 10-11 shades. No se consumen directo en features.
+2. **Tokens semánticos** (`semanticLight` / `semanticDark`) — mapas de CSS vars agrupados en `text-*`, `surfaces-*`, `border-*`, `icons-*`. Es lo que consumen los componentes.
+3. **Mapa compacto** (`SEMANTIC.light` / `SEMANTIC.dark`) — subset plano derivado de los anteriores, para consumidores sin CSS vars (Tamagui en mobile).
+
+### Sub-themes de componentes (mobile)
+
+`@tamagui/config` trae themes propios por componente (`light_Button`, `dark_active_Switch`, …) que Tamagui busca **antes** que el theme base; si no se pisan, Button y Switch salen grises o rosas. `tamagui.config.ts` los reconstruye todos desde `SEMANTIC` (`componentThemes`): `_red` → destructivo, `_active` → primario, el resto → superficie. Casos puntuales: Button neutro sobre `card` con borde, Switch apagado en `border` con thumb blanco y checked en `backgroundActive` = primario, Slider/Progress activos en primario. Overlays (scrim) no se tocan. Un test (`tamagui.config.test.ts`) verifica que resuelvan a `SEMANTIC`.
+
+Límites de Tamagui: `defaultProps` del config sí llega a Input/TextArea (cursor y selección en `$primary`), pero **no** a Spinner ni al texto de Button. Por eso existen el `Spinner` de `@/shared/ui` (`$primary` por defecto; ESLint prohíbe el de `tamagui`) y el `Button` propio, que fija el peso 600.
+
+Los sub-themes reemplazan el theme entero: un token propio (`$destructive`, `$disabledSurface`) solo resuelve si el sub-theme parte de `surfaceTheme`. Por eso `inputTheme` y los themes de color (`active`, `red`, `alt*`) arrancan de `surfaceTheme` y pisan solo fondo y texto: una primitiva dentro de un `theme="active"` sigue teniendo sus colores. El test del config lo cubre.
+
+### Familias semánticas
+
+| Prefijo      | Ejemplo                                 |
+| ------------ | --------------------------------------- |
+| `text-*`     | `--mantine-color-text-dimmed`           |
+| `surfaces-*` | `--mantine-color-surfaces-accent-light` |
+| `border-*`   | `--mantine-color-border-success`        |
+| `icons-*`    | `--mantine-color-icons-error`           |
+
+Cada familia tiene variantes `primary`, `destructive`, `dimmed`, `disabled` y las semánticas `success` / `warning` / `info` / `error` / `accent`.
+
+En `SEMANTIC`, cada color de estado tiene su terna `{color}` (texto) / `{color}Surface` (wash) / `{color}Border`, igual que `text-*` / `surfaces-*-light` / `border-*` de web: `primary`/`primarySurface`/`primaryBorder`, `destructive`/`errorSurface`/`destructiveBorder`, y lo mismo para `success`, `warning`, `info`, `accent` y `dimmed`. Se suman los rellenos `filled`: `primaryFill`/`onPrimaryFill` (`Button` de marca: `BRAND[7]` en claro y `BRAND[4]` en oscuro, el `primaryShade` de web; `primary` queda para texto y acentos), `accentFill`/`onAccentFill` (Badge de tipo: `TERRACOTTA[7]` / `[4]`) y `destructiveFill`/`onDestructive` (`RED[7]` en los dos esquemas, como la paleta `destructive` de web; `destructive` es el rojo de texto, que en oscuro es `RED[4]`). Más `disabledSurface`/`disabledText` (= `--mantine-color-disabled*`). Son los que usan `Button`, `Badge`, `Banner` y el estado deshabilitado.
+
+**Texto sobre un relleno: `onFill()`.** Todo `on*` de un relleno sale de `onFill(fill)` de `@omni/shared/theme`: blanco o `CANVAS.dark`, el que más contraste da en ese esquema. En web, `cssVariablesResolver` genera `--mantine-color-<color>-on-filled` por esquema para cada paleta y el `variantResolver` lo usa en `filled`, en lugar del `autoContrast` de Mantine (que decide con el tono de claro y en oscuro dejaba texto blanco sobre el shade 4, ~3:1). Resultado en oscuro: texto oscuro sobre el Button de marca (5,5:1) y el Badge terracota (6,3:1). El hover (web, `--mantine-color-<color>-filled-hover`) y el presionado (mobile, `primaryFillHover`/`primaryFillPress`) se mueven hacia el lado que conserva el contraste: más oscuros con texto blanco, más claros con texto oscuro. El umbral es el de máximo contraste, no el 0,3 de luminancia de Mantine: en claro, `orange`, `indigo`, `teal` y `cyan` filled pasan a texto oscuro (hoy ninguna se usa filled). Los badges `success` y `dimmed` usan `onSuccess`/`onDimmed`, cada uno calculado sobre su propio fondo. Tests de regresión: `apps/mobile/src/theme/contrast.test.ts` y `apps/web/src/theme/__tests__/filledContrast.test.ts` exigen ≥ 4,5:1 (`WCAG_AA_TEXT`).
+
+**Texto sobre fondos: AA en los dos esquemas (#137).** En claro, `text-primary` es `BRAND[6]` (no `BRAND[5]`, que daba 3,8:1 sobre `primarySurface` y 4,5:1 justo sobre el canvas) y `text-dimmed` es `GRAY[6]` (no `GRAY[5]`, 4,4:1 sobre el canvas); el hover del atenuado baja a `GRAY[7]` y el del link a `BRAND[6]`. El test de texto de `contrast.test.ts` mide texto, marca, atenuado y link (y los hovers del atenuado y del link) sobre canvas y card, y la marca sobre su wash (compuesto sobre el fondo, porque en oscuro es translúcido). Si un token cambia y baja de 4,5:1, falla ahí.
+
+### Transparencias
+
+Las variantes `*-disabled` y los `surfaces-*-light` de dark son un shade de la escala con alfa. Se escriben con el helper interno `withAlpha(SHADE, 'aa')` de `tokens.ts` (sufijo hex de 2 dígitos: `4d` ≈ 30 %, `29` ≈ 16 %, `33` = 20 %), nunca como hex literal: así un cambio en la escala se propaga a la versión translúcida.
+
+### Radios, espaciado y elevación
+
+`RADIUS`, `SPACING` y `SHADOW` (`@omni/shared/theme`) están en **px** y los consumen los dos clientes:
+
+| Token     | Web (Mantine)                                           | Mobile (Tamagui)                                             |
+| --------- | ------------------------------------------------------- | ------------------------------------------------------------ |
+| `RADIUS`  | `theme.radius`, en rem (`apps/web/src/theme/tokens.ts`) | número: `borderRadius={RADIUS.lg}`                           |
+| `SPACING` | `theme.spacing`, en rem                                 | número: `padding={SPACING.md}`, `gap={SPACING.xs}`           |
+| `SHADOW`  | — (web usa `SHADOWS` CSS de dos capas)                  | `shadowColor/Offset/Opacity/Radius` + `elevation` en Android |
+
+En mobile, **no** se registran como tokens de Tamagui (`$lg`): Input, Select, Popover y ListItem calculan su padding recorriendo la escala `space`/`radius` ordenada por valor (`getSpace(token, { shift })`), y sumarle valores cambia esos pasos. El código nuevo usa las constantes compartidas para que un `lg` signifique lo mismo en las dos plataformas; los `$4` de `@tamagui/config` quedan para el interior de los componentes de Tamagui. `SHADOW` replica la capa principal de cada sombra CSS de web: si cambia una, revisar la otra.
+
+### Tipografía e íconos
+
+Los dos clientes usan **Montserrat** (400/500/600/700) e íconos **Phosphor** con los mismos nombres (`@phosphor-icons/react` en web, `phosphor-react-native` en mobile). Un ícono nuevo se elige una vez y se usa igual en los dos.
+
+### Gradientes
+
+`GRADIENT_STOPS` (`@omni/shared/theme`) define `from` / `to` / `deg` (convención CSS) de cada gradiente:
+
+| Gradiente    | Stops                         | Uso                                    |
+| ------------ | ----------------------------- | -------------------------------------- |
+| `brand`      | `BRAND[5]` → `BRAND[7]`, 90°  | Avatares, `defaultGradient` de Mantine |
+| `terracotta` | `TERRACOTTA[4]` → `[7]`, 90°  | Acentos puntuales                      |
+| `cardLight`  | `BRAND[0]` → `BRAND[2]`, 215° | Card de efemérides de la home (light)  |
+| `cardDark`   | `BRAND[4]` → `BRAND[5]`, 215° | Card de efemérides de la home (dark)   |
+
+Web los expone como `GRADIENTS` (`apps/web/src/theme/gradients.ts`, tipados como `MantineGradient`); mobile los pasa a `expo-linear-gradient` convirtiendo `deg` a `start` / `end`. El texto sobre `cardLight` / `cardDark` usa `text-black` (`SEMANTIC.*.black` en mobile) en ambos esquemas: los dos fondos son claros/medios.
+
+### Variante `light-custom` (Alert)
+
+Es la variante por defecto de `Alert` en web (`apps/web/src/theme/components.tsx`). El resolver de `css-variables.ts` le pone de fondo `surfaces-{color}-light` y de borde `border-{color}`, así que `<Alert color="success">` usa la paleta semántica sin CSS propio.
+
+---
+
+## Agregar un color
+
+1. Definir la escala en `packages/shared/src/theme/tokens.ts` y exportarla en `theme/index.ts`.
+2. Mapearla a tokens semánticos en `semanticLight` **y** `semanticDark`.
+3. Web: registrarla en `COLOR_PALETTE` (`apps/web/src/theme/palettes.ts`) y sumar el nombre a `AppColors` (`apps/web/src/theme/mantine.d.ts`).
+4. Mobile: si hace falta en features, exponerla en `SEMANTIC` y en `surfaceTheme()` de `tamagui.config.ts`.
+
+---
+
+## Truco: tokens que se adaptan solos al esquema
+
+Los tokens `surfaces-*-light` son **sólidos pálidos en light mode** y **rgba translúcidos en dark mode**. Gracias a eso, un mismo CSS funciona en ambos esquemas sin duplicar reglas:
+
+```scss
+/* NotificationCard.module.scss */
+background: linear-gradient(135deg, var(--notif-wash) 0%, transparent 65%);
+```
+
+La excepción son los **washes sobre superficies casi blancas**: una mezcla que se ve bien sobre fondo oscuro desaparece sobre `#FFFDFB`. En esos casos hay que separar por esquema:
+
+```scss
+:root[data-mantine-color-scheme='light'] .appshell_navbar {
+  --navbar-glow-top: color-mix(in srgb, var(--mantine-color-terracotta-4) 42%, transparent);
+}
+:root[data-mantine-color-scheme='dark'] .appshell_navbar {
+  --navbar-glow-top: color-mix(in srgb, var(--mantine-color-terracotta-6) 24%, transparent);
+}
+```
+
+---
+
+## Componentes compartidos
+
+Los dos clientes tienen `@/shared/ui` con la misma API; cambia la implementación (Mantine / Tamagui). Tabla de equivalencias web ↔ mobile:
+
+| Web (Mantine)                                | Mobile (`@/shared/ui`)                       | Notas                                                                                                                         |
+| -------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `PageHeader`                                 | `ScreenHeader`                               | Chip de ícono terracota + título + subtítulo                                                                                  |
+| `Paper` / `ProfileSectionCard`               | `SectionCard`                                | Card cálida, radio `lg`, sombra `sm`                                                                                          |
+| `Title order`                                | `Title order`                                | Escala `HEADING`                                                                                                              |
+| `Button`                                     | `Button`                                     | Mismas `variant` (filled · outline · light · subtle). `color`: brand · destructive. sm 36 / md 44 / lg 50 dp (web md = 42 px) |
+| `ActionIcon`                                 | `IconButton`                                 | `subtle` por defecto; `color="dimmed"` = `color="gray"`. `accessibilityLabel` obligatorio                                     |
+| `TextInput`                                  | `TextField`                                  | `label` 14/600, `description`, `error`, `required`, `leftSection`, alto 44                                                    |
+| `PasswordInput`                              | `PasswordField`                              | Ojo para mostrar u ocultar                                                                                                    |
+| `Switch`                                     | `Switch`                                     | Con `label` arma la fila (texto a la izquierda, switch a la derecha)                                                          |
+| `SegmentedControl size="sm" color="brand.6"` | `SegmentedControl`                           | Mismo `data` (strings u objetos); siempre a lo ancho                                                                          |
+| `Badge`                                      | `Badge`                                      | `color` obligatorio: accent · dimmed. Tipo de media = `accent` filled sm                                                      |
+| `Alert` (`light-custom`)                     | `Banner`                                     | Mismo wash y borde por color; error de formulario = `color="destructive"`                                                     |
+| `Select`                                     | `Select`                                     | Campo de 44 dp con el valor y el caret; las opciones abren un `actionSheet()`                                                 |
+| `Menu` / opciones sueltas                    | `actionSheet()`                              | Opciones en bottom sheet, check en la actual + "Cancelar"; `Promise` con el `value` o `null`                                  |
+| `confirm()` (modal)                          | `confirm()` (bottom sheet)                   | `Promise<boolean>`                                                                                                            |
+| `NotificationCard` + `notify*`               | `NotificationCard` + `notify*`               | Toasts de feedback (4 variantes)                                                                                              |
+| `LoadingState` / `EmptyState` / `ErrorState` | `LoadingState` / `EmptyState` / `ErrorState` | Regla de oro 0                                                                                                                |
+| `Loader`                                     | `Spinner`                                    | Color de marca por defecto                                                                                                    |
+| `UserAvatar` (`Avatar name`)                 | `UserAvatar`                                 | Gradiente de marca; iniciales como Mantine ("Admin" → "AD")                                                                   |
+| Select de estado (`.combobox_root[data-*]`)  | `StatusPill`                                 | Neutro / terracota / sage                                                                                                     |
+
+Diferencias aceptadas: en mobile los botones de acción van a lo ancho (`fullWidth`) y apilados (ver "Botones de acción" en `apps/mobile/CLAUDE.md`); el md de Button y los campos miden 44 dp por área de toque; el selector de opciones es un bottom sheet en lugar de un dropdown.
+
+### Notificaciones
+
+`notifySuccess` / `notifyError` desde `@/shared/ui` (mobile suma `notifyWarning`). En web las features **no** importan `@mantine/notifications` directo; en mobile **no** usan `Alert.alert`.
+
+Mismo diseño en las dos plataformas (#68): **abajo** (web `bottom-center`; mobile encima de la tab bar, que le informa su alto con `useSetNotificationsBottomOffset` desde `MeasuredTabBar` mientras las tabs tienen el foco; si no, sobre el inset inferior o encima del teclado), **compacto** (padding xs/sm, título 12/700, mensaje 12 dimmed, X chica), **ícono suelto sin chip** y lavado **D**: una barra de 3 px del color del estado a la izquierda y el lavado horizontal que se desvanece al 90 %.
+
+Cada variante deriva su acento (`icons-{variante}`: ícono y barra) y su lavado (`surfaces-{variante}-light`) de los tokens semánticos (en mobile, `SEMANTIC.successIcon`/`successSurface`, etc.), así que sumar una variante no requiere CSS nuevo por esquema. Mobile dibuja el lavado con `expo-linear-gradient` a 90°, terminando en el mismo color con alfa 0 (no `transparent`: Android interpola sin premultiplicar y deja una banda gris), y la barra con un Stack absoluto. Diferencias aceptadas: en mobile la X mide 36 dp (44 de toque) y la pila va **debajo** de los Sheets (`confirm()`, `actionSheet()`), porque comparten la franja inferior con sus botones.
+
+---
+
+## Logo y assets
+
+El arte maestro vive en `branding/logo-master.png` (PNG cuadrado, fondo transparente, 2048×2048). **No se importa desde ninguna app**: es la fuente para regenerar todo lo demás sin reescalar hacia arriba.
+
+La copia que se bundlea es `apps/web/src/assets/logo.png`, derivada del maestro a **512×512**. La consumen `LogoAvatar`, `AuthCard` y el favicon de `apps/web/index.html`. Se renderiza como máximo en un `Avatar` de ~72 px, así que 512 cubre pantallas retina de sobra — no subir la resolución sin motivo: el maestro a 2048 pesa 3,7 MB contra 253 KB de la versión bundleada, y este archivo se descarga en cada carga de la app.
+
+Mobile no comparte el import: necesita seis derivados en `apps/mobile/assets/images/`, referenciados desde `apps/mobile/app.json`.
+
+| Archivo                       | Tamaño    | Fondo            | Notas                                             |
+| ----------------------------- | --------- | ---------------- | ------------------------------------------------- |
+| `icon.png`                    | 1024×1024 | Opaco `#FBF1E9`  | iOS rechaza íconos con canal alfa                 |
+| `favicon.png`                 | 48×48     | Transparente     | Favicon del build web de Expo                     |
+| `splash-icon.png`             | 512×512   | Transparente     | El color de fondo lo pone `app.json`              |
+| `android-icon-foreground.png` | 1024×1024 | Transparente     | Logo al **62%**: Android recorta el ~66%          |
+| `android-icon-background.png` | 1024×1024 | Sólido `#E4BC9E` | Debe coincidir con `adaptiveIcon.backgroundColor` |
+| `android-icon-monochrome.png` | 1024×1024 | Transparente     | Negro con alfa por luminancia (ver abajo)         |
+
+### Regenerar los derivados
+
+Al cambiar el logo hay que reemplazar `branding/logo-master.png` y regenerar desde ahí los seis de mobile **y** la copia de 512 de web. Un script descartable con `System.Drawing` alcanza (no requiere instalar nada en Windows):
+
+```powershell
+Add-Type -AssemblyName System.Drawing
+$src = New-Object System.Drawing.Bitmap 'branding\logo-master.png'
+# Por cada salida: crear Bitmap Format32bppArgb del tamaño destino,
+# Graphics con InterpolationMode HighQualityBicubic, Clear(color o Transparent),
+# DrawImage centrado con el escalado de la tabla, y Save como Png.
+```
+
+Dos detalles que no son obvios:
+
+- **Padding del adaptive icon.** Android recorta la capa foreground a la máscara del launcher; solo el ~66% central está garantizado. Dibujar el logo al 100% hace que se coma los bordes.
+- **Monochrome.** Aplanar el canal alfa a negro sólido produce un disco ilegible para un logo circular. Conviene mapear _luminancia → opacidad_ (`alpha = alpha * (1 - luminancia)`), así los trazos claros quedan transparentes y el dibujo se sigue leyendo.
+
+Después de regenerar, actualizar en `app.json` los colores de fondo si cambió la paleta: `android.adaptiveIcon.backgroundColor` y el `backgroundColor` del plugin `expo-splash-screen`. Ambos deben salir de la escala `BRAND`.
+
+---
+
+## Paridad web ↔ mobile
+
+Lo que ya es automático: cualquier cambio en `tokens.ts` llega a mobile vía `SEMANTIC` (fondo, card, texto, primario, éxito, destructivo, acento, superficies y bordes de estado, `onPrimary`/`onDestructive`) y vía `RADIUS`/`SPACING`. El plan de paridad completo está en el epic [#70](https://github.com/Leancoggiola/omni/issues/70).
+
+Lo que **no** es automático y hay que replicar a mano en mobile:
+
+| Web                                      | Estado en mobile                                                                                                                                          |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gradiente cálido del sidebar             | No aplica (mobile usa tabs, no sidebar)                                                                                                                   |
+| `PageHeader` con chip de ícono           | Hecho — `ScreenHeader` en las pantallas; Perfil suma `onBack` (IconButton de volver, sin header nativo)                                                   |
+| `NotificationCard` (4 variantes)         | Hecho — `notify*`; ninguna pantalla usa `Alert.alert` (Media #68, Perfil #69) y ESLint lo prohíbe                                                         |
+| Theme de componentes de Tamagui          | Hecho — sub-themes por componente desde `SEMANTIC` (#75)                                                                                                  |
+| Primitivas de formulario y acción        | Hechas (#76); las usan Login (#67), Media (#68) y Perfil (#69); ESLint prohíbe `Button`/`Input`/`Switch` crudos                                           |
+| Login: card con logo, blobs y `Banner`   | Hecho (#67) — `LoginScreen` + `AuthBackground` (blobs de reanimated, quietos con "reducir movimiento")                                                    |
+| Media: lista, filtros, agregar, estado   | Hecho (#68) — `MediaListItem` (póster 56 dp, `Badge`, `StatusPill`, tacho), `MediaToolbar`, FAB + Sheet                                                   |
+| Contraste de rellenos en oscuro          | Hecho (#68) — `onFill()` en `SEMANTIC` y `--mantine-color-<color>-on-filled` en web                                                                       |
+| Inicio: una card con saludo y efemérides | Hecho (#69) — `HomeScreen` = `HomeMainCard` de web (sin `ScreenHeader` ni ícono de destellos)                                                             |
+| Perfil: cards, preferencias instantáneas | Hecho (#69) — Información personal, Preferencias (Switch + `SegmentedControl` de Tema, guardan al instante), Contraseña y Zona de peligro con `confirm()` |
+| Más: `Badge` de "Próximamente"           | Hecho (#69) — `NavRow` con `Badge color="dimmed"`; "Cerrar sesión" es un `Button` outline destructivo                                                     |
+| Card de efemérides (gradiente)           | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                                                                                         |
+| Montserrat + íconos Phosphor             | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                                                                                                    |
+| Radios y espaciado                       | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                                                                                                      |
+| Tema del perfil + toggle de sesión       | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)                                                                           |
+
+Al tocar el design system, correr siempre:
+
+```bash
+pnpm --filter @omni/shared check-types
+pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web test
+pnpm --filter mobile check-types && pnpm --filter mobile lint
+```
+
+No hay test automatizado de color: la verificación es visual en ambos esquemas.

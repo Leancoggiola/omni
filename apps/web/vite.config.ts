@@ -1,26 +1,19 @@
-import path from 'path';
 import { defineConfig } from 'vite';
+
 import react from '@vitejs/plugin-react';
-import svgr from 'vite-plugin-svgr';
+
+/** WEB_PORT / API_PORT los define la suite E2E para correr varias copias a la vez; sin ellos, los de siempre. */
+const webPort = process.env.WEB_PORT ? Number(process.env.WEB_PORT) : undefined;
+const apiPort = process.env.API_PORT ?? '3000';
 
 export default defineConfig({
-  plugins: [svgr(), react()],
-  resolve: {
-    alias: {
-      '@/features': path.resolve(__dirname, './src/app/features'),
-      '@/core': path.resolve(__dirname, './src/app/core'),
-      '@/components': path.resolve(__dirname, './src/app/components'),
-      '@/hooks': path.resolve(__dirname, './src/app/hooks'),
-      '@/common': path.resolve(__dirname, './src/common'),
-      '@/theme': path.resolve(__dirname, './src/theme'),
-      '@/assets': path.resolve(__dirname, './src/assets'),
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
+  plugins: [react()],
+  resolve: { tsconfigPaths: true },
   server: {
+    ...(webPort ? { port: webPort, strictPort: true } : {}),
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: `http://localhost:${apiPort}`,
         changeOrigin: true,
       },
     },

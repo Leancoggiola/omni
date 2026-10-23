@@ -1,0 +1,55 @@
+name: Chore
+description: Infra, deuda técnica, tooling o mantenimiento
+title: '[Chore] '
+labels: ['tipo:chore']
+body:
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: Qué hay que hacer y por qué
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - api
+        - web
+        - mobile
+        - shared
+        - infra
+        - docs
+      multiple: true
+    validations:
+      required: true
+
+  - type: dropdown
+    id: prioridad
+    attributes:
+      label: Prioridad
+      options:
+        - p0
+        - p1
+        - p2
+      default: 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de hecho
+      placeholder: |
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: notas
+    attributes:
+      label: Notas
+    validations:
+      required: false

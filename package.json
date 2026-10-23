@@ -5,6 +5,15 @@
     "dev": "turbo run dev",
     "dev:api": "turbo run dev --filter=api",
     "dev:web": "turbo run dev --filter=web",
+    "dev:mobile": "turbo run dev --filter=mobile",
+    "dev:api-web": "turbo run dev --filter=api --filter=web",
+    "dev:api-mobile": "turbo run dev --filter=api --filter=mobile",
+    "web:new-feature": "node apps/web/scripts/new-feature.mjs",
+    "web:new-hook": "node apps/web/scripts/new-hook.mjs",
+    "web:new-component": "node apps/web/scripts/new-component.mjs",
+    "web:new-test": "node apps/web/scripts/new-test.mjs",
+    "codegraph:init": "npx -y @colbymchenry/codegraph@1.6.2 init",
+    "codegraph:status": "npx -y @colbymchenry/codegraph@1.6.2 status",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
@@ -17,16 +26,17 @@
     "@commitlint/config-conventional": "21.0.1",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/git": "10.0.1",
-    "@vitest/coverage-v8": "^4.1.6",
     "eslint": "9.39.2",
     "husky": "9.1.7",
     "lint-staged": "17.0.4",
     "prettier": "3.8.3",
     "semantic-release": "25.0.3",
-    "turbo": "2.9.12",
-    "vitest": "^4.1.6"
+    "turbo": "2.9.14"
   },
-  "name": "all-in-one-app",
+  "name": "omni",
   "packageManager": "pnpm@10.11.0",
-  "version": "1.0.2"
+  "version": "1.0.2",
+  "engines": {
+    "node": ">=24"
+  }
 }

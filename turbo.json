@@ -1,6 +1,5 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
-  "globalDependencies": ["eslint.config.mjs"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -23,12 +22,15 @@
       "outputs": []
     },
     "test": {
-      "dependsOn": ["transit"],
+      "dependsOn": ["transit", "db:generate"],
       "outputs": []
     },
     "test:coverage": {
-      "dependsOn": ["transit"],
+      "dependsOn": ["transit", "db:generate"],
       "outputs": ["coverage/**"]
+    },
+    "test:e2e": {
+      "cache": false
     },
     "dev": {
       "cache": false,

@@ -4,7 +4,8 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
-  "eslint.workingDirectories": ["apps/api", "apps/web", "packages/shared"],
+  "eslint.workingDirectories": ["apps/api", "apps/web", "apps/mobile", "apps/e2e", "packages/shared"],
+  "eslint.options": { "flags": ["v10_config_lookup_from_file"] },
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "files.eol": "\n",
@@ -15,6 +16,14 @@
     "**/dist": true,
     "**/.turbo": true,
     "**/coverage": true,
-    "**/apps/api/src/generated": true
+    "**/apps/api/src/generated": true,
+    "**/pnpm-lock.yaml": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/.turbo/**": true,
+    "**/coverage/**": true,
+    "**/.codegraph/**": true
   }
 }

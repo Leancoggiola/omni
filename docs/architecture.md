@@ -2,20 +2,27 @@
 
 Monorepo con **pnpm workspaces** y **Turborepo**. Ambas apps siguen la misma convención de estructura de carpetas para facilitar el onboarding.
 
+**Agentes:** [CLAUDE.md](../CLAUDE.md) · [web/tooling.md](./web/tooling.md).
+
 ---
 
 ## Estructura del monorepo
 
 ```
-aio-app/
+omni/
   apps/
     api/        ← Express API (Node.js + TypeScript)
     web/        ← React SPA (Vite + TypeScript)
+    mobile/     ← Expo Android (Router + Tamagui)
   packages/
-    shared/     ← Tipos y schemas compartidos entre api y web
+    shared/     ← Tipos y schemas compartidos (@omni/shared)
     eslint-config/
     typescript-config/
   docs/         ← Esta carpeta
+  CLAUDE.md       ← Contexto raíz para Claude Code (+ un CLAUDE.md por app)
+  .claude/        ← Subagents, commands, skills (propias y de terceros), hooks, permisos
+  .mcp.json       ← MCP del proyecto (Supabase, CodeGraph, Mantine, Playwright)
+  .codegraph/     ← Índice CodeGraph (local, no commitear *.db)
 ```
 
 ---
@@ -27,35 +34,33 @@ src/
   common/                 ← Utilidades transversales
     db/
       prisma.ts           ← PrismaClient singleton
+      session-lock.ts     ← lockUserSessions (advisory lock de sesiones)
+      check-database.ts
       index.ts
     utils/
       logger.ts           ← Pino logger
+      http-logger.ts      ← pino-http con redact de credenciales
       error-handler.ts    ← Express error handler middleware
       validate.ts         ← Zod validation middleware
+      rate-limit.ts       ← createRateLimiter (apagable con RATE_LIMIT_DISABLED)
+      client-ip.ts · origin-guard.ts · no-store.ts · not-found.ts
+      cookies.ts          ← set/clear de la sesión
+      lifestyle.ts
       index.ts
     index.ts              ← Barril: re-exporta db + utils
-  auth/                   ← Feature: autenticación
-    middleware/
-    strategies/           ← Passport strategies (local, jwt, jwt-refresh)
-    auth.routes.ts
-    auth.service.ts
-  admin/                  ← Feature: administración
-    admin.routes.ts
-    admin.service.ts
-  media/                  ← Feature: media tracker
-    media.routes.ts
-    media.service.ts
-    tmdb.service.ts
-  users/                  ← Feature: usuarios y perfil
-    users.routes.ts
-    users.service.ts
-    stats.service.ts
+  health/                 ← /api/health y /api/health/ready (antes del guard)
+  auth/                   ← Routes + service (+ middleware/, strategies/)
+  media/ · users/ · admin/ · pantry/ · gym/ · expenses/ · split-expenses/ · holidays/
+                          ← Mismo patrón routes + service
   generated/
     prisma/               ← Cliente Prisma generado (no editar)
   config.ts               ← Variables de entorno validadas
-  main.ts                 ← Bootstrap de Express
+  app.ts                  ← createApp(): stack de middlewares de Express
+  main.ts                 ← Bootstrap: conecta la base y escucha
   router.ts               ← Router principal
-  __tests__/              ← Tests de utilidades comunes
+  __tests__/              ← Tests unitarios (schemas, utils, reglas)
+    integration/          ← *.integration.test.ts (Supertest + Postgres real)
+  test/                   ← Helpers de integración (createIntegrationApp, factories, resetTestDb…) y setupEnv.ts
 ```
 
 ### Convenciones API
@@ -67,6 +72,8 @@ src/
 | Imports de utils | `import { validate, logger } from "../common/utils"`           |
 | Naming           | `camelCase` para funciones, `PascalCase` para interfaces/types |
 
+Detalle de la estructura y convenciones: [apps/api/CLAUDE.md](../apps/api/CLAUDE.md). Checklist para agregar una feature: `/new-feature`.
+
 ---
 
 ## `apps/web/src/`
@@ -74,167 +81,110 @@ src/
 ```
 src/
   app/
-    core/                 ← Setup global de la app
-      auth/
-        AuthContext.tsx   ← Context + useAuth hook
-        index.ts
-      guards/
-        ProtectedRoute.tsx
-        GuestRoute.tsx
-        index.ts
-      layouts/
-        RootLayout.tsx    ← Layout con sidebar + header
-        AuthLayout.tsx    ← Layout para login
-        AnimatedBackground/
-        components/       ← Header.tsx, Navbar.tsx
-        index.ts
-      providers/
-        SWRProvider.tsx
-        index.ts
-      index.ts            ← Barril de core
-    features/             ← Módulos de producto
-      auth/
-        components/       ← AuthCard.tsx
-        pages/            ← Login.tsx
-        routes/           ← loginRoute.tsx
-        index.ts
-      home/
-        Home.tsx
-        homeRoute.tsx
-        __tests__/        ← Tests co-locados con la feature
-        index.ts
-      media/
-        components/       ← MediaCard, MediaSearchBar, etc.
-        hooks/            ← useMediaSearch, useMyMediaList, etc.
-        pages/
-        types.ts
-        index.ts
-      users/
-        components/       ← ProfileForm, PasswordForm, etc.
-        hooks/            ← useProfile, usePreferences
-        pages/            ← Profile.tsx
-        routes/           ← profileRoute.tsx
-        index.ts
-      index.ts            ← Exporta todas las routes
-    components/           ← Shared components (entre features)
-      index.ts
-    hooks/                ← Shared hooks (entre features)
-      index.ts
     router.tsx
-    routes.tsx
-  common/                 ← Utilidades transversales
-    api/
-      client.ts           ← HTTP client (POST, PUT, PATCH, DELETE)
-      fetcher.ts          ← GET fetcher + ApiError class
-      index.ts
-    index.ts
+    routes.ts
+    navigation/
+      nav-registry.tsx
+  features/               ← Dominio de producto (1 navbar item = 1 feature)
+    home/ · auth/ · media/ · profile/ · admin/ · split-expenses/
+  shared/
+    api/                  ← client, fetcher, SWR_KEYS
+    ui/                   ← componentes cross-feature (UserAvatar, …)
+  core/
+    auth/
+    guards/
+    providers/
+  layouts/
+    RootLayout.tsx
+    AuthLayout.tsx
+    components/           ← Navbar, Header, …
   theme/
-    config.ts             ← Mantine theme config
-    components.tsx        ← Mantine component overrides
   assets/
-    logo.svg
-  __tests__/
-    setup.ts              ← Vitest setup global
-  main.tsx                ← Entry point
-  vite-env.d.ts
+  main.tsx
 ```
+
+Cada feature usa `modules/<nombre>/` (sub-dominios), carpetas por componente/hook y barrels `index.ts`. Ver [web/new-feature.md](./web/new-feature.md).
 
 ### Convenciones Web
 
-| Elemento             | Convención                                                  |
-| -------------------- | ----------------------------------------------------------- |
-| Componentes          | `PascalCase.tsx`, named export (`export const MyComponent`) |
-| Hooks                | `camelCase` con prefijo `use`, named export                 |
-| Archivos de utilidad | `camelCase.ts`                                              |
-| Imports externos     | Aliases (`@/common/api`, `@/core/auth`, `@/features/media`) |
+| Elemento     | Convención                                                                 |
+| ------------ | -------------------------------------------------------------------------- |
+| Feature      | `<name>.page.tsx`, `<name>.routes.tsx` (navbar: `@omni/shared/navigation`) |
+| Componentes  | `Component/Component.tsx` + `index.ts`                                     |
+| Hooks        | `useX/useX.ts` + `index.ts`                                                |
+| Imports      | `@/shared/api`, `@/core/auth`, `@/features/media`                          |
+| Dependencias | Un feature **no** importa otro feature                                     |
 
-### Path aliases disponibles
+### Path aliases
 
-| Alias            | Apunta a               |
-| ---------------- | ---------------------- |
-| `@/*`            | `src/*`                |
-| `@/features/*`   | `src/app/features/*`   |
-| `@/core/*`       | `src/app/core/*`       |
-| `@/components/*` | `src/app/components/*` |
-| `@/hooks/*`      | `src/app/hooks/*`      |
-| `@/common/*`     | `src/common/*`         |
-| `@/theme/*`      | `src/theme/*`          |
-| `@/assets/*`     | `src/assets/*`         |
+`@/*` → `src/*` (y subpaths `@/features`, `@/shared`, `@/core`, `@/layouts`, `@/theme`, `@/assets`).
+
+> `@/shared` (frontend) ≠ `@omni/shared` (paquete monorepo de tipos/schemas).
 
 ---
 
 ## Paralelo Web ↔ API
 
-| Concepto               | API                                         | Web                                                    |
-| ---------------------- | ------------------------------------------- | ------------------------------------------------------ |
-| Utilidades compartidas | `common/db/`, `common/utils/`               | `common/api/`                                          |
-| Módulos de producto    | `auth/`, `media/`, `users/`                 | `features/auth/`, `features/media/`, `features/users/` |
-| Setup global           | `config.ts`, `main.ts`                      | `core/`, `main.tsx`                                    |
-| Servicios              | `*.service.ts`                              | hooks (`use*.ts`)                                      |
-| Validación             | `common/utils/validate.ts` (Zod middleware) | Schemas de `@aio-app/shared`                           |
+| Concepto               | API                                                                                                   | Web                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Utilidades compartidas | `common/db/`, `common/utils/`                                                                         | `shared/api/`                                                                        |
+| Módulos de producto    | `auth/`, `admin/`, `media/`, `users/`, `pantry/`, `gym/`, `expenses/`, `split-expenses/`, `holidays/` | `features/auth/`, `features/media/`, `features/profile/`, `features/split-expenses/` |
+| Setup global           | `config.ts`, `main.ts`                                                                                | `core/`, `layouts/`, `main.tsx`                                                      |
+| Servicios              | `*.service.ts`                                                                                        | hooks en `features/*/modules/*/hooks/`                                               |
+| Validación             | `common/utils/validate.ts` (Zod middleware)                                                           | Schemas de `@omni/shared`                                                            |
+| Auth                   | Cookie **o** Bearer JWT                                                                               | Cookies `httpOnly` + `credentials: 'include'`                                        |
+
+### Auth dual (web + mobile)
+
+`POST /api/auth/login` y `POST /api/auth/refresh`:
+
+- Siempre setean cookies (compat web).
+- Siempre incluyen `accessToken` y `refreshToken` en el JSON (`AuthTokensResponse` en `@omni/shared/auth`).
+- Rutas protegidas: Passport acepta cookie `access_token` **o** header `Authorization: Bearer`.
+- Refresh: cookie `refresh_token`, Bearer, o body `{ refreshToken }` (`refreshTokenBodySchema`).
+- Logout: no pide access token (funciona con la sesión vencida). Revoca el refresh token del body `{ refreshToken }` o, si no viene o es inválido, el de la cookie, junto con toda su cadena de tokens rotados (así un token viejo de esa sesión da 401 sin parecer un reuso) y, si se rotó hace menos de `ROTATION_GRACE_MS`, sus sucesores sin usar; ignora `Authorization`. Lo extrae la estrategia de passport `logout`, que nunca rechaza. No tiene limiter propio: responde 200 y borra las cookies en todos los casos, salvo un 429 del limiter global.
+- La cookie de refresh viaja a `/api/auth/*` (no solo a `/refresh`) para que el logout de la web identifique la sesión que cierra.
+
+Cada refresh token lleva un `jti` aleatorio y en la base se guarda su sha256 (`RefreshToken.tokenHash`, único). El refresh lo rota de forma atómica marcando la fila con `rotatedAt`, que queda en la base hasta vencer. Reusar un token ya rotado revoca todas las sesiones del usuario, salvo durante una ventana de gracia corta medida desde la rotación (`ROTATION_GRACE_MS`) mientras su sucesor siga sin usarse: ahí recibe una sesión hermana, hasta `MAX_GRACE_SIBLINGS`, y después un 401 que no revoca nada. Un token que ya no está en la base (cerrado, expulsado por el tope o revocado), o uno rotado cuyo sucesor ya no está, da 401 sin tocar las otras sesiones. `login` y `refresh` podan las filas vencidas, `login` aplica un tope de sesiones vigentes por usuario (`MAX_SESSIONS_PER_USER`), y cambiar la contraseña las revoca todas. Toda transacción que escribe los refresh tokens de un usuario toma antes su advisory lock (`lockUserSessions`).
+
+Las filas rotadas se conservan hasta que vence su token, a propósito: si un token robado se usa primero y el atacante lo sigue rotando, el dispositivo legítimo vuelve con un token viejo de la cadena y solo esa fila permite reconocer el reuso y revocar todo. Podarlas antes convertiría ese caso en un 401 que no revoca nada. El costo es una fila por refresh: con un access token de 15 min y un refresh de 7 días, como mucho unas 670 filas por dispositivo en uso continuo, que se podan al vencer. Todas las búsquedas van por índice (`tokenHash` único, `previousTokenHash` y `userId`). Si el volumen crece, la alternativa es guardar un id de familia por cadena y revocar la familia en vez de conservar cada fila.
+
+Web ignora los tokens del body. Mobile los guarda en SecureStore, en una sola clave (JSON con access y refresh, para que una rotación nunca deje un par mezclado), y no depende de cookies. Solo un 401/403 del refresh cierra la sesión de mobile; un 5xx, un 429 o un error de red conservan los tokens. El logout de mobile espera un refresh en curso (con tope) y manda en el body el refresh token vigente al momento de enviar.
+
+**Sesión en la web.** El login guarda en la caché de SWR solo `{ user }`: los tokens del body no se guardan y la sesión vive en las cookies `httpOnly`. Login y logout vacían toda la caché de SWR (`clearSession` de `AuthContext`) para que el usuario siguiente de la pestaña no vea los datos del anterior. El logout no depende de la API: limpia la sesión local aunque el POST falle, y eliminar la cuenta la limpia sin llamar a `/logout`. El refresh solo cierra la sesión ante un 401/403; ante un 5xx, un 429 o un error de red `ProtectedRoute` muestra un error con reintento.
 
 ---
 
 ## Agregar una nueva feature
 
-### En API
-
-1. Crear `src/<feature>/`
-2. Agregar `<feature>.routes.ts` y `<feature>.service.ts`
-3. Registrar el router en `src/router.ts`
-
-### En Web
-
-1. Crear `src/app/features/<feature>/`
-2. Estructura interna:
-   ```
-   <feature>/
-     components/
-     hooks/
-     pages/
-     routes/
-     types.ts      ← si aplica
-     index.ts      ← exportar la route
-   ```
-3. Exportar la route desde `src/app/features/index.ts`
-4. Registrar en `src/app/routes.tsx`
+- **API:** carpeta `src/<feature>/` con routes + service; registrar en `router.ts`.
+- **Web:** [web/new-feature.md](./web/new-feature.md) · tooling [web/tooling.md](./web/tooling.md).
+- **Mobile:** [mobile/new-feature.md](./mobile/new-feature.md).
 
 ---
 
-## Agregar un shared component o hook (Web)
+## Shared UI (Web)
 
-**Shared component** (usado en 2+ features):
-
-```
-src/app/components/
-  MyComponent/
-    MyComponent.tsx     ← export const MyComponent: FC = ...
-    index.ts            ← export { MyComponent } from "./MyComponent"
-```
-
-Exportar desde `src/app/components/index.ts`.
-
-**Shared hook** (usado en 2+ features):
-
-```
-src/app/hooks/
-  useMyHook.ts
-```
-
-Exportar desde `src/app/hooks/index.ts`.
-
-> Si el hook o componente es exclusivo de una feature, va dentro de `features/<feature>/hooks/` o `features/<feature>/components/`.
+Componentes usados en 2+ features → `shared/ui/<Component>/`.
 
 ---
 
 ## `packages/shared/`
 
-Tipos y schemas compartidos entre API y Web. Ambas apps importan desde `@aio-app/shared`.
+Tipos, schemas y lógica pura compartidos entre API, Web y Mobile. Se importan por subpath (`@omni/shared/media`): no hay entrada raíz. Tiene su propio runner de tests (Vitest).
 
 ```
 shared/src/
-  auth/     ← LoginPayload, ProfileResponse, User, schemas Zod
-  media/    ← MediaItem, tipos de media, schemas
-  users/    ← UpdateProfilePayload, UserStats, schemas
-  index.ts
+  auth/            ← ROLES/Role, schemas de login y alta de usuario, toSessionUser, tipos de sesión
+  users/           ← perfil, contraseña, preferencias
+  media/           ← MediaItem, tipos y estados, schemas, tipos de TMDB
+  gym/             ← planes y ejercicios
+  expenses/        ← gastos personales y recordatorios
+  split-expenses/  ← amigos, juntadas, balances y liquidaciones
+  pantry/          ← alacena, lista de compras, alertas
+  holidays/        ← tipos de efemérides
+  common/          ← paginación, cotas de entrada, fechas en la zona de la app, roundMoney
+  theme/           ← tokens de color, medidas, contrastRatio
+  navigation/      ← NAV_REGISTRY (navbar web, tabs y "Más" mobile)
+  server-wake/     ← createServerWake: cold start de la API
 ```

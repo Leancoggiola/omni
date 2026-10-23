@@ -1,5 +1,5 @@
 # ── Stage 1: Base ──────────────────────────────────────────────
-FROM node:22-alpine AS base
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
@@ -8,7 +8,7 @@ RUN apk add --no-cache libc6-compat
 # ── Stage 2: Prune monorepo ───────────────────────────────────
 FROM base AS pruner
 WORKDIR /app
-RUN pnpm add -g turbo@2.9.12
+RUN pnpm add -g turbo@2.9.14
 COPY . .
 RUN turbo prune api --docker
 
@@ -33,7 +33,7 @@ RUN pnpm turbo build --filter=api
 RUN pnpm --filter=api deploy --prod --legacy /app/deployed
 
 # ── Stage 5: Runner ───────────────────────────────────────────
-FROM node:22-alpine AS runner
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runner
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 appgroup && \

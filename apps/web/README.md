@@ -1,91 +1,48 @@
-# Web — AIO App
+# Web — Omni
 
-Frontend SPA para la aplicación de media tracking. Permite a los usuarios registrarse, buscar películas/series en TMDB y gestionar su lista personal.
+Frontend SPA para media tracking y módulos Omni.
 
 ## Stack
 
-| Tecnología         | Uso                                       |
-| ------------------ | ----------------------------------------- |
-| **React 18**       | UI library                                |
-| **Vite**           | Dev server + bundler (con proxy a la API) |
-| **Mantine 8**      | Component library (UI + forms + hooks)    |
-| **SWR**            | Data fetching, cache y revalidación       |
-| **React Router 7** | Routing client-side con guards            |
-| **TypeScript**     | Type safety                               |
-| **SVGR**           | Importar SVGs como componentes React      |
+React 19 · Vite · Mantine 9 · SWR · React Router 7 · TypeScript
 
-## Estructura de carpetas
-
-```
-src/
-├── main.tsx                      # Entry point — providers + RouterProvider
-├── vite-env.d.ts                 # Tipos de Vite
-├── app/
-│   ├── router.tsx                # createBrowserRouter + Suspense wrappers
-│   ├── routes.tsx                # Definición de rutas protegidas y guest
-│   ├── core/
-│   │   ├── auth/
-│   │   │   └── AuthContext.tsx   # Estado de sesión (login, logout, register, refresh)
-│   │   ├── guards/
-│   │   │   ├── ProtectedRoute.tsx  # Redirige a /login si no autenticado
-│   │   │   └── GuestRoute.tsx      # Redirige a / si ya autenticado
-│   │   ├── hooks/                # Hooks compartidos de la app
-│   │   └── layouts/
-│   │       ├── RootLayout.tsx    # Layout principal (navbar, contenido)
-│   │       ├── AuthLayout.tsx    # Layout para login/register
-│   │       └── AnimatedBackground/  # Fondo animado para auth pages
-│   ├── features/
-│   │   ├── auth/                 # Login y Register pages + componentes
-│   │   ├── home/                 # Home page
-│   │   └── mediaTracker/         # Búsqueda TMDB, lista de media, cards
-│   └── providers/
-│       └── SWRProvider.tsx       # Config global de SWR (fetcher, revalidation)
-├── lib/
-│   ├── api.ts                    # Instancia base para HTTP requests (con interceptors)
-│   └── fetcher.ts                # Fetcher para SWR (usa api.ts)
-├── theme/
-│   └── config.ts                 # Tema customizado de Mantine
-└── assets/                       # Imágenes, íconos, etc.
-```
-
-## Arquitectura de routing
-
-```
-ProtectedRoute (requiere auth)
-└── RootLayout (navbar + outlet)
-    ├── /          → Home
-    └── /tracker   → MediaTracker
-
-GuestRoute (solo sin auth)
-└── AuthLayout (fondo animado + outlet)
-    ├── /login     → Login
-    └── /register  → Register
-```
-
-Las rutas se definen en `routes.tsx` y se envuelven automáticamente con `<Suspense>` en `router.tsx`.
-
-## Levantar
+## Desarrollo
 
 ```bash
-# Desde la raíz del monorepo (recomendado — levanta con la API)
-yarn dev
+# Desde la raíz del monorepo
+pnpm dev
 
-# Solo la web
-yarn dev:web      # http://localhost:5173
+# Solo web (http://localhost:5173)
+pnpm dev:web
 ```
 
-> La web necesita la API corriendo. Vite hace proxy automático de `/api` → `http://localhost:3000`.
+La web hace proxy de `/api` → `http://localhost:3000` (o `API_PORT`, si está definido).
 
-## Build de producción
+## Estructura
+
+Convenciones y reglas de la app: [CLAUDE.md](./CLAUDE.md). Árbol y capas: [docs/architecture.md](../../docs/architecture.md) (sección `apps/web`).
+
+- **Nuevo feature:** [docs/web/new-feature.md](../../docs/web/new-feature.md)
+- **Rule + script:** [docs/web/tooling.md](../../docs/web/tooling.md)
 
 ```bash
-yarn build     # tsc + vite build → dist/
-yarn preview   # Preview del build local
+pnpm web:new-feature gym --path /gym --register-route
 ```
 
-## Paquetes compartidos
+## Scripts
 
-| Paquete           | Descripción                                 |
-| ----------------- | ------------------------------------------- |
-| `@aio-app/shared` | Schemas Zod, tipos y constantes compartidas |
-| `@repo/ui`        | Componentes UI reutilizables                |
+Desde `apps/web` (o con `pnpm --filter web <script>` desde la raíz):
+
+| Comando                             | Descripción                               |
+| ----------------------------------- | ----------------------------------------- |
+| `pnpm --filter web dev`             | Dev server                                |
+| `pnpm --filter web build`           | Build producción (`tsc` + `vite build`)   |
+| `pnpm --filter web preview`         | Sirve el build de producción              |
+| `pnpm --filter web check-types`     | TypeScript                                |
+| `pnpm --filter web lint`            | ESLint sobre `src/`                       |
+| `pnpm --filter web check-api-paths` | Verifica que no haya paths `/api` sueltos |
+| `pnpm --filter web test`            | Vitest                                    |
+| `pnpm --filter web test:watch`      | Vitest en modo watch                      |
+| `pnpm --filter web test:coverage`   | Vitest con coverage                       |
+
+Generadores desde la raíz: `pnpm web:new-feature <name>`, `pnpm web:new-hook`, `pnpm web:new-component`, `pnpm web:new-test`.

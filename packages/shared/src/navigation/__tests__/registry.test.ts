@@ -1,0 +1,18 @@
+import { describe, expect, it } from 'vitest';
+
+import { ADMIN_NAV_ORDER, MAIN_NAV_ORDER, MOBILE_TAB_KEYS, NAV_KEYS } from '..';
+
+import type { NavKey } from '..';
+
+describe('registro de navegación', () => {
+  const ordered: readonly NavKey[] = [...MAIN_NAV_ORDER, ...ADMIN_NAV_ORDER];
+
+  it('MAIN_NAV_ORDER y ADMIN_NAV_ORDER cubren cada módulo una sola vez', () => {
+    expect([...ordered].sort()).toEqual([...NAV_KEYS].sort());
+  });
+
+  it('las tabs de mobile son módulos del menú principal', () => {
+    const main: readonly NavKey[] = MAIN_NAV_ORDER;
+    expect(MOBILE_TAB_KEYS.every(key => main.includes(key))).toBe(true);
+  });
+});

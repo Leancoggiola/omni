@@ -1,0 +1,73 @@
+name: Epic
+description: Agrupa varias historias bajo un objetivo de producto
+title: '[Epic] '
+labels: ['tipo:epic']
+body:
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: Qué problema de producto resuelve este epic
+    validations:
+      required: true
+
+  - type: textarea
+    id: alcance
+    attributes:
+      label: Alcance
+      description: Qué incluye (plataformas, módulos, usuarios)
+    validations:
+      required: true
+
+  - type: textarea
+    id: fuera_alcance
+    attributes:
+      label: Fuera de alcance
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Áreas involucradas
+      options:
+        - api
+        - web
+        - mobile
+        - shared
+        - infra
+        - docs
+      multiple: true
+    validations:
+      required: true
+
+  - type: dropdown
+    id: prioridad
+    attributes:
+      label: Prioridad
+      options:
+        - p0
+        - p1
+        - p2
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: exito
+    attributes:
+      label: Criterios de éxito del epic
+      placeholder: |
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: subissues
+    attributes:
+      label: Historias / sub-issues
+      description: Links o checklist de issues hijas (se pueden agregar después)
+      placeholder: |
+        - [ ] #N — ...
+    validations:
+      required: false

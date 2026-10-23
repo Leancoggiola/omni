@@ -1,0 +1,88 @@
+name: Historia de usuario
+description: Nueva funcionalidad con criterios de aceptación
+title: '[US] '
+labels: ['tipo:historia']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Completá el relevamiento antes de marcar la tarjeta como **Listo** en Omni Roadmap.
+        Ver [docs/product/project-management.md](../docs/product/project-management.md).
+
+  - type: textarea
+    id: historia
+    attributes:
+      label: Historia
+      description: Formato Como / quiero / para
+      placeholder: |
+        Como [rol],
+        quiero [acción],
+        para [beneficio].
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de aceptación
+      description: Checklist verificable (Given/When/Then o bullets)
+      placeholder: |
+        - [ ] Dado X, cuando Y, entonces Z
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área principal
+      options:
+        - api
+        - web
+        - mobile
+        - shared
+        - infra
+        - docs
+      multiple: true
+    validations:
+      required: true
+
+  - type: dropdown
+    id: prioridad
+    attributes:
+      label: Prioridad
+      options:
+        - p0
+        - p1
+        - p2
+      default: 2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tamano
+    attributes:
+      label: Tamaño estimado
+      options:
+        - S
+        - M
+        - L
+      default: 0
+    validations:
+      required: false
+
+  - type: textarea
+    id: fuera_alcance
+    attributes:
+      label: Fuera de alcance
+      placeholder: Qué no incluye esta historia
+    validations:
+      required: false
+
+  - type: textarea
+    id: notas
+    attributes:
+      label: Notas técnicas
+      description: Orden full-stack si aplica (shared → api → clientes), links, dependencias
+    validations:
+      required: false

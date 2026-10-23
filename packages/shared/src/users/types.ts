@@ -1,3 +1,4 @@
+import type { Role } from '../auth/types';
 import type { ProfileTheme } from './schemas';
 
 export type { ProfileTheme };
@@ -16,7 +17,7 @@ export interface UserProfile {
   username: string;
   name: string;
   email: string | null;
-  role: 'ADMIN' | 'USER';
+  role: Role;
   avatarUrl: string | null;
   phone: string | null;
   birthDate: string | null;
@@ -25,13 +26,17 @@ export interface UserProfile {
   preferences: UserPreferences | null;
 }
 
-export interface UserStats {
+/** Usuario en GET /api/admin/users (sin password ni preferencias). */
+export interface AdminUser {
   id: string;
-  userId: string;
-  totalMovies: number;
-  totalTvShows: number;
-  totalWatched: number;
-  totalWatching: number;
-  totalToWatch: number;
-  updatedAt: string;
+  username: string;
+  name: string;
+  email: string | null;
+  role: Role;
+  avatarUrl: string | null;
+  createdAt: string;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUser[];
 }

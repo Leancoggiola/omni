@@ -3,9 +3,9 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: ['src/main.ts'],
   format: ['esm'],
-  target: 'node22',
+  target: 'node24',
   outDir: 'dist',
   clean: true,
   sourcemap: true,
-  noExternal: [/generated\/prisma/, /@aio-app\/shared/],
+  noExternal: [/generated\/prisma/, /@omni\/shared/],
 });

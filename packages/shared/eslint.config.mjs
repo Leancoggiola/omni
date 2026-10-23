@@ -1,8 +1,8 @@
-import { baseConfig } from "@aio-app/eslint-config";
+import { baseConfig } from '@omni/eslint-config';
 
 export default [
   ...baseConfig,
   {
-    ignores: ["dist/"],
+    ignores: ['dist/', 'coverage/'],
   },
 ];

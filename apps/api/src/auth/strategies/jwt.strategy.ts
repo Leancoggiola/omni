@@ -1,19 +1,24 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Request } from 'express';
-import { config } from '../../config';
+import type { Role } from '../../generated/prisma/client';
+import { config, JWT_ALGORITHM } from '../../config';
 
-export interface JwtPayload {
+interface JwtPayload {
   sub: string;
   username: string;
-  role: string;
+  role: Role;
 }
 
 passport.use(
   'jwt',
   new JwtStrategy(
     {
-      jwtFromRequest: ExtractJwt.fromExtractors([(req: Request) => req?.cookies?.access_token ?? null]),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        (req: Request) => req?.cookies?.access_token ?? null,
+      ]),
+      algorithms: [JWT_ALGORITHM],
       ignoreExpiration: false,
       secretOrKey: config.jwt.accessSecret,
     },
