@@ -59,7 +59,7 @@ describe('rotación de refresh tokens (integración)', () => {
     expect(await activeSessionCount(user.id)).toBe(0);
   });
 
-  it('la gracia se mide desde la rotación: reusar el token dentro de ella no la extiende', async () => {
+  it('la gracia se mide desde la rotación: pasada, no suma hermanas sino que reemplaza las que nadie usó', async () => {
     const user = await createUser();
     const first = await seedSession(user);
     await refresh(first);
@@ -69,10 +69,11 @@ describe('rotación de refresh tokens (integración)', () => {
       data: { rotatedAt: new Date(Date.now() - ROTATION_GRACE_MS - 1000) },
     });
 
-    const reused = await refresh(first);
+    const replaced = await refresh(first);
 
-    expect(reused.status).toBe(401);
-    expect(await activeSessionCount(user.id)).toBe(0);
+    expect(replaced.status).toBe(200);
+    expect(await activeSessionCount(user.id)).toBe(1);
+    expect(await prisma.refreshToken.count({ where: { previousTokenHash: hashRefreshToken(first) } })).toBe(1);
   });
 
   it('después de MAX_GRACE_SIBLINGS hermanas da 401 sin revocar ni borrar las cookies', async () => {
