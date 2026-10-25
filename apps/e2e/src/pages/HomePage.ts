@@ -38,6 +38,7 @@ export class HomePage {
     await this.navItem(label).click();
   }
 
+  readonly logoutDialog = () => this.page.getByRole('dialog');
   readonly cancelLogoutButton = () => this.page.getByRole('dialog').getByRole('button', { name: 'Cancelar' });
   readonly confirmLogoutButton = () => this.page.getByRole('dialog').getByRole('button', { name: 'Cerrar sesión' });
 

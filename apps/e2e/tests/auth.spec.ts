@@ -84,6 +84,7 @@ test.describe('sin sesión', () => {
     const home = new HomePage(page);
     await home.logoutButton().click();
     await home.cancelLogoutButton().click();
+    await expect(home.logoutDialog()).toBeHidden();
     await expect(page).toHaveURL('/');
 
     await home.logout();
