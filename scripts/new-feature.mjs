@@ -1,11 +1,4 @@
 #!/usr/bin/env node
-/**
- * Genera el esqueleto de una feature en web y/o mobile. Uso:
- *   pnpm new-feature <name> [--web] [--mobile] [--path /x] [--register-route]
- * Sin `--web` ni `--mobile` genera los dos clientes. `--path` y `--register-route` son solo de web.
- * La estructura sigue la convención de `docs/architecture.md`: solo el punto de entrada e `index.ts`,
- * sin carpetas vacías ni `modules/`. El ítem de navegación vive en `NAV_REGISTRY` de `@omni/shared/navigation`.
- */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,7 +8,9 @@ const webSrc = path.join(repoRoot, 'apps', 'web', 'src');
 const mobileSrc = path.join(repoRoot, 'apps', 'mobile', 'src');
 
 const KNOWN_FLAGS = new Set(['--web', '--mobile', '--path', '--register-route']);
-const USAGE = 'Uso: pnpm new-feature <kebab-name> [--web] [--mobile] [--path /x] [--register-route]';
+const USAGE =
+  'Uso: pnpm new-feature <kebab-name> [--web] [--mobile] [--path /x] [--register-route]\n' +
+  'Sin --web ni --mobile genera los dos clientes. --path y --register-route son solo de web.';
 
 const args = process.argv.slice(2);
 const flags = new Set(args.filter(a => a.startsWith('--')));
@@ -24,6 +19,12 @@ const positional = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== 
 const unknownFlags = [...flags].filter(flag => !KNOWN_FLAGS.has(flag));
 if (unknownFlags.length > 0) {
   console.error(`Flag desconocido: ${unknownFlags.join(', ')}.\n${USAGE}`);
+  process.exit(1);
+}
+
+const pathValue = getFlagValue('--path');
+if (flags.has('--path') && (!pathValue || pathValue.startsWith('--'))) {
+  console.error(`--path necesita un valor, como /gym.\n${USAGE}`);
   process.exit(1);
 }
 
@@ -37,7 +38,7 @@ const onlyOne = flags.has('--web') || flags.has('--mobile');
 const targetWeb = !onlyOne || flags.has('--web');
 const targetMobile = !onlyOne || flags.has('--mobile');
 
-const routePath = getFlagValue('--path') ?? `/${name}`;
+const routePath = pathValue ?? `/${name}`;
 if (!/^\/[a-z0-9][a-z0-9/-]*$/.test(routePath)) {
   console.error(
     `--path inválido: "${routePath}". Tiene que ser como /gym.\n` +
