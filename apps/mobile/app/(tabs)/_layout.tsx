@@ -3,10 +3,11 @@ import { FONT_SIZE, RADIUS } from '@omni/shared/theme';
 import { MOBILE_TAB_KEYS, NAV_REGISTRY } from '@omni/shared/navigation';
 import { Tabs } from 'expo-router';
 import { type Icon } from 'phosphor-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Paragraph, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { MeasuredTabBar, MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';
+import { getTabBarStyle, MeasuredTabBar, MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';
 
 import type { NavKey } from '@omni/shared/navigation';
 
@@ -62,6 +63,7 @@ const MORE_OPTIONS = tabOptions(MORE_TAB.label, MORE_TAB.icon);
 
 export default function TabsLayout() {
   const colors = useSemanticColors();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -71,6 +73,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.dimmed,
         tabBarIconStyle: PILL,
+        tabBarStyle: getTabBarStyle(insets.bottom),
       }}
     >
       {TAB_SCREENS.map(({ name, options }) => (

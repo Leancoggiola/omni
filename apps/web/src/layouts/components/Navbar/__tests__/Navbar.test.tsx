@@ -1,6 +1,6 @@
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from '@mantine/core';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockAuthValue, createMockSessionUser, renderWithProviders } from '@/__tests__/helpers';
 
@@ -9,10 +9,16 @@ import { Navbar } from '../Navbar';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const mockAuth = vi.hoisted(() => ({ role: 'USER' as 'USER' | 'ADMIN' }));
+const mockAuth = vi.hoisted(() => ({ role: 'USER' as 'USER' | 'ADMIN', logout: vi.fn() }));
+const ui = vi.hoisted(() => ({ confirm: vi.fn() }));
 
 vi.mock('@/core/auth', () => ({
-  useAuth: () => createMockAuthValue({ user: createMockSessionUser({ role: mockAuth.role }) }),
+  useAuth: () => createMockAuthValue({ user: createMockSessionUser({ role: mockAuth.role }), logout: mockAuth.logout }),
+}));
+
+vi.mock('@/shared/ui', async importOriginal => ({
+  ...(await importOriginal<typeof import('@/shared/ui')>()),
+  confirm: ui.confirm,
 }));
 
 function CurrentPath() {
@@ -67,5 +73,30 @@ describe('Navbar', () => {
     renderNavbar();
     expect(screen.getByRole('link', { name: 'Administración' })).toHaveAttribute('href', '/admin');
     mockAuth.role = 'USER';
+  });
+
+  describe('cerrar sesión', () => {
+    beforeEach(() => {
+      mockAuth.logout.mockReset().mockResolvedValue(undefined);
+      ui.confirm.mockReset().mockResolvedValue(true);
+    });
+
+    it('pide confirmación y, al confirmar, cierra la sesión y vuelve al login', async () => {
+      renderNavbar();
+      await userEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
+
+      expect(ui.confirm).toHaveBeenCalledWith(expect.objectContaining({ title: '¿Cerrar sesión?' }));
+      expect(mockAuth.logout).toHaveBeenCalledOnce();
+      expect(screen.getByRole('status', { name: 'Ruta actual' })).toHaveTextContent('/login');
+    });
+
+    it('si se cancela la confirmación no cierra la sesión', async () => {
+      ui.confirm.mockResolvedValue(false);
+      renderNavbar();
+      await userEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
+
+      expect(mockAuth.logout).not.toHaveBeenCalled();
+      expect(screen.getByRole('status', { name: 'Ruta actual' })).toHaveTextContent('/');
+    });
   });
 });

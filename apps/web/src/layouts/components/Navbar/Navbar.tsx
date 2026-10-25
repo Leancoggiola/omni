@@ -16,7 +16,7 @@ import {
 
 import { ADMIN_NAV_ITEMS, MAIN_NAV_ITEMS } from '@/app/navigation/nav-registry';
 import { useAuth } from '@/core/auth';
-import { LogoAvatar, UserAvatar } from '@/shared/ui';
+import { confirm, LogoAvatar, UserAvatar } from '@/shared/ui';
 
 import { ColorSchemeToggle } from '../ColorSchemeToggle';
 
@@ -38,6 +38,13 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = useCallback(async () => {
+    const confirmed = await confirm({
+      title: '¿Cerrar sesión?',
+      description: 'Vas a tener que volver a iniciar sesión para entrar a Omni.',
+      confirmLabel: 'Cerrar sesión',
+      destructive: false,
+    });
+    if (!confirmed) return;
     await logout();
     navigate('/login', { replace: true });
   }, [logout, navigate]);

@@ -7,7 +7,7 @@ import { YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { MORE_TAB } from '@/shared/navigation';
-import { Button, getErrorMessage, notifyError, Screen, ScreenHeader, SectionCard } from '@/shared/ui';
+import { Button, confirm, getErrorMessage, notifyError, Screen, ScreenHeader, SectionCard } from '@/shared/ui';
 
 import { NavRow } from './components/NavRow';
 import { ThemeRow } from './components/ThemeRow';
@@ -21,6 +21,13 @@ export function MoreScreen() {
 
   const handleLogout = async () => {
     if (loggingOut) return;
+    const confirmed = await confirm({
+      title: '¿Cerrar sesión?',
+      description: 'Vas a tener que volver a iniciar sesión para entrar a Omni.',
+      confirmLabel: 'Cerrar sesión',
+      destructive: false,
+    });
+    if (!confirmed) return;
     setLoggingOut(true);
     try {
       await logout();
