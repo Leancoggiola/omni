@@ -6,7 +6,7 @@ import { createMockAuthValue, createMockSessionUser, renderWithProviders } from 
 
 import { Navbar } from '../Navbar';
 
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const mockAuth = vi.hoisted(() => ({ role: 'USER' as 'USER' | 'ADMIN', logout: vi.fn() }));
@@ -87,7 +87,7 @@ describe('Navbar', () => {
 
       expect(ui.confirm).toHaveBeenCalledWith(expect.objectContaining({ title: '¿Cerrar sesión?' }));
       expect(mockAuth.logout).toHaveBeenCalledOnce();
-      expect(screen.getByRole('status', { name: 'Ruta actual' })).toHaveTextContent('/login');
+      await waitFor(() => expect(screen.getByRole('status', { name: 'Ruta actual' })).toHaveTextContent('/login'));
     });
 
     it('si se cancela la confirmación no cierra la sesión', async () => {
