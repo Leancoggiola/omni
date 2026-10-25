@@ -93,17 +93,17 @@ Settings del servicio `omni-api`: runtime **Docker**, Dockerfile `./apps/api/Doc
 
 Al editar variables, guardar con **Save only**. "Save and deploy" y "Save, rebuild and deploy" deployan el HEAD de `main` en ese momento, fuera del pipeline.
 
-| Variable                                          | De dónde sale                                                                                                        |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `NODE_ENV`                                        | `production`. Ya lo fija el Dockerfile (`ENV NODE_ENV=production`); en Render es redundante, pero lo deja explícito. |
-| `DATABASE_URL`                                    | Supabase omni-prod → transaction pooler (6543, `?pgbouncer=true`).                                                   |
-| `DIRECT_URL`                                      | Supabase omni-prod → session pooler (5432). Obligatoria: el entrypoint corre `prisma migrate deploy` con ella.       |
-| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`         | `openssl rand -base64 32`, distintos de dev y entre sí; la API no arranca con menos de 32 caracteres.                |
-| `ORIGIN_SECRET`                                   | `openssl rand -base64 32`; **igual** que en Vercel. En prod, sin él la API no arranca.                               |
-| `CORS_ORIGIN`                                     | `https://omni-nest.vercel.app`                                                                                       |
-| `TMDB_API_KEY`                                    | themoviedb.org/settings/api → **API Read Access Token** (v4), no la API key v3.                                      |
-| `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN` | Opcionales, default `15m` y `7d`. Entero con unidad `s`, `m`, `h` o `d`; un valor inválido no deja arrancar la API.  |
-| `RATE_LIMIT_GLOBAL_MAX`                           | Opcional, default 300 por 15 min.                                                                                    |
+| Variable                                          | De dónde sale                                                                                                       |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                                        | Opcional: el Dockerfile ya fija `ENV NODE_ENV=production`. Si se carga, tiene que ser `production`.                 |
+| `DATABASE_URL`                                    | Supabase omni-prod → transaction pooler (6543, `?pgbouncer=true`).                                                  |
+| `DIRECT_URL`                                      | Supabase omni-prod → session pooler (5432). Obligatoria: el entrypoint corre `prisma migrate deploy` con ella.      |
+| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`         | `openssl rand -base64 32`, distintos de dev y entre sí; la API no arranca con menos de 32 caracteres.               |
+| `ORIGIN_SECRET`                                   | `openssl rand -base64 32`; **igual** que en Vercel. En prod, sin él la API no arranca.                              |
+| `CORS_ORIGIN`                                     | `https://omni-nest.vercel.app`                                                                                      |
+| `TMDB_API_KEY`                                    | themoviedb.org/settings/api → **API Read Access Token** (v4), no la API key v3.                                     |
+| `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN` | Opcionales, default `15m` y `7d`. Entero con unidad `s`, `m`, `h` o `d`; un valor inválido no deja arrancar la API. |
+| `RATE_LIMIT_GLOBAL_MAX`                           | Opcional, default 300 por 15 min.                                                                                   |
 
 `ADMIN_USERNAME` y `ADMIN_PASSWORD` no van en Render: la API no las lee y el seed corre desde una PC (ver [Primera vez](#primera-vez)).
 
