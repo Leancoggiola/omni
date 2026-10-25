@@ -138,6 +138,7 @@ unset DIRECT_URL DATABASE_URL ADMIN_PASSWORD
 ```
 
 - Si el primer `migrate status` dice "up to date", la URL es de otra base: abortar.
+- Si el seed imprime `Skipping admin seed`, falta `ADMIN_USERNAME` o `ADMIN_PASSWORD`: termina con código 0 pero no crea el admin.
 - El seed no valida el usuario ni el password. El usuario tiene que cumplir las reglas del login (6 a 20 caracteres, solo letras y números); el seed y el login lo pasan a minúsculas. El login solo exige un password no vacío, pero conviene usar 8 a 72 caracteres, la regla de las contraseñas nuevas (registro y cambio de contraseña).
 - Sin `SEED_DEMO`: con `NODE_ENV=production` el seed rechaza la demo.
 - El seed no pisa un admin existente: para cambiar el usuario o el password, borrar la fila y volver a correrlo.
@@ -267,12 +268,12 @@ GitHub deshabilita los cron de repos públicos tras 60 días sin actividad (lleg
 
 ## Riesgos y límites free
 
-| Límite                | Detalle                                                                                                                                                                                                                                        |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Render 750 h/mes      | Con la ventana fría se usan ≈600 h. No sumar otros servicios free 24/7: si se agotan, Render suspende todo hasta el mes próximo.                                                                                                               |
-| Supabase 7 días       | Pausa por inactividad; el keep-alive la evita. Si falla una semana entera, restaurar a mano.                                                                                                                                                   |
-| Proxy de Vercel 120 s | Tope del cold start de Render (~1 min). Más allá, 504 y el cliente reintenta.                                                                                                                                                                  |
-| `transforms` en Hobby | Verificado en el cutover de #94 (24/10/2026): por Vercel `/api/media` da 401 y directo a Render 403, así que el proxy inyecta `x-origin-secret`. Si Vercel lo quitara del plan: `rewrites` sin guard y `trust proxy` 2 (rate limit más débil). |
-| `RELEASE_TOKEN`       | Si vence, el release falla (de forma visible). Renovar antes.                                                                                                                                                                                  |
-| Cron de GitHub        | Se deshabilita a los 60 días sin actividad.                                                                                                                                                                                                    |
-| Migraciones           | Solo hacia adelante: corregir con hotfix, no con rollback de API.                                                                                                                                                                              |
+| Límite                | Detalle                                                                                                                                                                                                                           |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Render 750 h/mes      | Con la ventana fría se usan ≈600 h. No sumar otros servicios free 24/7: si se agotan, Render suspende todo hasta el mes próximo.                                                                                                  |
+| Supabase 7 días       | Pausa por inactividad; el keep-alive la evita. Si falla una semana entera, restaurar a mano.                                                                                                                                      |
+| Proxy de Vercel 120 s | Tope del cold start de Render (~1 min). Más allá, 504 y el cliente reintenta.                                                                                                                                                     |
+| `transforms` en Hobby | Verificado en el cutover de #94: por Vercel `/api/media` da 401 y directo a Render 403, así que el proxy inyecta `x-origin-secret`. Si Vercel lo quitara del plan: `rewrites` sin guard y `trust proxy` 2 (rate limit más débil). |
+| `RELEASE_TOKEN`       | Si vence, el release falla (de forma visible). Renovar antes.                                                                                                                                                                     |
+| Cron de GitHub        | Se deshabilita a los 60 días sin actividad.                                                                                                                                                                                       |
+| Migraciones           | Solo hacia adelante: corregir con hotfix, no con rollback de API.                                                                                                                                                                 |
