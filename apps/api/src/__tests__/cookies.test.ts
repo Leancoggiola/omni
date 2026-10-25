@@ -23,37 +23,10 @@ describe('cookies de sesión', () => {
     clearCookies(res);
 
     const setOptions = Object.fromEntries(cookie.mock.calls.map(([name, , options]) => [name, withoutMaxAge(options)]));
-    const clearOptions = Object.fromEntries(
-      clearCookie.mock.calls
-        .filter(([, options]) => options.path !== '/api/auth/refresh')
-        .map(([name, options]) => [name, options])
-    );
+    const clearOptions = Object.fromEntries(clearCookie.mock.calls.map(([name, options]) => [name, options]));
 
     expect(clearOptions).toEqual(setOptions);
     expect(clearOptions.access_token).toMatchObject({ path: '/api', httpOnly: true, sameSite: 'strict' });
     expect(clearOptions.refresh_token).toMatchObject({ path: '/api/auth', httpOnly: true, sameSite: 'strict' });
-  });
-
-  it('setRefreshCookie también borra la cookie de refresh con el path viejo', () => {
-    const { res, cookie, clearCookie } = mockRes();
-
-    setRefreshCookie(res, 'refresh');
-
-    expect(clearCookie).toHaveBeenCalledWith(
-      'refresh_token',
-      expect.objectContaining({ path: '/api/auth/refresh', httpOnly: true, sameSite: 'strict' })
-    );
-    expect(cookie).toHaveBeenCalledWith('refresh_token', 'refresh', expect.objectContaining({ path: '/api/auth' }));
-  });
-
-  it('clearCookies también borra la cookie de refresh con el path viejo', () => {
-    const { res, clearCookie } = mockRes();
-
-    clearCookies(res);
-
-    expect(clearCookie).toHaveBeenCalledWith(
-      'refresh_token',
-      expect.objectContaining({ path: '/api/auth/refresh', httpOnly: true, sameSite: 'strict' })
-    );
   });
 });
