@@ -19,10 +19,26 @@ apps/mobile/
     shared/api/           # API_KEYS, client Bearer, tokenStorage
     shared/ui/            # primitivas de UI (ver abajo)
     shared/navigation/    # NAV_ICONS, NAV_HREFS, TAB_ROUTES y MORE_TAB (lo que depende de auth/router; shared/ui es presentacional)
-    features/<name>/      # screen + hooks
+    features/<name>/      # screen + hooks (ver abajo)
     theme/                # tamagui.config, fonts, elevation, gradient
 ```
 
+Cada feature, con la misma convención que web ([apps/web/CLAUDE.md](../web/CLAUDE.md)):
+
+```
+src/features/<name>/
+  <Name>Screen.tsx
+  index.ts                  único barrel: exporta el Screen (lo que importa app/)
+  types.ts                  opcional
+  components/ hooks/ utils/ igual que web: un hook por archivo (hooks/useX.ts), sin index adentro
+  X.test.tsx                al lado de X (nunca en app/)
+app/<ruta>.tsx              solo la ruta: importa @/features/<name>
+```
+
+> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes (`hooks.ts` con varios hooks, rutas que importan el Screen sin barrel) se migran en los PRs siguientes del issue.
+
+- `components/`, `hooks/` y `utils/` existen aunque tengan un solo archivo; barrels solo en las fronteras (`features/<name>/`, `core/<area>/`, `shared/<area>/`); los hooks nunca van en `utils/`.
+- Scaffolding: `pnpm new-feature <name> --mobile` desde la raíz (ver `docs/mobile/new-feature.md`).
 - Imports: `@/shared/api`, `@/shared/ui`, `@/core/auth`, `@/features/...`, `@/theme/...`.
 - **Prohibido:** feature A → feature B.
 - Contratos desde `@omni/shared/*`; no duplicar schemas.

@@ -29,15 +29,12 @@ npx skills add supabase/agent-skills --skill supabase supabase-postgres-best-pra
 ## Scripts
 
 ```bash
-pnpm web:new-feature gym
-pnpm web:new-feature gym --register-route --swr-domain gym
-pnpm web:new-hook media library useMyMediaList
-pnpm web:new-component profile settings ProfileCard
-pnpm web:new-test src/features/.../profileForm.ts
+pnpm new-feature gym --web --register-route
+pnpm new-feature gym --web --mobile --path /gym
 pnpm --filter web check-api-paths
 ```
 
-Flags y checklist: [new-feature.md](./new-feature.md).
+`new-feature` vive en `scripts/new-feature.mjs` (raíz) y genera web y/o mobile; sin `--web` ni `--mobile`, los dos. No hay generadores de hooks, componentes ni tests: con la convención de features (ver [apps/web/CLAUDE.md](../../apps/web/CLAUDE.md#estructura)) cada uno es un solo archivo. Flags y checklist: [new-feature.md](./new-feature.md).
 
 ## Verificación
 
