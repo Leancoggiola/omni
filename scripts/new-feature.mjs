@@ -66,6 +66,9 @@ for (const dir of [targetWeb && webDir, targetMobile && mobileDir].filter(Boolea
   }
 }
 
+const routesFile = path.join(webSrc, 'app', 'routes.ts');
+const routesContent = targetWeb && registerRoute ? buildRoutesContent() : null;
+
 if (targetWeb) scaffoldWeb();
 if (targetMobile) scaffoldMobile();
 
@@ -91,6 +94,7 @@ function scaffoldWeb() {
 
 import type { FC } from 'react';
 
+/** Página de ${pascal}, todavía en construcción. */
 export const ${pascal}Page: FC = () => {
   return <Text c="dimmed">${pascal} — en construcción</Text>;
 };
@@ -109,7 +113,10 @@ export const ${camel}Route: RouteObject = {
 `
   );
   write(path.join(webDir, 'index.ts'), `export { ${camel}Route } from './${name}.routes';\n`);
-  if (registerRoute) appendRoute();
+  if (routesContent) {
+    fs.writeFileSync(routesFile, routesContent, 'utf8');
+    console.log('Actualizado apps/web/src/app/routes.ts');
+  }
 
   console.log(`\nWeb: apps/web/src/features/${name}/`);
   console.log('Pasos que faltan:');
@@ -139,20 +146,25 @@ function insertFeatureImport(content, importLine) {
   return `${content.slice(0, end)}\n${importLine}${content.slice(end)}`;
 }
 
-/** Registra la ruta de la feature en `protectedRoutes` de `apps/web/src/app/routes.ts`. */
-function appendRoute() {
-  const routesFile = path.join(webSrc, 'app', 'routes.ts');
+/**
+ * Devuelve `apps/web/src/app/routes.ts` con el import y la ruta de la feature en `protectedRoutes`, sin escribir
+ * nada. Corre antes de generar los archivos: si no encuentra dónde registrarla, sale sin haber creado la feature.
+ */
+function buildRoutesContent() {
   let content = fs.readFileSync(routesFile, 'utf8');
   content = insertFeatureImport(content, `import { ${camel}Route } from '@/features/${name}';`);
   const routeRef = `${camel}Route`;
-  if (!content.match(new RegExp(`protectedRoutes = \\[[^\\]]*\\b${escapeRegExp(routeRef)}\\b`))) {
-    content = content.replace(/export const protectedRoutes = (\[[^\]]+\])/, (_, arr) => {
-      const inner = arr.slice(1, -1).trim();
-      return `export const protectedRoutes = [${inner}, ${routeRef}]`;
-    });
+  if (content.match(new RegExp(`protectedRoutes = \\[[^\\]]*\\b${escapeRegExp(routeRef)}\\b`))) return content;
+
+  const protectedRoutes = /export const protectedRoutes = (\[[^\]]+\])/;
+  if (!protectedRoutes.test(content)) {
+    console.error('No se encontró protectedRoutes en apps/web/src/app/routes.ts: registrá la ruta a mano.');
+    process.exit(1);
   }
-  fs.writeFileSync(routesFile, content, 'utf8');
-  console.log('Actualizado apps/web/src/app/routes.ts');
+  return content.replace(protectedRoutes, (_, arr) => {
+    const inner = arr.slice(1, -1).trim();
+    return `export const protectedRoutes = [${inner}, ${routeRef}]`;
+  });
 }
 
 /** Genera `<Name>Screen.tsx` e `index.ts` en `apps/mobile/src/features/<name>/`. */
