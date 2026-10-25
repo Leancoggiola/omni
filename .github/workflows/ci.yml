@@ -179,7 +179,8 @@ jobs:
     if: github.event_name == 'pull_request' || github.event_name == 'schedule'
     # Bloqueante en PRs a main; informativo en PRs a develop y en el nightly.
     continue-on-error: ${{ github.base_ref != 'main' }}
-    runs-on: ubuntu-latest
+    # Fijo a 24.04: Playwright 1.58.2 no instala Chromium en ubuntu-latest (26.04). Volver a latest al subir Playwright.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
       # Puerto y nombre de base tomados de apps/api/.env.e2e.
