@@ -138,7 +138,7 @@ unset DIRECT_URL DATABASE_URL ADMIN_PASSWORD
 ```
 
 - Si el primer `migrate status` dice "up to date", la URL es de otra base: abortar.
-- El usuario tiene que cumplir las reglas del login (6 a 20 caracteres, solo letras y números) y el password, 8 a 72 caracteres: el seed no las valida.
+- El seed no valida el usuario ni el password. El usuario tiene que cumplir las reglas del login (6 a 20 caracteres, solo letras y números); el seed y el login lo pasan a minúsculas. El login solo exige un password no vacío, pero conviene usar 8 a 72 caracteres, la regla de las contraseñas nuevas (registro y cambio de contraseña).
 - Sin `SEED_DEMO`: con `NODE_ENV=production` el seed rechaza la demo.
 - El seed no pisa un admin existente: para cambiar el usuario o el password, borrar la fila y volver a correrlo.
 
