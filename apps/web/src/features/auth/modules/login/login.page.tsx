@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Alert, Button, PasswordInput, Stack, TextInput } from '@mantine/core';
 import { schemaResolver, useForm } from '@mantine/form';
 
 import { useAuth } from '@/core/auth';
+import { ensureServerAwake } from '@/shared/api';
 import { getErrorMessage } from '@/shared/ui';
 
 import { AuthCard } from './components/AuthCard';
@@ -13,12 +14,21 @@ import type { FC } from 'react';
 
 import { loginSchema } from '@omni/shared/auth';
 
+/**
+ * Login. Al montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y
+ * el aviso aparezca si tarda; el POST del login espera ese sondeo si sigue en curso. Los campos y el botón quedan
+ * bloqueados mientras el login está en curso.
+ */
 export const LoginPage: FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void ensureServerAwake();
+  }, []);
 
   const form = useForm<LoginPayload>({
     mode: 'uncontrolled',
@@ -49,10 +59,16 @@ export const LoginPage: FC = () => {
 
       <form noValidate onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
-          <TextInput label="Usuario" key={form.key('username')} {...form.getInputProps('username')} />
+          <TextInput
+            label="Usuario"
+            disabled={loading}
+            key={form.key('username')}
+            {...form.getInputProps('username')}
+          />
           <PasswordInput
             label="Contraseña"
             visibilityToggleFocusable
+            disabled={loading}
             key={form.key('password')}
             {...form.getInputProps('password')}
           />

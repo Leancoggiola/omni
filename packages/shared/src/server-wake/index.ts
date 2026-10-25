@@ -260,18 +260,24 @@ export function createServerWake(options: ServerWakeOptions) {
   /**
    * `response` es `null` si hay que esperar al servidor; `error` guarda el error de red o de timeout que lo causó.
    * Un 504 del proxy en un request no idempotente se lanza enseguida: el proxy ya lo reenvió y la API pudo procesarlo.
+   * Si un request no idempotente pasa `SERVER_WAKE_NOTICE_DELAY_MS` sin headers (un cold start que retiene la
+   * conexión), arranca en paralelo el polling compartido del health para encender el aviso; el request no se
+   * reintenta y sigue esperando su respuesta.
    */
   async function tryRequest(
     url: string,
     init: RequestInit | undefined,
     idempotent: boolean
   ): Promise<{ response: Response | null; error?: unknown }> {
+    const probeTimer = idempotent ? undefined : setTimeout(() => void awaitServer(), SERVER_WAKE_NOTICE_DELAY_MS);
     let res: Response;
     try {
       res = await fetchWithTimeout(url, init, idempotent ? SERVER_REQUEST_TIMEOUT_MS : SERVER_MUTATION_TIMEOUT_MS);
     } catch (err) {
       if (init?.signal?.aborted || !idempotent) throw err;
       return { response: null, error: err };
+    } finally {
+      clearTimeout(probeTimer);
     }
     if (isApiResponse(res)) return { response: res };
     if (res.status === GATEWAY_TIMEOUT_STATUS && !idempotent) {
@@ -300,6 +306,9 @@ export function createServerWake(options: ServerWakeOptions) {
    * Cualquier otra respuesta, un 500 JSON incluido, se devuelve tal cual. Si el servidor no despierta a tiempo,
    * lanza el error de `createError` con status 503. Si se detecta que no hay conexión, relanza el error original
    * del request sin esperar. Si el caller aborta su request, relanza el abort sin seguir esperando al polling.
+   * Un request no idempotente que sale con un polling en curso (por ejemplo, el `ensureServerAwake()` del login al
+   * montar) lo espera antes del primer intento, así no queda retenido por el cold start; si el polling termina sin
+   * despertar la API, el request sale igual.
    */
   async function fetchWithWake(
     url: string,
@@ -307,6 +316,7 @@ export function createServerWake(options: ServerWakeOptions) {
     fetchOptions?: FetchWithWakeOptions
   ): Promise<Response> {
     const idempotent = fetchOptions?.idempotent ?? isIdempotentMethod(init?.method);
+    if (!idempotent && wakePromise) await awaitServerUnlessAborted(init?.signal);
     const first = await tryRequest(url, init, idempotent);
     if (first.response) return first.response;
 

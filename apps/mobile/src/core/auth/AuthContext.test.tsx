@@ -69,6 +69,7 @@ describe('AuthProvider', () => {
     getItemAsync.mockReset();
     getItemAsync.mockImplementation(readFromStore);
     routes = {
+      [API_KEYS.health]: () => jsonResponse({ status: 'ok' }),
       [API_KEYS.auth.profile]: () => jsonResponse({ user: USER }),
       [API_KEYS.auth.logout]: () => jsonResponse({ message: 'Sesión cerrada exitosamente' }),
     };

@@ -668,8 +668,81 @@ describe('fetchWithWake request timeout', () => {
     await vi.advanceTimersByTimeAsync(SERVER_MUTATION_TIMEOUT_MS);
     await assertion;
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(countCalls(fetchMock, '/api/resource')).toBe(1);
     expect(signals[0]?.aborted).toBe(true);
+  });
+
+  it('shows the notice during a hung POST by probing health in parallel, without retrying the POST', async () => {
+    let healthCalls = 0;
+    const fetchMock = vi.fn((url: string) => {
+      if (url === HEALTH) {
+        healthCalls += 1;
+        return Promise.resolve(healthCalls < 3 ? htmlResponse(503) : jsonResponse({ status: 'ok' }));
+      }
+      return new Promise(resolve => {
+        setTimeout(() => resolve(jsonResponse({ logged: true })), 60_000);
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const listener = vi.fn();
+    const unsubscribe = subscribeServerWake(listener);
+
+    const promise = fetchWithWake('/api/auth/login', { method: 'POST' });
+    await vi.advanceTimersByTimeAsync(1_400);
+    expect(healthCalls).toBe(0);
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false]);
+
+    await vi.advanceTimersByTimeAsync(100);
+    expect(healthCalls).toBe(1);
+    expect(listener.mock.calls.map(([waking]) => waking)).toEqual([false, true]);
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    const res = await promise;
+    unsubscribe();
+
+    expect(await res.json()).toEqual({ logged: true });
+    expect(countCalls(fetchMock, '/api/auth/login')).toBe(1);
+    expect(listener).toHaveBeenLastCalledWith(false);
+  });
+
+  it('does not probe health when a POST answers before the notice delay', async () => {
+    const fetchMock = vi.fn(
+      () =>
+        new Promise(resolve => {
+          setTimeout(() => resolve(jsonResponse({ logged: true })), 1_000);
+        })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const promise = fetchWithWake('/api/auth/login', { method: 'POST' });
+    await vi.advanceTimersByTimeAsync(5_000);
+    await promise;
+
+    expect(countCalls(fetchMock, HEALTH)).toBe(0);
+  });
+
+  it('holds a POST until the polling in flight finishes', async () => {
+    let healthCalls = 0;
+    const fetchMock = vi.fn((url: string) => {
+      if (url === HEALTH) {
+        healthCalls += 1;
+        return Promise.resolve(healthCalls < 2 ? htmlResponse(503) : jsonResponse({ status: 'ok' }));
+      }
+      return Promise.resolve(jsonResponse({ logged: true }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const wake = ensureServerAwake();
+    const promise = fetchWithWake('/api/auth/login', { method: 'POST' });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(countCalls(fetchMock, '/api/auth/login')).toBe(0);
+
+    await vi.advanceTimersByTimeAsync(2_000);
+    await expect(wake).resolves.toBe(true);
+    const res = await promise;
+
+    expect(await res.json()).toEqual({ logged: true });
+    expect(countCalls(fetchMock, '/api/auth/login')).toBe(1);
   });
 
   it('does not cut a GET before 30 s', async () => {
@@ -705,6 +778,9 @@ describe('fetchWithWake request timeout', () => {
     const promise = fetchWithWake('/api/auth/login', { method: 'POST' });
     await vi.advanceTimersByTimeAsync(60_000);
     const res = await promise;
+    const wake = ensureServerAwake();
+    await vi.advanceTimersByTimeAsync(2_000);
+    await expect(wake).resolves.toBe(true);
 
     expect(await res.json()).toEqual({ logged: true });
     expect(SERVER_MUTATION_TIMEOUT_MS).toBeGreaterThan(60_000);
@@ -759,7 +835,9 @@ describe('fetchWithWake request timeout', () => {
   it('cuts the request even when fetch ignores the abort signal', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(() => new Promise(() => undefined))
+      vi.fn((url: string, init?: RequestInit) =>
+        url === HEALTH ? hangUntilAborted(init) : new Promise(() => undefined)
+      )
     );
 
     const promise = fetchWithWake('/api/resource', { method: 'PATCH' });
