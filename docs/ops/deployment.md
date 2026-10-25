@@ -27,7 +27,7 @@ flowchart LR
 | API      | `https://omni-api-gwer.onrender.com` (no usar directo) |
 | Ready    | `https://omni-nest.vercel.app/api/health/ready`        |
 
-[`render.yaml`](../../render.yaml) documenta la config de Render (Docker con `apps/api/Dockerfile`, rama `main`, auto-deploy off, health `/api/health`), pero el servicio no está atado al Blueprint: esa config se carga a mano en el dashboard y no se sincroniza sola. La de Vercel vive en `apps/web/vercel.json`: proxy `/api`, cabeceras de seguridad en todo lo que no es `/api` (CSP, `X-Content-Type-Options`, `Referrer-Policy`), caché inmutable en `/assets`, fallback SPA y deploys por Git desactivados.
+[`render.yaml`](../../render.yaml) documenta la config de Render (Docker con `apps/api/Dockerfile`, rama `main`, auto-deploy off, health `/api/health`), pero el servicio no está atado al Blueprint: esa config se carga a mano en el dashboard y no se sincroniza sola. `render.yaml` lista solo las variables obligatorias; las opcionales están en [la tabla de Render](#render-env-vars-sync-false). La de Vercel vive en `apps/web/vercel.json`: proxy `/api`, cabeceras de seguridad en todo lo que no es `/api` (CSP, `X-Content-Type-Options`, `Referrer-Policy`), caché inmutable en `/assets`, fallback SPA y deploys por Git desactivados. `Strict-Transport-Security` no está en `vercel.json`: la agrega Vercel por defecto en los dominios `*.vercel.app`, y con un dominio propio hay que revisarla.
 
 ---
 
@@ -60,30 +60,30 @@ Solo `feat`, `fix`, `perf` o `BREAKING CHANGE` generan release. `backup.yml` es 
 
 ### GitHub (environment `Production`)
 
-| Nombre                             | Tipo     | De dónde sale                                                                                                  |
-| ---------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `RELEASE_TOKEN`                    | secret   | PAT de GitHub (`repo`); renovar antes de que venza.                                                            |
-| `RENDER_DEPLOY_HOOK_PROD`          | secret   | Render → Settings → Deploy Hook.                                                                               |
-| `VERCEL_TOKEN`                     | secret   | Vercel → Account Settings → Tokens.                                                                            |
-| `VERCEL_ORG_ID`                    | secret   | `.vercel/project.json` tras `vercel link`.                                                                     |
-| `VERCEL_PROJECT_ID`                | secret   | Ídem.                                                                                                          |
-| `ANDROID_KEYSTORE_BASE64`          | secret   | `base64` de `omni-release.jks` (generada con `keytool`).                                                       |
-| `ANDROID_KEYSTORE_PASSWORD`        | secret   | Elegida al generar la keystore.                                                                                |
-| `ANDROID_KEY_ALIAS`                | secret   | Alias de la keystore (`omni`).                                                                                 |
-| `ANDROID_KEY_PASSWORD`             | secret   | Elegida al generar la keystore.                                                                                |
-| `APK_REPO_TOKEN`                   | secret   | PAT fine-grained, Contents: write solo sobre `omni-apk`.                                                       |
-| `PROD_DIRECT_URL`                  | secret   | Supabase `omni-prod` → **session pooler** (5432).                                                              |
-| `BACKUP_S3_ACCESS_KEY_ID`          | secret   | Access key del usuario IAM `omni-backup-writer`: solo `s3:PutObject` sobre `omni/*`. Lo usa `backup`.          |
-| `BACKUP_S3_SECRET_ACCESS_KEY`      | secret   | Par del anterior.                                                                                              |
-| `BACKUP_S3_READ_ACCESS_KEY_ID`     | secret   | Access key del usuario IAM `omni-backup-reader`: solo `s3:GetObject` y `s3:ListBucket`. Lo usa `restore-test`. |
-| `BACKUP_S3_READ_SECRET_ACCESS_KEY` | secret   | Par del anterior.                                                                                              |
-| `BACKUP_AGE_IDENTITY`              | secret   | Clave privada `age` **A** (CI): solo la línea `AGE-SECRET-KEY-…`. La usa la prueba de restore.                 |
-| `BACKUP_S3_ENDPOINT`               | variable | Opcional: solo para un S3-compatible que no sea AWS (p. ej. R2). En AWS S3 se deja sin definir.                |
-| `BACKUP_S3_REGION`                 | variable | Región del bucket (p. ej. `us-east-1`).                                                                        |
-| `BACKUP_S3_BUCKET`                 | variable | Nombre del bucket privado de backups.                                                                          |
-| `BACKUP_AGE_RECIPIENT`             | variable | Clave pública de la clave **A**.                                                                               |
-| `BACKUP_AGE_RECIPIENT_RECOVERY`    | variable | Clave pública de la clave **B** de recuperación (la privada vive solo fuera de GitHub).                        |
-| `PROD_WEB_URL`                     | variable | `https://omni-nest.vercel.app`; también es la `EXPO_PUBLIC_API_URL` del APK.                                   |
+| Nombre                             | Tipo     | De dónde sale                                                                                                                                               |
+| ---------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RELEASE_TOKEN`                    | secret   | PAT de GitHub (`repo`); renovar antes de que venza.                                                                                                         |
+| `RENDER_DEPLOY_HOOK_PROD`          | secret   | Render → Settings → Deploy Hook.                                                                                                                            |
+| `VERCEL_TOKEN`                     | secret   | Vercel → Account Settings → Tokens, con scope al team completo, no limitado a un proyecto (ver [Vercel](#vercel-proyecto-omni-web-environment-production)). |
+| `VERCEL_ORG_ID`                    | secret   | Team ID (`team_…`), de `.vercel/project.json` tras `vercel link --project omni-web`.                                                                        |
+| `VERCEL_PROJECT_ID`                | secret   | Ídem.                                                                                                                                                       |
+| `ANDROID_KEYSTORE_BASE64`          | secret   | `base64` de `omni-release.jks` (generada con `keytool`).                                                                                                    |
+| `ANDROID_KEYSTORE_PASSWORD`        | secret   | Elegida al generar la keystore.                                                                                                                             |
+| `ANDROID_KEY_ALIAS`                | secret   | Alias de la keystore (`omni`).                                                                                                                              |
+| `ANDROID_KEY_PASSWORD`             | secret   | Elegida al generar la keystore.                                                                                                                             |
+| `APK_REPO_TOKEN`                   | secret   | PAT fine-grained, Contents: write solo sobre `omni-apk`.                                                                                                    |
+| `PROD_DIRECT_URL`                  | secret   | Supabase `omni-prod` → **session pooler** (5432).                                                                                                           |
+| `BACKUP_S3_ACCESS_KEY_ID`          | secret   | Access key del usuario IAM `omni-backup-writer`: solo `s3:PutObject` sobre `omni/*`. Lo usa `backup`.                                                       |
+| `BACKUP_S3_SECRET_ACCESS_KEY`      | secret   | Par del anterior.                                                                                                                                           |
+| `BACKUP_S3_READ_ACCESS_KEY_ID`     | secret   | Access key del usuario IAM `omni-backup-reader`: solo `s3:GetObject` y `s3:ListBucket`. Lo usa `restore-test`.                                              |
+| `BACKUP_S3_READ_SECRET_ACCESS_KEY` | secret   | Par del anterior.                                                                                                                                           |
+| `BACKUP_AGE_IDENTITY`              | secret   | Clave privada `age` **A** (CI): solo la línea `AGE-SECRET-KEY-…`. La usa la prueba de restore.                                                              |
+| `BACKUP_S3_ENDPOINT`               | variable | Opcional: solo para un S3-compatible que no sea AWS (p. ej. R2). En AWS S3 se deja sin definir.                                                             |
+| `BACKUP_S3_REGION`                 | variable | Región del bucket (p. ej. `us-east-1`).                                                                                                                     |
+| `BACKUP_S3_BUCKET`                 | variable | Nombre del bucket privado de backups.                                                                                                                       |
+| `BACKUP_AGE_RECIPIENT`             | variable | Clave pública de la clave **A**.                                                                                                                            |
+| `BACKUP_AGE_RECIPIENT_RECOVERY`    | variable | Clave pública de la clave **B** de recuperación (la privada vive solo fuera de GitHub).                                                                     |
+| `PROD_WEB_URL`                     | variable | `https://omni-nest.vercel.app`; también es la `EXPO_PUBLIC_API_URL` del APK.                                                                                |
 
 Todos los secrets y variables del release y de los backups viven en el environment `Production`, que limita los deploys a `main` y `develop`, y cada job que los usa declara `environment: Production`. El único secret a nivel de repo es `CLAUDE_CODE_OAUTH_TOKEN` (revisión automática de PRs). `VERCEL_TOKEN` se pasa solo a los steps que lo usan (`vercel pull`, `deploy` y la verificación de `ORIGIN_SECRET`), no al build.
 
@@ -109,7 +109,12 @@ Al editar variables, guardar con **Save only**. "Save and deploy" y "Save, rebui
 
 En las URLs de Supabase el usuario es `postgres.<ref del proyecto>` y el host lleva la región del proyecto (`aws-0-us-east-1.pooler.supabase.com`). Un ref o una región equivocados dan `tenant/user … not found`; un password equivocado, `P1000`. Si el password tiene caracteres reservados (`@ : / # ? %`), va codificado en la URL.
 
-### Vercel (proyecto `omni-nest`, environment Production)
+### Vercel (proyecto `omni-web`, environment Production)
+
+El proyecto se llama **`omni-web`** y su dominio de producción es `omni-nest.vercel.app`; vive en el team `leandros-projects`.
+
+- `vercel link --project omni-web` sin `--yes`: con `--yes`, si el nombre no existe crea un proyecto nuevo en vez de fallar.
+- El token del pipeline tiene que tener scope al **team completo**. La CLI lee el team antes que el proyecto, y con un token limitado a un proyecto (o de otra cuenta) falla con `Could not retrieve Project Settings` (la API responde `team_unauthorized`); con IDs que no existen, `Project not found`.
 
 | Variable        | De dónde sale                                                                                                                                                           |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -141,8 +146,8 @@ En PowerShell, `Read-Host -AsSecureString` cumple el papel de `read -rs`, y `[Ur
 
 ### Verificación post-deploy
 
-1. `curl -I https://omni-nest.vercel.app/profile`: `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy` y `Strict-Transport-Security`. Un archivo de `/assets/` trae `Cache-Control: public, max-age=31536000, immutable`.
-2. `curl https://omni-nest.vercel.app/api/health/ready`: 200 con el commit desplegado. Directo a `https://omni-api-gwer.onrender.com/api/media`: 403.
+1. `curl -I https://omni-nest.vercel.app/profile`: `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy` y `Strict-Transport-Security` (esta última la pone Vercel). Un archivo de `/assets/` trae `Cache-Control: public, max-age=31536000, immutable`.
+2. `curl https://omni-nest.vercel.app/api/health/ready`: 200 con el commit desplegado. `/api/health*` no pasa por el guard, así que el guard se prueba con `/api/media`: por Vercel 401 (pasó el guard, falta sesión) y directo a `https://omni-api-gwer.onrender.com/api/media` 403.
 3. Web: tras el login hay dos cookies `HttpOnly`, `Secure` y `SameSite=Strict`: `access_token` (path `/api`) y `refresh_token` (path `/api/auth`). Borrando `access_token` y recargando, la sesión sigue (refresh). El logout borra las dos y cierra solo esa sesión.
 4. APK: login, reabrir la app pasada la vida del access token sin perder la sesión, y logout.
 
@@ -262,12 +267,12 @@ GitHub deshabilita los cron de repos públicos tras 60 días sin actividad (lleg
 
 ## Riesgos y límites free
 
-| Límite                | Detalle                                                                                                                                                                                                                |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Render 750 h/mes      | Con la ventana fría se usan ≈600 h. No sumar otros servicios free 24/7: si se agotan, Render suspende todo hasta el mes próximo.                                                                                       |
-| Supabase 7 días       | Pausa por inactividad; el keep-alive la evita. Si falla una semana entera, restaurar a mano.                                                                                                                           |
-| Proxy de Vercel 120 s | Tope del cold start de Render (~1 min). Más allá, 504 y el cliente reintenta.                                                                                                                                          |
-| `transforms` en Hobby | **Pendiente de verificar** con un deploy de preview manual antes del cutover. El header `x-origin-secret` depende de que funcione en el plan. Fallback: `rewrites` sin guard y `trust proxy` 2 (rate limit más débil). |
-| `RELEASE_TOKEN`       | Si vence, el release falla (de forma visible). Renovar antes.                                                                                                                                                          |
-| Cron de GitHub        | Se deshabilita a los 60 días sin actividad.                                                                                                                                                                            |
-| Migraciones           | Solo hacia adelante: corregir con hotfix, no con rollback de API.                                                                                                                                                      |
+| Límite                | Detalle                                                                                                                                                                                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Render 750 h/mes      | Con la ventana fría se usan ≈600 h. No sumar otros servicios free 24/7: si se agotan, Render suspende todo hasta el mes próximo.                                                                                                        |
+| Supabase 7 días       | Pausa por inactividad; el keep-alive la evita. Si falla una semana entera, restaurar a mano.                                                                                                                                            |
+| Proxy de Vercel 120 s | Tope del cold start de Render (~1 min). Más allá, 504 y el cliente reintenta.                                                                                                                                                           |
+| `transforms` en Hobby | Verificado en el cutover (24/10/2026): por Vercel `/api/media` da 401 y directo a Render 403, así que el proxy inyecta `x-origin-secret`. Si Vercel lo quitara del plan: `rewrites` sin guard y `trust proxy` 2 (rate limit más débil). |
+| `RELEASE_TOKEN`       | Si vence, el release falla (de forma visible). Renovar antes.                                                                                                                                                                           |
+| Cron de GitHub        | Se deshabilita a los 60 días sin actividad.                                                                                                                                                                                             |
+| Migraciones           | Solo hacia adelante: corregir con hotfix, no con rollback de API.                                                                                                                                                                       |
