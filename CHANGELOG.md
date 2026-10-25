@@ -1,3 +1,13 @@
+## [1.1.1](https://github.com/Leancoggiola/omni/compare/v1.1.0...v1.1.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* **#94:** build de release del APK ([#168](https://github.com/Leancoggiola/omni/issues/168)) ([c0ffe69](https://github.com/Leancoggiola/omni/commit/c0ffe69684d72f963fbae47c8356c3bd2075339b)), closes [#94](https://github.com/Leancoggiola/omni/issues/94)
+* **deps:** zod 4.6.6 y body-parser >=2.4.0 ([7f7ffe6](https://github.com/Leancoggiola/omni/commit/7f7ffe639d4b18aaf5021249f9aba91895b44e94))
+* **mobile:** babel-preset-expo como devDependency para el build de release ([e978be4](https://github.com/Leancoggiola/omni/commit/e978be406ce17378cd0d48e21f9eeba4be75bc01))
+* **mobile:** sin el compilador de Tamagui en el build de release ([17fbc29](https://github.com/Leancoggiola/omni/commit/17fbc292dca42e1d4c1f90667b6df9e27064dfa0))
+
 # [1.1.0](https://github.com/Leancoggiola/omni/compare/v1.0.2...v1.1.0) (2026-10-23)
 
 
