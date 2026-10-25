@@ -17,6 +17,7 @@ import {
 } from '@/shared/ui';
 
 import { DeleteAccountCard } from './components/DeleteAccountCard';
+import { LogoutAllCard } from './components/LogoutAllCard';
 import { PasswordCard } from './components/PasswordCard';
 import { PersonalInfoCard } from './components/PersonalInfoCard';
 import { PreferencesCard } from './components/PreferencesCard';
@@ -24,12 +25,15 @@ import { useAccountActions, useProfile } from './hooks';
 
 import type { UpdatePreferencesPayload } from '@omni/shared/users';
 
-/** Perfil: ruta de stack que se abre solo desde "Más". Cerrar sesión vive en "Más", no acá. */
+/**
+ * Perfil: ruta de stack que se abre solo desde "Más". Cerrar sesión vive en "Más", no acá; acá está cerrarla en
+ * todos los dispositivos.
+ */
 export function ProfileScreen() {
   const router = useRouter();
   const { profile, error, refresh, updateProfile, updatePreferences } = useProfile();
   const { changePassword, deleteAccount } = useAccountActions();
-  const { logout } = useAuth();
+  const { logout, logoutAll } = useAuth();
   const { clearOverride } = useColorSchemeControl();
   const { scrollRef, onScroll, scrollIntoView } = useScrollFocusedInputIntoView();
   const refreshControl = usePullToRefresh(refresh);
@@ -78,6 +82,7 @@ export function ProfileScreen() {
             onChange={savePreferences}
           />
           <PasswordCard onSubmit={changePassword} onFieldFocus={scrollIntoView} />
+          <LogoutAllCard onLogoutAll={logoutAll} />
           <DeleteAccountCard onDelete={handleDelete} />
         </ScrollView>
       </KeyboardAvoidingView>

@@ -28,3 +28,9 @@ export interface AuthTokensResponse {
   accessToken: string;
   refreshToken: string;
 }
+
+/** Header con el que la app mobile se identifica en login y refresh: la API le da un refresh token de vigencia larga. */
+export const CLIENT_HEADER = 'X-Client';
+
+/** Valor de `CLIENT_HEADER` que manda la app mobile. */
+export const MOBILE_CLIENT = 'mobile';
