@@ -52,6 +52,8 @@ router.post('/list', validate(addMediaItemSchema), async (req, res) => { ... });
 - Rutas protegidas: `authenticateJwt` (cookie `access_token` **o** `Authorization: Bearer`).
 - Login/refresh: setean cookies (web) **y** devuelven `accessToken` + `refreshToken` en el JSON (mobile).
 - Refresh acepta token por cookie, Bearer o body `{ refreshToken }`.
+- Vigencia del refresh token: la app mobile se identifica con el header `X-Client: mobile` (`CLIENT_HEADER`/`MOBILE_CLIENT` de `@omni/shared/auth`) en login y refresh y recibe `JWT_REFRESH_EXPIRES_IN_MOBILE` (90d) desde cada refresh; sin el header, `JWT_REFRESH_EXPIRES_IN` (7d, el de la cookie de la web). No se deduce del body: React Native en Android también manda las cookies.
+- `POST /auth/logout-all` (`authenticateJwt`) borra todos los refresh tokens del usuario y las cookies; los access tokens ya emitidos valen hasta vencer.
 - Logout no usa `authenticateJwt`: `authenticateLogout` (estrategia `logout`, nunca rechaza) extrae el refresh token del body o, si no, de la cookie. El handler no lee `req.cookies` directo: las rutas que mutan y usan cookies van detrás de `passport.authenticate` con `session: false`, que CodeQL reconoce. Es idempotente y siempre llama a `clearCookies`.
 - Refresh tokens: en la base va el sha256 (`hashRefreshToken`), nunca bcrypt. Toda escritura de `RefreshToken` va en una transacción que empieza con `lockUserSessions(tx, userId)`. Ver "Auth dual" en `docs/architecture.md`.
 - El logger HTTP (`createHttpLogger`) redacta los headers con credenciales: no montar `pino-http` directo.

@@ -28,3 +28,7 @@ export interface AuthTokensResponse {
   accessToken: string;
   refreshToken: string;
 }
+
+export const CLIENT_HEADER = 'X-Client';
+
+export const MOBILE_CLIENT = 'mobile';
