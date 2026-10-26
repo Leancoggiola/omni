@@ -1,3 +1,13 @@
+## [1.2.2](https://github.com/Leancoggiola/omni/compare/v1.2.1...v1.2.2) (2026-10-26)
+
+
+### Bug Fixes
+
+* **#174:** limitar el escalado de fuente de las etiquetas de la tab bar ([fdaf6a3](https://github.com/Leancoggiola/omni/commit/fdaf6a3646fdd58dcd2b4b2cf680bdcc8f83deb0)), closes [#174](https://github.com/Leancoggiola/omni/issues/174)
+* **#174:** tab bar sobre la barra de Android y confirmación al cerrar sesión ([eeec23d](https://github.com/Leancoggiola/omni/commit/eeec23d93adce9ea0df386a5dea7843f99ff45b5)), closes [#174](https://github.com/Leancoggiola/omni/issues/174)
+* **#174:** tab bar sobre la barra de Android y confirmación al cerrar sesión ([#183](https://github.com/Leancoggiola/omni/issues/183)) ([b1d1c59](https://github.com/Leancoggiola/omni/commit/b1d1c59751523c552eec1e4889d97257239cbbb8)), closes [#174](https://github.com/Leancoggiola/omni/issues/174)
+* **#174:** un solo diálogo de cerrar sesión a la vez ([789d2c9](https://github.com/Leancoggiola/omni/commit/789d2c9659de9502c2049e5ba1a6d728388df9bc)), closes [#174](https://github.com/Leancoggiola/omni/issues/174)
+
 ## [1.2.1](https://github.com/Leancoggiola/omni/compare/v1.2.0...v1.2.1) (2026-10-26)
 
 
