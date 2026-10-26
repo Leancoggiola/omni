@@ -14,6 +14,7 @@ const mockUpdatePreferences = jest.fn();
 const mockChangePassword = jest.fn();
 const mockDeleteAccount = jest.fn();
 const mockLogout = jest.fn();
+const mockLogoutAll = jest.fn();
 const mockClearOverride = jest.fn();
 const mockRefresh = jest.fn();
 const mockBack = jest.fn();
@@ -23,7 +24,7 @@ jest.mock('@/core/theme', () => ({
   ...jest.requireActual('@/test/themeMock'),
   useColorSchemeControl: () => ({ clearOverride: mockClearOverride }),
 }));
-jest.mock('@/core/auth', () => ({ useAuth: () => ({ logout: mockLogout }) }));
+jest.mock('@/core/auth', () => ({ useAuth: () => ({ logout: mockLogout, logoutAll: mockLogoutAll }) }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn() }) }));
 jest.mock(
   'react-native-safe-area-context',
@@ -331,6 +332,51 @@ describe('ProfileScreen · eliminar cuenta', () => {
     expect(notifyError).not.toHaveBeenCalled();
     expect(notifyWarning).toHaveBeenCalledWith(expect.stringContaining('se eliminó'));
     expect(screen.getByRole('button', { name: 'Eliminar cuenta', disabled: true })).toBeTruthy();
+  });
+});
+
+describe('ProfileScreen · cerrar sesión en todos los dispositivos', () => {
+  const press = () => fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión en todos los dispositivos' }));
+
+  it('pide confirmación y, si se cancela, no cierra nada', async () => {
+    jest.mocked(confirm).mockResolvedValue(false);
+    renderProfile();
+    await act(async () => press());
+
+    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ title: 'Cerrar sesión en todos los dispositivos' }));
+    expect(mockLogoutAll).not.toHaveBeenCalled();
+  });
+
+  it('al confirmar cierra todas las sesiones', async () => {
+    jest.mocked(confirm).mockResolvedValue(true);
+    mockLogoutAll.mockResolvedValue(undefined);
+    renderProfile();
+    await act(async () => press());
+
+    expect(mockLogoutAll).toHaveBeenCalledTimes(1);
+    expect(notifyError).not.toHaveBeenCalled();
+  });
+
+  it('si la API falla avisa con notifyError', async () => {
+    jest.mocked(confirm).mockResolvedValue(true);
+    mockLogoutAll.mockRejectedValue(new ApiError('No se pudo', 503));
+    renderProfile();
+    await act(async () => press());
+
+    expect(notifyError).toHaveBeenCalledWith('No se pudo');
+  });
+
+  it('dos toques seguidos piden una sola confirmación', async () => {
+    let answer!: (value: boolean) => void;
+    jest.mocked(confirm).mockReturnValue(new Promise<boolean>(resolve => (answer = resolve)));
+    renderProfile();
+    await act(async () => {
+      press();
+      press();
+    });
+    await act(async () => answer(false));
+
+    expect(confirm).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -1,4 +1,5 @@
 import { expect, test } from '../src/fixtures/test';
+import { HomePage } from '../src/pages/HomePage';
 import { LoginPage } from '../src/pages/LoginPage';
 
 test.describe('sesión ya iniciada', () => {
@@ -74,13 +75,19 @@ test.describe('sin sesión', () => {
     await expect(page).toHaveURL('/media');
   });
 
-  test('cierra sesión y vuelve al login', async ({ page, workerUser }) => {
+  test('cierra sesión tras confirmar y vuelve al login', async ({ page, workerUser }) => {
     const login = new LoginPage(page);
     await login.goto();
     await login.login(workerUser.username, workerUser.password);
     await expect(page).toHaveURL('/');
 
-    await page.getByRole('button', { name: 'Cerrar sesión' }).click();
+    const home = new HomePage(page);
+    await home.logoutButton().click();
+    await home.cancelLogoutButton().click();
+    await expect(home.logoutDialog()).toBeHidden();
+    await expect(page).toHaveURL('/');
+
+    await home.logout();
 
     await expect(page).toHaveURL('/login');
   });

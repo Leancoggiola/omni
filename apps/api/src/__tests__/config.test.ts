@@ -93,20 +93,31 @@ describe('resolveJwtConfig', () => {
     refreshSecret: 'b'.repeat(32),
     accessExpiresIn: undefined,
     refreshExpiresIn: undefined,
+    mobileRefreshExpiresIn: undefined,
   };
 
-  it('usa 15m y 7d por defecto y expone las vigencias en milisegundos', () => {
+  it('usa 15m, 7d y 90d (mobile) por defecto y expone las vigencias en milisegundos', () => {
     expect(resolveJwtConfig(secrets, true)).toMatchObject({
       accessTtlMs: 15 * 60 * 1000,
       refreshTtlMs: 7 * 24 * 60 * 60 * 1000,
+      mobileRefreshTtlMs: 90 * 24 * 60 * 60 * 1000,
     });
   });
 
   it('toma las vigencias configuradas', () => {
-    expect(resolveJwtConfig({ ...secrets, accessExpiresIn: '20s', refreshExpiresIn: '2d' }, true)).toMatchObject({
+    const env = { ...secrets, accessExpiresIn: '20s', refreshExpiresIn: '2d', mobileRefreshExpiresIn: '30d' };
+    expect(resolveJwtConfig(env, true)).toMatchObject({
       accessTtlMs: 20 * 1000,
       refreshTtlMs: 2 * 24 * 60 * 60 * 1000,
+      mobileRefreshTtlMs: 30 * 24 * 60 * 60 * 1000,
     });
+  });
+
+  it('rechaza una vigencia de mobile más corta que la de la web', () => {
+    expect(() => resolveJwtConfig({ ...secrets, mobileRefreshExpiresIn: '3d' }, false)).toThrow(
+      /JWT_REFRESH_EXPIRES_IN_MOBILE no puede ser más corto/
+    );
+    expect(() => resolveJwtConfig({ ...secrets, mobileRefreshExpiresIn: '7d' }, false)).not.toThrow();
   });
 
   it('en producción rechaza secretos de menos de 32 caracteres', () => {
@@ -130,6 +141,9 @@ describe('resolveJwtConfig', () => {
     );
     expect(() => resolveJwtConfig({ ...secrets, refreshExpiresIn: 'time_d' }, isProduction)).toThrow(
       /JWT_REFRESH_EXPIRES_IN inválido/
+    );
+    expect(() => resolveJwtConfig({ ...secrets, mobileRefreshExpiresIn: '90 días' }, isProduction)).toThrow(
+      /JWT_REFRESH_EXPIRES_IN_MOBILE inválido/
     );
   });
 });

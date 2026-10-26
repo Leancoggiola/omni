@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
-import { notifyError } from '@/shared/ui';
+import { confirm, notifyError } from '@/shared/ui';
 
 import { MoreScreen } from './MoreScreen';
 
@@ -24,11 +24,13 @@ jest.mock(
 );
 jest.mock('@/shared/ui', () => ({
   ...jest.requireActual('@/shared/ui'),
+  confirm: jest.fn(),
   notifyError: jest.fn(),
 }));
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.mocked(confirm).mockResolvedValue(true);
 });
 
 describe('MoreScreen', () => {
@@ -44,14 +46,44 @@ describe('MoreScreen', () => {
     expect(screen.getByRole('button', { name: 'Admin Omni. Ver perfil' })).toBeTruthy();
   });
 
+  const pressLogout = () => act(async () => fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' })));
+
+  it('pide confirmación antes de cerrar la sesión', async () => {
+    render(<MoreScreen />);
+    await pressLogout();
+
+    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ title: '¿Cerrar sesión?' }));
+    expect(mockLogout).toHaveBeenCalledTimes(1);
+  });
+
+  it('un segundo toque con la confirmación abierta no abre otra', async () => {
+    let answer!: (confirmed: boolean) => void;
+    jest.mocked(confirm).mockReturnValue(new Promise<boolean>(resolve => (answer = resolve)));
+    render(<MoreScreen />);
+    await pressLogout();
+    await pressLogout();
+
+    expect(confirm).toHaveBeenCalledTimes(1);
+    await act(async () => answer(false));
+  });
+
+  it('si se cancela la confirmación no cierra la sesión', async () => {
+    jest.mocked(confirm).mockResolvedValue(false);
+    render(<MoreScreen />);
+    await pressLogout();
+
+    expect(mockLogout).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Cerrar sesión', busy: false })).toBeTruthy();
+  });
+
   it('"Cerrar sesión" queda ocupado mientras cierra y no se envía dos veces', async () => {
     let finish!: () => void;
     mockLogout.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));
     render(<MoreScreen />);
-    fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' }));
+    await pressLogout();
 
     expect(screen.getByRole('button', { name: 'Cerrar sesión', busy: true })).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' }));
+    await pressLogout();
     expect(mockLogout).toHaveBeenCalledTimes(1);
     await act(async () => finish());
   });
@@ -59,7 +91,7 @@ describe('MoreScreen', () => {
   it('si falla el cierre de sesión avisa con notifyError y reactiva el botón', async () => {
     mockLogout.mockRejectedValue(new Error('SecureStore no disponible'));
     render(<MoreScreen />);
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' })));
+    await pressLogout();
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo cerrar la sesión');
     expect(screen.getByRole('button', { name: 'Cerrar sesión', busy: false })).toBeTruthy();

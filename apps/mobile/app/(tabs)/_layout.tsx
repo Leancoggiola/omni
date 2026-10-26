@@ -3,19 +3,27 @@ import { FONT_SIZE, RADIUS } from '@omni/shared/theme';
 import { MOBILE_TAB_KEYS, NAV_REGISTRY } from '@omni/shared/navigation';
 import { Tabs } from 'expo-router';
 import { type Icon } from 'phosphor-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Paragraph, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { MeasuredTabBar, MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';
+import { getTabBarStyle, MeasuredTabBar, MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';
 
 import type { NavKey } from '@omni/shared/navigation';
 
 const PILL = { width: 56, height: 30 } as const;
 const ICON_SIZE = 22;
+const LABEL_MAX_FONT_SCALE = 1.3;
 
+/** El alto de la tab bar es fijo: con la fuente del sistema al máximo la etiqueta se pasaría del ancho de su tab. */
 function TabLabel({ label, focused, color }: { label: string; focused: boolean; color: string }) {
   return (
-    <Paragraph fontSize={FONT_SIZE.sm} fontWeight={focused ? '700' : '500'} color={color}>
+    <Paragraph
+      fontSize={FONT_SIZE.sm}
+      fontWeight={focused ? '700' : '500'}
+      color={color}
+      maxFontSizeMultiplier={LABEL_MAX_FONT_SCALE}
+    >
       {label}
     </Paragraph>
   );
@@ -62,6 +70,7 @@ const MORE_OPTIONS = tabOptions(MORE_TAB.label, MORE_TAB.icon);
 
 export default function TabsLayout() {
   const colors = useSemanticColors();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -71,6 +80,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.dimmed,
         tabBarIconStyle: PILL,
+        tabBarStyle: getTabBarStyle(insets.bottom),
       }}
     >
       {TAB_SCREENS.map(({ name, options }) => (
