@@ -27,7 +27,7 @@ flowchart LR
 | API      | `https://omni-api-gwer.onrender.com` (no usar directo) |
 | Ready    | `https://omni-nest.vercel.app/api/health/ready`        |
 
-La config de Render está en [`render.yaml`](../../render.yaml) (rama `main`, auto-deploy off, health `/api/health`) y la de Vercel en `apps/web/vercel.json` (proxy `/api`, fallback SPA, deploys por Git desactivados).
+[`render.yaml`](../../render.yaml) documenta la config de Render (Docker con `apps/api/Dockerfile`, rama `main`, auto-deploy off, health `/api/health`), pero el servicio no está atado al Blueprint: esa config se carga a mano en el dashboard y no se sincroniza sola. `render.yaml` lista las variables obligatorias y `NODE_ENV`; las opcionales están en [la tabla de Render](#render-env-vars-sync-false). La de Vercel vive en `apps/web/vercel.json`: proxy `/api`, cabeceras de seguridad en todo lo que no es `/api` (CSP, `X-Content-Type-Options`, `Referrer-Policy`), caché inmutable en `/assets`, fallback SPA y deploys por Git desactivados. `Strict-Transport-Security` no está en `vercel.json`: la agrega Vercel por defecto en los dominios `*.vercel.app`, y con un dominio propio hay que revisarla.
 
 ---
 
@@ -60,62 +60,98 @@ Solo `feat`, `fix`, `perf` o `BREAKING CHANGE` generan release. `backup.yml` es 
 
 ### GitHub (environment `Production`)
 
-| Nombre                             | Tipo     | De dónde sale                                                                                                  |
-| ---------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `RELEASE_TOKEN`                    | secret   | PAT de GitHub (`repo`); renovar antes de que venza.                                                            |
-| `RENDER_DEPLOY_HOOK_PROD`          | secret   | Render → Settings → Deploy Hook.                                                                               |
-| `VERCEL_TOKEN`                     | secret   | Vercel → Account Settings → Tokens.                                                                            |
-| `VERCEL_ORG_ID`                    | secret   | `.vercel/project.json` tras `vercel link`.                                                                     |
-| `VERCEL_PROJECT_ID`                | secret   | Ídem.                                                                                                          |
-| `ANDROID_KEYSTORE_BASE64`          | secret   | `base64` de `omni-release.jks` (generada con `keytool`).                                                       |
-| `ANDROID_KEYSTORE_PASSWORD`        | secret   | Elegida al generar la keystore.                                                                                |
-| `ANDROID_KEY_ALIAS`                | secret   | Alias de la keystore (`omni`).                                                                                 |
-| `ANDROID_KEY_PASSWORD`             | secret   | Elegida al generar la keystore.                                                                                |
-| `APK_REPO_TOKEN`                   | secret   | PAT fine-grained, Contents: write solo sobre `omni-apk`.                                                       |
-| `PROD_DIRECT_URL`                  | secret   | Supabase `omni-prod` → **session pooler** (5432).                                                              |
-| `BACKUP_S3_ACCESS_KEY_ID`          | secret   | Access key del usuario IAM `omni-backup-writer`: solo `s3:PutObject` sobre `omni/*`. Lo usa `backup`.          |
-| `BACKUP_S3_SECRET_ACCESS_KEY`      | secret   | Par del anterior.                                                                                              |
-| `BACKUP_S3_READ_ACCESS_KEY_ID`     | secret   | Access key del usuario IAM `omni-backup-reader`: solo `s3:GetObject` y `s3:ListBucket`. Lo usa `restore-test`. |
-| `BACKUP_S3_READ_SECRET_ACCESS_KEY` | secret   | Par del anterior.                                                                                              |
-| `BACKUP_AGE_IDENTITY`              | secret   | Clave privada `age` **A** (CI): solo la línea `AGE-SECRET-KEY-…`. La usa la prueba de restore.                 |
-| `BACKUP_S3_ENDPOINT`               | variable | Opcional: solo para un S3-compatible que no sea AWS (p. ej. R2). En AWS S3 se deja sin definir.                |
-| `BACKUP_S3_REGION`                 | variable | Región del bucket (p. ej. `us-east-1`).                                                                        |
-| `BACKUP_S3_BUCKET`                 | variable | Nombre del bucket privado de backups.                                                                          |
-| `BACKUP_AGE_RECIPIENT`             | variable | Clave pública de la clave **A**.                                                                               |
-| `BACKUP_AGE_RECIPIENT_RECOVERY`    | variable | Clave pública de la clave **B** de recuperación (la privada vive solo fuera de GitHub).                        |
-| `PROD_WEB_URL`                     | variable | `https://omni-nest.vercel.app`; también es la `EXPO_PUBLIC_API_URL` del APK.                                   |
+| Nombre                             | Tipo     | De dónde sale                                                                                                                                               |
+| ---------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RELEASE_TOKEN`                    | secret   | PAT de GitHub (`repo`); renovar antes de que venza.                                                                                                         |
+| `RENDER_DEPLOY_HOOK_PROD`          | secret   | Render → Settings → Deploy Hook.                                                                                                                            |
+| `VERCEL_TOKEN`                     | secret   | Vercel → Account Settings → Tokens, con scope al team completo, no limitado a un proyecto (ver [Vercel](#vercel-proyecto-omni-web-environment-production)). |
+| `VERCEL_ORG_ID`                    | secret   | Team ID (`team_…`), de `.vercel/project.json` tras `vercel link --project omni-web`.                                                                        |
+| `VERCEL_PROJECT_ID`                | secret   | Ídem.                                                                                                                                                       |
+| `ANDROID_KEYSTORE_BASE64`          | secret   | `base64` de `omni-release.jks` (generada con `keytool`).                                                                                                    |
+| `ANDROID_KEYSTORE_PASSWORD`        | secret   | Elegida al generar la keystore.                                                                                                                             |
+| `ANDROID_KEY_ALIAS`                | secret   | Alias de la keystore (`omni`).                                                                                                                              |
+| `ANDROID_KEY_PASSWORD`             | secret   | Elegida al generar la keystore.                                                                                                                             |
+| `APK_REPO_TOKEN`                   | secret   | PAT fine-grained, Contents: write solo sobre `omni-apk`.                                                                                                    |
+| `PROD_DIRECT_URL`                  | secret   | Supabase `omni-prod` → **session pooler** (5432).                                                                                                           |
+| `BACKUP_S3_ACCESS_KEY_ID`          | secret   | Access key del usuario IAM `omni-backup-writer`: solo `s3:PutObject` sobre `omni/*`. Lo usa `backup`.                                                       |
+| `BACKUP_S3_SECRET_ACCESS_KEY`      | secret   | Par del anterior.                                                                                                                                           |
+| `BACKUP_S3_READ_ACCESS_KEY_ID`     | secret   | Access key del usuario IAM `omni-backup-reader`: solo `s3:GetObject` y `s3:ListBucket`. Lo usa `restore-test`.                                              |
+| `BACKUP_S3_READ_SECRET_ACCESS_KEY` | secret   | Par del anterior.                                                                                                                                           |
+| `BACKUP_AGE_IDENTITY`              | secret   | Clave privada `age` **A** (CI): solo la línea `AGE-SECRET-KEY-…`. La usa la prueba de restore.                                                              |
+| `BACKUP_S3_ENDPOINT`               | variable | Opcional: solo para un S3-compatible que no sea AWS (p. ej. R2). En AWS S3 se deja sin definir.                                                             |
+| `BACKUP_S3_REGION`                 | variable | Región del bucket (p. ej. `us-east-1`).                                                                                                                     |
+| `BACKUP_S3_BUCKET`                 | variable | Nombre del bucket privado de backups.                                                                                                                       |
+| `BACKUP_AGE_RECIPIENT`             | variable | Clave pública de la clave **A**.                                                                                                                            |
+| `BACKUP_AGE_RECIPIENT_RECOVERY`    | variable | Clave pública de la clave **B** de recuperación (la privada vive solo fuera de GitHub).                                                                     |
+| `PROD_WEB_URL`                     | variable | `https://omni-nest.vercel.app`; también es la `EXPO_PUBLIC_API_URL` del APK.                                                                                |
 
 Todos los secrets y variables del release y de los backups viven en el environment `Production`, que limita los deploys a `main` y `develop`, y cada job que los usa declara `environment: Production`. El único secret a nivel de repo es `CLAUDE_CODE_OAUTH_TOKEN` (revisión automática de PRs). `VERCEL_TOKEN` se pasa solo a los steps que lo usan (`vercel pull`, `deploy` y la verificación de `ORIGIN_SECRET`), no al build.
 
 ### Render (env vars, `sync: false`)
 
-| Variable                                  | De dónde sale                                                                                         |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                            | Supabase omni-prod → transaction pooler (6543, `?pgbouncer=true`).                                    |
-| `DIRECT_URL`                              | Supabase omni-prod → session pooler (5432). Obligatoria.                                              |
-| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | `openssl rand -base64 32`, distintos de dev y entre sí; la API no arranca con menos de 32 caracteres. |
-| `ORIGIN_SECRET`                           | `openssl rand -base64 32`; **igual** que en Vercel. En prod, sin él la API no arranca.                |
-| `CORS_ORIGIN`                             | `https://omni-nest.vercel.app`                                                                        |
-| `TMDB_API_KEY`                            | themoviedb.org/settings/api → **API Read Access Token** (v4), no la API key v3.                       |
-| `ADMIN_USERNAME`, `ADMIN_PASSWORD`        | A elección (password fuerte); los usa el seed.                                                        |
-| `RATE_LIMIT_GLOBAL_MAX`                   | Opcional, default 300 por 15 min.                                                                     |
+Settings del servicio `omni-api`: runtime **Docker**, Dockerfile `./apps/api/Dockerfile`, context `.`, rama `main`, **Auto-Deploy: Off** (deploya solo el hook del pipeline) y health check `/api/health`. Node sale del `FROM node:24-alpine` del Dockerfile: no definir `NODE_VERSION`.
 
-### Vercel (proyecto `omni-nest`, environment Production)
+Al editar variables, guardar con **Save only**. "Save and deploy" y "Save, rebuild and deploy" deployan el HEAD de `main` en ese momento, fuera del pipeline.
 
-| Variable        | De dónde sale                                                                                                                                   |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ORIGIN_SECRET` | El mismo valor que en Render. `vercel.json` lo inyecta como `x-origin-secret`. Si falta, el header llega literal y la API rechaza todo con 403. |
+| Variable                                          | De dónde sale                                                                                                          |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                                        | Opcional: el Dockerfile ya fija `ENV NODE_ENV=production`. Si se carga, tiene que ser `production`.                    |
+| `DATABASE_URL`                                    | Supabase omni-prod → transaction pooler (6543, `?pgbouncer=true`).                                                     |
+| `DIRECT_URL`                                      | Supabase omni-prod → session pooler (5432). Obligatoria: el entrypoint corre `prisma migrate deploy` con ella.         |
+| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`         | `openssl rand -base64 32`, distintos de dev y entre sí; la API no arranca con menos de 32 caracteres.                  |
+| `ORIGIN_SECRET`                                   | `openssl rand -base64 32`; **igual** que en Vercel. En prod, sin él la API no arranca.                                 |
+| `CORS_ORIGIN`                                     | `https://omni-nest.vercel.app`                                                                                         |
+| `TMDB_API_KEY`                                    | themoviedb.org/settings/api → **API Read Access Token** (v4), no la API key v3.                                        |
+| `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN` | Opcionales, default `15m` y `7d`. Entero con unidad `s`, `m`, `h` o `d`; un valor inválido no deja arrancar la API.    |
+| `JWT_REFRESH_EXPIRES_IN_MOBILE`                   | Opcional, default `90d`. Vigencia deslizante del refresh token de la app mobile (la web usa `JWT_REFRESH_EXPIRES_IN`). |
+| `RATE_LIMIT_GLOBAL_MAX`                           | Opcional, default 300 por 15 min.                                                                                      |
+
+`ADMIN_USERNAME` y `ADMIN_PASSWORD` no van en Render: la API no las lee y el seed corre desde una PC (ver [Primera vez](#primera-vez)).
+
+En las URLs de Supabase el usuario es `postgres.<ref del proyecto>` y el host lleva la región del proyecto (`aws-0-us-east-1.pooler.supabase.com`). Un ref o una región equivocados dan `tenant/user … not found`; un password equivocado, `P1000`. Si el password tiene caracteres reservados (`@ : / # ? %`), va codificado en la URL.
+
+### Vercel (proyecto `omni-web`, environment Production)
+
+El proyecto se llama **`omni-web`** y su dominio de producción es `omni-nest.vercel.app`; vive en el team `leandros-projects`.
+
+- `vercel link --project omni-web` sin `--yes`: con `--yes`, si el nombre no existe crea un proyecto nuevo en vez de fallar.
+- El token del pipeline tiene que tener scope al **team completo**. La CLI lee el team antes que el proyecto, y con un token limitado a un proyecto (o de otra cuenta) falla con `Could not retrieve Project Settings` (la API responde `team_unauthorized`); con IDs que no existen, `Project not found`.
+
+| Variable        | De dónde sale                                                                                                                                                           |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ORIGIN_SECRET` | El mismo valor que en Render, marcado como Sensitive. `vercel.json` lo inyecta como `x-origin-secret`. Si falta, el header llega literal y la API rechaza todo con 403. |
+
+Settings del proyecto: Root Directory `apps/web` y Node.js Version `24.x`.
 
 ### Primera vez
 
-Seed del admin, una sola vez. Los valores se leen sin eco, así no quedan en el historial del shell:
+Con la base vacía, migrar y sembrar el admin desde una PC **antes** del primer release: así el primer arranque de Render encuentra el schema al día y ya se puede iniciar sesión. Correrlo desde un checkout **sin** `apps/api/.env` (por ejemplo un worktree limpio): `prisma.config.ts` y el seed cargan `.env` con dotenv, y `prisma.config.ts` usa `DIRECT_URL` antes que `DATABASE_URL`, así que un `.env` de dev al lado podría apuntar los comandos a otra base. Los valores se leen sin eco, así no quedan en el historial del shell:
 
 ```bash
-read -rs -p "DATABASE_URL: " DATABASE_URL; echo; export DATABASE_URL
+read -rs -p "DIRECT_URL (session pooler 5432): " DIRECT_URL; echo; export DIRECT_URL; export DATABASE_URL="$DIRECT_URL"
+pnpm --filter api exec prisma migrate status   # base vacía: todas las migraciones pendientes
+pnpm --filter api exec prisma migrate deploy
+pnpm --filter api exec prisma migrate status   # Database schema is up to date!
+
 read -rs -p "ADMIN_PASSWORD: " ADMIN_PASSWORD; echo; export ADMIN_PASSWORD
 NODE_ENV=production ADMIN_USERNAME=<usuario> pnpm --filter api exec prisma db seed
-unset DATABASE_URL ADMIN_PASSWORD
+unset DIRECT_URL DATABASE_URL ADMIN_PASSWORD
 ```
+
+- Si el primer `migrate status` dice "up to date", la URL es de otra base: abortar.
+- Si el seed imprime `Skipping admin seed`, falta `ADMIN_USERNAME` o `ADMIN_PASSWORD`: termina con código 0 pero no crea el admin.
+- El seed no valida el usuario ni el password. El usuario tiene que cumplir las reglas del login (6 a 20 caracteres, solo letras y números); el seed y el login lo pasan a minúsculas. El login solo exige un password no vacío, pero conviene usar 8 a 72 caracteres, la regla de las contraseñas nuevas (registro y cambio de contraseña).
+- Sin `SEED_DEMO`: con `NODE_ENV=production` el seed rechaza la demo.
+- El seed no pisa un admin existente: para cambiar el usuario o el password, borrar la fila y volver a correrlo.
+
+En PowerShell, `Read-Host -AsSecureString` cumple el papel de `read -rs`, y `[Uri]::EscapeDataString` codifica el password si se arma la URL a mano.
+
+### Verificación post-deploy
+
+1. `curl -I https://omni-nest.vercel.app/profile`: `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy` y `Strict-Transport-Security` (esta última la pone Vercel). Un archivo de `/assets/` trae `Cache-Control: public, max-age=31536000, immutable`.
+2. `curl https://omni-nest.vercel.app/api/health/ready`: 200 con el commit desplegado. `/api/health*` no pasa por el guard, así que el guard se prueba con `/api/media`: por Vercel 401 (pasó el guard, falta sesión) y directo a `https://omni-api-gwer.onrender.com/api/media` 403.
+3. Web: tras el login hay dos cookies `HttpOnly`, `Secure` y `SameSite=Strict`: `access_token` (path `/api`) y `refresh_token` (path `/api/auth`). Borrando `access_token` y recargando, la sesión sigue (refresh). El logout borra las dos y cierra solo esa sesión.
+4. APK: login, reabrir la app pasada la vida del access token sin perder la sesión, y logout.
 
 ---
 
@@ -138,7 +174,7 @@ cron-job.org deshabilita un job tras más de 25 fallas seguidas; el mail avisa a
 
 `backup.yml` corre los domingos 07:00 UTC (y por `workflow_dispatch`): `pg_dump -Fc` sobre `PROD_DIRECT_URL`, cifrado con `age` para **dos destinatarios** (clave A de CI y clave B de recuperación) y subido a un **bucket privado de AWS S3**, prefijo `omni/`. No se publica como artifact del repo, que es público. El bucket tiene bloqueado todo acceso público, cifrado por defecto, versionado activado y una regla de ciclo de vida que borra a los 90 días (se configura a mano en AWS). `backup` usa un usuario IAM que solo puede subir y `restore-test` uno que solo puede leer, así que un token comprometido no borra backups. `restore-test` también falla si el último backup tiene más de 8 días.
 
-El día 1 de cada mes 08:00 UTC (o con `workflow_dispatch` y `restore_test=true`) corre `restore-test`: baja el último backup, lo descifra con la clave A, lo restaura en un Postgres 17 efímero del job y verifica que el schema y `_prisma_migrations` tengan datos. Si falla, el backup no es confiable.
+El día 1 de cada mes 08:00 UTC (o con `workflow_dispatch` y `restore_test=true`) corre `restore-test`: baja el último backup, lo descifra con la clave A, lo restaura en un Postgres 17 efímero del job y verifica que haya tablas, filas en `_prisma_migrations` y al menos un usuario. Con `omni-prod` vacía (antes de migrar y sembrar) falla a propósito. Si falla, el backup no es confiable.
 
 **Claves `age`:** se generan con `age-keygen`, una para CI (A) y otra de recuperación (B). La privada de B se guarda en un gestor de contraseñas o un disco aparte, nunca en GitHub. `age-key*`, `*.age` y `*.dump` están en `.gitignore`.
 
@@ -227,18 +263,18 @@ El borrado a los 90 días de los **backups** es una regla del bucket (`expirar-9
 GitHub deshabilita los cron de repos públicos tras 60 días sin actividad (llega un mail).
 
 1. Actions → **Backup** → **Enable workflow**.
-2. Correrlo a mano con `workflow_dispatch` y confirmar que se genera el artifact.
+2. Correrlo a mano con `workflow_dispatch` y confirmar que sube un `.dump.age` nuevo bajo `omni/` en el bucket.
 
 ---
 
 ## Riesgos y límites free
 
-| Límite                | Detalle                                                                                                                                                                                                                |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Render 750 h/mes      | Con la ventana fría se usan ≈600 h. No sumar otros servicios free 24/7: si se agotan, Render suspende todo hasta el mes próximo.                                                                                       |
-| Supabase 7 días       | Pausa por inactividad; el keep-alive la evita. Si falla una semana entera, restaurar a mano.                                                                                                                           |
-| Proxy de Vercel 120 s | Tope del cold start de Render (~1 min). Más allá, 504 y el cliente reintenta.                                                                                                                                          |
-| `transforms` en Hobby | **Pendiente de verificar** con un deploy de preview manual antes del cutover. El header `x-origin-secret` depende de que funcione en el plan. Fallback: `rewrites` sin guard y `trust proxy` 2 (rate limit más débil). |
-| `RELEASE_TOKEN`       | Si vence, el release falla (de forma visible). Renovar antes.                                                                                                                                                          |
-| Cron de GitHub        | Se deshabilita a los 60 días sin actividad.                                                                                                                                                                            |
-| Migraciones           | Solo hacia adelante: corregir con hotfix, no con rollback de API.                                                                                                                                                      |
+| Límite                | Detalle                                                                                                                                                                                                                           |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Render 750 h/mes      | Con la ventana fría se usan ≈600 h. No sumar otros servicios free 24/7: si se agotan, Render suspende todo hasta el mes próximo.                                                                                                  |
+| Supabase 7 días       | Pausa por inactividad; el keep-alive la evita. Si falla una semana entera, restaurar a mano.                                                                                                                                      |
+| Proxy de Vercel 120 s | Tope del cold start de Render (~1 min). Más allá, 504 y el cliente reintenta.                                                                                                                                                     |
+| `transforms` en Hobby | Verificado en el cutover de #94: por Vercel `/api/media` da 401 y directo a Render 403, así que el proxy inyecta `x-origin-secret`. Si Vercel lo quitara del plan: `rewrites` sin guard y `trust proxy` 2 (rate limit más débil). |
+| `RELEASE_TOKEN`       | Si vence, el release falla (de forma visible). Renovar antes.                                                                                                                                                                     |
+| Cron de GitHub        | Se deshabilita a los 60 días sin actividad.                                                                                                                                                                                       |
+| Migraciones           | Solo hacia adelante: corregir con hotfix, no con rollback de API.                                                                                                                                                                 |

@@ -1,3 +1,46 @@
+## [1.2.2](https://github.com/Leancoggiola/omni/compare/v1.2.1...v1.2.2) (2026-10-26)
+
+
+### Bug Fixes
+
+* **#174:** limitar el escalado de fuente de las etiquetas de la tab bar ([fdaf6a3](https://github.com/Leancoggiola/omni/commit/fdaf6a3646fdd58dcd2b4b2cf680bdcc8f83deb0)), closes [#174](https://github.com/Leancoggiola/omni/issues/174)
+* **#174:** tab bar sobre la barra de Android y confirmación al cerrar sesión ([eeec23d](https://github.com/Leancoggiola/omni/commit/eeec23d93adce9ea0df386a5dea7843f99ff45b5)), closes [#174](https://github.com/Leancoggiola/omni/issues/174)
+* **#174:** tab bar sobre la barra de Android y confirmación al cerrar sesión ([#183](https://github.com/Leancoggiola/omni/issues/183)) ([b1d1c59](https://github.com/Leancoggiola/omni/commit/b1d1c59751523c552eec1e4889d97257239cbbb8)), closes [#174](https://github.com/Leancoggiola/omni/issues/174)
+* **#174:** un solo diálogo de cerrar sesión a la vez ([789d2c9](https://github.com/Leancoggiola/omni/commit/789d2c9659de9502c2049e5ba1a6d728388df9bc)), closes [#174](https://github.com/Leancoggiola/omni/issues/174)
+
+## [1.2.1](https://github.com/Leancoggiola/omni/compare/v1.2.0...v1.2.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **#175:** aviso de despertar en el login y campos bloqueados mientras carga ([7d411ab](https://github.com/Leancoggiola/omni/commit/7d411ab52b2cd3dd394d05d6c5cc5478986edf85)), closes [#175](https://github.com/Leancoggiola/omni/issues/175) [#175](https://github.com/Leancoggiola/omni/issues/175)
+* **#175:** aviso de despertar en el login y campos bloqueados mientras carga ([#181](https://github.com/Leancoggiola/omni/issues/181)) ([0e4e41a](https://github.com/Leancoggiola/omni/commit/0e4e41a2c2483f6bec2512e343c1a01bbf0ca22b)), closes [#175](https://github.com/Leancoggiola/omni/issues/175)
+* **#175:** el foco vuelve a la contraseña si el login falla ([c42c376](https://github.com/Leancoggiola/omni/commit/c42c376c6909a7775f234902e0617ef9fd1648ae)), closes [#175](https://github.com/Leancoggiola/omni/issues/175)
+* **#175:** el polling compartido no rechaza y la espera aplica a todo POST/PATCH ([1c5649f](https://github.com/Leancoggiola/omni/commit/1c5649fa743beee2bfa992755bdb9c2890f5133a)), closes [#175](https://github.com/Leancoggiola/omni/issues/175)
+
+# [1.2.0](https://github.com/Leancoggiola/omni/compare/v1.1.2...v1.2.0) (2026-10-26)
+
+
+### Bug Fixes
+
+* **#172:** limiter propio en logout-all y alcance del header X-Client documentado ([4764be4](https://github.com/Leancoggiola/omni/commit/4764be41f5d2e359afeb69b39b687761ecd31bfd)), closes [#172](https://github.com/Leancoggiola/omni/issues/172)
+* **#172:** logout-all borra las cookies recién cuando la base confirmó ([6613f1f](https://github.com/Leancoggiola/omni/commit/6613f1fc0771478e1047062a8924365fafb71478)), closes [#172](https://github.com/Leancoggiola/omni/issues/172)
+* **#172:** valida la vigencia de mobile y documenta el alcance de X-Client ([51c521c](https://github.com/Leancoggiola/omni/commit/51c521cae9495689a194c79016a976057c4653b4)), closes [#172](https://github.com/Leancoggiola/omni/issues/172)
+
+
+### Features
+
+* **#172:** sesión de mobile de 90 días deslizantes y cerrar sesión en todos lados ([b731c14](https://github.com/Leancoggiola/omni/commit/b731c149ef380e2ecf499ab79d0bbfc5a5515c9c)), closes [#172](https://github.com/Leancoggiola/omni/issues/172) [#172](https://github.com/Leancoggiola/omni/issues/172)
+* **#172:** sesión de mobile de 90 días deslizantes y cerrar sesión en todos lados ([#184](https://github.com/Leancoggiola/omni/issues/184)) ([5805a01](https://github.com/Leancoggiola/omni/commit/5805a016f64ad06db86bf972d3875f330c946b09)), closes [#172](https://github.com/Leancoggiola/omni/issues/172)
+
+## [1.1.2](https://github.com/Leancoggiola/omni/compare/v1.1.1...v1.1.2) (2026-10-26)
+
+
+### Bug Fixes
+
+* **#177:** no cerrar la sesión cuando una rotación no llegó a guardarse ([bd2697b](https://github.com/Leancoggiola/omni/commit/bd2697b6dbd280a38e13b780f4213670f7c497be)), closes [#177](https://github.com/Leancoggiola/omni/issues/177) [#177](https://github.com/Leancoggiola/omni/issues/177)
+* **#177:** no cerrar la sesión cuando una rotación no llegó a guardarse ([#180](https://github.com/Leancoggiola/omni/issues/180)) ([ab3f7aa](https://github.com/Leancoggiola/omni/commit/ab3f7aa1dc724d8a59f47f471e577f09a16f9c68)), closes [#177](https://github.com/Leancoggiola/omni/issues/177)
+
 ## [1.1.1](https://github.com/Leancoggiola/omni/compare/v1.1.0...v1.1.1) (2026-10-25)
 
 
