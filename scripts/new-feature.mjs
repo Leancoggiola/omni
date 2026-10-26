@@ -93,13 +93,22 @@ function escapeRegExp(str) {
 function scaffoldWeb() {
   write(
     path.join(webDir, `${name}.page.tsx`),
-    `import { Text } from '@mantine/core';
+    `import { Stack } from '@mantine/core';
+
+import { EmptyState, PageHeader } from '@/shared/ui';
 
 import type { FC } from 'react';
 
+import { ClockCountdownIcon } from '@phosphor-icons/react';
+
 /** Página de ${pascal}, todavía en construcción. */
 export const ${pascal}Page: FC = () => {
-  return <Text c="dimmed">${pascal} — en construcción</Text>;
+  return (
+    <Stack gap="xl">
+      <PageHeader icon={<ClockCountdownIcon size="1.5rem" />} title="${pascal}" subtitle="En construcción" />
+      <EmptyState icon={<ClockCountdownIcon size="1.5rem" />} title="Próximamente" />
+    </Stack>
+  );
 };
 `
   );
@@ -180,13 +189,14 @@ function scaffoldMobile() {
     path.join(mobileDir, `${pascal}Screen.tsx`),
     `import { ClockCountdownIcon } from 'phosphor-react-native';
 
-import { Screen, ScreenHeader } from '@/shared/ui';
+import { EmptyState, Screen, ScreenHeader } from '@/shared/ui';
 
 /** Pantalla de ${pascal}, todavía en construcción. */
 export function ${pascal}Screen() {
   return (
     <Screen>
       <ScreenHeader icon={ClockCountdownIcon} title="${pascal}" subtitle="En construcción" />
+      <EmptyState icon={ClockCountdownIcon} title="Próximamente" />
     </Screen>
   );
 }
