@@ -3,7 +3,8 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Request } from 'express';
 import { config, JWT_ALGORITHM } from '../../config';
 
-function extractRefreshToken(req: Request): string | null {
+/** Refresh token del request: Bearer, cookie o body, en ese orden. */
+export function extractRefreshToken(req: Request): string | null {
   const fromHeader = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
   if (fromHeader) return fromHeader;
 
