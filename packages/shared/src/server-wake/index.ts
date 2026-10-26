@@ -187,12 +187,18 @@ export function createServerWake(options: ServerWakeOptions) {
     }
   }
 
-  /** Single-flight: todos los requests que fallan mientras la API duerme comparten el mismo polling. */
+  /**
+   * Single-flight: todos los requests que fallan mientras la API duerme comparten el mismo polling. Nunca rechaza:
+   * si una dependencia del cliente lanza (por ejemplo, `isOffline`), cuenta como `timeout`, así quien lo arranca sin
+   * esperarlo (el sondeo en paralelo de una mutación, el `ensureServerAwake()` del login) no deja un rechazo sin manejar.
+   */
   function awaitServer(): Promise<WakeOutcome> {
     if (!wakePromise) {
-      wakePromise = pollUntilAwake().finally(() => {
-        wakePromise = null;
-      });
+      wakePromise = pollUntilAwake()
+        .catch((): WakeOutcome => 'timeout')
+        .finally(() => {
+          wakePromise = null;
+        });
     }
     return wakePromise;
   }
@@ -306,9 +312,11 @@ export function createServerWake(options: ServerWakeOptions) {
    * Cualquier otra respuesta, un 500 JSON incluido, se devuelve tal cual. Si el servidor no despierta a tiempo,
    * lanza el error de `createError` con status 503. Si se detecta que no hay conexión, relanza el error original
    * del request sin esperar. Si el caller aborta su request, relanza el abort sin seguir esperando al polling.
-   * Un request no idempotente que sale con un polling en curso (por ejemplo, el `ensureServerAwake()` del login al
-   * montar) lo espera antes del primer intento, así no queda retenido por el cold start; si el polling termina sin
-   * despertar la API, el request sale igual.
+   * Cualquier request no idempotente (no solo el login) que sale con un polling en curso, lo arranque quien lo
+   * arranque (el `ensureServerAwake()` del login al montar, un GET en cold start), lo espera antes del primer intento
+   * (hasta los 90 s del tope), así no queda retenido por el cold start; si el polling termina sin despertar la API,
+   * el request sale igual. Y cualquiera que tarde más de 1,5 s en recibir headers sondea el health una vez, aunque la
+   * API esté despierta y solo sea lenta.
    */
   async function fetchWithWake(
     url: string,

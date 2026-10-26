@@ -963,6 +963,19 @@ describe('createServerWake', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('ensureServerAwake resolves false instead of rejecting when isOffline throws', async () => {
+    const wake = createServerWake({
+      fetch: vi.fn(),
+      healthUrl: '/api/health',
+      isOffline: () => {
+        throw new Error('navigator no disponible');
+      },
+      createError: (message, status) => new Error(`${status}: ${message}`),
+    });
+
+    await expect(wake.ensureServerAwake()).resolves.toBe(false);
+  });
+
   it('fetchWithWake throws the injected 503 error when healthUrl is misconfigured', async () => {
     const wake = createServerWake({
       fetch: vi.fn().mockResolvedValue(htmlResponse(502)),
