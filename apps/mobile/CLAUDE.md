@@ -23,21 +23,13 @@ apps/mobile/
     theme/                # tamagui.config, fonts, elevation, gradient
 ```
 
-Cada feature, con la misma convención que web ([apps/web/CLAUDE.md](../web/CLAUDE.md)):
+Convención de features, la misma que web (árbol y reglas completas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile). En corto:
 
-```
-src/features/<name>/
-  <Name>Screen.tsx
-  index.ts                  único barrel: exporta el Screen (lo que importa app/)
-  types.ts                  opcional
-  components/ hooks/ utils/ igual que web: un hook por archivo (hooks/useX.ts), sin index adentro
-  X.test.tsx                al lado de X (nunca en app/)
-app/<ruta>.tsx              solo la ruta: importa @/features/<name>
-```
+- `src/features/<name>/`: `<Name>Screen.tsx` e `index.ts`, el único barrel (exporta el Screen). Adentro, `components/`, `hooks/useX.ts` (un hook por archivo, nunca en `utils/`) y `utils/`, sin `index.ts`; cada test al lado de su archivo.
+- `app/<ruta>.tsx` solo declara la ruta e importa `@/features/<name>`.
 
-> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes (`hooks.ts` con varios hooks, rutas que importan el Screen sin barrel) se migran en los PRs siguientes del issue.
+> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue.
 
-- `components/`, `hooks/` y `utils/` se crean al agregar el primer archivo de esa categoría y se usan aunque tengan uno solo; barrels solo en las fronteras (`features/<name>/`, `core/<area>/`, `shared/<area>/`); los hooks nunca van en `utils/`.
 - Scaffolding: `pnpm new-feature <name> --mobile` desde la raíz (ver `docs/mobile/new-feature.md`).
 - Imports: `@/shared/api`, `@/shared/ui`, `@/core/auth`, `@/features/...`, `@/theme/...`.
 - **Prohibido:** feature A → feature B.

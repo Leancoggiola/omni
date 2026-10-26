@@ -16,23 +16,7 @@ Genera solo `gym.page.tsx`, `gym.routes.tsx` e `index.ts`, sin carpetas vacías 
 
 ## 2. Estructura
 
-```
-features/<name>/
-  <page>.page.tsx           punto de entrada (en general <page> = <name>)
-  <name>.routes.tsx
-  index.ts                  único barrel: exporta la ruta
-  types.ts                  opcional
-  components/Componente.tsx
-  components/Compuesto/     solo si tiene auxiliares, sin index.ts
-  hooks/useX.ts             un hook por archivo
-  utils/x.ts
-  __tests__/
-  modules/<m>/              solo con ≥ 2 subdominios con UI propia; misma forma, sin index
-```
-
-Reglas completas (barrels, carpetas, hooks) en [apps/web/CLAUDE.md](../../apps/web/CLAUDE.md#estructura).
-
-> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue, así que todavía pueden no servir de ejemplo de estructura.
+Ver [Estructura de features](../architecture.md#estructura-de-features-web-y-mobile) en `docs/architecture.md`.
 
 ## 3. Registrar ruta
 

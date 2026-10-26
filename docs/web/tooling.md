@@ -34,7 +34,7 @@ pnpm new-feature gym --web --mobile --path /gym
 pnpm --filter web check-api-paths
 ```
 
-`new-feature` vive en `scripts/new-feature.mjs` (raíz) y genera web y/o mobile; sin `--web` ni `--mobile`, los dos. No hay generadores de hooks, componentes ni tests: con la convención de features (ver [apps/web/CLAUDE.md](../../apps/web/CLAUDE.md#estructura)) cada uno es un solo archivo. Flags y checklist: [new-feature.md](./new-feature.md).
+`new-feature` vive en `scripts/new-feature.mjs` (raíz) y genera web y/o mobile; sin `--web` ni `--mobile`, los dos. No hay generadores de hooks, componentes ni tests: con la convención de features (ver [docs/architecture.md](../architecture.md#estructura-de-features-web-y-mobile)) cada uno es un solo archivo. Flags y checklist: [new-feature.md](./new-feature.md).
 
 ## Verificación
 

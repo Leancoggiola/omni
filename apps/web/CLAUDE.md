@@ -13,29 +13,13 @@ Hooks SWR: skill `swr-hooks`. Formularios: skill `mantine-form`. Nueva feature: 
 | `src/layouts/`  | Shell (RootLayout, Navbar, Header)                                         |
 | `src/theme/`    | Mantine theme                                                              |
 
-```
-features/<name>/
-  <page>.page.tsx           punto de entrada (en general <page> = <name>; auth → login.page.tsx)
-  <name>.routes.tsx
-  index.ts                  único barrel: exporta la ruta (lo que importa app/routes.ts)
-  types.ts                  opcional
-  components/
-    Componente.tsx
-    Compuesto/              carpeta solo si tiene auxiliares (subcomponentes, .module.scss), sin index.ts
-      Compuesto.tsx
-      CompuestoParte.tsx
-  hooks/useX.ts             un hook por archivo, sin carpeta ni index
-  utils/x.ts
-  __tests__/                uno por feature (o por módulo)
-  modules/<m>/              solo con ≥ 2 subdominios con UI propia; adentro, la misma forma, sin index
-```
+Convención de features (árbol y reglas completas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile). En corto:
 
-> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes (barrels en cada carpeta, `modules/` de un solo módulo, `modules/_shared`, un hook por carpeta) se migran en los PRs siguientes del issue.
+- `features/<name>/`: `<page>.page.tsx`, `<name>.routes.tsx` e `index.ts`, el único barrel (exporta la ruta). Adentro, `components/`, `hooks/useX.ts` (un hook por archivo, nunca en `utils/`), `utils/` y `__tests__/`, sin `index.ts`.
+- Un componente tiene carpeta propia solo si tiene auxiliares (`./components/X/X`). `modules/<m>/` solo con ≥ 2 subdominios con UI propia; sin `modules/_shared`.
 
-- **Carpetas:** `components/`, `hooks/` y `utils/` se crean al agregar el primer archivo de esa categoría y se usan aunque tengan uno solo (son categorías, no una carpeta por archivo). Un componente tiene carpeta propia solo si tiene auxiliares, y se importa como `./components/X/X`.
-- **Barrels:** solo en las fronteras que se consumen desde afuera: `features/<name>/`, `core/<area>/`, `shared/<area>/`, `layouts/` y `__tests__/helpers/` (ahí se permite un barrel de una línea). Nunca dentro de `components/`, `hooks/`, `utils/` o `modules/`.
-- **Hooks:** un hook exportado por archivo, siempre en `hooks/` (nunca en `utils/`). Las constantes atadas a un hook van en su archivo.
-- **Sin `modules/_shared`:** lo que comparten los módulos va en `components/`, `hooks/` o `utils/` de la raíz del feature.
+> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue.
+
 - **Prohibido:** `features/A` → `features/B` (lo hace cumplir ESLint). UI usada en 2+ features → `shared/ui/`.
 - Navbar: clave en `NAV_REGISTRY` / `MAIN_NAV_ORDER` de `@omni/shared/navigation` (compartido con mobile) + ícono en `NAV_ICONS` de `app/navigation/nav-registry.tsx`.
 - Scaffolding: `pnpm new-feature <name> --web --register-route` desde la raíz (ver `docs/web/new-feature.md`).
