@@ -90,6 +90,19 @@ describe('Navbar', () => {
       await waitFor(() => expect(screen.getByRole('status', { name: 'Ruta actual' })).toHaveTextContent('/login'));
     });
 
+    it('un segundo clic con la confirmación abierta no abre otra', async () => {
+      let answer!: (confirmed: boolean) => void;
+      ui.confirm.mockReturnValue(new Promise<boolean>(resolve => (answer = resolve)));
+      renderNavbar();
+      const button = screen.getByRole('button', { name: 'Cerrar sesión' });
+      await userEvent.click(button);
+      await userEvent.click(button);
+
+      expect(ui.confirm).toHaveBeenCalledOnce();
+      answer(false);
+      await waitFor(() => expect(mockAuth.logout).not.toHaveBeenCalled());
+    });
+
     it('si se cancela la confirmación no cierra la sesión', async () => {
       ui.confirm.mockResolvedValue(false);
       renderNavbar();

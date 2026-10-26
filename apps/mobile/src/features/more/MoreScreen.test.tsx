@@ -56,6 +56,17 @@ describe('MoreScreen', () => {
     expect(mockLogout).toHaveBeenCalledTimes(1);
   });
 
+  it('un segundo toque con la confirmación abierta no abre otra', async () => {
+    let answer!: (confirmed: boolean) => void;
+    jest.mocked(confirm).mockReturnValue(new Promise<boolean>(resolve => (answer = resolve)));
+    render(<MoreScreen />);
+    await pressLogout();
+    await pressLogout();
+
+    expect(confirm).toHaveBeenCalledTimes(1);
+    await act(async () => answer(false));
+  });
+
   it('si se cancela la confirmación no cierra la sesión', async () => {
     jest.mocked(confirm).mockResolvedValue(false);
     render(<MoreScreen />);

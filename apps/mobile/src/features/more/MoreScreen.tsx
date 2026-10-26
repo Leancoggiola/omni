@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { ADMIN_NAV_ORDER } from '@omni/shared/navigation';
 import { SPACING } from '@omni/shared/theme';
@@ -18,22 +18,26 @@ import { MORE_NAV_KEYS } from './moreNavKeys';
 export function MoreScreen() {
   const { user, logout } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
+  const busy = useRef(false);
 
   const handleLogout = async () => {
-    if (loggingOut) return;
-    const confirmed = await confirm({
-      title: '¿Cerrar sesión?',
-      description: 'Vas a tener que volver a iniciar sesión para entrar a Omni.',
-      confirmLabel: 'Cerrar sesión',
-      destructive: false,
-    });
-    if (!confirmed) return;
-    setLoggingOut(true);
+    if (busy.current) return;
+    busy.current = true;
     try {
+      const confirmed = await confirm({
+        title: '¿Cerrar sesión?',
+        description: 'Vas a tener que volver a iniciar sesión para entrar a Omni.',
+        confirmLabel: 'Cerrar sesión',
+        destructive: false,
+      });
+      if (!confirmed) return;
+      setLoggingOut(true);
       await logout();
     } catch (err) {
       notifyError(getErrorMessage(err, 'No se pudo cerrar la sesión'));
       setLoggingOut(false);
+    } finally {
+      busy.current = false;
     }
   };
 

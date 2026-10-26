@@ -36,17 +36,24 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
   const { user, logout } = useAuth();
   /** Viewport del scroll de la lista: en pantallas bajas el efecto de abajo mantiene visible el ítem de la ruta actual. */
   const viewportRef = useRef<HTMLDivElement>(null);
+  const loggingOut = useRef(false);
 
   const handleLogout = useCallback(async () => {
-    const confirmed = await confirm({
-      title: '¿Cerrar sesión?',
-      description: 'Vas a tener que volver a iniciar sesión para entrar a Omni.',
-      confirmLabel: 'Cerrar sesión',
-      destructive: false,
-    });
-    if (!confirmed) return;
-    await logout();
-    navigate('/login', { replace: true });
+    if (loggingOut.current) return;
+    loggingOut.current = true;
+    try {
+      const confirmed = await confirm({
+        title: '¿Cerrar sesión?',
+        description: 'Vas a tener que volver a iniciar sesión para entrar a Omni.',
+        confirmLabel: 'Cerrar sesión',
+        destructive: false,
+      });
+      if (!confirmed) return;
+      await logout();
+      navigate('/login', { replace: true });
+    } finally {
+      loggingOut.current = false;
+    }
   }, [logout, navigate]);
 
   const isActive = useCallback(
