@@ -53,7 +53,6 @@ export function hashRefreshToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
-/** Cliente que pidió la sesión: define cuánto vale su refresh token (`refreshTtlFor`). */
 export type SessionClient = 'web' | 'mobile';
 
 /**
@@ -83,10 +82,6 @@ export async function login(
   return { user: toSessionUser(user), ...sendTokens(res, tokens) };
 }
 
-/**
- * Motivo por el que se rechaza un refresh, para el log. `missing`, `expired` e `invalid` los decide la estrategia
- * `jwt-refresh` antes de llegar al service; el resto, `refresh`.
- */
 export type RefreshRejection =
   | 'missing'
   | 'expired'
@@ -97,7 +92,11 @@ export type RefreshRejection =
   | 'graceExhausted'
   | 'reused';
 
-/** Deja en el log por qué se rechazó un refresh, sin el token ni su hash: alcanza con el usuario y el motivo. */
+/**
+ * Deja en el log por qué se rechazó un refresh, sin el token ni su hash: alcanza con el usuario y el motivo.
+ * `missing`, `expired` e `invalid` los decide la estrategia `jwt-refresh` antes de llegar al service; el resto,
+ * `refresh`.
+ */
 export function logRefreshRejection(
   reason: RefreshRejection,
   details: { userId?: string | null; rotatedAgoMs?: number } = {}
