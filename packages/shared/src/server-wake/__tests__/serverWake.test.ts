@@ -705,6 +705,41 @@ describe('fetchWithWake request timeout', () => {
     expect(listener).toHaveBeenLastCalledWith(false);
   });
 
+  it('holds a second POST behind the polling a slow POST started, sharing a single probe', async () => {
+    let healthCalls = 0;
+    const fetchMock = vi.fn((url: string) => {
+      if (url === HEALTH) {
+        healthCalls += 1;
+        return Promise.resolve(healthCalls < 2 ? htmlResponse(503) : jsonResponse({ status: 'ok' }));
+      }
+      if (url === '/api/slow') {
+        return new Promise(resolve => {
+          setTimeout(() => resolve(jsonResponse({ slow: true })), 10_000);
+        });
+      }
+      return Promise.resolve(jsonResponse({ fast: true }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const slow = fetchWithWake('/api/slow', { method: 'POST' });
+    await vi.advanceTimersByTimeAsync(1_500);
+    expect(healthCalls).toBe(1);
+
+    const second = fetchWithWake('/api/fast', { method: 'PATCH' });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(countCalls(fetchMock, '/api/fast')).toBe(0);
+
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(await (await second).json()).toEqual({ fast: true });
+    expect(healthCalls).toBe(2);
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(await (await slow).json()).toEqual({ slow: true });
+    expect(countCalls(fetchMock, '/api/slow')).toBe(1);
+    expect(countCalls(fetchMock, '/api/fast')).toBe(1);
+    expect(healthCalls).toBe(2);
+  });
+
   it('does not probe health when a POST answers before the notice delay', async () => {
     const fetchMock = vi.fn(
       () =>

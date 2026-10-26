@@ -2,6 +2,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockAuthValue, renderWithProviders } from '@/__tests__/helpers';
+import { ApiError } from '@/shared/api';
 
 import { LoginPage } from '../login.page';
 
@@ -55,5 +56,17 @@ describe('LoginPage', () => {
     await act(async () => finish());
     expect(screen.getByLabelText('Usuario')).toBeEnabled();
     expect(screen.getByLabelText('Contraseña')).toBeEnabled();
+  });
+
+  it('si el login falla, el foco vuelve a la contraseña', async () => {
+    mockLogin.mockRejectedValue(new ApiError('Usuario o contraseña incorrectos', 401));
+    renderPage();
+
+    await userEvent.type(screen.getByLabelText('Usuario'), 'admin01');
+    await userEvent.type(screen.getByLabelText('Contraseña'), 'mala-clave');
+    await userEvent.click(screen.getByRole('button', { name: 'Ingresar' }));
+
+    expect(await screen.findByText('Usuario o contraseña incorrectos')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText('Contraseña')).toHaveFocus());
   });
 });

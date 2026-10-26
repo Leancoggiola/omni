@@ -24,7 +24,8 @@ type FieldErrors = Partial<Record<'username' | 'password', string>>;
 /**
  * Login. Al montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y
  * el aviso aparezca si tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en
- * curso, los campos (el ojo de la contraseña incluido) quedan deshabilitados.
+ * curso, los campos (el ojo de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la
+ * contraseña (el campo deshabilitado lo pierde y cierra el teclado).
  */
 export function LoginScreen() {
   const { login } = useAuth();
@@ -40,6 +41,10 @@ export function LoginScreen() {
   useEffect(() => {
     void ensureServerAwake();
   }, []);
+
+  useEffect(() => {
+    if (error && !loading) (passwordRef.current as TextInput | null)?.focus();
+  }, [error, loading]);
 
   const onSubmit = async () => {
     if (submitting.current) return;
