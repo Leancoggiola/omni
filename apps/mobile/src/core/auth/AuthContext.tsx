@@ -41,6 +41,7 @@ interface AuthContextValue {
   retrySession: () => void;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -126,17 +127,31 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     [globalMutate]
   );
 
+  /**
+   * Borra los tokens y sale de la sesión. Si falla el borrado en SecureStore, la UI igual sale de la sesión y el error
+   * se relanza para que quien llama avise a la persona, porque al reabrir la app los tokens guardados la volverían a
+   * loguear.
+   */
+  const endLocalSession = useCallback(async () => {
+    let clearTokensError: unknown;
+    try {
+      await clearTokens();
+    } catch (error) {
+      clearTokensError = error;
+    }
+    await clearSession();
+    if (clearTokensError) throw clearTokensError;
+  }, [clearSession]);
+
   const logoutInFlight = useRef<Promise<void> | null>(null);
 
   /**
    * Single-flight: varios toques seguidos (o logout tras eliminar la cuenta) comparten el mismo request. Un error
-   * del POST se ignora a propósito: igual se limpia la sesión local. Al POST se lo espera hasta
+   * del POST se ignora a propósito: igual se limpia la sesión local (`endLocalSession`). Al POST se lo espera hasta
    * `LOGOUT_SERVER_WAIT_MS` (8 s, más que los 3 s que `logoutSession` espera a un refresh en curso): con la API
    * colgada (su tope es de 100 s) la sesión local se cierra igual y el request sigue en segundo plano con el refresh
    * token que ya leyó. No puede volver a guardar tokens: el logout no pasa por el refresh, y un refresh que termine
-   * después ve que la sesión cambió y no escribe. Si lo que falla es el borrado de los tokens en SecureStore, la UI
-   * igual sale de la sesión y el error se relanza para que quien llama avise a la persona, porque al reabrir la app
-   * los tokens guardados la volverían a loguear.
+   * después ve que la sesión cambió y no escribe.
    */
   const logout = useCallback(() => {
     logoutInFlight.current ??= (async () => {
@@ -148,19 +163,22 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
         }),
       ]);
       clearTimeout(timer);
-      let clearTokensError: unknown;
-      try {
-        await clearTokens();
-      } catch (error) {
-        clearTokensError = error;
-      }
-      await clearSession();
-      if (clearTokensError) throw clearTokensError;
+      await endLocalSession();
     })().finally(() => {
       logoutInFlight.current = null;
     });
     return logoutInFlight.current;
-  }, [clearSession]);
+  }, [endLocalSession]);
+
+  /**
+   * Cierra la sesión en todos los dispositivos. A diferencia de `logout`, primero tiene que confirmarlo la API: si el
+   * POST falla, el error se propaga y la sesión local queda abierta, porque cerrarla solo acá haría creer que las
+   * demás también se cerraron. Si la API respondió, sale de la sesión local con `endLocalSession`.
+   */
+  const logoutAll = useCallback(async () => {
+    await api.post(API_KEYS.auth.logoutAll);
+    await endLocalSession();
+  }, [endLocalSession]);
 
   const value = useMemo(
     () => ({
@@ -173,6 +191,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
       retrySession,
       login,
       logout,
+      logoutAll,
     }),
     [
       user,
@@ -186,6 +205,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
       retrySession,
       login,
       logout,
+      logoutAll,
     ]
   );
 

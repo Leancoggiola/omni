@@ -1,3 +1,5 @@
+import { CLIENT_HEADER, MOBILE_CLIENT } from '@omni/shared/auth';
+
 import { API_KEYS } from './keys';
 
 jest.mock('expo-secure-store', () => jest.requireActual('@/test/secureStoreMock'));
@@ -86,6 +88,19 @@ describe('api client', () => {
       await expect(client.api.get('/api/resource')).resolves.toEqual({ ok: true });
 
       expect(bearer(fetchMock.mock.calls[0][1])).toBe('Bearer access-1');
+    });
+
+    it('se identifica como mobile en cada request, en el login y en el refresh', async () => {
+      respondWith(apiWithAccess('access-2', () => refreshReturning('access-2', 'refresh-2')));
+
+      await client.api.post(API_KEYS.auth.login, { username: 'leo', password: 'secreto' }).catch(() => undefined);
+      await client.api.get('/api/resource');
+
+      const clientHeaders = fetchMock.mock.calls.map(
+        ([, init]) => (init.headers as Record<string, string>)[CLIENT_HEADER]
+      );
+      expect(callsTo(REFRESH_URL)).toHaveLength(1);
+      expect(clientHeaders).toEqual(fetchMock.mock.calls.map(() => MOBILE_CLIENT));
     });
 
     it('si SecureStore falla al leer el token el request sale igual, sin Authorization', async () => {
@@ -255,6 +270,83 @@ describe('api client', () => {
 
       expect(refreshes).toBe(2);
       expect(await storage.getTokens()).toEqual({ accessToken: 'access-2', refreshToken: 'refresh-2' });
+    });
+
+    it('si SecureStore falla al guardar el par rotado conserva el token anterior y el próximo refresh lo vuelve a usar', async () => {
+      const secure = jest.requireMock<typeof import('@/test/secureStoreMock')>('expo-secure-store');
+      let refreshes = 0;
+      respondWith(
+        apiWithAccess('access-3', () => refreshReturning(`access-${++refreshes + 1}`, `refresh-${refreshes + 1}`))
+      );
+      secure.setItemAsync.mockRejectedValueOnce(new Error('keystore no disponible'));
+
+      await expect(client.api.get('/api/resource')).rejects.toThrow('keystore no disponible');
+
+      expect(await storage.getTokens()).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1' });
+      expect(onAuthFailure).not.toHaveBeenCalled();
+
+      await expect(client.api.get('/api/resource')).resolves.toEqual({ ok: true });
+      expect(callsTo(REFRESH_URL).map(([, init]) => bodyOf(init))).toEqual([
+        { refreshToken: 'refresh-1' },
+        { refreshToken: 'refresh-1' },
+      ]);
+      expect(await storage.getTokens()).toEqual({ accessToken: 'access-3', refreshToken: 'refresh-3' });
+    });
+
+    it('un refresh sin respuesta a los 30 s se reintenta con el mismo token en cuanto la API contesta', async () => {
+      let refreshes = 0;
+      respondWith((url, init) => {
+        if (url === HEALTH_URL) return jsonResponse({ status: 'ok' });
+        return apiWithAccess('access-2', () =>
+          ++refreshes === 1 ? new Promise(() => undefined) : refreshReturning('access-2', 'refresh-2')
+        )(url, init);
+      });
+
+      jest.useFakeTimers();
+      try {
+        const request = client.api.get('/api/resource');
+        await jest.advanceTimersByTimeAsync(30_000);
+        await expect(request).resolves.toEqual({ ok: true });
+      } finally {
+        jest.useRealTimers();
+      }
+
+      expect(callsTo(REFRESH_URL).map(([, init]) => bodyOf(init))).toEqual([
+        { refreshToken: 'refresh-1' },
+        { refreshToken: 'refresh-1' },
+      ]);
+      expect(await storage.getTokens()).toEqual({ accessToken: 'access-2', refreshToken: 'refresh-2' });
+      expect(onAuthFailure).not.toHaveBeenCalled();
+    });
+
+    it('si la red se corta al recibir la rotación, el próximo request vuelve a refrescar con el token anterior', async () => {
+      let refreshes = 0;
+      respondWith((url, init) => {
+        if (url === HEALTH_URL) throw new TypeError('Network request failed');
+        return apiWithAccess('access-2', () => {
+          if (++refreshes === 1) throw new TypeError('Network request failed');
+          return refreshReturning('access-2', 'refresh-2');
+        })(url, init);
+      });
+
+      jest.useFakeTimers();
+      try {
+        const first = client.api.get('/api/resource');
+        const assertion = expect(first).rejects.toThrow('Network request failed');
+        await jest.advanceTimersByTimeAsync(2_000);
+        await assertion;
+      } finally {
+        jest.useRealTimers();
+      }
+      expect(await storage.getTokens()).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1' });
+
+      await expect(client.api.get('/api/resource')).resolves.toEqual({ ok: true });
+
+      expect(callsTo(REFRESH_URL).map(([, init]) => bodyOf(init))).toEqual([
+        { refreshToken: 'refresh-1' },
+        { refreshToken: 'refresh-1' },
+      ]);
+      expect(onAuthFailure).not.toHaveBeenCalled();
     });
 
     it('un refresh fallido por error transitorio se puede reintentar en el próximo request', async () => {
