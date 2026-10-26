@@ -8,6 +8,7 @@ import * as usersService from '../users/users.service';
 import { lockUserSessions, prisma } from '../common/db';
 import type { PrismaTransactionClient } from '../common/db/prisma';
 import { clearCookies, setAccessCookie, setRefreshCookie } from '../common/utils/cookies';
+import { logger } from '../common/utils/logger';
 import { toSessionUser } from '@omni/shared/auth';
 import type { AuthTokensResponse, Role } from '@omni/shared/auth';
 import { HttpError } from '../common/http';
@@ -66,24 +67,55 @@ export async function login(user: LoginUser, res: Response): Promise<AuthTokensR
   return { user: toSessionUser(user), ...sendTokens(res, tokens) };
 }
 
-type RotationOutcome = { issued: SignedTokens } | { rejected: 'graceExhausted' | 'unknown' | 'reused' };
+/**
+ * Motivo por el que se rechaza un refresh, para el log. `missing`, `expired` e `invalid` los decide la estrategia
+ * `jwt-refresh` antes de llegar al service; el resto, `refresh`.
+ */
+export type RefreshRejection =
+  | 'missing'
+  | 'expired'
+  | 'invalid'
+  | 'userNotFound'
+  | 'notFound'
+  | 'successorGone'
+  | 'graceExhausted'
+  | 'reused';
+
+/** Deja en el log por qué se rechazó un refresh, sin el token ni su hash: alcanza con el usuario y el motivo. */
+export function logRefreshRejection(
+  reason: RefreshRejection,
+  details: { userId?: string | null; rotatedAgoMs?: number } = {}
+) {
+  logger.warn({ reason, ...details }, 'Refresh rechazado');
+}
+
+type RotationOutcome =
+  | { issued: SignedTokens }
+  | { rejected: 'graceExhausted' | 'notFound' | 'successorGone' | 'reused'; rotatedAgoMs?: number };
 
 /**
  * Rota el refresh token: lo marca con `rotatedAt` (atómico, solo uno de dos refresh simultáneos lo logra) y emite el
- * sucesor. La fila rotada queda hasta que vence para reconocer un reuso:
- * - token rotado hace menos de `ROTATION_GRACE_MS` cuyo sucesor sigue sin usarse: recibe una sesión hermana, hasta
+ * sucesor. La fila rotada queda hasta que vence para reconocer un reuso. Un token ya rotado se resuelve según sus
+ * descendientes (el sucesor y las hermanas: las filas cuyo `previousTokenHash` es el suyo):
+ * - rotado hace menos de `ROTATION_GRACE_MS` con el sucesor sin usar: recibe una sesión hermana, hasta
  *   `MAX_GRACE_SIBLINGS`. Después da 401 sin revocar nada ni borrar las cookies, que ya tienen el token nuevo;
- * - token rotado fuera de esa ventana, o con el sucesor ya usado: es un reuso y se revocan todas las sesiones;
- * - token rotado cuyo sucesor ya no está (expulsado por el tope o cerrado): 401 sin tocar las otras sesiones;
+ * - rotado dentro de esa ventana con el sucesor ya usado, o fuera de ella con algún descendiente ya usado: es un
+ *   reuso y se revocan todas las sesiones;
+ * - rotado fuera de esa ventana sin ningún descendiente usado: la respuesta de esa rotación no llegó a guardarse (la
+ *   app murió, se cortó la red o falló el almacenamiento) y quien trae el token es el único que pudo usarlo. Se borran
+ *   los descendientes, que nadie usó, y el token se vuelve a rotar como si fuera la primera vez;
+ * - rotado cuyo sucesor ya no está (expulsado por el tope o cerrado): 401 sin tocar las otras sesiones;
  * - token que no está en la base (cerrado, expulsado por el tope, revocado): 401 sin tocar las otras sesiones.
  * La ventana se mide desde la rotación, así ni las hermanas ni los reintentos la extienden, y las hermanas no pasan
  * por el tope de sesiones: no pueden expulsar a las del usuario. "Sucesor" es siempre el original (el más antiguo con
  * ese `previousTokenHash`): usar una hermana no cierra la gracia, que igual queda acotada por `MAX_GRACE_SIBLINGS`.
- * Los tokens se firman recién cuando se van a emitir.
+ * Cada rechazo queda en el log con su motivo (`logRefreshRejection`). Los tokens se firman recién cuando se van a
+ * emitir.
  */
 export async function refresh(userId: string, rawRefreshToken: string, res: Response): Promise<AuthTokensResponse> {
   const user = await usersService.findById(userId);
   if (!user) {
+    logRefreshRejection('userNotFound', { userId });
     throw new HttpError(401, 'Usuario no encontrado');
   }
 
@@ -107,31 +139,41 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
     if (count === 1) return issue();
 
     const stored = await tx.refreshToken.findUnique({ where: { tokenHash, userId }, select: { rotatedAt: true } });
-    if (!stored?.rotatedAt) return { rejected: 'unknown' };
+    if (!stored?.rotatedAt) return { rejected: 'notFound' };
 
-    const [successor, ...siblings] = await tx.refreshToken.findMany({
+    const descendants = await tx.refreshToken.findMany({
       where: { userId, previousTokenHash: tokenHash },
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       select: { rotatedAt: true },
     });
-    if (!successor) return { rejected: 'unknown' };
-    const withinGrace = stored.rotatedAt.getTime() >= now.getTime() - ROTATION_GRACE_MS;
-    if (!withinGrace || successor.rotatedAt) {
-      await tx.refreshToken.deleteMany({ where: { userId } });
-      return { rejected: 'reused' };
-    }
-    if (siblings.length >= MAX_GRACE_SIBLINGS) return { rejected: 'graceExhausted' };
+    const [successor, ...siblings] = descendants;
+    if (!successor) return { rejected: 'successorGone' };
 
+    const rotatedAgoMs = now.getTime() - stored.rotatedAt.getTime();
+    const withinGrace = rotatedAgoMs <= ROTATION_GRACE_MS;
+    const reused = withinGrace ? successor.rotatedAt !== null : descendants.some(({ rotatedAt }) => rotatedAt);
+    if (reused) {
+      await tx.refreshToken.deleteMany({ where: { userId } });
+      return { rejected: 'reused', rotatedAgoMs };
+    }
+    if (withinGrace) {
+      if (siblings.length >= MAX_GRACE_SIBLINGS) return { rejected: 'graceExhausted', rotatedAgoMs };
+      return issue();
+    }
+
+    await tx.refreshToken.deleteMany({ where: { userId, previousTokenHash: tokenHash } });
+    await tx.refreshToken.update({ where: { tokenHash, userId }, data: { rotatedAt: now } });
     return issue();
   });
 
   if ('issued' in outcome) {
     return { user: toSessionUser(user), ...sendTokens(res, outcome.issued) };
   }
+  logRefreshRejection(outcome.rejected, { userId, rotatedAgoMs: outcome.rotatedAgoMs });
   if (outcome.rejected === 'graceExhausted') {
     throw new HttpError(401, 'La sesión ya no es válida');
   }
-  if (outcome.rejected === 'unknown') {
+  if (outcome.rejected !== 'reused') {
     clearCookies(res);
     throw new HttpError(401, 'La sesión ya no es válida');
   }
@@ -192,7 +234,8 @@ async function deleteTokenChain(tx: PrismaTransactionClient, userId: string, tok
     DELETE FROM "RefreshToken" WHERE "id" IN (SELECT "id" FROM chain)`;
 }
 
-function refreshTokenOwner(rawRefreshToken: string): string | null {
+/** Dueño de un refresh token con firma válida aunque haya vencido; `null` si la firma no es válida. */
+export function refreshTokenOwner(rawRefreshToken: string): string | null {
   try {
     const payload = jwt.verify(rawRefreshToken, config.jwt.refreshSecret, {
       algorithms: [JWT_ALGORITHM],
@@ -245,7 +288,7 @@ async function storeRefreshToken(
 /**
  * Solo lo aplica login: la rotación reemplaza una sesión por otra y las hermanas de la gracia están acotadas por
  * `MAX_GRACE_SIBLINGS`. Cuenta solo las sesiones vigentes: las filas rotadas quedan para detectar reusos y `login` y
- * `refresh` las podan al vencer.
+ * `refresh` las podan al vencer. Cada expulsión queda en el log: un refresh posterior de esa sesión solo ve `notFound`.
  */
 async function enforceSessionCap(tx: PrismaTransactionClient, userId: string) {
   const overflow = await tx.refreshToken.findMany({
@@ -256,6 +299,7 @@ async function enforceSessionCap(tx: PrismaTransactionClient, userId: string) {
   });
   if (overflow.length > 0) {
     await tx.refreshToken.deleteMany({ where: { id: { in: overflow.map(({ id }) => id) } } });
+    logger.info({ userId, evicted: overflow.length }, 'Sesiones expulsadas por el tope');
   }
 }
 
