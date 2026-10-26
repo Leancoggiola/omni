@@ -38,7 +38,13 @@ export class HomePage {
     await this.navItem(label).click();
   }
 
+  readonly logoutDialog = () => this.page.getByRole('dialog');
+  readonly cancelLogoutButton = () => this.page.getByRole('dialog').getByRole('button', { name: 'Cancelar' });
+  readonly confirmLogoutButton = () => this.page.getByRole('dialog').getByRole('button', { name: 'Cerrar sesión' });
+
+  /** Cierra sesión confirmando el diálogo "¿Cerrar sesión?". */
   async logout() {
     await this.logoutButton().click();
+    await this.confirmLogoutButton().click();
   }
 }
