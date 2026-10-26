@@ -46,6 +46,17 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/**
+ * Error de `logoutAll` cuando la API ya cerró todas las sesiones pero no se pudieron borrar los tokens de SecureStore:
+ * la UI igual salió de la sesión, pero al reabrir la app los tokens guardados (ya revocados) mandarían al login.
+ */
+export class LocalSessionClearError extends Error {
+  constructor(cause: unknown) {
+    super('Se cerraron las sesiones, pero no se pudieron borrar los datos de este dispositivo', { cause });
+    this.name = 'LocalSessionClearError';
+  }
+}
+
 const LOGOUT_SERVER_WAIT_MS = 8_000;
 
 const BOOTSTRAP_READ_ATTEMPTS = 3;
@@ -173,11 +184,17 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   /**
    * Cierra la sesión en todos los dispositivos. A diferencia de `logout`, primero tiene que confirmarlo la API: si el
    * POST falla, el error se propaga y la sesión local queda abierta, porque cerrarla solo acá haría creer que las
-   * demás también se cerraron. Si la API respondió, sale de la sesión local con `endLocalSession`.
+   * demás también se cerraron. Si la API respondió, sale de la sesión local con `endLocalSession`; si lo que falla es
+   * el borrado en SecureStore, lanza `LocalSessionClearError`, para que quien llama no lo reporte como un fallo de la
+   * API: las sesiones ya se cerraron.
    */
   const logoutAll = useCallback(async () => {
     await api.post(API_KEYS.auth.logoutAll);
-    await endLocalSession();
+    try {
+      await endLocalSession();
+    } catch (error) {
+      throw new LocalSessionClearError(error);
+    }
   }, [endLocalSession]);
 
   const value = useMemo(

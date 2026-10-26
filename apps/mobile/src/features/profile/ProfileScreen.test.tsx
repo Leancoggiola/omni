@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import { RefreshControl } from 'react-native';
 
 import { ApiError } from '@omni/shared/api';
+import { LocalSessionClearError } from '@/core/auth';
 import { confirm, notifyError, notifySuccess, notifyWarning } from '@/shared/ui';
 
 import { ProfileScreen } from './ProfileScreen';
@@ -24,7 +25,10 @@ jest.mock('@/core/theme', () => ({
   ...jest.requireActual('@/test/themeMock'),
   useColorSchemeControl: () => ({ clearOverride: mockClearOverride }),
 }));
-jest.mock('@/core/auth', () => ({ useAuth: () => ({ logout: mockLogout, logoutAll: mockLogoutAll }) }));
+jest.mock('@/core/auth', () => ({
+  LocalSessionClearError: jest.requireActual('@/core/auth/AuthContext').LocalSessionClearError,
+  useAuth: () => ({ logout: mockLogout, logoutAll: mockLogoutAll }),
+}));
 jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn() }) }));
 jest.mock(
   'react-native-safe-area-context',
@@ -364,6 +368,16 @@ describe('ProfileScreen · cerrar sesión en todos los dispositivos', () => {
     await act(async () => press());
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo');
+  });
+
+  it('si la API cerró las sesiones y falla el borrado local avisa sin reportarlo como error', async () => {
+    jest.mocked(confirm).mockResolvedValue(true);
+    mockLogoutAll.mockRejectedValue(new LocalSessionClearError(new Error('SecureStore')));
+    renderProfile();
+    await act(async () => press());
+
+    expect(notifyError).not.toHaveBeenCalled();
+    expect(notifyWarning).toHaveBeenCalledWith(expect.stringContaining('Se cerraron las sesiones'));
   });
 
   it('dos toques seguidos piden una sola confirmación', async () => {

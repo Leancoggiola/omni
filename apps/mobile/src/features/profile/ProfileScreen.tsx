@@ -4,7 +4,7 @@ import { UserIcon } from 'phosphor-react-native';
 import { KeyboardAvoidingView, ScrollView } from 'react-native';
 import { YStack } from 'tamagui';
 
-import { useAuth } from '@/core/auth';
+import { LocalSessionClearError, useAuth } from '@/core/auth';
 import { useColorSchemeControl } from '@/core/theme';
 import {
   ErrorState,
@@ -54,6 +54,17 @@ export function ProfileScreen() {
     }
   };
 
+  const handleLogoutAll = async () => {
+    try {
+      await logoutAll();
+    } catch (error) {
+      if (!(error instanceof LocalSessionClearError)) throw error;
+      notifyWarning(
+        'Se cerraron las sesiones en todos los dispositivos, pero no se pudieron borrar los datos de este celular.'
+      );
+    }
+  };
+
   const renderBody = () => {
     const errorState = error ? (
       <ErrorState message="No se pudo cargar tu perfil" onRetry={() => void refresh()} />
@@ -82,7 +93,7 @@ export function ProfileScreen() {
             onChange={savePreferences}
           />
           <PasswordCard onSubmit={changePassword} onFieldFocus={scrollIntoView} />
-          <LogoutAllCard onLogoutAll={logoutAll} />
+          <LogoutAllCard onLogoutAll={handleLogoutAll} />
           <DeleteAccountCard onDelete={handleDelete} />
         </ScrollView>
       </KeyboardAvoidingView>

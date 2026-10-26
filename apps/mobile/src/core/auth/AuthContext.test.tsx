@@ -7,7 +7,7 @@ import { api, API_KEYS } from '@/shared/api';
 import { getTokens, setTokens } from '@/shared/api/tokenStorage';
 import { deleteItemAsync, getItemAsync, store } from '@/test/secureStoreMock';
 
-import { AuthProvider, useAuth } from './AuthContext';
+import { AuthProvider, LocalSessionClearError, useAuth } from './AuthContext';
 
 jest.mock('expo-secure-store', () => jest.requireActual('@/test/secureStoreMock'));
 
@@ -354,6 +354,18 @@ describe('AuthProvider', () => {
 
       expect(await getTokens()).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1' });
       expect(result.current.auth.isAuthenticated).toBe(true);
+    });
+
+    it('si la API confirmó y falla el borrado en SecureStore sale de la sesión y lanza LocalSessionClearError', async () => {
+      routes[API_KEYS.auth.logoutAll] = () => jsonResponse({ message: 'Cerraste sesión en todos los dispositivos' });
+      const { result } = await signIn();
+      deleteItemAsync.mockRejectedValueOnce(new Error('no se pudo borrar'));
+
+      await act(async () => {
+        await expect(result.current.auth.logoutAll()).rejects.toBeInstanceOf(LocalSessionClearError);
+      });
+
+      expect(result.current.auth.isAuthenticated).toBe(false);
     });
   });
 
