@@ -37,7 +37,7 @@ app/<ruta>.tsx              solo la ruta: importa @/features/<name>
 
 > **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes (`hooks.ts` con varios hooks, rutas que importan el Screen sin barrel) se migran en los PRs siguientes del issue.
 
-- `components/`, `hooks/` y `utils/` existen aunque tengan un solo archivo; barrels solo en las fronteras (`features/<name>/`, `core/<area>/`, `shared/<area>/`); los hooks nunca van en `utils/`.
+- `components/`, `hooks/` y `utils/` se crean al agregar el primer archivo de esa categoría y se usan aunque tengan uno solo; barrels solo en las fronteras (`features/<name>/`, `core/<area>/`, `shared/<area>/`); los hooks nunca van en `utils/`.
 - Scaffolding: `pnpm new-feature <name> --mobile` desde la raíz (ver `docs/mobile/new-feature.md`).
 - Imports: `@/shared/api`, `@/shared/ui`, `@/core/auth`, `@/features/...`, `@/theme/...`.
 - **Prohibido:** feature A → feature B.

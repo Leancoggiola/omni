@@ -136,7 +136,7 @@ features/<name>/
 app/<ruta>.tsx              solo la ruta: importa @/features/<name>
 ```
 
-- **Carpetas de un solo archivo:** `components/`, `hooks/` y `utils/` existen aunque tengan un solo archivo (son categorías, no una carpeta por archivo). Un componente tiene carpeta propia solo si tiene auxiliares, y se importa como `./components/X/X`.
+- **Carpetas de un solo archivo:** `components/`, `hooks/` y `utils/` se crean al agregar el primer archivo de esa categoría y se usan aunque tengan uno solo (son categorías, no una carpeta por archivo). Un componente tiene carpeta propia solo si tiene auxiliares, y se importa como `./components/X/X`.
 - **Barrels:** solo en las fronteras que se consumen desde afuera: `features/<name>/`, `core/<area>/`, `shared/<area>/`, `layouts/` y `__tests__/helpers/`. En esas fronteras se permite un barrel de una línea, porque es la API del alias. Nunca dentro de `components/`, `hooks/`, `utils/` o `modules/`.
 - **Hooks:** un hook exportado por archivo. Las constantes atadas a un hook van en su archivo. Los hooks nunca van en `utils/`.
 - **Sin `modules/_shared`:** lo que comparten los módulos va en `components/`, `hooks/` o `utils/` de la raíz del feature.

@@ -32,7 +32,7 @@ features/<name>/
 
 > **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes (barrels en cada carpeta, `modules/` de un solo módulo, `modules/_shared`, un hook por carpeta) se migran en los PRs siguientes del issue.
 
-- **Carpetas:** `components/`, `hooks/` y `utils/` existen aunque tengan un solo archivo (son categorías, no una carpeta por archivo). Un componente tiene carpeta propia solo si tiene auxiliares, y se importa como `./components/X/X`.
+- **Carpetas:** `components/`, `hooks/` y `utils/` se crean al agregar el primer archivo de esa categoría y se usan aunque tengan uno solo (son categorías, no una carpeta por archivo). Un componente tiene carpeta propia solo si tiene auxiliares, y se importa como `./components/X/X`.
 - **Barrels:** solo en las fronteras que se consumen desde afuera: `features/<name>/`, `core/<area>/`, `shared/<area>/`, `layouts/` y `__tests__/helpers/` (ahí se permite un barrel de una línea). Nunca dentro de `components/`, `hooks/`, `utils/` o `modules/`.
 - **Hooks:** un hook exportado por archivo, siempre en `hooks/` (nunca en `utils/`). Las constantes atadas a un hook van en su archivo.
 - **Sin `modules/_shared`:** lo que comparten los módulos va en `components/`, `hooks/` o `utils/` de la raíz del feature.
