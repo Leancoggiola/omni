@@ -5,10 +5,12 @@ import { ApiError } from '@omni/shared/api';
 import { LoginScreen } from './LoginScreen';
 
 const mockLogin = jest.fn();
+const mockEnsureServerAwake = jest.fn();
 
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
 jest.mock('@/core/auth', () => ({ useAuth: () => ({ login: mockLogin }) }));
+jest.mock('@/shared/api', () => ({ ensureServerAwake: () => mockEnsureServerAwake() }));
 jest.mock(
   'react-native-safe-area-context',
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default
@@ -19,6 +21,7 @@ const submit = () => fireEvent.press(screen.getByRole('button', { name: 'Ingresa
 
 beforeEach(() => {
   mockLogin.mockReset();
+  mockEnsureServerAwake.mockReset().mockResolvedValue(true);
 });
 
 describe('LoginScreen', () => {
@@ -80,6 +83,28 @@ describe('LoginScreen', () => {
 
     await act(async () => finish());
     expect(screen.getByRole('button', { name: 'Ingresar', busy: false })).toBeTruthy();
+  });
+
+  it('mientras envía los campos y el ojo de la contraseña quedan deshabilitados', async () => {
+    let finish!: () => void;
+    mockLogin.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));
+    render(<LoginScreen />);
+    fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+    fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+    submit();
+
+    expect(screen.getByLabelText('Usuario')).toHaveProp('editable', false);
+    expect(screen.getByLabelText('Contraseña')).toHaveProp('editable', false);
+    expect(screen.getByRole('button', { name: 'Mostrar contraseña', disabled: true })).toBeTruthy();
+
+    await act(async () => finish());
+    expect(screen.getByLabelText('Usuario')).toHaveProp('editable', true);
+    expect(screen.getByRole('button', { name: 'Mostrar contraseña', disabled: false })).toBeTruthy();
+  });
+
+  it('al montar sondea el health para despertar la API', () => {
+    render(<LoginScreen />);
+    expect(mockEnsureServerAwake).toHaveBeenCalledTimes(1);
   });
 
   it('el error del servidor se muestra en un Banner destructivo', async () => {

@@ -1,3 +1,5 @@
+import { CLIENT_HEADER, MOBILE_CLIENT } from '@omni/shared/auth';
+
 import { API_KEYS } from './keys';
 
 jest.mock('expo-secure-store', () => jest.requireActual('@/test/secureStoreMock'));
@@ -86,6 +88,19 @@ describe('api client', () => {
       await expect(client.api.get('/api/resource')).resolves.toEqual({ ok: true });
 
       expect(bearer(fetchMock.mock.calls[0][1])).toBe('Bearer access-1');
+    });
+
+    it('se identifica como mobile en cada request, en el login y en el refresh', async () => {
+      respondWith(apiWithAccess('access-2', () => refreshReturning('access-2', 'refresh-2')));
+
+      await client.api.post(API_KEYS.auth.login, { username: 'leo', password: 'secreto' }).catch(() => undefined);
+      await client.api.get('/api/resource');
+
+      const clientHeaders = fetchMock.mock.calls.map(
+        ([, init]) => (init.headers as Record<string, string>)[CLIENT_HEADER]
+      );
+      expect(callsTo(REFRESH_URL)).toHaveLength(1);
+      expect(clientHeaders).toEqual(fetchMock.mock.calls.map(() => MOBILE_CLIENT));
     });
 
     it('si SecureStore falla al leer el token el request sale igual, sin Authorization', async () => {
