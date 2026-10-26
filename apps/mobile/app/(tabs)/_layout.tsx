@@ -13,10 +13,17 @@ import type { NavKey } from '@omni/shared/navigation';
 
 const PILL = { width: 56, height: 30 } as const;
 const ICON_SIZE = 22;
+const LABEL_MAX_FONT_SCALE = 1.3;
 
+/** El alto de la tab bar es fijo: con la fuente del sistema al máximo la etiqueta se pasaría del ancho de su tab. */
 function TabLabel({ label, focused, color }: { label: string; focused: boolean; color: string }) {
   return (
-    <Paragraph fontSize={FONT_SIZE.sm} fontWeight={focused ? '700' : '500'} color={color}>
+    <Paragraph
+      fontSize={FONT_SIZE.sm}
+      fontWeight={focused ? '700' : '500'}
+      color={color}
+      maxFontSizeMultiplier={LABEL_MAX_FONT_SCALE}
+    >
       {label}
     </Paragraph>
   );
