@@ -1,2 +1,2 @@
-export { AuthProvider, useAuth } from './AuthContext';
+export { AuthProvider, LocalSessionClearError, useAuth } from './AuthContext';
 export type { SessionUser } from './AuthContext';
