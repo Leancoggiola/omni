@@ -174,8 +174,8 @@ function buildRoutesContent() {
   const routeRef = `${camel}Route`;
   const protectedRoutes = /export const protectedRoutes = \[([\s\S]*?)\];/;
   const match = content.match(protectedRoutes);
-  if (!match) {
-    console.error('No se encontró protectedRoutes en apps/web/src/app/routes.ts: registrá la ruta a mano.');
+  if (!match || /\/\/|\/\*/.test(match[1])) {
+    console.error('No se pudo leer protectedRoutes en apps/web/src/app/routes.ts: registrá la ruta a mano.');
     process.exit(1);
   }
   const inner = match[1].replace(/\s+/g, ' ').trim().replace(/,$/, '');
