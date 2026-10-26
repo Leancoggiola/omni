@@ -235,14 +235,15 @@ export async function logout(rawRefreshToken: string | undefined, res: Response)
 /**
  * Cierra todas las sesiones del usuario, la que hace el pedido incluida: borra todos sus refresh tokens, así que
  * ningún dispositivo puede volver a refrescar. Los access tokens ya emitidos siguen valiendo hasta vencer
- * (`JWT_ACCESS_EXPIRES_IN`, 15 min): no se guardan en la base.
+ * (`JWT_ACCESS_EXPIRES_IN`, 15 min): no se guardan en la base. Las cookies se borran recién cuando la base confirmó el
+ * borrado: si falla, la web sigue con su sesión, igual que mobile, en vez de quedar deslogueada con las demás vivas.
  */
 export async function logoutAll(userId: string, res: Response) {
-  clearCookies(res);
   await prisma.$transaction(async tx => {
     await lockUserSessions(tx, userId);
     await tx.refreshToken.deleteMany({ where: { userId } });
   });
+  clearCookies(res);
   return { message: 'Cerraste sesión en todos los dispositivos' };
 }
 
