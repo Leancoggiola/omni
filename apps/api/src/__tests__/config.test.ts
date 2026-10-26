@@ -93,6 +93,7 @@ describe('resolveJwtConfig', () => {
     refreshSecret: 'b'.repeat(32),
     accessExpiresIn: undefined,
     refreshExpiresIn: undefined,
+    mobileRefreshExpiresIn: undefined,
   };
 
   it('usa 15m, 7d y 90d (mobile) por defecto y expone las vigencias en milisegundos', () => {
@@ -110,6 +111,13 @@ describe('resolveJwtConfig', () => {
       refreshTtlMs: 2 * 24 * 60 * 60 * 1000,
       mobileRefreshTtlMs: 30 * 24 * 60 * 60 * 1000,
     });
+  });
+
+  it('rechaza una vigencia de mobile más corta que la de la web', () => {
+    expect(() => resolveJwtConfig({ ...secrets, mobileRefreshExpiresIn: '3d' }, false)).toThrow(
+      /JWT_REFRESH_EXPIRES_IN_MOBILE no puede ser más corto/
+    );
+    expect(() => resolveJwtConfig({ ...secrets, mobileRefreshExpiresIn: '7d' }, false)).not.toThrow();
   });
 
   it('en producción rechaza secretos de menos de 32 caracteres', () => {

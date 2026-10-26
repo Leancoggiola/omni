@@ -22,7 +22,7 @@ export function LogoutAllCard({ onLogoutAll }: LogoutAllCardProps) {
       const confirmed = await confirm({
         title: 'Cerrar sesión en todos los dispositivos',
         description:
-          'Se cerrará tu sesión en este celular, en la web y en cualquier otro dispositivo. Vas a tener que volver a ingresar en cada uno.',
+          'Se cerrará tu sesión en este celular, en la web y en cualquier otro dispositivo. Los demás pueden seguir abiertos hasta 15 minutos; después vas a tener que volver a ingresar en cada uno.',
         confirmLabel: 'Sí, cerrar todas',
       });
       if (!confirmed) return;

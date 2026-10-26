@@ -54,7 +54,7 @@ interface JwtEnv {
   refreshSecret: string;
   accessExpiresIn: string | undefined;
   refreshExpiresIn: string | undefined;
-  mobileRefreshExpiresIn?: string | undefined;
+  mobileRefreshExpiresIn: string | undefined;
 }
 
 /**
@@ -62,6 +62,7 @@ interface JwtEnv {
  * secreto un refresh token valdría como access token. La vigencia de cada token es la única fuente de su cookie y de su
  * `expiresAt`: salen de `accessTtlMs` y `refreshTtlMs` (web). El refresh token de la app mobile, que no usa cookies,
  * vale `mobileRefreshTtlMs` (90 días por defecto) desde cada refresh: la sesión vence recién tras ese tiempo sin uso.
+ * Una vigencia de mobile más corta que la de la web es un error de configuración y el arranque falla.
  */
 export function resolveJwtConfig(env: JwtEnv, isProduction: boolean) {
   if (isProduction) {
@@ -78,12 +79,18 @@ export function resolveJwtConfig(env: JwtEnv, isProduction: boolean) {
     }
   }
 
+  const refreshTtlMs = parseDurationMs(env.refreshExpiresIn ?? '7d', 'JWT_REFRESH_EXPIRES_IN');
+  const mobileRefreshTtlMs = parseDurationMs(env.mobileRefreshExpiresIn ?? '90d', 'JWT_REFRESH_EXPIRES_IN_MOBILE');
+  if (mobileRefreshTtlMs < refreshTtlMs) {
+    throw new Error('JWT_REFRESH_EXPIRES_IN_MOBILE no puede ser más corto que JWT_REFRESH_EXPIRES_IN');
+  }
+
   return {
     accessSecret: env.accessSecret,
     refreshSecret: env.refreshSecret,
     accessTtlMs: parseDurationMs(env.accessExpiresIn ?? '15m', 'JWT_ACCESS_EXPIRES_IN'),
-    refreshTtlMs: parseDurationMs(env.refreshExpiresIn ?? '7d', 'JWT_REFRESH_EXPIRES_IN'),
-    mobileRefreshTtlMs: parseDurationMs(env.mobileRefreshExpiresIn ?? '90d', 'JWT_REFRESH_EXPIRES_IN_MOBILE'),
+    refreshTtlMs,
+    mobileRefreshTtlMs,
   };
 }
 

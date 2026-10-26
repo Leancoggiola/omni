@@ -13,13 +13,15 @@ export { ApiError };
 
 /**
  * Suma `CLIENT_HEADER` a cada request: con él, el login y el refresh emiten un refresh token de 90 días que se renueva
- * con cada uso, en vez de los 7 días de la web.
+ * con cada uso, en vez de los 7 días de la web. `createApiClient` y el refresh pasan los headers como objeto plano y se
+ * conservan tal cual; un `Headers` o una lista de pares se convierte a objeto para no perder ninguno.
  */
 function withClientHeader(init: RequestInit): RequestInit {
-  return {
-    ...init,
-    headers: { ...(init.headers as Record<string, string> | undefined), [CLIENT_HEADER]: MOBILE_CLIENT },
-  };
+  const headers =
+    init.headers instanceof Headers || Array.isArray(init.headers)
+      ? Object.fromEntries(new Headers(init.headers))
+      : init.headers;
+  return { ...init, headers: { ...headers, [CLIENT_HEADER]: MOBILE_CLIENT } };
 }
 
 let onAuthFailure: (() => void) | null = null;
