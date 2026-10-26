@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import prettier from 'prettier';
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const webSrc = path.join(repoRoot, 'apps', 'web', 'src');
 const mobileSrc = path.join(repoRoot, 'apps', 'mobile', 'src');
@@ -68,7 +70,7 @@ for (const dir of [targetWeb && webDir, targetMobile && mobileDir].filter(Boolea
 }
 
 const routesFile = path.join(webSrc, 'app', 'routes.ts');
-const routesContent = targetWeb && registerRoute ? buildRoutesContent() : null;
+const routesContent = targetWeb && registerRoute ? await formatRoutes(buildRoutesContent()) : null;
 
 if (targetWeb) scaffoldWeb();
 if (targetMobile) scaffoldMobile();
@@ -145,6 +147,12 @@ function insertFeatureImport(content, importLine) {
   }
   const end = last.index + last[0].length;
   return `${content.slice(0, end)}\n${importLine}${content.slice(end)}`;
+}
+
+/** Formatea el `routes.ts` nuevo con la config de Prettier del repo, para que no exceda el `printWidth`. */
+async function formatRoutes(content) {
+  const options = await prettier.resolveConfig(routesFile);
+  return prettier.format(content, { ...options, filepath: routesFile });
 }
 
 /**
