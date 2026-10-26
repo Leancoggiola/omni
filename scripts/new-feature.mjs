@@ -155,17 +155,15 @@ function buildRoutesContent() {
   let content = fs.readFileSync(routesFile, 'utf8');
   content = insertFeatureImport(content, `import { ${camel}Route } from '@/features/${name}';`);
   const routeRef = `${camel}Route`;
-  if (content.match(new RegExp(`protectedRoutes = \\[[^\\]]*\\b${escapeRegExp(routeRef)}\\b`))) return content;
-
-  const protectedRoutes = /export const protectedRoutes = (\[[^\]]+\])/;
-  if (!protectedRoutes.test(content)) {
+  const protectedRoutes = /export const protectedRoutes = \[([\s\S]*?)\];/;
+  const match = content.match(protectedRoutes);
+  if (!match) {
     console.error('No se encontró protectedRoutes en apps/web/src/app/routes.ts: registrá la ruta a mano.');
     process.exit(1);
   }
-  return content.replace(protectedRoutes, (_, arr) => {
-    const inner = arr.slice(1, -1).trim();
-    return `export const protectedRoutes = [${inner}, ${routeRef}]`;
-  });
+  const inner = match[1].replace(/\s+/g, ' ').trim().replace(/,$/, '');
+  if (new RegExp(`\\b${escapeRegExp(routeRef)}\\b`).test(inner)) return content;
+  return content.replace(protectedRoutes, `export const protectedRoutes = [${inner}, ${routeRef}];`);
 }
 
 /** Genera `<Name>Screen.tsx` e `index.ts` en `apps/mobile/src/features/<name>/`. */

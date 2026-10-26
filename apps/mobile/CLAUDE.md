@@ -83,7 +83,7 @@ import useSWRImmutable from 'swr/immutable';
 | Listas / search | `useSWR`                                            |
 | Mutations       | `api.post/patch/delete` + `mutate` / `globalMutate` |
 
-Return: dominio + `isLoading` + `error` (+ `isMutating` si aplica). Paridad de patrones con web: skill `swr-hooks`.
+Un hook por archivo en `hooks/` de la feature (`hooks/useX.ts`), nombre de función = nombre de archivo. Return: dominio + `isLoading` + `error` (+ `isMutating` si aplica). Paridad de patrones con web: skill `swr-hooks`.
 
 `SWRProvider` (`core/providers`, por encima de `AuthProvider`: la sesión y los datos comparten caché) usa una caché a nivel de módulo, porque expo-router vuelve a montar el layout raíz al redirigir (login → tabs) y una creada al montar se perdería; pone el `fetcher`, los reintentos (`SWR_RETRY_OPTIONS` de `@omni/shared/api`, igual que web: 3, sin reintentar 4xx salvo 408 y 429) y `initFocus` con `AppState`: los `useSWR` revalidan al volver a primer plano, los `useSWRImmutable` no. Sin NetInfo no hay `initReconnect`. Las listas y el perfil llevan "tirar para actualizar" con `usePullToRefresh(refresh)` de `@/shared/ui` (`refreshControl`).
 
