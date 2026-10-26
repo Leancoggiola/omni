@@ -1,3 +1,13 @@
+## [1.2.1](https://github.com/Leancoggiola/omni/compare/v1.2.0...v1.2.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **#175:** aviso de despertar en el login y campos bloqueados mientras carga ([7d411ab](https://github.com/Leancoggiola/omni/commit/7d411ab52b2cd3dd394d05d6c5cc5478986edf85)), closes [#175](https://github.com/Leancoggiola/omni/issues/175) [#175](https://github.com/Leancoggiola/omni/issues/175)
+* **#175:** aviso de despertar en el login y campos bloqueados mientras carga ([#181](https://github.com/Leancoggiola/omni/issues/181)) ([0e4e41a](https://github.com/Leancoggiola/omni/commit/0e4e41a2c2483f6bec2512e343c1a01bbf0ca22b)), closes [#175](https://github.com/Leancoggiola/omni/issues/175)
+* **#175:** el foco vuelve a la contraseña si el login falla ([c42c376](https://github.com/Leancoggiola/omni/commit/c42c376c6909a7775f234902e0617ef9fd1648ae)), closes [#175](https://github.com/Leancoggiola/omni/issues/175)
+* **#175:** el polling compartido no rechaza y la espera aplica a todo POST/PATCH ([1c5649f](https://github.com/Leancoggiola/omni/commit/1c5649fa743beee2bfa992755bdb9c2890f5133a)), closes [#175](https://github.com/Leancoggiola/omni/issues/175)
+
 # [1.2.0](https://github.com/Leancoggiola/omni/compare/v1.1.2...v1.2.0) (2026-10-26)
 
 
