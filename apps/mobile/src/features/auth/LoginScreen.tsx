@@ -1,12 +1,13 @@
 // tamagui-ignore
 import { loginSchema } from '@omni/shared/auth';
 import { BRAND, RADIUS, SPACING } from '@omni/shared/theme';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Image, KeyboardAvoidingView, ScrollView, type TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { YStack, type TamaguiElement } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
+import { ensureServerAwake } from '@/shared/api';
 import { Banner, Button, getErrorMessage, PasswordField, SectionCard, TextField, Title } from '@/shared/ui';
 import { elevation } from '@/theme/elevation';
 
@@ -20,6 +21,12 @@ const CARD_MAX_WIDTH = 420;
 
 type FieldErrors = Partial<Record<'username' | 'password', string>>;
 
+/**
+ * Login. Al montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y
+ * el aviso aparezca si tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en
+ * curso, los campos (el ojo de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la
+ * contraseña (el campo deshabilitado lo pierde y cierra el teclado).
+ */
 export function LoginScreen() {
   const { login } = useAuth();
   const insets = useSafeAreaInsets();
@@ -30,6 +37,14 @@ export function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const submitting = useRef(false);
+
+  useEffect(() => {
+    void ensureServerAwake();
+  }, []);
+
+  useEffect(() => {
+    if (error && !loading) (passwordRef.current as TextInput | null)?.focus();
+  }, [error, loading]);
 
   const onSubmit = async () => {
     if (submitting.current) return;
@@ -109,6 +124,7 @@ export function LoginScreen() {
                     setFieldErrors(prev => ({ ...prev, username: undefined }));
                   }}
                   error={fieldErrors.username}
+                  disabled={loading}
                   autoCapitalize="none"
                   autoCorrect={false}
                   autoComplete="username"
@@ -125,6 +141,7 @@ export function LoginScreen() {
                     setFieldErrors(prev => ({ ...prev, password: undefined }));
                   }}
                   error={fieldErrors.password}
+                  disabled={loading}
                   autoComplete="current-password"
                   returnKeyType="go"
                   submitBehavior="submit"
