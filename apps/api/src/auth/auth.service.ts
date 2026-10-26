@@ -53,9 +53,24 @@ export function hashRefreshToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
+export type SessionClient = 'web' | 'mobile';
+
+/**
+ * La web guarda el refresh token en una cookie de `refreshTtlMs` (7 días); mobile, que lo guarda en SecureStore,
+ * recibe uno de `mobileRefreshTtlMs` (90 días). Cada refresh emite el token nuevo con la vigencia completa desde ese
+ * momento, así que la sesión de mobile se desliza: vence solo tras 90 días sin uso.
+ */
+function refreshTtlFor(client: SessionClient): number {
+  return client === 'mobile' ? config.jwt.mobileRefreshTtlMs : config.jwt.refreshTtlMs;
+}
+
 /** El usuario ya llega completo desde validateUser: los tokens se emiten recién con la sesión armada. */
-export async function login(user: LoginUser, res: Response): Promise<AuthTokensResponse> {
-  const tokens = signTokens({ sub: user.id, username: user.username, role: user.role });
+export async function login(
+  user: LoginUser,
+  res: Response,
+  client: SessionClient = 'web'
+): Promise<AuthTokensResponse> {
+  const tokens = signTokens({ sub: user.id, username: user.username, role: user.role }, refreshTtlFor(client));
 
   await prisma.$transaction(async tx => {
     await lockUserSessions(tx, user.id);
@@ -67,10 +82,6 @@ export async function login(user: LoginUser, res: Response): Promise<AuthTokensR
   return { user: toSessionUser(user), ...sendTokens(res, tokens) };
 }
 
-/**
- * Motivo por el que se rechaza un refresh, para el log. `missing`, `expired` e `invalid` los decide la estrategia
- * `jwt-refresh` antes de llegar al service; el resto, `refresh`.
- */
 export type RefreshRejection =
   | 'missing'
   | 'expired'
@@ -81,7 +92,11 @@ export type RefreshRejection =
   | 'graceExhausted'
   | 'reused';
 
-/** Deja en el log por qué se rechazó un refresh, sin el token ni su hash: alcanza con el usuario y el motivo. */
+/**
+ * Deja en el log por qué se rechazó un refresh, sin el token ni su hash: alcanza con el usuario y el motivo.
+ * `missing`, `expired` e `invalid` los decide la estrategia `jwt-refresh` antes de llegar al service; el resto,
+ * `refresh`.
+ */
 export function logRefreshRejection(
   reason: RefreshRejection,
   details: { userId?: string | null; rotatedAgoMs?: number } = {}
@@ -112,7 +127,12 @@ type RotationOutcome =
  * Cada rechazo queda en el log con su motivo (`logRefreshRejection`). Los tokens se firman recién cuando se van a
  * emitir.
  */
-export async function refresh(userId: string, rawRefreshToken: string, res: Response): Promise<AuthTokensResponse> {
+export async function refresh(
+  userId: string,
+  rawRefreshToken: string,
+  res: Response,
+  client: SessionClient = 'web'
+): Promise<AuthTokensResponse> {
   const user = await usersService.findById(userId);
   if (!user) {
     logRefreshRejection('userNotFound', { userId });
@@ -123,7 +143,7 @@ export async function refresh(userId: string, rawRefreshToken: string, res: Resp
 
   const outcome = await prisma.$transaction(async (tx): Promise<RotationOutcome> => {
     const issue = async () => {
-      const tokens = signTokens({ sub: userId, username: user.username, role: user.role });
+      const tokens = signTokens({ sub: userId, username: user.username, role: user.role }, refreshTtlFor(client));
       await storeRefreshToken(tx, userId, tokens, tokenHash);
       return { issued: tokens };
     };
@@ -212,6 +232,21 @@ export async function logout(rawRefreshToken: string | undefined, res: Response)
   return { message: 'Sesión cerrada exitosamente' };
 }
 
+/**
+ * Cierra todas las sesiones del usuario, la que hace el pedido incluida: borra todos sus refresh tokens, así que
+ * ningún dispositivo puede volver a refrescar. Los access tokens ya emitidos siguen valiendo hasta vencer
+ * (`JWT_ACCESS_EXPIRES_IN`, 15 min): no se guardan en la base. Las cookies se borran recién cuando la base confirmó el
+ * borrado: si falla, la web sigue con su sesión, igual que mobile, en vez de quedar deslogueada con las demás vivas.
+ */
+export async function logoutAll(userId: string, res: Response) {
+  await prisma.$transaction(async tx => {
+    await lockUserSessions(tx, userId);
+    await tx.refreshToken.deleteMany({ where: { userId } });
+  });
+  clearCookies(res);
+  return { message: 'Cerraste sesión en todos los dispositivos' };
+}
+
 export async function getProfile(userId: string) {
   const user = await usersService.findById(userId);
   if (!user) {
@@ -255,14 +290,14 @@ interface SignedTokens {
 }
 
 /** `expiresAt` sale del `exp` del propio JWT: la fila y el token vencen juntos. */
-function signTokens(payload: { sub: string; username: string; role: string }): SignedTokens {
+function signTokens(payload: { sub: string; username: string; role: string }, refreshTtlMs: number): SignedTokens {
   const accessToken = jwt.sign(payload, config.jwt.accessSecret, {
     algorithm: JWT_ALGORITHM,
     expiresIn: config.jwt.accessTtlMs / 1000,
   });
   const refreshToken = jwt.sign({ sub: payload.sub }, config.jwt.refreshSecret, {
     algorithm: JWT_ALGORITHM,
-    expiresIn: config.jwt.refreshTtlMs / 1000,
+    expiresIn: refreshTtlMs / 1000,
     jwtid: randomUUID(),
   });
   const { exp } = jwt.decode(refreshToken) as jwt.JwtPayload & { exp: number };

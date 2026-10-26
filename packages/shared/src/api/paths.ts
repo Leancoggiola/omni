@@ -5,6 +5,7 @@ export const API_PATHS = {
     login: '/api/auth/login',
     logout: '/api/auth/logout',
     refresh: '/api/auth/refresh',
+    logoutAll: '/api/auth/logout-all',
   },
   users: {
     profile: '/api/users/profile',

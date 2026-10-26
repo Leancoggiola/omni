@@ -5,9 +5,24 @@ import { clearTokens, getAccessToken, getRefreshToken, getTokens, setTokens } fr
 
 import { ApiError, createApiClient, toApiError } from '@omni/shared/api';
 
+import { CLIENT_HEADER, MOBILE_CLIENT } from '@omni/shared/auth';
+
 import type { AuthTokensResponse } from '@omni/shared/auth';
 
 export { ApiError };
+
+/**
+ * Suma `CLIENT_HEADER` a cada request: con él, el login y el refresh emiten un refresh token de 90 días que se renueva
+ * con cada uso, en vez de los 7 días de la web. `createApiClient` y el refresh pasan los headers como objeto plano y se
+ * conservan tal cual; un `Headers` o una lista de pares se convierte a objeto para no perder ninguno.
+ */
+function withClientHeader(init: RequestInit): RequestInit {
+  const headers =
+    init.headers instanceof Headers || Array.isArray(init.headers)
+      ? Object.fromEntries(new Headers(init.headers))
+      : init.headers;
+  return { ...init, headers: { ...headers, [CLIENT_HEADER]: MOBILE_CLIENT } };
+}
 
 let onAuthFailure: (() => void) | null = null;
 
@@ -49,11 +64,11 @@ async function refreshAccessToken(): Promise<boolean> {
 
   const res = await fetchWithWake(
     toUrl(API_KEYS.auth.refresh),
-    {
+    withClientHeader({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken: tokens.refreshToken }),
-    },
+    }),
     { idempotent: true }
   );
 
@@ -87,7 +102,7 @@ async function getAuthHeaders(): Promise<Record<string, string> | null> {
 }
 
 const client = createApiClient({
-  fetch: (url, init) => fetchWithWake(url, init),
+  fetch: (url, init) => fetchWithWake(url, withClientHeader(init)),
   toUrl,
   getAuthHeaders,
   refresh: refreshAccessToken,
