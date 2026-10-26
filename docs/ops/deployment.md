@@ -89,16 +89,17 @@ Todos los secrets y variables del release y de los backups viven en el environme
 
 ### Render (env vars, `sync: false`)
 
-| Variable                                  | De dónde sale                                                                                         |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                            | Supabase omni-prod → transaction pooler (6543, `?pgbouncer=true`).                                    |
-| `DIRECT_URL`                              | Supabase omni-prod → session pooler (5432). Obligatoria.                                              |
-| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | `openssl rand -base64 32`, distintos de dev y entre sí; la API no arranca con menos de 32 caracteres. |
-| `ORIGIN_SECRET`                           | `openssl rand -base64 32`; **igual** que en Vercel. En prod, sin él la API no arranca.                |
-| `CORS_ORIGIN`                             | `https://omni-nest.vercel.app`                                                                        |
-| `TMDB_API_KEY`                            | themoviedb.org/settings/api → **API Read Access Token** (v4), no la API key v3.                       |
-| `ADMIN_USERNAME`, `ADMIN_PASSWORD`        | A elección (password fuerte); los usa el seed.                                                        |
-| `RATE_LIMIT_GLOBAL_MAX`                   | Opcional, default 300 por 15 min.                                                                     |
+| Variable                                  | De dónde sale                                                                                                                    |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                            | Supabase omni-prod → transaction pooler (6543, `?pgbouncer=true`).                                                               |
+| `DIRECT_URL`                              | Supabase omni-prod → session pooler (5432). Obligatoria.                                                                         |
+| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | `openssl rand -base64 32`, distintos de dev y entre sí; la API no arranca con menos de 32 caracteres.                            |
+| `ORIGIN_SECRET`                           | `openssl rand -base64 32`; **igual** que en Vercel. En prod, sin él la API no arranca.                                           |
+| `CORS_ORIGIN`                             | `https://omni-nest.vercel.app`                                                                                                   |
+| `TMDB_API_KEY`                            | themoviedb.org/settings/api → **API Read Access Token** (v4), no la API key v3.                                                  |
+| `ADMIN_USERNAME`, `ADMIN_PASSWORD`        | A elección (password fuerte); los usa el seed.                                                                                   |
+| `RATE_LIMIT_GLOBAL_MAX`                   | Opcional, default 300 por 15 min.                                                                                                |
+| `JWT_REFRESH_EXPIRES_IN_MOBILE`           | `90d`. Vigencia deslizante del refresh token de la app mobile (la web usa `JWT_REFRESH_EXPIRES_IN`, 7d). Sin definir vale `90d`. |
 
 ### Vercel (proyecto `omni-nest`, environment Production)
 

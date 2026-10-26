@@ -323,6 +323,40 @@ describe('AuthProvider', () => {
     });
   });
 
+  describe('logoutAll', () => {
+    const signIn = async () => {
+      await setTokens('access-1', 'refresh-1');
+      const hook = renderAuth();
+      await waitFor(() => expect(hook.result.current.auth.isAuthenticated).toBe(true));
+      return hook;
+    };
+
+    it('pide a la API cerrar todas las sesiones con el access token y después cierra la local', async () => {
+      routes[API_KEYS.auth.logoutAll] = () => jsonResponse({ message: 'Cerraste sesión en todos los dispositivos' });
+      const { result } = await signIn();
+
+      await act(() => result.current.auth.logoutAll());
+
+      const [[, init]] = callsTo(API_KEYS.auth.logoutAll);
+      expect((init.headers as Record<string, string>).Authorization).toBe('Bearer access-1');
+      expect(callsTo(API_KEYS.auth.logout)).toHaveLength(0);
+      expect(await getTokens()).toBeNull();
+      expect(result.current.auth.isAuthenticated).toBe(false);
+    });
+
+    it('si la API falla propaga el error y deja la sesión abierta', async () => {
+      routes[API_KEYS.auth.logoutAll] = () => jsonResponse({ message: 'Error interno' }, 500);
+      const { result } = await signIn();
+
+      await act(async () => {
+        await expect(result.current.auth.logoutAll()).rejects.toMatchObject({ status: 500 });
+      });
+
+      expect(await getTokens()).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1' });
+      expect(result.current.auth.isAuthenticated).toBe(true);
+    });
+  });
+
   it('un refresh que falla con 401 cierra la sesión y limpia los tokens', async () => {
     routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'No' }, 401);
     routes[API_KEYS.auth.refresh] = () => jsonResponse({ message: 'La sesión ya no es válida' }, 401);
