@@ -1,3 +1,11 @@
+## [1.1.2](https://github.com/Leancoggiola/omni/compare/v1.1.1...v1.1.2) (2026-10-26)
+
+
+### Bug Fixes
+
+* **#177:** no cerrar la sesión cuando una rotación no llegó a guardarse ([bd2697b](https://github.com/Leancoggiola/omni/commit/bd2697b6dbd280a38e13b780f4213670f7c497be)), closes [#177](https://github.com/Leancoggiola/omni/issues/177) [#177](https://github.com/Leancoggiola/omni/issues/177)
+* **#177:** no cerrar la sesión cuando una rotación no llegó a guardarse ([#180](https://github.com/Leancoggiola/omni/issues/180)) ([ab3f7aa](https://github.com/Leancoggiola/omni/commit/ab3f7aa1dc724d8a59f47f471e577f09a16f9c68)), closes [#177](https://github.com/Leancoggiola/omni/issues/177)
+
 ## [1.1.1](https://github.com/Leancoggiola/omni/compare/v1.1.0...v1.1.1) (2026-10-25)
 
 
