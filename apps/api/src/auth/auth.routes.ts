@@ -30,9 +30,22 @@ const refreshLimiter = createRateLimiter({
   },
 });
 
+const logoutAllLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    statusCode: 429,
+    message: 'Demasiados intentos, intenta de nuevo más tarde',
+  },
+});
+
 /**
  * La app mobile se identifica con `CLIENT_HEADER` en login y refresh. No alcanza con ver si el token llega en el body:
  * el `fetch` de React Native en Android guarda las cookies de la API y las manda de vuelta, igual que un navegador.
+ * El header no se autentica a propósito: solo elige la vigencia, y quien lo manda ya presentó credenciales válidas
+ * (password o refresh token). Con el refresh token alcanza para mantener una sesión de 7 días viva indefinidamente
+ * refrescando antes de que venza, así que pedir 90 días no da acceso nuevo. La cookie sigue con la vigencia de la
+ * web: la app mobile usa el token del body, y la cookie que guarda su `fetch` trae el mismo token.
  */
 function sessionClient(req: Request): authService.SessionClient {
   return req.get(CLIENT_HEADER) === MOBILE_CLIENT ? 'mobile' : 'web';
@@ -62,7 +75,7 @@ router.post('/logout', authenticateLogout, async (req, res) => {
 });
 
 /** Revoca todas las sesiones del usuario: pide el access token, como cualquier acción sobre la cuenta. */
-router.post('/logout-all', authenticateJwt, async (req, res) => {
+router.post('/logout-all', logoutAllLimiter, authenticateJwt, async (req, res) => {
   const result = await authService.logoutAll(req.user!.userId, res);
   res.json(result);
 });
