@@ -13,19 +13,17 @@ Hooks SWR: skill `swr-hooks`. Formularios: skill `mantine-form`. Nueva feature: 
 | `src/layouts/`  | Shell (RootLayout, Navbar, Header)                                         |
 | `src/theme/`    | Mantine theme                                                              |
 
-```
-features/<name>/
-  <name>.routes.tsx · <name>.page.tsx · index.ts
-  modules/<module>/
-    components/<Component>/<Component>.tsx + index.ts
-    hooks/useX/useX.ts + index.ts
-  modules/_shared/        # compartido entre módulos del mismo feature
-```
+Convención de features (árbol y reglas completas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile). En corto:
+
+- `features/<name>/`: `<page>.page.tsx`, `<name>.routes.tsx` e `index.ts`, el único barrel (exporta la ruta). Adentro, `components/`, `hooks/useX.ts` (un hook por archivo, nunca en `utils/`), `utils/` y `__tests__/`, sin `index.ts`.
+- Un componente tiene carpeta propia solo si tiene auxiliares (`./components/X/X`). `modules/<m>/` solo con ≥ 2 subdominios con UI propia; sin `modules/_shared`.
+
+> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue.
 
 - **Prohibido:** `features/A` → `features/B` (lo hace cumplir ESLint). UI usada en 2+ features → `shared/ui/`.
 - Navbar: clave en `NAV_REGISTRY` / `MAIN_NAV_ORDER` de `@omni/shared/navigation` (compartido con mobile) + ícono en `NAV_ICONS` de `app/navigation/nav-registry.tsx`.
-- Scaffolding: `pnpm web:new-feature <name> --register-route`.
-- Referencias: `home` (simple), `media` (multi-módulo + SWR), `profile` (forms + PATCH), `split-expenses` (CRUD anidado).
+- Scaffolding: `pnpm new-feature <name> --web --register-route` desde la raíz (ver `docs/web/new-feature.md`).
+- Referencias: `home` (simple), `media` (SWR + mutations), `profile` (forms + PATCH), `split-expenses` (CRUD anidado).
 
 ## API paths
 
@@ -52,7 +50,7 @@ La API (Render free) duerme y tarda ~1 min en despertar (tope de espera: 90 s, e
 
 El `SWRConfig` global (`core/providers/SWRProvider.tsx`) aplica `SWR_RETRY_OPTIONS` de `@omni/shared/api`, igual que mobile: 3 reintentos, salvo los 4xx que no son 408 ni 429. El `error` aparece desde el primer fallo y los reintentos siguen en segundo plano.
 
-Un hook por carpeta, nombre de función = nombre de carpeta. Return: dominio + `isLoading` + `error` (+ `isMutating` en mutations). `buildQueryString` para query params.
+Un hook por archivo en `hooks/` (`hooks/useX.ts`), nombre de función = nombre de archivo. Return: dominio + `isLoading` + `error` (+ `isMutating` en mutations). `buildQueryString` para query params.
 
 ## Estados de UI (Loading / Empty / Error)
 

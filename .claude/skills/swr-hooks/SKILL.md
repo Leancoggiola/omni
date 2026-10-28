@@ -1,6 +1,6 @@
 ---
 name: swr-hooks
-description: Patrones SWR del proyecto para apps/web. Usar al crear, modificar o revisar hooks de datos en apps/web/src/features/*/modules/*/hooks/ o apps/web/src/core/auth/ (useSWR, useSWRImmutable, useSWRMutation, useSWRConfig, SWR_KEYS, buildQueryString, useAuth, useProfile, useMyMediaList, useMediaMutations).
+description: Patrones SWR del proyecto para apps/web. Usar al crear, modificar o revisar hooks de datos en apps/web/src/features/*/hooks/, apps/web/src/features/*/modules/*/hooks/ o apps/web/src/core/auth/ (useSWR, useSWRImmutable, useSWRMutation, useSWRConfig, SWR_KEYS, buildQueryString, useAuth, useProfile, useMyMediaList, useMediaMutations).
 ---
 
 # SWR hooks — omni

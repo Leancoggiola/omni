@@ -1,35 +1,26 @@
 # Nuevo feature en Web
 
-Checklist para agregar un dominio de producto (ej. Gimnasio, Gastos).
+Checklist para agregar un dominio de producto (ej. Gimnasio, Gastos). Para mobile: [mobile/new-feature.md](../mobile/new-feature.md).
 
 ## 1. Scaffold (recomendado)
 
 ```bash
-pnpm web:new-feature gym --path /gym --register-route
+pnpm new-feature gym --web --path /gym --register-route
 ```
 
-Ver [tooling.md](./tooling.md).
+Sin `--web` ni `--mobile` genera los dos clientes. `--path` (por defecto `/<name>`) y `--register-route` son solo de web. Ver [tooling.md](./tooling.md).
 
-> **Git Bash en Windows:** MSYS convierte `/gym` en una ruta de Windows (`C:/Program Files/Git/gym`) y el script lo rechaza. Correrlo con `MSYS_NO_PATHCONV=1 pnpm web:new-feature …` o desde PowerShell.
+> **Git Bash en Windows:** MSYS convierte `/gym` en una ruta de Windows (`C:/Program Files/Git/gym`) y el script lo rechaza. Correrlo con `MSYS_NO_PATHCONV=1 pnpm new-feature …` o desde PowerShell.
 
-El script inserta los imports en orden alfabético y registra la ruta sin depender de los vecinos actuales; si no encuentra dónde, falla con un mensaje en vez de dejar el registro a medias.
+Genera solo `gym.page.tsx`, `gym.routes.tsx` e `index.ts`, sin carpetas vacías ni `modules/`. Con `--register-route` inserta el import en orden alfabético y registra la ruta sin depender de los vecinos actuales; si no encuentra dónde, falla con un mensaje en vez de dejar el registro a medias.
 
-## 2. Estructura mínima
+## 2. Estructura
 
-```
-features/<name>/
-  <name>.routes.tsx
-  <name>.page.tsx
-  index.ts
-  modules/<module>/
-    components/<Component>/<Component>.tsx + index.ts
-    hooks/useThing/useThing.ts + index.ts
-  modules/_shared/          # opcional, código entre módulos
-```
+Ver [Estructura de features](../architecture.md#estructura-de-features-web-y-mobile) en `docs/architecture.md`.
 
 ## 3. Registrar ruta
 
-En [`apps/web/src/app/routes.ts`](../../apps/web/src/app/routes.ts):
+Si no se usó `--register-route`, en [`apps/web/src/app/routes.ts`](../../apps/web/src/app/routes.ts):
 
 ```ts
 import { gymRoute } from '@/features/gym';
@@ -45,7 +36,7 @@ export const protectedRoutes = [homeRoute, mediaRoute, profileRoute, gymRoute];
 ## 5. Datos (SWR)
 
 - Keys en `API_PATHS` de [`@omni/shared/api`](../../packages/shared/src/api/paths.ts) (web los usa como `SWR_KEYS`)
-- Hooks en `features/<name>/modules/<module>/hooks/`
+- Hooks en `features/<name>/hooks/useX.ts` (o `features/<name>/modules/<m>/hooks/`), con la skill `swr-hooks`
 - Import: `import { api, SWR_KEYS } from '@/shared/api'`
 
 ## 6. UI compartida
@@ -63,9 +54,9 @@ pnpm --filter web test
 
 ## Referencia
 
-| Feature          | Cuándo copiar                                                        |
-| ---------------- | -------------------------------------------------------------------- |
-| `home`           | Feature simple, un módulo, sin SWR                                   |
-| `media`          | Multi-módulo (`search`, `library`, `_shared`), hooks SWR + mutations |
-| `profile`        | Forms Mantine, PATCH utils, `useProfile`, security actions           |
-| `split-expenses` | CRUD anidado (ver [apps/web/CLAUDE.md](../../apps/web/CLAUDE.md))    |
+| Feature          | Cuándo copiar                                                     |
+| ---------------- | ----------------------------------------------------------------- |
+| `home`           | Feature simple, sin SWR                                           |
+| `media`          | Hooks SWR + mutations                                             |
+| `profile`        | Forms Mantine, PATCH utils, `useProfile`, security actions        |
+| `split-expenses` | CRUD anidado (ver [apps/web/CLAUDE.md](../../apps/web/CLAUDE.md)) |

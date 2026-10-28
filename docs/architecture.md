@@ -103,15 +103,55 @@ src/
   main.tsx
 ```
 
-Cada feature usa `modules/<nombre>/` (sub-dominios), carpetas por componente/hook y barrels `index.ts`. Ver [web/new-feature.md](./web/new-feature.md).
+### Estructura de features (web y mobile)
+
+Una sola convención para los dos clientes. Web:
+
+```
+features/<name>/
+  <page>.page.tsx           punto de entrada (en general <page> = <name>; auth → login.page.tsx)
+  <name>.routes.tsx
+  index.ts                  único barrel: exporta la ruta (lo que importa app/routes.ts)
+  types.ts                  opcional
+  components/
+    Componente.tsx
+    Compuesto/              carpeta solo si tiene auxiliares (subcomponentes, .module.scss), sin index.ts
+      Compuesto.tsx
+      CompuestoParte.tsx
+  hooks/useX.ts             un hook por archivo, sin carpeta ni index
+  utils/x.ts
+  __tests__/                uno por feature (o por módulo)
+  modules/<m>/              solo con ≥ 2 subdominios con UI propia; adentro, la misma forma, sin index
+```
+
+Mobile:
+
+```
+features/<name>/
+  <Name>Screen.tsx
+  index.ts                  único barrel: exporta el Screen (lo que importa app/)
+  types.ts                  opcional
+  components/ hooks/ utils/ igual que web
+  X.test.tsx                al lado de X (nunca en app/)
+app/<ruta>.tsx              solo la ruta: importa @/features/<name>
+```
+
+- **Carpetas de un solo archivo:** `components/`, `hooks/` y `utils/` se crean al agregar el primer archivo de esa categoría y se usan aunque tengan uno solo (son categorías, no una carpeta por archivo). Un componente tiene carpeta propia solo si tiene auxiliares, y se importa como `./components/X/X`.
+- **Barrels:** solo en las fronteras que se consumen desde afuera: `features/<name>/`, `core/<area>/`, `shared/<area>/`, `layouts/` y `__tests__/helpers/`. En esas fronteras se permite un barrel de una línea, porque es la API del alias. Nunca dentro de `components/`, `hooks/`, `utils/` o `modules/`.
+- **Hooks:** un hook exportado por archivo. Las constantes atadas a un hook van en su archivo. Los hooks nunca van en `utils/`.
+- **Sin `modules/_shared`:** lo que comparten los módulos va en `components/`, `hooks/` o `utils/` de la raíz del feature.
+- **Tests:** cada cliente mantiene su ubicación (web en `__tests__/`, mobile al lado del archivo).
+- **Scaffolding:** `pnpm new-feature <name> [--web] [--mobile] [--path /x] [--register-route]`. Checklists: [web/new-feature.md](./web/new-feature.md) y [mobile/new-feature.md](./mobile/new-feature.md).
+
+> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue (`core/serverWake/` y `shared/navigation/` en web también llegan con esa migración).
 
 ### Convenciones Web
 
 | Elemento     | Convención                                                                 |
 | ------------ | -------------------------------------------------------------------------- |
 | Feature      | `<name>.page.tsx`, `<name>.routes.tsx` (navbar: `@omni/shared/navigation`) |
-| Componentes  | `Component/Component.tsx` + `index.ts`                                     |
-| Hooks        | `useX/useX.ts` + `index.ts`                                                |
+| Componentes  | `components/X.tsx`; `components/X/X.tsx` solo con auxiliares, sin index    |
+| Hooks        | `hooks/useX.ts`, sin index                                                 |
 | Imports      | `@/shared/api`, `@/core/auth`, `@/features/media`                          |
 | Dependencias | Un feature **no** importa otro feature                                     |
 
@@ -130,7 +170,7 @@ Cada feature usa `modules/<nombre>/` (sub-dominios), carpetas por componente/hoo
 | Utilidades compartidas | `common/db/`, `common/utils/`                                                                         | `shared/api/`                                                                        |
 | Módulos de producto    | `auth/`, `admin/`, `media/`, `users/`, `pantry/`, `gym/`, `expenses/`, `split-expenses/`, `holidays/` | `features/auth/`, `features/media/`, `features/profile/`, `features/split-expenses/` |
 | Setup global           | `config.ts`, `main.ts`                                                                                | `core/`, `layouts/`, `main.tsx`                                                      |
-| Servicios              | `*.service.ts`                                                                                        | hooks en `features/*/modules/*/hooks/`                                               |
+| Servicios              | `*.service.ts`                                                                                        | hooks en `features/*/hooks/` o `features/*/modules/*/hooks/`                         |
 | Validación             | `common/utils/validate.ts` (Zod middleware)                                                           | Schemas de `@omni/shared`                                                            |
 | Auth                   | Cookie **o** Bearer JWT                                                                               | Cookies `httpOnly` + `credentials: 'include'`                                        |
 

@@ -26,7 +26,7 @@ Convenciones y reglas de la app: [CLAUDE.md](./CLAUDE.md). Árbol y capas: [docs
 - **Rule + script:** [docs/web/tooling.md](../../docs/web/tooling.md)
 
 ```bash
-pnpm web:new-feature gym --path /gym --register-route
+pnpm new-feature gym --web --path /gym --register-route
 ```
 
 ## Scripts
@@ -45,4 +45,4 @@ Desde `apps/web` (o con `pnpm --filter web <script>` desde la raíz):
 | `pnpm --filter web test:watch`      | Vitest en modo watch                      |
 | `pnpm --filter web test:coverage`   | Vitest con coverage                       |
 
-Generadores desde la raíz: `pnpm web:new-feature <name>`, `pnpm web:new-hook`, `pnpm web:new-component`, `pnpm web:new-test`.
+Generador desde la raíz: `pnpm new-feature <name> [--web] [--mobile] [--path /x] [--register-route]` (web y/o mobile).
