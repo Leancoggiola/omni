@@ -1,6 +1,5 @@
 import { SPACING } from '@omni/shared/theme';
 import { useRouter } from 'expo-router';
-import { UserIcon } from 'phosphor-react-native';
 import { KeyboardAvoidingView, ScrollView } from 'react-native';
 import { YStack } from 'tamagui';
 
@@ -93,10 +92,11 @@ export function ProfileScreen() {
   return (
     <Screen insetBottom>
       <ScreenHeader
-        icon={UserIcon}
         title="Mi Perfil"
         subtitle="Gestiona tu información personal y preferencias"
+        size="lg"
         onBack={goBack}
+        backLabel="Volver a Más"
       />
       <YStack flex={1}>{renderBody()}</YStack>
     </Screen>

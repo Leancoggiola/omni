@@ -28,8 +28,8 @@ export type TextFieldProps = Omit<InputProps, 'size' | 'disabled'> & {
 };
 
 /**
- * Equivalente de `TextInput` de Mantine: label 14/600 (con `*` si es requerido), descripción, error,
- * ícono izquierdo y alto 44. Placeholder, cursor y selección vienen de `defaultProps` del config.
+ * Equivalente de `TextInput` de Mantine: label 14/600 (con `*` si es requerido), ícono izquierdo, alto 44 y,
+ * debajo del campo, la descripción y el error. Placeholder, cursor y selección vienen de `defaultProps` del config.
  */
 export function TextField({
   label,
@@ -68,11 +68,6 @@ export function TextField({
           ) : null}
         </Paragraph>
       ) : null}
-      {description ? (
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
-          {description}
-        </Paragraph>
-      ) : null}
       <XStack alignItems="center">
         <Input
           ref={ref}
@@ -80,7 +75,7 @@ export function TextField({
           height={FIELD_HEIGHT}
           borderRadius={RADIUS.md}
           borderWidth={1}
-          borderColor={error ? '$destructive' : '$borderColor'}
+          borderColor={error ? '$destructive' : disabled ? 'transparent' : '$borderColor'}
           focusStyle={{ borderColor: error ? '$destructive' : '$primary' }}
           backgroundColor={disabled ? '$disabledSurface' : '$background'}
           color={disabled ? '$dimmed' : '$color'}
@@ -112,6 +107,11 @@ export function TextField({
           </YStack>
         ) : null}
       </XStack>
+      {description ? (
+        <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+          {description}
+        </Paragraph>
+      ) : null}
       {error ? (
         <Paragraph color="$destructive" fontSize={FONT_SIZE.sm}>
           {error}

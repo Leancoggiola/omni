@@ -2,7 +2,7 @@ import { FONT_SIZE, SIZE } from '@omni/shared/theme';
 
 import type { useSemanticColors } from '@/core/theme';
 
-export type ButtonVariant = 'filled' | 'outline' | 'light' | 'subtle';
+export type ButtonVariant = 'filled' | 'outline' | 'light' | 'subtle' | 'glass';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 /** `dimmed` es el `color="gray"` de Mantine: solo lo usa `IconButton` (cerrar, mostrar contraseña). */
 export type ButtonColor = 'brand' | 'destructive' | 'dimmed';
@@ -103,6 +103,15 @@ export function buttonPalette(
         borderColor: 'transparent',
         color: accent.token,
         icon: accent.raw(colors),
+        pressOpacity: 0.75,
+      };
+    case 'glass':
+      return {
+        background: '$surfaceGlass',
+        backgroundPress: '$surfaceGlass',
+        borderColor: '$glassBorder',
+        color: '$color',
+        icon: colors.text,
         pressOpacity: 0.75,
       };
     case 'subtle':

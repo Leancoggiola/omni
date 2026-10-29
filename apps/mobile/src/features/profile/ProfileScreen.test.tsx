@@ -88,7 +88,7 @@ describe('ProfileScreen · carga y error', () => {
 
     expect(screen.getByTestId('spinner')).toBeTruthy();
     expect(screen.queryByText('Información personal')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Volver' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Volver a Más' })).toBeTruthy();
   });
 
   it('un error de SWR sin datos se muestra como ErrorState con Reintentar, no como pantalla vacía', () => {
@@ -101,7 +101,7 @@ describe('ProfileScreen · carga y error', () => {
 
   it('el botón de volver regresa a la pantalla anterior', () => {
     renderProfile();
-    fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Volver a Más' }));
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 

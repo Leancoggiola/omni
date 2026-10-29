@@ -19,14 +19,16 @@ type IconButtonProps = {
   /** Obligatorio: es lo único que anuncia el lector de pantalla. */
   accessibilityLabel: string;
   onPress?: () => void;
-  /** `subtle` por defecto: es la que más usa web (`ActionIcon variant="subtle"`). */
   variant?: ButtonVariant;
   color?: ButtonColor;
   size?: ButtonSize;
   disabled?: boolean;
 };
 
-/** Equivalente de `ActionIcon` de Mantine: botón circular de 36 / 44 / 48 dp con las variantes de `Button`. */
+/**
+ * Equivalente de `ActionIcon` de Mantine: botón circular de 36 / 44 / 48 dp con las variantes de `Button`. `subtle` es
+ * la variante por defecto (la que más usa web); `glass` es el volver del encabezado de Perfil.
+ */
 export function IconButton({
   icon: IconComponent,
   accessibilityLabel,

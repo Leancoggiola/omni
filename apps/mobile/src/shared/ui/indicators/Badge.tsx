@@ -31,7 +31,7 @@ const BADGE_TOKENS = {
   dimmed: {
     fill: '$dimmed',
     onFill: '$onDimmed',
-    surface: '$dimmedSurface',
+    surface: '$disabledSurface',
     text: '$dimmed',
   },
 } as const satisfies Record<BadgeColor, Record<'fill' | 'onFill' | 'surface' | 'text', string>>;
