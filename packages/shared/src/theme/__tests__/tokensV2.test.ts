@@ -82,6 +82,12 @@ describe('SEMANTIC de v2', () => {
 });
 
 describe('SHADOW_THEMED', () => {
+  it('card y float en claro son las sombras cálidas del DS', () => {
+    expect(SHADOW_THEMED.card.light).toMatchObject({ color: '#96786F', offsetY: 8, opacity: 0.12 });
+    expect(SHADOW_THEMED.float.light).toMatchObject({ color: '#5C3222', offsetY: 12, opacity: 0.16 });
+    expect(SHADOW_THEMED.sheet.dark).toMatchObject({ color: '#000000', offsetY: -12, opacity: 0.5 });
+  });
+
   it.each(Object.entries(SHADOW_THEMED))(
     '%s tiene desenfoque 32 y desplazamiento de 8 o 12 en los dos esquemas',
     (_name, scheme) => {

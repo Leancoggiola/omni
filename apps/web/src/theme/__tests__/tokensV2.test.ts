@@ -42,6 +42,9 @@ describe('radios y tipografía v2', () => {
   it('registra la escala en rem, con 2xl para las hojas inferiores', () => {
     expect(theme.radius['2xl']).toBe(`${RADIUS_PX['2xl'] / 16}rem`);
     expect(theme.radius.xl).toBe('1.5rem');
+    expect(theme.radius.md).toBe('0.75rem');
+    expect(theme.radius.sm).toBe('0.5rem');
+    expect(theme.radius.xs).toBe('0.25rem');
     expect(theme.defaultRadius).toBe('md');
   });
 
