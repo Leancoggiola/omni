@@ -62,9 +62,11 @@ export function checkStructure(app, appRoot) {
     }
   }
 
-  /** Una carpeta de componente tiene el componente más al menos un auxiliar. */
+  /** Una carpeta de componente tiene el componente más al menos un auxiliar (archivo o subcarpeta). */
   function checkComponentFolder(dir, entries) {
-    const files = entries.filter(entry => entry.isFile() && !isTestName(entry.name));
+    const files = entries.filter(entry =>
+      entry.isFile() ? !isTestName(entry.name) : entry.isDirectory() && entry.name !== '__tests__'
+    );
     if (files.length < 2) {
       report(
         dir,

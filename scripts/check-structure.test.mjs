@@ -122,6 +122,12 @@ describe('check-structure', () => {
     assert.match(check('web')[0].rule, /carpeta de componente necesita auxiliares/);
   });
 
+  it('cuenta una subcarpeta como auxiliar de una carpeta de componente', () => {
+    make('src/features/x/components/Card/Card.tsx', 'src/features/x/components/Card/parts/Row.tsx');
+
+    assert.deepEqual(check('web'), []);
+  });
+
   it('rechaza un use*.ts de una feature fuera de hooks/, pero no sus tests', () => {
     make(
       'src/features/x/utils/useThing.ts',

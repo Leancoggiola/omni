@@ -103,6 +103,8 @@ pnpm --filter @omni/shared check-types && pnpm --filter @omni/shared lint && pnp
 
 El CI ya corre los tests de shared dentro de `pnpm turbo test:coverage`.
 
+Si tocaste `scripts/`, corré también `pnpm test:scripts` (tests de `new-feature.mjs` y `check-structure.mjs`).
+
 Si tocaste API, los tests de integración necesitan la base efímera levantada:
 
 ```bash
