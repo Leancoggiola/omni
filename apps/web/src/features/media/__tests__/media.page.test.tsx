@@ -4,7 +4,7 @@ import { renderWithProviders } from '@/__tests__/helpers';
 
 import { MediaPage } from '../media.page';
 
-import type { MediaItem } from '../modules';
+import type { MediaItem } from '../types';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 
@@ -32,12 +32,17 @@ vi.mock('@/shared/ui', async importOriginal => ({
   confirm: mocks.confirm,
 }));
 
-vi.mock('../modules', () => ({
-  AddMediaModal: () => null,
-  MediaListToolbar: () => null,
-  MediaPageHeader: () => null,
-  buildMediaTmdbKey: (type: string, id: number) => `${type}:${id}`,
+vi.mock('../components/AddMediaModal/AddMediaModal', () => ({ AddMediaModal: () => null }));
+
+vi.mock('../components/MediaListToolbar', () => ({ MediaListToolbar: () => null }));
+
+vi.mock('../components/MediaPageHeader', () => ({ MediaPageHeader: () => null }));
+
+vi.mock('../hooks/useMediaMutations', () => ({
   useMediaMutations: () => ({ addToList: vi.fn(), updateStatus: vi.fn(), removeFromList: mocks.removeFromList }),
+}));
+
+vi.mock('../hooks/useMyMediaList', () => ({
   useMyMediaList: () => ({
     data: mocks.error ? undefined : [item],
     allItems: mocks.error ? undefined : [item],
@@ -45,6 +50,9 @@ vi.mock('../modules', () => ({
     error: mocks.error,
     mutate: mocks.retry,
   }),
+}));
+
+vi.mock('../components/MyMediaList', () => ({
   MyMediaList: ({
     error,
     onDelete,
