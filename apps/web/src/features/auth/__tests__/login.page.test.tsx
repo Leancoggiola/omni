@@ -34,6 +34,11 @@ describe('LoginPage', () => {
     mockEnsureServerAwake.mockReset().mockResolvedValue(true);
   });
 
+  it('resalta Omni en el título de bienvenida', () => {
+    renderPage();
+    expect(screen.getByRole('heading', { level: 2 }).querySelector('span')).toHaveTextContent(/^Omni$/);
+  });
+
   it('al montar sondea el health para despertar la API', () => {
     renderPage();
     expect(mockEnsureServerAwake).toHaveBeenCalledTimes(1);
