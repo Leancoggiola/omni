@@ -21,7 +21,7 @@ interface MediaListItemProps {
  */
 export const MediaListItem = memo(function MediaListItem({ item, onStatusChange, onDelete }: MediaListItemProps) {
   return (
-    <Card shadow="sm" p="sm" radius="sm" withBorder>
+    <Card p="sm" bg="var(--mantine-color-surfaces-card)" bd="1px solid var(--mantine-color-border-subtle)">
       <Group gap="sm" wrap="nowrap" align="stretch">
         <MediaPoster key={item.posterPath ?? 'none'} posterPath={item.posterPath} />
         <Stack gap="xs" flex={1} miw={0} justify="space-between">

@@ -17,7 +17,7 @@ interface MediaCardProps {
 
 export const MediaCard = memo(function MediaCard({ item, onStatusChange, onDelete }: MediaCardProps) {
   return (
-    <Card shadow="sm" p="none" radius="sm" withBorder h="100%">
+    <Card p="none" bg="var(--mantine-color-surfaces-card)" bd="1px solid var(--mantine-color-border-subtle)" h="100%">
       <Card.Section pos="relative">
         <MediaPoster
           key={item.posterPath ?? 'none'}
@@ -33,8 +33,10 @@ export const MediaCard = memo(function MediaCard({ item, onStatusChange, onDelet
           pos="absolute"
           top="1.5rem"
           right="1.5rem"
-          variant="filled"
-          color="destructive"
+          variant="default"
+          radius="full"
+          size="2.5rem"
+          c="var(--mantine-color-icons-destructive)"
           aria-label={`Eliminar ${item.title}`}
           onClick={() => void onDelete(item)}
         >
