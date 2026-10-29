@@ -3,21 +3,21 @@ packages:
   - packages/*
 overrides:
   hono: '>=4.12.25'
-  undici: '>=8.9.0'
+  undici: '>=8.12.2 <9'
   ws@>=8: '>=8.21.0'
   brace-expansion@1: '>=1.1.20 <2'
   brace-expansion@2: '>=2.1.6 <3'
   brace-expansion@5: '>=5.0.11 <6'
   js-yaml: '>=4.3.0 <5'
   immutable: '>=5.1.8'
-  fast-uri: '>=4.1.3'
+  fast-uri: '>=4.2.3 <5'
   postcss: '>=8.5.18'
   ip-address: '>=10.3.1'
   nanoid: '>=3.3.18'
   deepmerge-ts: '>=8.0.0'
   browserslist: '>=4.28.7'
   mysql2: '>=3.22.0'
-  '@hono/node-server': '>=1.19.15 <2'
+  '@hono/node-server': '>=2.1.3 <3'
   valibot: '>=1.4.2 <2'
   fast-copy: '>=4.1.0 <5'
   esbuild: '>=0.28.1 <0.29'
@@ -25,6 +25,8 @@ overrides:
   uuid@7: '>=11.1.1 <12'
   decode-uri-component: '>=0.5.0 <1'
   body-parser: '>=2.4.0 <3'
+  '@vitest/mocker': '>=5.0.3 <6'
+  qs: '>=6.16.1 <7'
 auditConfig:
   ignoreCves:
     - CVE-2025-71329
