@@ -7,7 +7,6 @@ import type { FC, ReactNode } from 'react';
 interface PageHeaderProps {
   icon: ReactNode;
   title: string;
-  /** Palabra del título que va en `primary`; por defecto, la última. Tiene que estar dentro de `title`. */
   accent?: string;
   subtitle?: string;
   /** Rendered on the opposite edge of the header, typically buttons. */
@@ -16,13 +15,21 @@ interface PageHeaderProps {
 
 /** Parte `title` en [antes, acento, después]; sin acento válido, el título entero queda sin resaltar. */
 function splitAccent(title: string, accent?: string): [string, string, string] {
-  const word = accent ?? title.trim().split(/\s+/).pop() ?? '';
-  const index = word ? title.lastIndexOf(word) : -1;
-  if (index < 0 || title.trim().split(/\s+/).length < 2) return [title, '', ''];
-  return [title.slice(0, index), word, title.slice(index + word.length)];
+  const words = title.trim().split(/\s+/);
+  if (words.length < 2) return [title, '', ''];
+  const index = accent === undefined ? words.length - 1 : words.lastIndexOf(accent);
+  if (index < 0) return [title, '', ''];
+  return [
+    words.slice(0, index).join(' ') + (index > 0 ? ' ' : ''),
+    words[index] ?? '',
+    index < words.length - 1 ? ' ' + words.slice(index + 1).join(' ') : '',
+  ];
 }
 
-/** Encabezado de página de v2: título en `display` con una palabra en `primary`, sin itálica. */
+/**
+ * Encabezado de página de v2: título en `display` con una palabra en `primary`, sin itálica. `accent` es esa palabra
+ * (por defecto, la última) y tiene que ser una palabra completa de `title`; un título de una sola palabra no se resalta.
+ */
 export const PageHeader: FC<PageHeaderProps> = ({ icon, title, accent, subtitle, actions }) => {
   const display = useDisplayStyles('xl');
   const [before, highlighted, after] = splitAccent(title, accent);

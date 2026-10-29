@@ -5,11 +5,13 @@ import type { FC } from 'react';
 import styles from './AppBackground.module.scss';
 
 interface AppBackgroundProps {
-  /** Las manchas se mueven despacio; con `prefers-reduced-motion` quedan quietas. */
   animated?: boolean;
 }
 
-/** Fondo cálido de v2: dos manchas difusas (`glow-peach` arriba a la izquierda, `glow-lilac` abajo a la derecha). Decorativo. */
+/**
+ * Fondo cálido de v2: dos manchas difusas (`glow-peach` arriba a la izquierda, `glow-lilac` abajo a la derecha).
+ * Decorativo. Con `animated` las manchas se mueven despacio; con `prefers-reduced-motion` quedan quietas.
+ */
 export const AppBackground: FC<AppBackgroundProps> = ({ animated = false }) => (
   <Box
     className={animated ? `${styles.root} ${styles.animated}` : styles.root}

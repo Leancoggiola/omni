@@ -16,8 +16,7 @@ import {
 
 import { useAuth } from '@/core/auth';
 import { ADMIN_NAV_ITEMS, MAIN_NAV_ITEMS } from '@/shared/navigation';
-import { confirm, LogoAvatar, UserAvatar } from '@/shared/ui';
-import { useDisplayStyles } from '@/shared/ui/useDisplayStyles';
+import { confirm, LogoAvatar, useDisplayStyles, UserAvatar } from '@/shared/ui';
 
 import { ColorSchemeToggle } from './ColorSchemeToggle';
 

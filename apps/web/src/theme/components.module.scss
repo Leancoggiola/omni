@@ -29,8 +29,6 @@
 
 .glass_root {
   background-color: var(--mantine-color-surfaces-glass);
-  -webkit-backdrop-filter: blur(1.5rem);
-  backdrop-filter: blur(1.5rem);
   border: 1px solid var(--mantine-color-border-glass);
 
   &[data-with-border] {
