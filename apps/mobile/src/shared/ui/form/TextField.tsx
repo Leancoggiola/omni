@@ -78,7 +78,7 @@ export function TextField({
           ref={ref}
           flex={1}
           height={FIELD_HEIGHT}
-          borderRadius={RADIUS.lg}
+          borderRadius={RADIUS.md}
           borderWidth={1}
           borderColor={error ? '$destructive' : '$borderColor'}
           focusStyle={{ borderColor: error ? '$destructive' : '$primary' }}

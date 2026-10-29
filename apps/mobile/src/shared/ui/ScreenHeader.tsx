@@ -28,7 +28,7 @@ export function ScreenHeader({ icon: IconComponent, title, subtitle, onBack }: S
         <YStack
           width={CHIP_SIZE}
           height={CHIP_SIZE}
-          borderRadius={RADIUS.md}
+          borderRadius={RADIUS.sm}
           backgroundColor="$accentSurface"
           alignItems="center"
           justifyContent="center"

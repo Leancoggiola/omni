@@ -16,6 +16,7 @@
     "prebuild": "expo prebuild --platform android"
   },
   "dependencies": {
+    "@expo-google-fonts/bricolage-grotesque": "0.4.1",
     "@expo-google-fonts/montserrat": "0.4.2",
     "@omni/shared": "workspace:*",
     "@react-navigation/bottom-tabs": "7.18.18",

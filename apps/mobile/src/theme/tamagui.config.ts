@@ -1,5 +1,5 @@
 import { config } from '@tamagui/config';
-import { BRAND, SEMANTIC } from '@omni/shared/theme';
+import { BRAND, DISPLAY_FONT, SEMANTIC } from '@omni/shared/theme';
 import { createTamagui } from 'tamagui';
 
 type Theme = (typeof config.themes)['light'];
@@ -56,6 +56,15 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     onPrimary: s.onPrimary,
     onDestructive: s.onDestructive,
     dimmed: s.dimmed,
+    surfaceGlass: s.surfaceGlass,
+    glassBorder: s.glassBorder,
+    glowPeach: s.glowPeach,
+    glowLilac: s.glowLilac,
+    hairline: s.hairline,
+    borderSubtle: s.borderSubtle,
+    track: s.track,
+    successFill: s.successFill,
+    onSuccessFill: s.onSuccessFill,
   } as Theme;
 }
 
@@ -259,6 +268,19 @@ const montserratFace = {
 };
 
 /**
+ * Bricolage Grotesque, la familia `display` de los títulos. Solo están cargados el 700 y el 800 (ver
+ * `BRICOLAGE_FACES`); los pesos menores caen en el 700.
+ */
+const bricolageFace = {
+  400: { normal: 'BricolageGrotesqueBold' },
+  500: { normal: 'BricolageGrotesqueBold' },
+  600: { normal: 'BricolageGrotesqueBold' },
+  700: { normal: 'BricolageGrotesqueBold' },
+  800: { normal: 'BricolageGrotesqueExtraBold' },
+  900: { normal: 'BricolageGrotesqueExtraBold' },
+};
+
+/**
  * Radios y espaciado compartidos con web (`RADIUS` / `SPACING` de `@omni/shared/theme`) van como números, no como
  * tokens de Tamagui: sus componentes (Input, Select, Popover, ListItem) recorren `space`/`radius` ordenados por
  * valor con `getSpace(token, { shift })`, y meter valores nuevos en la escala les cambia el padding. En nativo el
@@ -275,6 +297,7 @@ export const tamaguiConfig = createTamagui({
     ...config.fonts,
     body: { ...config.fonts.body, family: 'Montserrat', face: montserratFace },
     heading: { ...config.fonts.heading, family: 'Montserrat', face: montserratFace },
+    display: { ...config.fonts.heading, family: DISPLAY_FONT, face: bricolageFace },
   },
   themes: {
     ...config.themes,

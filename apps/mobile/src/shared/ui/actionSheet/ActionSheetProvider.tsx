@@ -51,7 +51,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
                   paddingHorizontal={SPACING.sm}
                   gap={SPACING.sm}
                   alignItems="center"
-                  borderRadius={RADIUS.lg}
+                  borderRadius={RADIUS.md}
                   backgroundColor={selected ? '$primarySurface' : 'transparent'}
                   pressStyle={{ backgroundColor: '$hover' }}
                   onPress={() => queue.close(option.value)}
