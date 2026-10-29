@@ -69,7 +69,7 @@ jobs:
             exit 1
           fi
           field_id=$(jq -r '.field.id' <<<"$project")
-          option_id=$(jq -r --arg status "$STATUS" '.field.options[] | select(.name == $status) | .id' <<<"$project")
+          option_id=$(jq -r --arg status "$STATUS" '.field.options[]? | select(.name == $status) | .id' <<<"$project")
 
           if [ -z "$option_id" ]; then
             echo "::error::El campo Status no tiene la opción \"$STATUS\"."
@@ -99,9 +99,13 @@ jobs:
                     }
                   }
                 }
-              }' 2>/dev/null) || {
-              echo "::warning::#$issue no es un issue del repo: se omite."
-              continue
+              }' 2>&1) || {
+              if grep -q 'Could not resolve to an Issue' <<<"$response"; then
+                echo "::warning::#$issue no es un issue del repo: se omite."
+                continue
+              fi
+              echo "::error::Falló la consulta de #$issue: $response"
+              exit 1
             }
             item=$(jq -r --arg pid "$project_id" '.data.repository.issue.projectItems.nodes[]? | select(.project.id == $pid) | [.id, (.fieldValueByName.name // "")] | @tsv' <<<"$response")
             item_id=${item%%$'\t'*}
