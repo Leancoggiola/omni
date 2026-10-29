@@ -17,7 +17,7 @@ Closes #
 
 ## Checklist
 
-- [ ] Issue en Omni Roadmap en **En revisión**
+- [ ] Issue en Omni Roadmap (pasa a **En revisión** solo al abrir el PR con `Closes #N`)
 - [ ] Branch sigue `feat/#N-slug`, `fix/#N-slug` o `chore/#N-slug`
 - [ ] Si toca contrato: orden `shared` → `api` → clientes
 - [ ] Verificación local según área (ver `CLAUDE.md`):
