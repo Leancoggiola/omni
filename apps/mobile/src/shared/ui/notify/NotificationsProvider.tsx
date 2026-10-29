@@ -20,7 +20,7 @@ const STACK_Z_INDEX = 99_999;
  */
 const BottomOffsetContext = createContext<(height: number) => void>(() => undefined);
 
-/** Setter para `MeasuredTabBar`: informa su alto (incluye el inset inferior), 0 al ocultarse. */
+/** Setter para `FloatingTabBar`: informa su alto y su distancia al borde inferior, 0 al ocultarse. */
 export function useSetNotificationsBottomOffset() {
   return useContext(BottomOffsetContext);
 }

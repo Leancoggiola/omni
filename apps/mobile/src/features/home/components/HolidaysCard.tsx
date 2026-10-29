@@ -13,7 +13,10 @@ import { BRAND, GRADIENT_STOPS, RADIUS, SEMANTIC, SPACING } from '@omni/shared/t
 import { useHolidayCarousel } from '../hooks/useHolidayCarousel';
 import { useTodayHolidays } from '../hooks/useTodayHolidays';
 
-const CARD_MIN_HEIGHT = 60;
+const CARD_MIN_HEIGHT = 64;
+const CHIP_SIZE = 36;
+const PROGRESS_HEIGHT = 4;
+const TRACK_OPACITY = 0.08;
 /** `activate` es el doble toque de VoiceOver/TalkBack sobre el elemento enfocado. */
 const CAROUSEL_A11Y_ACTIONS = [{ name: 'activate', label: 'Siguiente efeméride' }];
 
@@ -55,8 +58,8 @@ export function HolidaysCard() {
       <YStack
         minHeight={CARD_MIN_HEIGHT}
         accessible
-        borderRadius={RADIUS.md}
-        backgroundColor="$dimmedSurface"
+        borderRadius={RADIUS.lg}
+        backgroundColor="$disabledSurface"
         accessibilityLabel="Cargando efemérides"
       />
     );
@@ -78,7 +81,7 @@ export function HolidaysCard() {
 
   return (
     <Pressable onPress={next} disabled={!hasCarousel} accessible={false}>
-      <YStack borderWidth={1} borderColor="$borderColor" borderRadius={RADIUS.md} overflow="hidden">
+      <YStack borderWidth={1} borderColor="$glassBorder" borderRadius={RADIUS.lg} overflow="hidden">
         <LinearGradient
           colors={[gradient.from, gradient.to]}
           {...gradientPoints(gradient.deg)}
@@ -86,7 +89,14 @@ export function HolidaysCard() {
         />
 
         <XStack gap={SPACING.sm} padding={SPACING.sm} alignItems="flex-start" minHeight={CARD_MIN_HEIGHT}>
-          <YStack backgroundColor={s.white} borderRadius={RADIUS.sm} padding={SPACING.xs}>
+          <YStack
+            width={CHIP_SIZE}
+            height={CHIP_SIZE}
+            backgroundColor={s.white}
+            borderRadius={RADIUS.md}
+            alignItems="center"
+            justifyContent="center"
+          >
             <ConfettiIcon size={20} color={BRAND[7]} />
           </YStack>
 
@@ -129,11 +139,18 @@ export function HolidaysCard() {
         </XStack>
 
         {isAutoPlaying && (
-          <HolidayProgress
-            key={currentIndex}
-            duration={HOLIDAY_CAROUSEL_DURATION_MS}
-            color={isDark ? s.white : SEMANTIC.light.primary}
-          />
+          <YStack height={PROGRESS_HEIGHT}>
+            <YStack
+              position="absolute"
+              top={0}
+              bottom={0}
+              left={0}
+              right={0}
+              backgroundColor={s.black}
+              opacity={TRACK_OPACITY}
+            />
+            <HolidayProgress key={currentIndex} duration={HOLIDAY_CAROUSEL_DURATION_MS} color={BRAND[7]} />
+          </YStack>
         )}
       </YStack>
     </Pressable>
@@ -142,7 +159,7 @@ export function HolidaysCard() {
 
 const styles = StyleSheet.create({
   progress: {
-    height: 3,
+    height: PROGRESS_HEIGHT,
     width: '100%',
     transformOrigin: 'left',
   },

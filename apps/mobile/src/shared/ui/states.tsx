@@ -1,10 +1,12 @@
-import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
+import { RADIUS, SPACING } from '@omni/shared/theme';
 import { WarningCircleIcon, type Icon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
-import { useSemanticColors } from '@/core/theme';
+import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
+import { glassElevation } from '@/theme/elevation';
 
 import { Button } from './button/Button';
+import { DisplayTitle } from './DisplayTitle';
 import { Spinner } from './Spinner';
 
 import type { ReactNode } from 'react';
@@ -31,15 +33,17 @@ type EmptyStateProps = {
   action?: ReactNode;
 };
 
+/** Vacío de v2: ícono en un cuadro glass de 56 y radio 24, y el título en `display md`. */
 export function EmptyState({ icon: IconComponent, title, action }: EmptyStateProps) {
   const colors = useSemanticColors();
+  const { colorScheme } = useColorSchemeControl();
 
   return (
     <YStack
       backgroundColor="$backgroundStrong"
       borderWidth={1}
-      borderColor="$borderColor"
-      borderRadius={RADIUS.sm}
+      borderColor="$hairline"
+      borderRadius={RADIUS.lg}
       padding={SPACING.xl}
       gap={SPACING.md}
       alignItems="center"
@@ -47,16 +51,19 @@ export function EmptyState({ icon: IconComponent, title, action }: EmptyStatePro
       <YStack
         width={INDICATOR_SIZE}
         height={INDICATOR_SIZE}
-        borderRadius={RADIUS.full}
-        backgroundColor="$dimmedSurface"
+        borderRadius={RADIUS.xl}
+        borderWidth={1}
+        borderColor="$glassBorder"
+        backgroundColor="$surfaceGlass"
         alignItems="center"
         justifyContent="center"
+        {...glassElevation('card', colorScheme)}
       >
-        <IconComponent size={28} color={colors.dimmed} />
+        <IconComponent size={28} color={colors.accent} />
       </YStack>
-      <Paragraph fontSize={FONT_SIZE.lg} fontWeight="600" textAlign="center">
+      <DisplayTitle size="md" textAlign="center" accessibilityRole={undefined}>
         {title}
-      </Paragraph>
+      </DisplayTitle>
       {action}
     </YStack>
   );
@@ -68,7 +75,11 @@ type ErrorStateProps = {
   retrying?: boolean;
 };
 
-/** Error con "Reintentar" opcional; `retrying` lo muestra cargando mientras el reintento está en curso. */
+/**
+ * Error de v2: card sólida con borde `hairline`, ícono en un cuadro `errorSurface` de 56, el mensaje en `display md` y
+ * "Reintentar" opcional (outline destructivo, a lo ancho); `retrying` lo muestra cargando mientras el reintento está
+ * en curso.
+ */
 export function ErrorState({
   message = 'No se pudieron cargar los datos',
   onRetry,
@@ -78,22 +89,31 @@ export function ErrorState({
 
   return (
     <YStack
-      backgroundColor="$errorSurface"
+      backgroundColor="$backgroundStrong"
       borderWidth={1}
-      borderColor="$destructive"
-      borderRadius={RADIUS.md}
-      padding={SPACING.md}
-      gap={SPACING.md}
+      borderColor="$hairline"
+      borderRadius={RADIUS.lg}
+      paddingVertical={SPACING.lg}
+      paddingHorizontal={SPACING.md}
+      gap={SPACING.sm}
+      alignItems="center"
       accessibilityRole="alert"
     >
-      <XStack gap={SPACING.sm} alignItems="center">
-        <WarningCircleIcon size={20} color={colors.destructive} />
-        <Paragraph flex={1} fontSize={FONT_SIZE.md}>
-          {message}
-        </Paragraph>
-      </XStack>
+      <YStack
+        width={INDICATOR_SIZE}
+        height={INDICATOR_SIZE}
+        borderRadius={RADIUS.xl}
+        backgroundColor="$errorSurface"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <WarningCircleIcon size={28} color={colors.destructive} />
+      </YStack>
+      <DisplayTitle size="md" textAlign="center" accessibilityRole={undefined}>
+        {message}
+      </DisplayTitle>
       {onRetry ? (
-        <Button fullWidth size="sm" variant="outline" color="destructive" loading={retrying} onPress={onRetry}>
+        <Button fullWidth variant="outline" color="destructive" loading={retrying} onPress={onRetry}>
           Reintentar
         </Button>
       ) : null}

@@ -29,3 +29,12 @@ export function themedElevation(level: keyof typeof SHADOW_THEMED, scheme: Color
     elevation: s.elevation,
   };
 }
+
+/**
+ * `themedElevation` para una superficie translúcida (glass): sin `elevation`, porque Android dibuja esa sombra a
+ * través del fondo semitransparente y deja un rectángulo gris adentro. La sombra queda solo en iOS; en Android la
+ * superficie se define por su borde `glass-border`.
+ */
+export function glassElevation(level: keyof typeof SHADOW_THEMED, scheme: ColorScheme) {
+  return { ...themedElevation(level, scheme), elevation: 0 };
+}
