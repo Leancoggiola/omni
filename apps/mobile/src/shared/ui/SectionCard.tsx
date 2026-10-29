@@ -12,13 +12,15 @@ type SectionCardProps = {
   title?: string;
   subtitle?: string;
   children: ReactNode;
+  compact?: boolean;
 };
 
 /**
  * Superficie de contenido de v2: equivale a `Paper` de web (card glass de radio 24: `surface-glass`, `glass-border` y
- * sombra `card`, esta última solo en iOS) y, con `title`, a `ProfileSectionCard`. No se anida: adentro van filas o superficies sólidas.
+ * sombra `card`, esta última solo en iOS) y, con `title`, a `ProfileSectionCard`. `compact` es la card de una sola fila
+ * (padding 4 x 16: tema, Administración). No se anida: adentro van filas o superficies sólidas.
  */
-export function SectionCard({ title, subtitle, children }: SectionCardProps) {
+export function SectionCard({ title, subtitle, children, compact = false }: SectionCardProps) {
   const { colorScheme } = useColorSchemeControl();
 
   return (
@@ -27,7 +29,8 @@ export function SectionCard({ title, subtitle, children }: SectionCardProps) {
       borderWidth={1}
       borderColor="$glassBorder"
       borderRadius={RADIUS.xl}
-      padding={SPACING.lg}
+      paddingHorizontal={compact ? SPACING.md : SPACING.lg}
+      paddingVertical={compact ? SPACING['2xs'] : SPACING.lg}
       gap={SPACING.md}
       {...glassElevation('card', colorScheme)}
     >

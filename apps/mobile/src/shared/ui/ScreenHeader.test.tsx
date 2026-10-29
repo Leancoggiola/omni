@@ -38,4 +38,17 @@ describe('ScreenHeader', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
     expect(onBack).toHaveBeenCalledTimes(1);
   });
+
+  it('sin ícono no dibuja el chip, y `size` elige el tamaño del título', () => {
+    render(<ScreenHeader title="Mi Perfil" size="lg" />);
+
+    expect(screen.UNSAFE_queryByProps({ backgroundColor: '$primarySurface' })).toBeNull();
+    expect(screen.getByRole('header', { name: 'Mi Perfil' })).toHaveProp('fontSize', 32);
+  });
+
+  it('el volver es un botón glass con el nombre que se le pasa', () => {
+    render(<ScreenHeader title="Mi Perfil" onBack={() => undefined} backLabel="Volver a Más" />);
+
+    expect(screen.getByRole('button', { name: 'Volver a Más' })).toHaveProp('backgroundColor', '$surfaceGlass');
+  });
 });

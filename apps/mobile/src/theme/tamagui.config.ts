@@ -186,7 +186,7 @@ const allThemes: Partial<Record<string, Theme>> = config.themes;
 /** Pista del Switch apagado (gris con contraste sobre la card) y su thumb blanco (en claro sale negro). */
 function switchTheme(scheme: 'light' | 'dark', base: Theme, part: 'track' | 'thumb'): Theme {
   const s = SEMANTIC[scheme];
-  const color = part === 'thumb' ? s.white : s.border;
+  const color = part === 'thumb' ? s.white : s.borderSubtle;
   return {
     ...base,
     background: color,
@@ -224,9 +224,9 @@ function buildComponentTheme(scheme: 'light' | 'dark', component: string, parts:
     const theme = red
       ? destructiveTheme(scheme, base)
       : active
-        ? primaryTheme(scheme, base)
+        ? primaryTheme(scheme, base, 'fill')
         : switchTheme(scheme, base, 'track');
-    return { ...theme, backgroundActive: s.primary } as Theme;
+    return { ...theme, backgroundActive: s.primaryFill } as Theme;
   }
   if (red) return destructiveTheme(scheme, base);
   if (active) return primaryTheme(scheme, base, component === 'Button' ? 'fill' : 'accent');

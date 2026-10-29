@@ -1,5 +1,5 @@
 import { isNavAvailable, NAV_REGISTRY } from '@omni/shared/navigation';
-import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
+import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { useRouter } from 'expo-router';
 import { CaretRightIcon } from 'phosphor-react-native';
 import { Paragraph, XStack, YStack } from 'tamagui';
@@ -11,6 +11,7 @@ import { Badge } from '@/shared/ui';
 import type { NavKey } from '@omni/shared/navigation';
 
 const CHIP_SIZE = 36;
+const ROW_HEIGHT = 48;
 
 /**
  * Ítem de módulo del launcher. Igual que en el navbar de web, lo que mobile todavía no tiene se
@@ -28,7 +29,7 @@ export function NavRow({ navKey }: { navKey: NavKey }) {
     <XStack
       alignItems="center"
       gap={SPACING.sm}
-      paddingVertical={SPACING.xs}
+      minHeight={ROW_HEIGHT}
       disabled={!available}
       onPress={href ? () => router.navigate(href) : undefined}
       pressStyle={available ? { opacity: 0.7 } : undefined}
@@ -39,14 +40,14 @@ export function NavRow({ navKey }: { navKey: NavKey }) {
       <YStack
         width={CHIP_SIZE}
         height={CHIP_SIZE}
-        borderRadius={RADIUS.sm}
-        backgroundColor={available ? '$primarySurface' : '$dimmedSurface'}
+        borderRadius={RADIUS.md}
+        backgroundColor={available ? '$primarySurface' : '$disabledSurface'}
         alignItems="center"
         justifyContent="center"
       >
         <IconComponent size={20} color={available ? colors.primary : colors.dimmed} />
       </YStack>
-      <Paragraph flex={1} fontSize={FONT_SIZE.lg} color={available ? '$color' : '$dimmed'}>
+      <Paragraph flex={1} fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl} color={available ? '$color' : '$dimmed'}>
         {label}
       </Paragraph>
       {available ? (
