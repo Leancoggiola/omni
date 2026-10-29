@@ -10,6 +10,7 @@ pnpm --filter mobile check-types
 pnpm --filter mobile lint
 pnpm --filter mobile check-api-paths
 pnpm --filter mobile test      # jest-expo; en CI corre como test:coverage vía turbo
+pnpm --filter mobile check-structure
 pnpm --filter mobile prebuild
 ```
 

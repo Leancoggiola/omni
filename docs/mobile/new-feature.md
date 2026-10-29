@@ -10,6 +10,6 @@ Checklist paralelo a [web/new-feature.md](../web/new-feature.md).
 6. Ruta Expo Router en `app/` (tab en `(tabs)/` o de stack) que solo importa `@/features/<name>`.
 7. Navegación: sumar `"mobile"` a `availableOn` del módulo en `NAV_REGISTRY` ([`@omni/shared/navigation`](../../packages/shared/src/navigation/registry.ts)), la ruta en `NAV_HREFS` y el ícono en `NAV_ICONS` (`apps/mobile/src/shared/navigation/`). Sin eso el módulo sigue como "Próximamente" en "Más".
 8. Auth: asumir Bearer ya configurado; no usar cookies.
-9. Verificar: `pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile check-api-paths && pnpm --filter mobile test`.
+9. Verificar: `pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile check-api-paths && pnpm --filter mobile test && pnpm --filter mobile check-structure`.
 
 Si el feature también va a web, implementar ambos clientes en el mismo PR de producto o PRs enlazados; shared/API una sola vez.

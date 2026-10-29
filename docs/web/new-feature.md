@@ -50,6 +50,7 @@ pnpm --filter web check-types
 pnpm --filter web lint
 pnpm --filter web check-api-paths
 pnpm --filter web test
+pnpm --filter web check-structure
 ```
 
 ## Referencia

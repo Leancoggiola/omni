@@ -19,7 +19,7 @@ export default mergeConfig(
           'src/features/home/hooks/useHolidayCarousel.ts',
           'src/**/utils/**/*.ts',
         ],
-        exclude: ['src/**/utils/**/index.ts', 'src/**/*.{test,spec}.{ts,tsx}', 'src/**/__tests__/**'],
+        exclude: ['src/**/*.{test,spec}.{ts,tsx}', 'src/**/__tests__/**'],
         thresholds: {
           lines: 80,
           functions: 80,

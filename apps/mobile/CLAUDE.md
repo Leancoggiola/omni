@@ -146,5 +146,5 @@ A diferencia de web (alineados a la derecha), en mobile van **centrados y full-w
 ## Verificación
 
 ```bash
-pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile check-api-paths && pnpm --filter mobile test
+pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile check-api-paths && pnpm --filter mobile test && pnpm --filter mobile check-structure
 ```

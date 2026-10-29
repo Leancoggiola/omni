@@ -144,7 +144,7 @@ app/<ruta>.tsx              solo la ruta: importa @/features/<name>
 - **Tests:** cada cliente mantiene su ubicación (web en `__tests__/`, mobile al lado del archivo).
 - **Scaffolding:** `pnpm new-feature <name> [--web] [--mobile] [--path /x] [--register-route]`. Checklists: [web/new-feature.md](./web/new-feature.md) y [mobile/new-feature.md](./mobile/new-feature.md).
 
-> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue.
+`pnpm --filter <web|mobile> check-structure` (`scripts/check-structure.mjs`) hace cumplir estas reglas en `/verify` y en CI: falla con un `index.ts` fuera de las fronteras, un `modules/_shared`, un `modules/` con un solo módulo, una carpeta de componente con un solo archivo, un `use*.ts` de una feature fuera de `hooks/` o un `hooks.ts` en mobile.
 
 ### Convenciones Web
 

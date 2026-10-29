@@ -215,5 +215,5 @@ Dimensiones en style props de Mantine y `style={{ }}` inline van en **`rem`** (b
 ## Verificación
 
 ```bash
-pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test
+pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test && pnpm --filter web check-structure
 ```
