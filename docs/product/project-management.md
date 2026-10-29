@@ -35,9 +35,9 @@ Usá los issue templates en `.github/ISSUE_TEMPLATE/`.
 
 1. Crear issue (template) y agregarlo a **Omni Roadmap** (Backlog).
 2. Completar relevamiento; solo entonces mover a **Listo**.
-3. Al empezar: branch + Status **En progreso**.
-4. Al abrir PR: Status **En revisión**; body con `Closes #N`.
-5. Al merge: el issue cierra y la tarjeta va a **Hecho**.
+3. Al empezar: branch + Status **En progreso** (manual).
+4. Al abrir PR: body con `Closes #N`; el workflow `project-status.yml` pasa la tarjeta a **En revisión**.
+5. Al merge: el issue cierra y el mismo workflow pasa la tarjeta a **Hecho**.
 
 ### Convención de branch
 
@@ -57,6 +57,12 @@ Ejemplo: `feat/#12-marcar-visto`.
 ## Orden full-stack
 
 Si la historia toca contrato API↔clientes: **`shared` → `api` → web y/o mobile** (ver [CLAUDE.md](../../CLAUDE.md)).
+
+### Workflow `project-status.yml`
+
+Mueve las tarjetas de los issues que el PR enlaza con `Closes #N` (las que GitHub reconoce como `closingIssuesReferences`): a **En revisión** al abrir o reabrir el PR y a **Hecho** al mergearlo. Un issue que no esté en Omni Roadmap se omite con un aviso.
+
+Necesita el secret del repo `PROJECT_TOKEN`: un PAT **clásico** con el único scope `project`. El `GITHUB_TOKEN` y los PAT de grano fino no acceden a los Projects v2 de un usuario. Si falla con `Falta el secret PROJECT_TOKEN`, el token no está cargado o venció.
 
 ## Checklist de relevamiento (antes de Listo)
 
