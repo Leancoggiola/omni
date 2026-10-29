@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@/__tests__/helpers';
 
-import { UserRow } from '../UserRow';
+import { UserRow } from '../components/UserRow';
 
 import type { AdminUser } from '@omni/shared/users';
 

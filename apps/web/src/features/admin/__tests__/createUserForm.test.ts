@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createUserFormSchema, INITIAL_CREATE_USER_FORM_VALUES, toCreateUserPayload } from '../createUserForm';
+import { createUserFormSchema, INITIAL_CREATE_USER_FORM_VALUES, toCreateUserPayload } from '../utils/createUserForm';
 
 const valid = {
   username: 'usuario01',

@@ -4,7 +4,10 @@ import { useDisclosure } from '@mantine/hooks';
 
 import { EmptyState, ErrorState, LoadingState, PageHeader } from '@/shared/ui';
 
-import { CreateUserModal, useAdminUserMutations, useAdminUsers, UserRow } from './modules';
+import { CreateUserModal } from './components/CreateUserModal/CreateUserModal';
+import { UserRow } from './components/UserRow';
+import { useAdminUserMutations } from './hooks/useAdminUserMutations';
+import { useAdminUsers } from './hooks/useAdminUsers';
 
 import { GearIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
 
