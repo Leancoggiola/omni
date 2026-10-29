@@ -25,7 +25,7 @@ export const MediaListToolbar: FC<MediaListToolbarProps> = ({
 }) => {
   return (
     <Stack gap="md">
-      <Paper p="md" shadow="xs">
+      <Paper p="md">
         <Group gap="md" align="flex-end" wrap="wrap">
           <TextInput
             aria-label="Buscar en tu lista"

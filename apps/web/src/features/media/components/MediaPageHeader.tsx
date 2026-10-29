@@ -24,10 +24,7 @@ export const MediaPageHeader: FC<MediaPageHeaderProps> = ({ onAdd, displayMode, 
             aria-label="Vista"
             value={displayMode}
             onChange={onDisplayChange}
-            radius="sm"
             size="sm"
-            color="brand.6"
-            bg="var(--mantine-color-default)"
             styles={{ label: { padding: 'var(--mantine-spacing-2xs)' } }}
             data={[
               {
@@ -48,7 +45,7 @@ export const MediaPageHeader: FC<MediaPageHeaderProps> = ({ onAdd, displayMode, 
               },
             ]}
           />
-          <Button variant="gradient" size="sm" leftSection={<PlusIcon size="1rem" weight="bold" />} onClick={onAdd}>
+          <Button size="sm" leftSection={<PlusIcon size="1rem" weight="bold" />} onClick={onAdd}>
             Agregar
           </Button>
         </Group>
