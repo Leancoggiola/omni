@@ -30,7 +30,7 @@ export function ServerWakeNotice() {
       zIndex={NOTICE_Z_INDEX}
       pointerEvents="box-none"
     >
-      <Banner color="info" icon={ClockIcon}>
+      <Banner floating color="info" icon={ClockIcon}>
         {SERVER_WAKE_MESSAGE}
       </Banner>
     </YStack>
