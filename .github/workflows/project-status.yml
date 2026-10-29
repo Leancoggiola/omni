@@ -1,0 +1,134 @@
+name: Project Status
+
+on:
+  pull_request:
+    branches: [develop, main]
+    types: [opened, reopened, edited, ready_for_review, closed]
+
+concurrency:
+  group: project-status-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  PROJECT_OWNER: Leancoggiola
+  PROJECT_NUMBER: '1'
+
+jobs:
+  move-cards:
+    name: Mover tarjetas
+    if: >-
+      github.actor != 'dependabot[bot]' && (
+        github.event.action == 'closed' && github.event.pull_request.merged ||
+        github.event.action != 'closed' && github.event.pull_request.state == 'open' &&
+        !github.event.pull_request.draft && (github.event.action != 'edited' || github.event.changes.body)
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Pasar las tarjetas de los issues enlazados a En revisión o Hecho
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          REPO_TOKEN: ${{ github.token }}
+          FROM_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          STATUS: ${{ github.event.action == 'closed' && 'Hecho' || 'En revisión' }}
+        run: |
+          set -euo pipefail
+
+          if [ "$FROM_FORK" = 'true' ]; then
+            echo "::warning::PR desde un fork: los secrets no están disponibles, no se mueven tarjetas."
+            exit 0
+          fi
+
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Falta el secret PROJECT_TOKEN (PAT clásico con scope project)."
+            exit 1
+          fi
+
+          project=$(gh api graphql \
+            -f owner="$PROJECT_OWNER" -F number="$PROJECT_NUMBER" -f query='
+            query($owner: String!, $number: Int!) {
+              user(login: $owner) {
+                projectV2(number: $number) {
+                  id
+                  field(name: "Status") {
+                    ... on ProjectV2SingleSelectField { id options { id name } }
+                  }
+                }
+              }
+            }' --jq '.data.user.projectV2')
+
+          project_id=$(jq -r '.id // empty' <<<"$project")
+          if [ -z "$project_id" ]; then
+            echo "::error::No se encontró el proyecto $PROJECT_NUMBER de $PROJECT_OWNER, o PROJECT_TOKEN no tiene acceso."
+            exit 1
+          fi
+          field_id=$(jq -r '.field.id' <<<"$project")
+          option_id=$(jq -r --arg status "$STATUS" '.field.options[]? | select(.name == $status) | .id' <<<"$project")
+
+          if [ -z "$option_id" ]; then
+            echo "::error::El campo Status no tiene la opción \"$STATUS\"."
+            exit 1
+          fi
+
+          body=$(GH_TOKEN="$REPO_TOKEN" gh pr view "$PR_NUMBER" --repo "$REPO" --json body --jq '.body')
+          issues=$(grep -oiE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?):? +#[0-9]+(, *#[0-9]+)*' <<<"$body" | grep -oE '[0-9]+' | sort -u || true)
+
+          if [ -z "$issues" ]; then
+            echo "El PR #$PR_NUMBER no enlaza ningún issue con Closes #N: no hay tarjetas que mover."
+            exit 0
+          fi
+
+          err=$(mktemp)
+          for issue in $issues; do
+            response=$(gh api graphql -f owner="${REPO%%/*}" -f name="${REPO##*/}" -F issue="$issue" \
+              -f query='
+              query($owner: String!, $name: String!, $issue: Int!) {
+                repository(owner: $owner, name: $name) {
+                  issue(number: $issue) {
+                    projectItems(first: 20) {
+                      nodes {
+                        id
+                        project { id }
+                        fieldValueByName(name: "Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } }
+                      }
+                    }
+                  }
+                }
+              }' 2>"$err") || {
+              response=$(cat "$err")
+              if grep -q 'Could not resolve to an Issue' <<<"$response"; then
+                echo "::warning::#$issue no es un issue del repo: se omite."
+                continue
+              fi
+              echo "::error::Falló la consulta de #$issue: $response"
+              exit 1
+            }
+            item=$(jq -r --arg pid "$project_id" '.data.repository.issue.projectItems.nodes[]? | select(.project.id == $pid) | [.id, (.fieldValueByName.name // "")] | @tsv' <<<"$response")
+            item_id=${item%%$'\t'*}
+            current=${item#*$'\t'}
+
+            if [ -z "$item_id" ]; then
+              echo "::warning::El issue #$issue no está en Omni Roadmap: se omite."
+              continue
+            fi
+
+            if [ "$current" = 'Hecho' ] && [ "$STATUS" != 'Hecho' ]; then
+              echo "Issue #$issue ya está en Hecho: no se mueve hacia atrás."
+              continue
+            fi
+
+            gh api graphql -f project="$project_id" -f item="$item_id" -f field="$field_id" -f option="$option_id" -f query='
+              mutation($project: ID!, $item: ID!, $field: ID!, $option: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $project, itemId: $item, fieldId: $field,
+                  value: { singleSelectOptionId: $option }
+                }) { projectV2Item { id } }
+              }' >/dev/null
+            echo "Issue #$issue → $STATUS"
+          done
