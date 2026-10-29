@@ -26,7 +26,7 @@ type IconButtonProps = {
   disabled?: boolean;
 };
 
-/** Equivalente de `ActionIcon` de Mantine: botón cuadrado de 36 / 44 / 50 dp con las variantes de `Button`. */
+/** Equivalente de `ActionIcon` de Mantine: botón circular de 36 / 44 / 48 dp con las variantes de `Button`. */
 export function IconButton({
   icon: IconComponent,
   accessibilityLabel,
