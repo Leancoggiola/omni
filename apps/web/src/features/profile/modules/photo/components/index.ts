@@ -1,1 +1,0 @@
-export { ProfilePhotoSection } from './ProfilePhotoSection';

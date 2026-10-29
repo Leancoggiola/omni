@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SWR_KEYS } from '@/shared/api';
 
-import { useProfile } from '../useProfile';
+import { useProfile } from '../hooks/useProfile';
 
 import type { ProfileResponse } from '@omni/shared/auth';
 import type { UserProfile } from '@omni/shared/users';

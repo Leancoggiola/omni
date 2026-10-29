@@ -17,14 +17,23 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/core/auth', () => ({ useAuth: () => mocks.auth }));
 
-vi.mock('../modules', () => ({
+vi.mock('../components/DeleteAccountButton', () => ({
   DeleteAccountButton: ({ onDelete }: { onDelete: () => Promise<void> }) => (
     <button onClick={() => void onDelete().catch(() => undefined)}>Eliminar cuenta</button>
   ),
-  PasswordForm: () => null,
-  ProfileSectionCard: () => null,
-  ProfileSettingsForm: () => null,
+}));
+
+vi.mock('../components/PasswordForm', () => ({ PasswordForm: () => null }));
+
+vi.mock('../components/ProfileSectionCard', () => ({ ProfileSectionCard: () => null }));
+
+vi.mock('../components/ProfileSettingsForm', () => ({ ProfileSettingsForm: () => null }));
+
+vi.mock('../hooks/useAccountActions', () => ({
   useAccountActions: () => ({ changePassword: vi.fn(), deleteAccount: mocks.deleteAccount }),
+}));
+
+vi.mock('../hooks/useProfile', () => ({
   useProfile: () => ({
     profile: { name: 'Ana', avatarUrl: null, updatedAt: 'x' },
     isLoading: false,

@@ -5,14 +5,12 @@ import { Stack } from '@mantine/core';
 import { useAuth } from '@/core/auth';
 import { ErrorState, LoadingState, PageHeader } from '@/shared/ui';
 
-import {
-  DeleteAccountButton,
-  PasswordForm,
-  ProfileSectionCard,
-  ProfileSettingsForm,
-  useAccountActions,
-  useProfile,
-} from './modules';
+import { DeleteAccountButton } from './components/DeleteAccountButton';
+import { PasswordForm } from './components/PasswordForm';
+import { ProfileSectionCard } from './components/ProfileSectionCard';
+import { ProfileSettingsForm } from './components/ProfileSettingsForm';
+import { useAccountActions } from './hooks/useAccountActions';
+import { useProfile } from './hooks/useProfile';
 
 import type { ChangePasswordPayload } from '@omni/shared/users';
 

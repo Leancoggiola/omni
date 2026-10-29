@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SWR_KEYS } from '@/shared/api';
 
-import { useAccountActions } from '../useAccountActions';
+import { useAccountActions } from '../hooks/useAccountActions';
 
 import { act, renderHook } from '@testing-library/react';
 

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/__tests__/helpers';
 import { ApiError } from '@/shared/api';
 
-import { PasswordForm } from '../PasswordForm';
+import { PasswordForm } from '../components/PasswordForm';
 
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
