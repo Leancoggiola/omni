@@ -18,6 +18,7 @@ describe.each(['light', 'dark'] as const)('contraste de rellenos de SEMANTIC (%s
     ['Button y Badge destructivo', s.destructiveFill, s.onDestructive],
     ['Badge success', s.success, s.onSuccess],
     ['Badge dimmed', s.dimmed, s.onDimmed],
+    ['Button success filled y barra completada', s.successFill, s.onSuccessFill],
   ])('%s llega a AA', (_name, fill, text) => {
     expect(contrastRatio(fill, text)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
   });
@@ -54,6 +55,12 @@ describe.each(['light', 'dark'] as const)('contraste de texto de SEMANTIC (%s)',
     ['atenuado sobre canvas', s.dimmed, s.body],
     ['atenuado sobre card', s.dimmed, s.card],
     ['link sobre canvas', s.anchor, s.body],
+    ['placeholder sobre card (input)', s.placeholder, s.card],
+    ['texto sobre card glass en el canvas', s.text, over(s.surfaceGlass, s.body)],
+    ['atenuado sobre card glass en el canvas', s.dimmed, over(s.surfaceGlass, s.body)],
+    ['marca sobre card glass en el canvas', s.primary, over(s.surfaceGlass, s.body)],
+    ['texto sobre la mancha durazno', s.text, s.glowPeach],
+    ['texto sobre la mancha lila', s.text, s.glowLilac],
   ])('%s llega a AA', (_name, text, background) => {
     expect(contrastRatio(text, background)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
   });
@@ -77,6 +84,17 @@ describe('contraste de los hovers de texto', () => {
     ['atenuado hover sobre card (oscuro)', semanticDark['--mantine-color-text-dimmed-hover'], dark.card],
   ])('%s llega a AA', (_name, text, background) => {
     expect(contrastRatio(text, background)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+  });
+});
+
+/**
+ * El `on-success-fill` del Design System v2 da 5,1:1 en los dos esquemas (el piso de AA es 4,5:1, pero el
+ * diseño pide 5,1: si baja, el relleno saldado se tocó sin querer).
+ */
+describe.each(['light', 'dark'] as const)('success-fill de v2 (%s)', scheme => {
+  it('su texto da al menos 5:1', () => {
+    const s = SEMANTIC[scheme];
+    expect(contrastRatio(s.successFill, s.onSuccessFill)).toBeGreaterThanOrEqual(5);
   });
 });
 

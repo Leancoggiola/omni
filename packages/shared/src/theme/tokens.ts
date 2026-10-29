@@ -207,6 +207,33 @@ export const SAGE = {
 /** Appends a 2-digit hex alpha channel to a palette swatch, e.g. withAlpha(RED[3], '4d') -> '#E597974d'. */
 const withAlpha = (hex: string, alphaHex: string) => `${hex}${alphaHex}`;
 
+/** Opacidades del Design System v2 (0 a 1). `glass` es la de `surface-glass`; `disabledIcon`, la del ícono de un módulo "Próximamente". */
+export const OPACITY = { glass: 0.82, disabledIcon: 0.5 } as const;
+
+/** Aplica una opacidad (0 a 1) a un `#RRGGBB`, como sufijo hex de 2 dígitos: `withOpacity('#ffffff', 0.9)` -> `#ffffffe6`. */
+export const withOpacity = (hex: string, opacity: number) =>
+  withAlpha(
+    hex,
+    Math.round(opacity * 255)
+      .toString(16)
+      .padStart(2, '0')
+  );
+
+/** Manchas decorativas del fondo con degradé (arriba a la derecha y a la izquierda a media altura). Nunca debajo de texto sin card. */
+export const GLOW = {
+  peach: { light: '#F6D3BA', dark: '#3B2A20' },
+  lilac: { light: '#ECDDE6', dark: '#2A2230' },
+} as const;
+
+/** Líneas cálidas: divisores internos de cards y filas (`hairline`) y borde de inputs, chips sin marcar y botones secundarios (`borderSubtle`). */
+export const LINE = {
+  hairline: { light: '#EDE3DB', dark: '#3A332E' },
+  borderSubtle: { light: '#E4D6CB', dark: GRAY[7] },
+} as const;
+
+/** Riel de barras de progreso, switch apagado y grabber de hojas. */
+export const TRACK = { light: '#E4DAD2', dark: '#3A332E' } as const;
+
 /**
  * Semantic color tokens — Light mode
  */
@@ -216,7 +243,7 @@ export const semanticLight = {
   '--mantine-color-text-dimmed': GRAY[6],
   '--mantine-color-text-dimmed-hover': GRAY[7],
   '--mantine-color-text-dimmed-disabled': '#7676764d',
-  '--mantine-color-text-placeholder': GRAY[4],
+  '--mantine-color-text-placeholder': GRAY[5],
   '--mantine-color-text-disabled': GRAY[3],
   '--mantine-color-text-link-default': BRAND[7],
   '--mantine-color-text-link-hover': BRAND[6],
@@ -234,6 +261,7 @@ export const semanticLight = {
   '--mantine-color-text-destructive-disabled': withAlpha(RED[7], '4d'),
   '--mantine-color-text-white': '#ffffff',
   '--mantine-color-text-black': '#000000',
+  '--mantine-color-text-on-success-fill': onFill(SAGE[6]),
 
   '--mantine-color-surfaces-primary': BRAND[5],
   '--mantine-color-surfaces-primary-hover': BRAND[8],
@@ -261,6 +289,11 @@ export const semanticLight = {
   '--mantine-color-surfaces-accent-high': TERRACOTTA[6],
   '--mantine-color-surfaces-info-light': BLUE[0],
   '--mantine-color-surfaces-warning-light': ORANGE[0],
+  '--mantine-color-surfaces-glass': withOpacity(SURFACE.light, OPACITY.glass),
+  '--mantine-color-surfaces-glow-peach': GLOW.peach.light,
+  '--mantine-color-surfaces-glow-lilac': GLOW.lilac.light,
+  '--mantine-color-surfaces-track': TRACK.light,
+  '--mantine-color-surfaces-success-fill': SAGE[6],
   '--mantine-color-surfaces-success-light': SAGE[0],
   '--mantine-color-surfaces-error-light': RED[1],
   '--mantine-color-surfaces-success-high': SAGE[6],
@@ -285,6 +318,9 @@ export const semanticLight = {
   '--mantine-color-border-info': BLUE[6],
   '--mantine-color-border-accent': TERRACOTTA[3],
   '--mantine-color-border-onlyread': GRAY[4],
+  '--mantine-color-border-glass': withOpacity(WHITE, 0.9),
+  '--mantine-color-border-hairline': LINE.hairline.light,
+  '--mantine-color-border-subtle': LINE.borderSubtle.light,
   '--mantine-color-border-focus-tab': '#000000',
   '--mantine-color-border-white': '#ffffff',
 
@@ -317,7 +353,7 @@ export const semanticDark = {
   '--mantine-color-text-dimmed': GRAY[2],
   '--mantine-color-text-dimmed-hover': '#ffffff',
   '--mantine-color-text-dimmed-disabled': '#ffffff4d',
-  '--mantine-color-text-placeholder': DARK[3],
+  '--mantine-color-text-placeholder': DARK[2],
   '--mantine-color-text-disabled': DARK[3],
   '--mantine-color-text-primary': BRAND[3],
   '--mantine-color-text-primary-hover': BRAND[2],
@@ -334,6 +370,7 @@ export const semanticDark = {
   '--mantine-color-text-black': '#000000',
 
   '--mantine-color-text-link-default': BRAND[3],
+  '--mantine-color-text-on-success-fill': onFill(SAGE[5]),
 
   '--mantine-color-surfaces-primary': BRAND[3],
   '--mantine-color-surfaces-primary-hover': BRAND[2],
@@ -362,6 +399,11 @@ export const semanticDark = {
   '--mantine-color-surfaces-accent-high': TERRACOTTA[5],
   '--mantine-color-surfaces-info-light': withAlpha(BLUE[6], '33'),
   '--mantine-color-surfaces-warning-light': withAlpha(ORANGE[6], '33'),
+  '--mantine-color-surfaces-glass': withOpacity(SURFACE.dark, OPACITY.glass),
+  '--mantine-color-surfaces-glow-peach': GLOW.peach.dark,
+  '--mantine-color-surfaces-glow-lilac': GLOW.lilac.dark,
+  '--mantine-color-surfaces-track': TRACK.dark,
+  '--mantine-color-surfaces-success-fill': SAGE[5],
   '--mantine-color-surfaces-success-light': withAlpha(SAGE[6], '40'),
   '--mantine-color-surfaces-error-light': withAlpha(RED[7], '33'),
   '--mantine-color-surfaces-success-high': SAGE[5],
@@ -386,6 +428,9 @@ export const semanticDark = {
   '--mantine-color-border-info': BLUE[3],
   '--mantine-color-border-accent': TERRACOTTA[5],
   '--mantine-color-border-onlyread': GRAY[3],
+  '--mantine-color-border-glass': withOpacity(WHITE, 0.06),
+  '--mantine-color-border-hairline': LINE.hairline.dark,
+  '--mantine-color-border-subtle': LINE.borderSubtle.dark,
   '--mantine-color-border-focus-tab': GRAY[3],
   '--mantine-color-border-white': GRAY[3],
 
@@ -445,6 +490,15 @@ export const SEMANTIC = {
     destructiveBorder: semanticLight['--mantine-color-border-destructive'],
     warningBorder: semanticLight['--mantine-color-border-warning'],
     infoBorder: semanticLight['--mantine-color-border-info'],
+    surfaceGlass: semanticLight['--mantine-color-surfaces-glass'],
+    glassBorder: semanticLight['--mantine-color-border-glass'],
+    glowPeach: semanticLight['--mantine-color-surfaces-glow-peach'],
+    glowLilac: semanticLight['--mantine-color-surfaces-glow-lilac'],
+    hairline: semanticLight['--mantine-color-border-hairline'],
+    borderSubtle: semanticLight['--mantine-color-border-subtle'],
+    track: semanticLight['--mantine-color-surfaces-track'],
+    successFill: semanticLight['--mantine-color-surfaces-success-fill'],
+    onSuccessFill: semanticLight['--mantine-color-text-on-success-fill'],
     primaryFill: BRAND[7],
     onPrimaryFill: onFill(BRAND[7]),
     primaryFillHover: BRAND[8],
@@ -495,6 +549,15 @@ export const SEMANTIC = {
     destructiveBorder: semanticDark['--mantine-color-border-destructive'],
     warningBorder: semanticDark['--mantine-color-border-warning'],
     infoBorder: semanticDark['--mantine-color-border-info'],
+    surfaceGlass: semanticDark['--mantine-color-surfaces-glass'],
+    glassBorder: semanticDark['--mantine-color-border-glass'],
+    glowPeach: semanticDark['--mantine-color-surfaces-glow-peach'],
+    glowLilac: semanticDark['--mantine-color-surfaces-glow-lilac'],
+    hairline: semanticDark['--mantine-color-border-hairline'],
+    borderSubtle: semanticDark['--mantine-color-border-subtle'],
+    track: semanticDark['--mantine-color-surfaces-track'],
+    successFill: semanticDark['--mantine-color-surfaces-success-fill'],
+    onSuccessFill: semanticDark['--mantine-color-text-on-success-fill'],
     primaryFill: BRAND[4],
     onPrimaryFill: onFill(BRAND[4]),
     primaryFillHover: BRAND[3],
@@ -532,14 +595,16 @@ export const GRADIENT_STOPS = {
 /**
  * Escalas de layout en px, compartidas por los dos clientes. Web las pasa a rem (`px / 16`) para
  * Mantine; mobile las usa como números (`borderRadius={RADIUS.lg}`), sin registrarlas en Tamagui.
+ * Radios en múltiplos de 4: 24 es de cards, burbujas y navbar web; 32, de hojas inferiores.
  */
 export const RADIUS = {
   none: 0,
-  xs: 2,
-  sm: 6,
-  md: 8,
-  lg: 12,
-  xl: 16,
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  '2xl': 32,
   full: 9999,
 } as const;
 
@@ -582,6 +647,52 @@ export const SHADOW = {
   md: { color: '#000000', offsetY: 4, radius: 6, opacity: 0.1, elevation: 4 },
   lg: { color: '#000000', offsetY: 10, radius: 15, opacity: 0.1, elevation: 8 },
   brand: { color: '#96786F', offsetY: 10, radius: 15, opacity: 0.2, elevation: 8 },
+} as const;
+
+/** Familia de los títulos y montos grandes (Bricolage Grotesque, pesos 700 y 800, sin itálica). */
+export const DISPLAY_FONT = 'Bricolage Grotesque';
+
+/**
+ * Estilos de la familia `display`, en px. `accent` es la palabra acentuada de un título: mismo peso, color
+ * `primary` y sin itálica, una por título como máximo.
+ */
+export const DISPLAY = {
+  xl: { fontSize: 40, lineHeight: 44, fontWeight: 800, letterSpacing: -0.4 },
+  lg: { fontSize: 32, lineHeight: 36, fontWeight: 800, letterSpacing: -0.4 },
+  md: { fontSize: 24, lineHeight: 28, fontWeight: 700, letterSpacing: 0 },
+  accent: { fontSize: 32, lineHeight: 36, fontWeight: 800, letterSpacing: 0 },
+  amountHero: { fontSize: 48, lineHeight: 52, fontWeight: 800, letterSpacing: -1 },
+} as const;
+
+/** Encabezado de sección y separador de día del feed, en mayúsculas (Montserrat). */
+export const OVERLINE = { fontSize: 12, lineHeight: 16, fontWeight: 700, letterSpacing: 0.6 } as const;
+
+/** Alturas de controles y piezas fijas, en px. */
+export const SIZE = {
+  control: { sm: 36, md: 44, lg: 48 },
+  fab: 56,
+  tabBar: 72,
+  avatar: { xs: 24, sm: 32, md: 40, lg: 80 },
+} as const;
+
+/**
+ * Sombras cálidas de v2 (desenfoque 32, desplazamiento 8 o 12), con valor por esquema: `card` (cards glass,
+ * burbujas, navbar), `float` (tab bar, FAB, toasts) y `sheet` (hojas fijas, hacia arriba). Mismas claves que
+ * `SHADOW` más `elevation` para Android; web las publica como `--mantine-shadow-*`.
+ */
+export const SHADOW_THEMED = {
+  card: {
+    light: { color: SHADOW.brand.color, offsetY: 8, radius: 32, opacity: 0.12, elevation: 6 },
+    dark: { color: '#000000', offsetY: 8, radius: 32, opacity: 0.4, elevation: 6 },
+  },
+  float: {
+    light: { color: BRAND[7], offsetY: 12, radius: 32, opacity: 0.16, elevation: 10 },
+    dark: { color: '#000000', offsetY: 12, radius: 32, opacity: 0.5, elevation: 10 },
+  },
+  sheet: {
+    light: { color: BRAND[7], offsetY: -12, radius: 32, opacity: 0.12, elevation: 12 },
+    dark: { color: '#000000', offsetY: -12, radius: 32, opacity: 0.5, elevation: 12 },
+  },
 } as const;
 
 export type ColorScheme = keyof typeof SEMANTIC;
