@@ -9,7 +9,7 @@ interface EmptyStateProps {
 }
 
 export const EmptyState: FC<EmptyStateProps> = ({ icon, title, action }) => (
-  <Paper p="xl" withBorder>
+  <Paper p="xl">
     <MantineEmptyState icon={icon} title={title} withIndicatorBackground size="md" align="center">
       {action && <MantineEmptyState.Actions>{action}</MantineEmptyState.Actions>}
     </MantineEmptyState>
