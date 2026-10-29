@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { AppShell, Container } from '@mantine/core';
 
-import { AnimatedBackground } from './components/AnimatedBackground/AnimatedBackground';
+import { AppBackground } from './components/AppBackground/AppBackground';
 
 import type { FC } from 'react';
 
@@ -15,7 +15,7 @@ export const AuthLayout: FC = () => {
           placeItems: 'center',
         }}
       >
-        <AnimatedBackground />
+        <AppBackground animated />
         <Container w="100%">
           <Outlet />
         </Container>
