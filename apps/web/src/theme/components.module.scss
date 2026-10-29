@@ -15,11 +15,11 @@
   background-color: var(--mantine-color-surfaces-glass);
   -webkit-backdrop-filter: blur(1.5rem);
   backdrop-filter: blur(1.5rem);
-  border: 1px solid var(--mantine-color-border-glass);
-  border-radius: var(--mantine-radius-xl);
-  box-shadow: var(--mantine-shadow-card);
 
   @media (min-width: 62em) {
+    border: 1px solid var(--mantine-color-border-glass);
+    border-radius: var(--mantine-radius-xl);
+    box-shadow: var(--mantine-shadow-card);
     top: var(--mantine-spacing-md);
     inset-inline-start: var(--mantine-spacing-md);
     height: calc(100dvh - 2 * var(--mantine-spacing-md));

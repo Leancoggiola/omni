@@ -24,6 +24,12 @@ describe('PageHeader', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Series de Seriesx');
   });
 
+  it('con un acento que no está en el título no resalta nada', () => {
+    renderWithProviders(<PageHeader icon={<span />} title="Mi Perfil" accent="Perfil," />);
+    expect(screen.queryByTestId('page-header-accent')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Mi Perfil');
+  });
+
   it('no acentúa un título de una sola palabra', () => {
     renderWithProviders(<PageHeader icon={<span />} title="Administración" />);
     expect(screen.queryByTestId('page-header-accent')).not.toBeInTheDocument();

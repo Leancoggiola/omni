@@ -10,6 +10,10 @@ import { Navbar } from './components/Navbar';
 
 import type { FC } from 'react';
 
+/**
+ * Shell de la app. El navbar pasa a flotante desde el breakpoint `md` (`62em`): el mismo valor está en `breakpoint` del
+ * navbar, en `useMediaQuery` y en `appshell_navbar` de `theme/components.module.scss`; si cambia, cambian los tres.
+ */
 export const RootLayout: FC = () => {
   const [opened, { toggle, close }] = useDisclosure();
   const isDesktop = useMediaQuery('(min-width: 62em)', undefined, { getInitialValueInEffect: false });
