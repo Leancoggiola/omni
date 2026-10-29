@@ -12,7 +12,7 @@ import { SWRProvider } from '@/core/providers';
 import { ServerWakeNotice } from '@/core/serverWake';
 import { ColorSchemeProvider, useColorSchemeControl } from '@/core/theme';
 import { NAVIGATION_THEMES } from '@/theme/navigationTheme';
-import { MONTSERRAT_FACES } from '@/theme/fonts';
+import { BRICOLAGE_FACES, MONTSERRAT_FACES } from '@/theme/fonts';
 import { tamaguiConfig } from '@/theme/tamagui.config';
 import { ActionSheetProvider, ConfirmProvider, NotificationsProvider } from '@/shared/ui';
 
@@ -52,7 +52,7 @@ function ThemedRoot({ children }: PropsWithChildren) {
  */
 export default function RootLayout() {
   const systemScheme = useColorScheme();
-  const [fontsLoaded, fontError] = useFonts(MONTSERRAT_FACES);
+  const [fontsLoaded, fontError] = useFonts({ ...MONTSERRAT_FACES, ...BRICOLAGE_FACES });
   const fontsSettled = fontsLoaded || !!fontError;
 
   useEffect(() => {

@@ -163,8 +163,8 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
         <Sheet.Handle />
         <Sheet.Frame
           backgroundColor="$backgroundStrong"
-          borderTopLeftRadius={RADIUS.xl}
-          borderTopRightRadius={RADIUS.xl}
+          borderTopLeftRadius={RADIUS.lg}
+          borderTopRightRadius={RADIUS.lg}
           padding={SPACING.lg}
           paddingBottom={SPACING.lg + insets.bottom}
           gap={SPACING.md}

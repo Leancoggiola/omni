@@ -68,7 +68,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
   /** Sin destino no hay `href`: `role="link"` + `aria-disabled` es el patrón ARIA de link deshabilitado. */
   const renderNavItem = (item: NavItemConfig) => {
     const renderIcon = (active: boolean) => (
-      <ThemeIcon variant={active ? 'white' : 'filled'} color="brand" size="lg" radius="md">
+      <ThemeIcon variant={active ? 'white' : 'filled'} color="brand" size="lg" radius="sm">
         {item.icon}
       </ThemeIcon>
     );

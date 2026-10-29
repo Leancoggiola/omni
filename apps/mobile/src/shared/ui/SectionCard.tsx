@@ -21,7 +21,7 @@ export function SectionCard({ title, subtitle, children }: SectionCardProps) {
   return (
     <YStack
       backgroundColor="$backgroundStrong"
-      borderRadius={RADIUS.lg}
+      borderRadius={RADIUS.md}
       padding={SPACING.lg}
       gap={SPACING.lg}
       {...elevation('sm')}

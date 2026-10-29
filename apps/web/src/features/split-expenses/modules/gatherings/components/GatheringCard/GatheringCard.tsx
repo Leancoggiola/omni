@@ -103,10 +103,10 @@ export const GatheringCard: FC<GatheringCardProps> = ({ summary }) => {
   };
 
   return (
-    <Card padding="lg" radius="md">
+    <Card padding="lg" radius="sm">
       <Group justify="space-between" align="flex-start" wrap="nowrap">
         <Group gap="sm" align="center" wrap="nowrap">
-          <ThemeIcon variant="light" size="xl" radius="md" color="brand">
+          <ThemeIcon variant="light" size="xl" radius="sm" color="brand">
             <UsersThreeIcon size="1.4rem" />
           </ThemeIcon>
           <Stack gap="3xs">

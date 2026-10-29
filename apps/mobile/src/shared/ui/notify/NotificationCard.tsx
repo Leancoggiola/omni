@@ -45,7 +45,7 @@ export function NotificationCard({ variant, title, message, onClose }: Notificat
   return (
     <YStack
       backgroundColor="$backgroundStrong"
-      borderRadius={RADIUS.lg}
+      borderRadius={RADIUS.md}
       overflow="hidden"
       {...elevation('md')}
       accessibilityRole="alert"

@@ -27,7 +27,7 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusPress, 
   return (
     <XStack
       backgroundColor="$backgroundStrong"
-      borderRadius={RADIUS.lg}
+      borderRadius={RADIUS.md}
       padding={SPACING.sm}
       gap={SPACING.sm}
       {...elevation('sm')}

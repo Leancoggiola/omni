@@ -63,9 +63,29 @@ Cada familia tiene variantes `primary`, `destructive`, `dimmed`, `disabled` y la
 
 En `SEMANTIC`, cada color de estado tiene su terna `{color}` (texto) / `{color}Surface` (wash) / `{color}Border`, igual que `text-*` / `surfaces-*-light` / `border-*` de web: `primary`/`primarySurface`/`primaryBorder`, `destructive`/`errorSurface`/`destructiveBorder`, y lo mismo para `success`, `warning`, `info`, `accent` y `dimmed`. Se suman los rellenos `filled`: `primaryFill`/`onPrimaryFill` (`Button` de marca: `BRAND[7]` en claro y `BRAND[4]` en oscuro, el `primaryShade` de web; `primary` queda para texto y acentos), `accentFill`/`onAccentFill` (Badge de tipo: `TERRACOTTA[7]` / `[4]`) y `destructiveFill`/`onDestructive` (`RED[7]` en los dos esquemas, como la paleta `destructive` de web; `destructive` es el rojo de texto, que en oscuro es `RED[4]`). Más `disabledSurface`/`disabledText` (= `--mantine-color-disabled*`). Son los que usan `Button`, `Badge`, `Banner` y el estado deshabilitado.
 
-**Texto sobre un relleno: `onFill()`.** Todo `on*` de un relleno sale de `onFill(fill)` de `@omni/shared/theme`: blanco o `CANVAS.dark`, el que más contraste da en ese esquema. En web, `cssVariablesResolver` genera `--mantine-color-<color>-on-filled` por esquema para cada paleta y el `variantResolver` lo usa en `filled`, en lugar del `autoContrast` de Mantine (que decide con el tono de claro y en oscuro dejaba texto blanco sobre el shade 4, ~3:1). Resultado en oscuro: texto oscuro sobre el Button de marca (5,5:1) y el Badge terracota (6,3:1). El hover (web, `--mantine-color-<color>-filled-hover`) y el presionado (mobile, `primaryFillHover`/`primaryFillPress`) se mueven hacia el lado que conserva el contraste: más oscuros con texto blanco, más claros con texto oscuro. El umbral es el de máximo contraste, no el 0,3 de luminancia de Mantine: en claro, `orange`, `indigo`, `teal` y `cyan` filled pasan a texto oscuro (hoy ninguna se usa filled). Los badges `success` y `dimmed` usan `onSuccess`/`onDimmed`, cada uno calculado sobre su propio fondo. Tests de regresión: `apps/mobile/src/theme/contrast.test.ts` y `apps/web/src/theme/__tests__/filledContrast.test.ts` exigen ≥ 4,5:1 (`WCAG_AA_TEXT`).
+**Texto sobre un relleno: `onFill()`.** Todo `on*` de un relleno sale de `onFill(fill)` de `@omni/shared/theme`: blanco o `CANVAS.dark`, el que más contraste da en ese esquema. En web, `cssVariablesResolver` genera `--mantine-color-<color>-on-filled` por esquema para cada paleta y el `variantResolver` lo usa en `filled`, en lugar del `autoContrast` de Mantine (que decide con el tono de claro y en oscuro dejaba texto blanco sobre el shade 4, ~3:1). Resultado en oscuro: texto oscuro sobre el Button de marca (5,5:1) y el Badge terracota (6,3:1). El hover (web, `--mantine-color-<color>-filled-hover`) y el presionado (mobile, `primaryFillHover`/`primaryFillPress`) se mueven hacia el lado que conserva el contraste: más oscuros con texto blanco, más claros con texto oscuro. El umbral es el de máximo contraste, no el 0,3 de luminancia de Mantine: en claro, `orange`, `indigo`, `teal` y `cyan` filled pasan a texto oscuro (hoy ninguna se usa filled). Los badges `success` y `dimmed` usan `onSuccess`/`onDimmed`, cada uno calculado sobre su propio fondo. Tests de regresión: `packages/shared/src/theme/__tests__/contrast.test.ts` (rellenos de `SEMANTIC`) y `apps/web/src/theme/__tests__/filledContrast.test.ts` (rellenos de web) exigen ≥ 4,5:1 (`WCAG_AA_TEXT`).
 
-**Texto sobre fondos: AA en los dos esquemas (#137).** En claro, `text-primary` es `BRAND[6]` (no `BRAND[5]`, que daba 3,8:1 sobre `primarySurface` y 4,5:1 justo sobre el canvas) y `text-dimmed` es `GRAY[6]` (no `GRAY[5]`, 4,4:1 sobre el canvas); el hover del atenuado baja a `GRAY[7]` y el del link a `BRAND[6]`. El test de texto de `contrast.test.ts` mide texto, marca, atenuado y link (y los hovers del atenuado y del link) sobre canvas y card, y la marca sobre su wash (compuesto sobre el fondo, porque en oscuro es translúcido). Si un token cambia y baja de 4,5:1, falla ahí.
+**Texto sobre fondos: AA en los dos esquemas (#137).** En claro, `text-primary` es `BRAND[6]` (no `BRAND[5]`, que daba 3,8:1 sobre `primarySurface` y 4,5:1 justo sobre el canvas) y `text-dimmed` es `GRAY[6]` (no `GRAY[5]`, 4,4:1 sobre el canvas); el hover del atenuado baja a `GRAY[7]` y el del link a `BRAND[6]`. El test de texto de `contrast.test.ts` mide texto, marca, atenuado, placeholder y link (y los hovers del atenuado y del link) sobre canvas y card, y la marca sobre su wash (compuesto sobre el fondo, porque en oscuro es translúcido). Si un token cambia y baja de 4,5:1, falla ahí.
+
+### Tokens v2 de color (#151)
+
+Salen del Design System v2 (epic [#136](https://github.com/Leancoggiola/omni/issues/136)). Están definidos y registrados en los dos clientes; aplicarlos en pantallas es de #152 (mobile) y #154 (web).
+
+| Token (DS)        | Claro             | Oscuro            | CSS var de web                          | Mobile (`SEMANTIC`) | Uso                                                             |
+| ----------------- | ----------------- | ----------------- | --------------------------------------- | ------------------- | --------------------------------------------------------------- |
+| `surface-glass`   | `SURFACE` al 82 % | `SURFACE` al 82 % | `--mantine-color-surfaces-glass`        | `surfaceGlass`      | Cards, chips, tab bar y navbar sobre el fondo con degradé       |
+| `glass-border`    | blanco al 90 %    | blanco al 6 %     | `--mantine-color-border-glass`          | `glassBorder`       | Borde de 1 px de las superficies glass: un brillo, no una línea |
+| `glow-peach`      | `#F6D3BA`         | `#3B2A20`         | `--mantine-color-surfaces-glow-peach`   | `glowPeach`         | Mancha cálida arriba a la derecha del fondo (degradé radial)    |
+| `glow-lilac`      | `#ECDDE6`         | `#2A2230`         | `--mantine-color-surfaces-glow-lilac`   | `glowLilac`         | Segunda mancha, a la izquierda y a media altura                 |
+| `hairline`        | `#EDE3DB`         | `#3A332E`         | `--mantine-color-border-hairline`       | `hairline`          | Divisores internos de cards y filas de lista                    |
+| `border-subtle`   | `#E4D6CB`         | `GRAY[7]`         | `--mantine-color-border-subtle`         | `borderSubtle`      | Borde de inputs, chips sin marcar y botones secundarios         |
+| `track`           | `#E4DAD2`         | `#3A332E`         | `--mantine-color-surfaces-track`        | `track`             | Riel de progreso, switch apagado y grabber de hojas             |
+| `success-fill`    | `SAGE[6]`         | `SAGE[5]`         | `--mantine-color-surfaces-success-fill` | `successFill`       | "Marcar como saldado" y barras completadas                      |
+| `on-success-fill` | `onFill(SAGE[6])` | `onFill(SAGE[5])` | `--mantine-color-text-on-success-fill`  | `onSuccessFill`     | Texto sobre `success-fill`: 5,1:1 en los dos esquemas           |
+
+Las manchas `glow-*` son decorativas: nunca debajo de texto sin card (el atenuado sobre `glow-peach` da 4,48:1). El alfa de `surface-glass` sale de `OPACITY.glass` (0,82) con `withOpacity()`, no de un hex. `hairline`, `border-subtle` y `track` son líneas decorativas del DS: no se les exige 3:1 contra la card. Tests: `contrast.test.ts` (texto sobre card glass y sobre cada mancha, `success-fill`) y `tokensV2.test.ts`.
+
+**`text-placeholder` (#151).** Pasó a AA sobre la card, donde viven los inputs: `GRAY[5]` en claro (4,9:1) y `DARK[2]` en oscuro (5,1:1); antes 3,0:1 y 2,6:1. Sigue siendo más suave que `text-dimmed`.
 
 ### Transparencias
 
@@ -73,19 +93,51 @@ Las variantes `*-disabled` y los `surfaces-*-light` de dark son un shade de la e
 
 ### Radios, espaciado y elevación
 
-`RADIUS`, `SPACING` y `SHADOW` (`@omni/shared/theme`) están en **px** y los consumen los dos clientes:
+`RADIUS`, `SPACING`, `SIZE`, `SHADOW` y `SHADOW_THEMED` (`@omni/shared/theme`) están en **px** y los consumen los dos clientes:
 
-| Token     | Web (Mantine)                                           | Mobile (Tamagui)                                             |
-| --------- | ------------------------------------------------------- | ------------------------------------------------------------ |
-| `RADIUS`  | `theme.radius`, en rem (`apps/web/src/theme/tokens.ts`) | número: `borderRadius={RADIUS.lg}`                           |
-| `SPACING` | `theme.spacing`, en rem                                 | número: `padding={SPACING.md}`, `gap={SPACING.xs}`           |
-| `SHADOW`  | — (web usa `SHADOWS` CSS de dos capas)                  | `shadowColor/Offset/Opacity/Radius` + `elevation` en Android |
+| Token           | Web (Mantine)                                           | Mobile (Tamagui)                                             |
+| --------------- | ------------------------------------------------------- | ------------------------------------------------------------ |
+| `RADIUS`        | `theme.radius`, en rem (`apps/web/src/theme/tokens.ts`) | número: `borderRadius={RADIUS.lg}`                           |
+| `SPACING`       | `theme.spacing`, en rem                                 | número: `padding={SPACING.md}`, `gap={SPACING.xs}`           |
+| `SHADOW`        | — (web usa `SHADOWS` CSS de dos capas)                  | `shadowColor/Offset/Opacity/Radius` + `elevation` en Android |
+| `SIZE`          | números (`SIZE.control.lg`)                             | número: `height={SIZE.control.md}`                           |
+| `SHADOW_THEMED` | `shadows.card/float/sheet` (claro) + vars de oscuro     | `themedElevation('card', scheme)`                            |
+
+**Escala de `RADIUS` (múltiplos de 4, #151):**
+
+| Token  | px   | Uso                                                         |
+| ------ | ---- | ----------------------------------------------------------- |
+| `xs`   | 4    | Esquina "cola" de la burbuja del feed, chips de código      |
+| `sm`   | 8    | Pósters y miniaturas                                        |
+| `md`   | 12   | Inputs, chips de ícono, items del navbar                    |
+| `lg`   | 16   | Banners, toasts, card destacada, filas tocables             |
+| `xl`   | 24   | Cards, burbujas del feed, navbar web                        |
+| `2xl`  | 32   | Hojas inferiores (borde superior)                           |
+| `full` | 9999 | Pills: botones, chips, segmented, badges, tab bar, avatares |
+
+La escala se renombró para coincidir con la del Design System (antes `md` era 8, `lg` 12 y `xl` 16). Los usos existentes bajaron un escalón de nombre (`lg` → `md`, `xl` → `lg`, `md` → `sm`) para conservar los píxeles; el único cambio visual es `sm` 6 → 8 y `xs` 2 → 4. El `defaultRadius` de Mantine es ahora `md` (12) y el de Paper/Card, `sm` (8). La clave `2xl` se declara en `mantine.d.ts`.
+
+**`SIZE`:** `control` sm 36 / md 44 / lg 48 (Button lg era 50), `fab` 56, `tabBar` 72 y `avatar` xs 24 / sm 32 / md 40 / lg 80.
+
+**`SHADOW_THEMED`** (desenfoque 32, desplazamiento 8 o 12, valor por esquema): `card` (cards glass, burbujas, navbar), `float` (tab bar, FAB, toasts) y `sheet` (hojas fijas, hacia arriba). Web las registra en `THEME.shadows` (claro) y `cssVariablesResolver` pisa `--mantine-shadow-*` en oscuro; en mobile se esparcen con `themedElevation(level, scheme)`. **`OPACITY`:** `glass` 0,82 y `disabledIcon` 0,5.
 
 En mobile, **no** se registran como tokens de Tamagui (`$lg`): Input, Select, Popover y ListItem calculan su padding recorriendo la escala `space`/`radius` ordenada por valor (`getSpace(token, { shift })`), y sumarle valores cambia esos pasos. El código nuevo usa las constantes compartidas para que un `lg` signifique lo mismo en las dos plataformas; los `$4` de `@tamagui/config` quedan para el interior de los componentes de Tamagui. `SHADOW` replica la capa principal de cada sombra CSS de web: si cambia una, revisar la otra.
 
 ### Tipografía e íconos
 
 Los dos clientes usan **Montserrat** (400/500/600/700) e íconos **Phosphor** con los mismos nombres (`@phosphor-icons/react` en web, `phosphor-react-native` en mobile). Un ícono nuevo se elige una vez y se usa igual en los dos.
+
+**Títulos: familia `display` (#151).** Bricolage Grotesque (`DISPLAY_FONT`), sin itálica, con la palabra acentuada en `primary` (una por título, mismo peso). Web la carga en `index.html` (700 y 800) y la expone en `THEME.other.displayFontFamily` y `THEME.other.display` (en rem); mobile la carga con `useFonts` (`BRICOLAGE_FACES` en `src/theme/fonts.ts`, paquete `@expo-google-fonts/bricolage-grotesque`) y la registra como fuente `display` de Tamagui.
+
+| Estilo (`DISPLAY`) | px / interlineado | Peso | Tracking | Uso                                                 |
+| ------------------ | ----------------- | ---- | -------- | --------------------------------------------------- |
+| `xl`               | 40 / 44           | 800  | −0,4 px  | Título de pantalla principal (Media, Juntadas)      |
+| `lg`               | 32 / 36           | 800  | −0,4 px  | Nombre del saludo, título de juntada, hojas grandes |
+| `md`               | 24 / 28           | 700  | —        | Títulos dentro de hojas y estados vacíos            |
+| `accent`           | 32 / 36           | 800  | —        | La palabra acentuada de un título, en `primary`     |
+| `amountHero`       | 48 / 52           | 800  | −1 px    | Monto protagonista (Agregar gasto, saldo total)     |
+
+`OVERLINE` (12 / 16, 700, 0,6 px, en mayúsculas, Montserrat) es el encabezado de sección y el separador de día del feed. `display` solo admite los pesos 700 y 800: son las únicas caras cargadas y en mobile un peso menor se renderiza como 700 sin aviso. Los interlineados de `HEADING` y `LINE_HEIGHT` siguen como estaban: llevarlos a múltiplos de 4 mueve el alto de todo el texto y es parte de #152 y #154.
 
 ### Gradientes
 
@@ -234,7 +286,7 @@ Lo que **no** es automático y hay que replicar a mano en mobile:
 | Más: `Badge` de "Próximamente"           | Hecho (#69) — `NavRow` con `Badge color="dimmed"`; "Cerrar sesión" es un `Button` outline destructivo                                                     |
 | Card de efemérides (gradiente)           | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                                                                                         |
 | Montserrat + íconos Phosphor             | Hecho — `src/theme/fonts.ts` + `phosphor-react-native`                                                                                                    |
-| Radios y espaciado                       | Hecho — `RADIUS` / `SPACING` de `@omni/shared/theme`                                                                                                      |
+| Radios, espaciado, tamaños y sombras     | Hecho — `RADIUS` / `SPACING` / `SIZE` / `SHADOW_THEMED` de `@omni/shared/theme`                                                                           |
 | Tema del perfil + toggle de sesión       | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)                                                                           |
 
 Al tocar el design system, correr siempre:
@@ -245,4 +297,4 @@ pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web tes
 pnpm --filter mobile check-types && pnpm --filter mobile lint
 ```
 
-No hay test automatizado de color: la verificación es visual en ambos esquemas.
+El contraste de texto y rellenos lo cubren los tests de `contrast.test.ts`; el resto del color se verifica a ojo en ambos esquemas.

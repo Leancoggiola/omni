@@ -55,7 +55,7 @@ export function HolidaysCard() {
       <YStack
         minHeight={CARD_MIN_HEIGHT}
         accessible
-        borderRadius={RADIUS.lg}
+        borderRadius={RADIUS.md}
         backgroundColor="$dimmedSurface"
         accessibilityLabel="Cargando efemérides"
       />
@@ -78,7 +78,7 @@ export function HolidaysCard() {
 
   return (
     <Pressable onPress={next} disabled={!hasCarousel} accessible={false}>
-      <YStack borderWidth={1} borderColor="$borderColor" borderRadius={RADIUS.lg} overflow="hidden">
+      <YStack borderWidth={1} borderColor="$borderColor" borderRadius={RADIUS.md} overflow="hidden">
         <LinearGradient
           colors={[gradient.from, gradient.to]}
           {...gradientPoints(gradient.deg)}
@@ -86,7 +86,7 @@ export function HolidaysCard() {
         />
 
         <XStack gap={SPACING.sm} padding={SPACING.sm} alignItems="flex-start" minHeight={CARD_MIN_HEIGHT}>
-          <YStack backgroundColor={s.white} borderRadius={RADIUS.md} padding={SPACING.xs}>
+          <YStack backgroundColor={s.white} borderRadius={RADIUS.sm} padding={SPACING.xs}>
             <ConfettiIcon size={20} color={BRAND[7]} />
           </YStack>
 

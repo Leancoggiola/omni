@@ -39,7 +39,7 @@ export function NavRow({ navKey }: { navKey: NavKey }) {
       <YStack
         width={CHIP_SIZE}
         height={CHIP_SIZE}
-        borderRadius={RADIUS.md}
+        borderRadius={RADIUS.sm}
         backgroundColor={available ? '$primarySurface' : '$dimmedSurface'}
         alignItems="center"
         justifyContent="center"

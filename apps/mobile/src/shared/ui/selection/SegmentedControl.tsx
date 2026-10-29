@@ -36,7 +36,7 @@ export function SegmentedControl<T extends string>({
   return (
     <XStack
       backgroundColor="$dimmedSurface"
-      borderRadius={RADIUS.lg}
+      borderRadius={RADIUS.md}
       padding={TRACK_PADDING}
       gap={TRACK_PADDING}
       opacity={disabled ? 0.6 : 1}
@@ -51,7 +51,7 @@ export function SegmentedControl<T extends string>({
             flex={1}
             height={SEGMENT_HEIGHT}
             paddingHorizontal={SPACING['2xs']}
-            borderRadius={RADIUS.md}
+            borderRadius={RADIUS.sm}
             alignItems="center"
             justifyContent="center"
             backgroundColor={active ? '$primary' : 'transparent'}

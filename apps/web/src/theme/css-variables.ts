@@ -8,6 +8,8 @@ import {
   type VariantColorsResolver,
 } from '@mantine/core';
 
+import { SHADOWS_DARK } from './tokens';
+
 import { onFill, semanticDark, semanticLight, WHITE } from '@omni/shared/theme';
 
 /** Core Mantine vars mapped from the full semantic token set. */
@@ -74,6 +76,7 @@ export const cssVariablesResolver: CSSVariablesResolver = theme => ({
   dark: {
     ...mantineCoreDark,
     ...semanticDark,
+    ...SHADOWS_DARK,
     ...onFilledVariables(theme, 'dark'),
   },
 });

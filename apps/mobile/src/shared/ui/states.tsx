@@ -39,7 +39,7 @@ export function EmptyState({ icon: IconComponent, title, action }: EmptyStatePro
       backgroundColor="$backgroundStrong"
       borderWidth={1}
       borderColor="$borderColor"
-      borderRadius={RADIUS.md}
+      borderRadius={RADIUS.sm}
       padding={SPACING.xl}
       gap={SPACING.md}
       alignItems="center"
@@ -81,7 +81,7 @@ export function ErrorState({
       backgroundColor="$errorSurface"
       borderWidth={1}
       borderColor="$destructive"
-      borderRadius={RADIUS.lg}
+      borderRadius={RADIUS.md}
       padding={SPACING.md}
       gap={SPACING.md}
       accessibilityRole="alert"

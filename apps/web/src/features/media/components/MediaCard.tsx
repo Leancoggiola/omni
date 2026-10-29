@@ -17,7 +17,7 @@ interface MediaCardProps {
 
 export const MediaCard = memo(function MediaCard({ item, onStatusChange, onDelete }: MediaCardProps) {
   return (
-    <Card shadow="sm" p="none" radius="md" withBorder h="100%">
+    <Card shadow="sm" p="none" radius="sm" withBorder h="100%">
       <Card.Section pos="relative">
         <MediaPoster
           key={item.posterPath ?? 'none'}

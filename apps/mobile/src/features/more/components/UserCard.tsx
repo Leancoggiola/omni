@@ -19,7 +19,7 @@ export function UserCard() {
       alignItems="center"
       gap={SPACING.md}
       padding={SPACING.lg}
-      borderRadius={RADIUS.lg}
+      borderRadius={RADIUS.md}
       backgroundColor="$backgroundStrong"
       {...elevation('sm')}
       onPress={() => router.navigate('/profile')}

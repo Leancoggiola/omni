@@ -13,7 +13,7 @@ interface PageHeaderProps {
 export const PageHeader: FC<PageHeaderProps> = ({ icon, title, subtitle, actions }) => (
   <Group justify="space-between" align="center" wrap="wrap" gap="md">
     <Group gap="sm" wrap="nowrap">
-      <ThemeIcon variant="light" color="terracotta" size="2.75rem" radius="md">
+      <ThemeIcon variant="light" color="terracotta" size="2.75rem" radius="sm">
         {icon}
       </ThemeIcon>
       <Stack gap="3xs">

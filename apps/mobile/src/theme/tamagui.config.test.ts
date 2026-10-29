@@ -59,6 +59,21 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     expect(value(`${scheme}_${component}`, key)).toBe(expected);
   });
 
+  it.each([
+    ['surfaceGlass', s.surfaceGlass],
+    ['glassBorder', s.glassBorder],
+    ['glowPeach', s.glowPeach],
+    ['glowLilac', s.glowLilac],
+    ['hairline', s.hairline],
+    ['borderSubtle', s.borderSubtle],
+    ['track', s.track],
+    ['successFill', s.successFill],
+    ['onSuccessFill', s.onSuccessFill],
+  ])('los tokens de v2 resuelven %s en el theme base y en uno de color', (key, expected) => {
+    expect(value(scheme, key)).toBe(expected);
+    expect(value(`${scheme}_active`, key)).toBe(expected);
+  });
+
   it('toda variante de COMPONENT_THEMES se reconstruye (ninguna conserva el valor de @tamagui/config)', () => {
     const originals = config.themes as unknown as Record<string, Record<string, unknown>>;
     const names = Object.keys(originals).filter(
@@ -77,5 +92,17 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
   it('las variantes _red de Slider y Progress activos van en destructivo', () => {
     expect(value(`${scheme}_red_SliderTrackActive`, 'background')).toBe(s.destructiveFill);
     expect(value(`${scheme}_red_ProgressIndicator`, 'background')).toBe(s.destructiveFill);
+  });
+});
+
+describe('fuentes de display', () => {
+  it('registra Bricolage Grotesque con el 700 y el 800 en caras propias', () => {
+    const display = tamaguiConfig.fonts.display as unknown as {
+      family: string;
+      face: Record<number, { normal: string }>;
+    };
+    expect(display.family).toBe('Bricolage Grotesque');
+    expect(display.face[700].normal).toBe('BricolageGrotesqueBold');
+    expect(display.face[800].normal).toBe('BricolageGrotesqueExtraBold');
   });
 });
