@@ -31,7 +31,7 @@ export const protectedRoutes = [homeRoute, mediaRoute, profileRoute, gymRoute];
 ## 4. Registrar navbar
 
 1. Agregar la clave en `NAV_REGISTRY` y `MAIN_NAV_ORDER` de [`@omni/shared/navigation`](../../packages/shared/src/navigation/registry.ts), con `"web"` en `availableOn` (sin él, el ítem queda deshabilitado)
-2. Ícono en `NAV_ICONS` de [`nav-registry.tsx`](../../apps/web/src/app/navigation/nav-registry.tsx) (y de mobile, [`navIcons.ts`](../../apps/mobile/src/shared/navigation/navIcons.ts))
+2. Ícono en `NAV_ICONS` de [`nav-registry.tsx`](../../apps/web/src/shared/navigation/nav-registry.tsx) (y de mobile, [`navIcons.ts`](../../apps/mobile/src/shared/navigation/navIcons.ts))
 
 ## 5. Datos (SWR)
 

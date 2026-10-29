@@ -1,4 +1,4 @@
-import type { NavItemConfig } from '@/layouts/navConfig';
+import type { NavItemConfig } from './navConfig';
 import type { NavKey } from '@omni/shared/navigation';
 
 import { ADMIN_NAV_ORDER, isNavAvailable, MAIN_NAV_ORDER, NAV_REGISTRY } from '@omni/shared/navigation';
