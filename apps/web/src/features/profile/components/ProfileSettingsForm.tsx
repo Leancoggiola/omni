@@ -20,13 +20,13 @@ import { clearSessionColorScheme } from '@/core/theme';
 import { DISPLAY_DATE_FORMAT } from '@/shared/dates';
 import { getErrorMessage, notifySuccess } from '@/shared/ui';
 
-import { ProfileSectionCard } from '../../../_shared/components/ProfileSectionCard';
 import {
   buildPreferencesUpdates,
   buildProfileUpdates,
   type ProfileFormValues,
   toProfileFormValues,
-} from '../../../_shared/utils';
+} from '../utils/profileForm';
+import { ProfileSectionCard } from './ProfileSectionCard';
 
 import type { ProfileTheme, UpdatePreferencesPayload, UpdateProfilePayload, UserProfile } from '@omni/shared/users';
 import type { FC } from 'react';
