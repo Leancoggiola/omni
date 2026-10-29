@@ -3,7 +3,7 @@ import { FileButton, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 
 import { UserAvatar } from '@/shared/ui';
 
-import { ProfileSectionCard } from '../../../_shared/components/ProfileSectionCard';
+import { ProfileSectionCard } from './ProfileSectionCard';
 
 import type { FC } from 'react';
 

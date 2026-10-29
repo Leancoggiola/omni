@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildPreferencesUpdates, buildProfileUpdates, toProfileFormValues } from '../profileForm';
+import { buildPreferencesUpdates, buildProfileUpdates, toProfileFormValues } from '../utils/profileForm';
 
 import type { UserProfile } from '@omni/shared/users';
 

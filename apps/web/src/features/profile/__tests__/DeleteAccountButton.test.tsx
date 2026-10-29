@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/__tests__/helpers';
 import { ApiError } from '@/shared/api';
 
-import { DeleteAccountButton } from '../DeleteAccountButton';
+import { DeleteAccountButton } from '../components/DeleteAccountButton';
 
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
