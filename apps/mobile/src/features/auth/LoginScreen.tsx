@@ -17,14 +17,13 @@ import LOGO from '../../../assets/images/splash-icon.png';
 import { AuthBackground } from './components/AuthBackground';
 
 const LOGO_SIZE = 88;
-/** Ancho máximo del form en pantallas grandes (web: `miw="25rem"`). */
 const FORM_MAX_WIDTH = 420;
 
 type FieldErrors = Partial<Record<'username' | 'password', string>>;
 
 /**
  * Login v2: logo y título arriba y el form en una hoja inferior de radio 32 que sube con el teclado
- * (`useKeyboardInset`). Al montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y
+ * (`useKeyboardInset`); el form no pasa de 420 de ancho en pantallas grandes (web: `miw="25rem"`). Al montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y
  * el aviso aparezca si tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en
  * curso, los campos (el ojo de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la
  * contraseña (el campo deshabilitado lo pierde y cierra el teclado).
@@ -116,7 +115,7 @@ export function LoginScreen() {
             borderTopRightRadius={RADIUS['2xl']}
             paddingHorizontal={SPACING.xl}
             paddingTop={SPACING.xl}
-            paddingBottom={insets.bottom + SPACING.xl}
+            paddingBottom={keyboardInset > 0 ? SPACING.xl : insets.bottom + SPACING.xl}
             {...themedElevation('sheet', colorScheme)}
           >
             <YStack width="100%" maxWidth={FORM_MAX_WIDTH} alignSelf="center" gap={SPACING.lg}>

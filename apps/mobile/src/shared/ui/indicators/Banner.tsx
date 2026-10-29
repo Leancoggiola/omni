@@ -15,7 +15,6 @@ type BannerProps = {
   children: string;
   color?: BannerColor;
   icon?: Icon;
-  /** Aviso que flota sobre la pantalla: fondo de card y sombra `float` en vez del wash del color. */
   floating?: boolean;
 };
 
@@ -43,8 +42,8 @@ const ICON_COLOR = {
 
 /**
  * Equivalente de `Alert` de web (variante `light-custom`, la que tiene por defecto): wash del color,
- * borde de 1 y texto en el color. Para errores de formulario: `<Banner color="destructive">`. `floating` es el
- * aviso global (`ServerWakeNotice`).
+ * borde de 1 y texto en el color. Para errores de formulario: `<Banner color="destructive">`. `floating` (fondo de
+ * card y sombra `float` en vez del wash del color) es para el aviso global (`ServerWakeNotice`).
  */
 export function Banner({ children, color = 'brand', icon: IconComponent, floating = false }: BannerProps) {
   const colors = useSemanticColors();

@@ -25,6 +25,7 @@ describe('DisplayTitle', () => {
     render(<DisplayTitle accent="Series">Películas y Series</DisplayTitle>);
 
     expect(screen.getByText('Series')).toHaveProp('color', '$primary');
+    expect(screen.getByText('Series')).toHaveProp('letterSpacing', 0);
     expect(screen.getByRole('header', { name: 'Películas y Series' })).toHaveProp('color', '$color');
   });
 

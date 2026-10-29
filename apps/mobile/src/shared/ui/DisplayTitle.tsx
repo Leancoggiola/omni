@@ -6,13 +6,14 @@ type DisplaySize = 'md' | 'lg' | 'xl';
 type DisplayTitleProps = Omit<ParagraphProps, 'children' | 'size'> & {
   children: string;
   size?: DisplaySize;
-  /** Palabra o frase de `children` que va en `primary` (una por título); si no aparece, el título queda sin acento. */
   accent?: string;
 };
 
 /**
  * Título de la familia `display` (Bricolage Grotesque, `DISPLAY` de `@omni/shared/theme`) con la palabra
  * acentuada en `primary`, mismo peso y sin itálica: "Películas y _Series_", "¡Te damos la bienvenida a _Omni_!".
+ * `accent` es la palabra o frase de `children` que va en `primary` (una por título); si no aparece, el título
+ * queda sin acento.
  */
 export function DisplayTitle({ children, size = 'lg', accent, ...props }: DisplayTitleProps) {
   const { fontSize, lineHeight, fontWeight, letterSpacing } = DISPLAY[size];
@@ -33,7 +34,7 @@ export function DisplayTitle({ children, size = 'lg', accent, ...props }: Displa
       ) : (
         <>
           {children.slice(0, at)}
-          <Paragraph color="$primary" {...style}>
+          <Paragraph color="$primary" {...style} letterSpacing={DISPLAY.accent.letterSpacing}>
             {accent}
           </Paragraph>
           {children.slice(at + accent.length)}
