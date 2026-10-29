@@ -13,11 +13,7 @@ interface AppBackgroundProps {
  * Decorativo. Con `animated` las manchas se mueven despacio; con `prefers-reduced-motion` quedan quietas.
  */
 export const AppBackground: FC<AppBackgroundProps> = ({ animated = false }) => (
-  <Box
-    className={animated ? `${styles.root} ${styles.animated}` : styles.root}
-    aria-hidden
-    data-testid="app-background"
-  >
+  <Box className={animated ? `${styles.root} ${styles.animated}` : styles.root} aria-hidden>
     <Box className={`${styles.blob} ${styles.peach}`} />
     <Box className={`${styles.blob} ${styles.lilac}`} />
   </Box>
