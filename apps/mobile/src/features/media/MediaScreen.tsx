@@ -132,7 +132,7 @@ export function MediaScreen() {
 
   const renderEmpty = () => {
     if (error) return <ErrorState message="No se pudo cargar tu lista" onRetry={() => void mutate()} />;
-    if (isLoading) return <LoadingState />;
+    if (isLoading) return <LoadingState variant="skeleton" />;
     if (hasActiveFilters(filters)) return <EmptyState icon={FilmSlateIcon} title="No hay resultados" />;
     return (
       <EmptyState

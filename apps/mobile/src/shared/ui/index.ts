@@ -26,6 +26,7 @@ export { DisplayTitle } from './DisplayTitle';
 export { Screen } from './Screen';
 export { ScreenHeader } from './ScreenHeader';
 export { SectionCard } from './SectionCard';
+export { SheetFrame } from './sheet/SheetFrame';
 export { SHEET_EXIT_MS } from './sheet/useSheetQueue';
 export type { SegmentedControlItem } from './selection/SegmentedControl';
 export { SegmentedControl } from './selection/SegmentedControl';
