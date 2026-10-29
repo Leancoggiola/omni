@@ -17,7 +17,6 @@ const CARD_MIN_HEIGHT = 64;
 const CHIP_SIZE = 36;
 const PROGRESS_HEIGHT = 4;
 const TRACK_OPACITY = 0.08;
-/** `activate` es el doble toque de VoiceOver/TalkBack sobre el elemento enfocado. */
 const CAROUSEL_A11Y_ACTIONS = [{ name: 'activate', label: 'Siguiente efeméride' }];
 
 function HolidayProgress({ duration, color }: { duration: number; color: string }) {
@@ -38,6 +37,11 @@ function HolidayProgress({ duration, color }: { duration: number; color: string 
   );
 }
 
+/**
+ * Efemérides de hoy como card destacada (`HighlightCard` del DS): radio 16, chip de 36, barra de progreso de 4 con el
+ * tiempo del carrusel y link a Wikipedia. `CAROUSEL_A11Y_ACTIONS` expone `activate`, el doble toque de VoiceOver y
+ * TalkBack sobre el elemento enfocado, para pasar a la siguiente.
+ */
 export function HolidaysCard() {
   const { holidays, isLoading, error, retry } = useTodayHolidays();
   const { colorScheme } = useColorSchemeControl();

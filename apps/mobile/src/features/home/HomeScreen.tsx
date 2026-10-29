@@ -42,7 +42,7 @@ export function HomeScreen() {
                 accessibilityLabel="Cargando tu nombre"
               />
             ) : (
-              <DisplayTitle size="lg" accent={name} accessibilityRole={undefined}>
+              <DisplayTitle size="lg" accent={name} header={false}>
                 {name}
               </DisplayTitle>
             )}

@@ -26,7 +26,9 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
   const [height, setHeight] = useState(0);
   const bottom = tabBarBottomOffset(insets.bottom);
 
-  useEffect(() => setBottomOffset(isFocused ? height + bottom : 0), [isFocused, height, bottom, setBottomOffset]);
+  useEffect(() => {
+    setBottomOffset(isFocused ? height + bottom : 0);
+  }, [isFocused, height, bottom, setBottomOffset]);
   useEffect(() => () => setBottomOffset(0), [setBottomOffset]);
 
   return (

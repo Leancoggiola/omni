@@ -30,9 +30,9 @@ function TabLabel({ label, focused, color }: { label: string; focused: boolean; 
 }
 
 /**
- * El tab activo lleva el ícono relleno sobre una pill, como el ítem activo del navbar de web. Es una `View` con el
- * pill va aparte y cambia solo su opacidad: si cambiaba el fondo de la misma vista, Android dibujaba la pill cuadrada
- * después de cambiar de tab.
+ * El tab activo lleva el ícono relleno sobre una pill, como el ítem activo del navbar de web. La pill es una `View`
+ * aparte que solo cambia de opacidad: si cambiaba el fondo de la misma vista, Android la dibujaba cuadrada después
+ * de cambiar de tab.
  */
 function TabIcon({ icon: IconComponent, focused, color }: { icon: Icon; focused: boolean; color: string }) {
   const colors = useSemanticColors();

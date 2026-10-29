@@ -12,10 +12,9 @@ import { Spinner } from './Spinner';
 import type { ReactNode } from 'react';
 
 /**
- * Estados de UI compartidos, mismo contrato que `@/shared/ui` de web (regla de oro 0): el `error`
- * de SWR se muestra con `ErrorState`, nunca como lista vacía.
+ * Carga de los estados de UI compartidos, mismo contrato que `@/shared/ui` de web (regla de oro 0): el `error` de SWR
+ * se muestra con `ErrorState`, nunca como lista vacía.
  */
-
 export function LoadingState({ size = 'large' }: { size?: 'small' | 'large' }) {
   return (
     <YStack paddingVertical={SPACING.xl} alignItems="center" justifyContent="center">
@@ -29,11 +28,13 @@ const INDICATOR_SIZE = 56;
 type EmptyStateProps = {
   icon: Icon;
   title: string;
-  /** Debajo del título, típicamente un Button. */
   action?: ReactNode;
 };
 
-/** Vacío de v2: ícono en un cuadro glass de 56 y radio 24, y el título en `display md`. */
+/**
+ * Vacío de v2: ícono en un cuadro glass de 56 y radio 24, y el título en `display md`. `action` va debajo del título,
+ * típicamente un Button.
+ */
 export function EmptyState({ icon: IconComponent, title, action }: EmptyStateProps) {
   const colors = useSemanticColors();
   const { colorScheme } = useColorSchemeControl();
@@ -61,7 +62,7 @@ export function EmptyState({ icon: IconComponent, title, action }: EmptyStatePro
       >
         <IconComponent size={28} color={colors.accent} />
       </YStack>
-      <DisplayTitle size="md" textAlign="center" accessibilityRole={undefined}>
+      <DisplayTitle size="md" textAlign="center" header={false}>
         {title}
       </DisplayTitle>
       {action}
@@ -109,7 +110,7 @@ export function ErrorState({
       >
         <WarningCircleIcon size={28} color={colors.destructive} />
       </YStack>
-      <DisplayTitle size="md" textAlign="center" accessibilityRole={undefined}>
+      <DisplayTitle size="md" textAlign="center" header={false}>
         {message}
       </DisplayTitle>
       {onRetry ? (
