@@ -143,8 +143,6 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
                   aria-labelledby={themeLabelId}
                   data={[...PROFILE_THEME_OPTIONS]}
                   size="sm"
-                  radius="sm"
-                  color="brand.6"
                   fullWidth
                   value={form.values.theme}
                   onChange={theme => form.setFieldValue('theme', theme as ProfileTheme)}
@@ -155,7 +153,7 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
 
           {error && <Alert color="destructive">{error}</Alert>}
 
-          <Divider />
+          <Divider color="var(--mantine-color-border-hairline)" />
 
           <Group justify="flex-end">
             <Button
