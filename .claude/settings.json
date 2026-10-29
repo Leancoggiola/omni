@@ -11,6 +11,7 @@
       "Bash(pnpm --filter * test)",
       "Bash(pnpm --filter * test:unit)",
       "Bash(pnpm --filter * check-api-paths)",
+      "Bash(pnpm --filter * check-structure)",
       "Bash(pnpm --filter api db:test:reset)",
       "Bash(pnpm --filter e2e test:e2e)",
       "Bash(pnpm format:check)",
