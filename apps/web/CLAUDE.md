@@ -13,12 +13,7 @@ Hooks SWR: skill `swr-hooks`. Formularios: skill `mantine-form`. Nueva feature: 
 | `src/layouts/`  | Shell (RootLayout, Navbar, Header)                                         |
 | `src/theme/`    | Mantine theme                                                              |
 
-Convención de features (árbol y reglas completas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile). En corto:
-
-- `features/<name>/`: `<page>.page.tsx`, `<name>.routes.tsx` e `index.ts`, el único barrel (exporta la ruta). Adentro, `components/`, `hooks/useX.ts` (un hook por archivo, nunca en `utils/`), `utils/` y `__tests__/`, sin `index.ts`.
-- Un componente tiene carpeta propia solo si tiene auxiliares (`./components/X/X`). `modules/<m>/` solo con ≥ 2 subdominios con UI propia; sin `modules/_shared`.
-
-> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue.
+Estructura de features (árbol y reglas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile).
 
 - **Prohibido:** `features/A` → `features/B` (lo hace cumplir ESLint). UI usada en 2+ features → `shared/ui/`.
 - Navbar: clave en `NAV_REGISTRY` / `MAIN_NAV_ORDER` de `@omni/shared/navigation` (compartido con mobile) + ícono en `NAV_ICONS` de `app/navigation/nav-registry.tsx`.
