@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url';
 
 import prettier from 'prettier';
 
-/** Raíz del repo; `OMNI_REPO_ROOT` la reemplaza para que los tests generen en un directorio temporal. */
 const repoRoot = process.env.OMNI_REPO_ROOT ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const webSrc = path.join(repoRoot, 'apps', 'web', 'src');
 const mobileSrc = path.join(repoRoot, 'apps', 'mobile', 'src');
