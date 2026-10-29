@@ -134,7 +134,7 @@ export const ${camel}Route: RouteObject = {
   console.log('Pasos que faltan:');
   if (!registerRoute) console.log(`  - Ruta: ${camel}Route en protectedRoutes de apps/web/src/app/routes.ts`);
   console.log('  - Nav: key en NAV_REGISTRY y MAIN_NAV_ORDER de packages/shared/src/navigation/registry.ts');
-  console.log('    ("web" en availableOn) e ícono en NAV_ICONS de apps/web/src/app/navigation/nav-registry.tsx');
+  console.log('    ("web" en availableOn) e ícono en NAV_ICONS de apps/web/src/shared/navigation/nav-registry.tsx');
   console.log('  - Endpoints en API_PATHS de packages/shared/src/api/paths.ts; hooks en hooks/ (skill swr-hooks)');
   console.log('  - pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web test');
 }
