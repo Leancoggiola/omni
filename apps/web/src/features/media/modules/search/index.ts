@@ -1,1 +1,0 @@
-export { useMediaSearch } from './hooks';
