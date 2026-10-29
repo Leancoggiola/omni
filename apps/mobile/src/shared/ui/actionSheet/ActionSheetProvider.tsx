@@ -44,7 +44,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
         </YStack>
         <Sheet.ScrollView maxHeight={height * MAX_LIST_RATIO} bounces={false}>
           <YStack accessibilityRole="menu">
-            {request?.options.map(option => {
+            {request?.options.map((option, index) => {
               const selected = option.value === request.value;
               const OptionIcon = option.icon;
               return (
@@ -54,7 +54,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
                   paddingHorizontal={SPACING['2xs']}
                   gap={SPACING.sm}
                   alignItems="center"
-                  borderBottomWidth={1}
+                  borderBottomWidth={index < request.options.length - 1 ? 1 : 0}
                   borderBottomColor="$hairline"
                   pressStyle={{ backgroundColor: '$hover' }}
                   onPress={() => queue.close(option.value)}

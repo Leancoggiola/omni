@@ -46,4 +46,11 @@ describe('DisplayTitle', () => {
     expect(screen.queryByRole('header')).toBeNull();
     expect(screen.getByText('Algo salió mal')).toBeTruthy();
   });
+
+  it('el acento es la última aparición del texto (como PageHeader de web)', () => {
+    render(<DisplayTitle accent="Serie">Serie y Serie</DisplayTitle>);
+
+    expect(screen.getAllByText('Serie')).toHaveLength(1);
+    expect(screen.getByRole('header', { name: 'Serie y Serie' })).toBeTruthy();
+  });
 });

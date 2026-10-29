@@ -33,7 +33,10 @@ function SkeletonBlock({
   return <YStack width={width} height={height} flex={flex} borderRadius={radius} backgroundColor="$track" />;
 }
 
-/** Fila skeleton: card glass con el póster y las líneas de título, tipo y estado de una fila de lista. */
+/**
+ * Fila skeleton: card glass con el póster y las líneas de título, tipo y estado de una fila de lista. Replica las
+ * medidas de `MediaListItem` (póster de 56 x 84, pill de estado de 28): si cambia la fila, cambia acá.
+ */
 function SkeletonRow() {
   const { colorScheme } = useColorSchemeControl();
 

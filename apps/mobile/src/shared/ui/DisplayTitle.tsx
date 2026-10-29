@@ -13,8 +13,8 @@ type DisplayTitleProps = Omit<ParagraphProps, 'children' | 'size'> & {
 /**
  * Título de la familia `display` (Bricolage Grotesque, `DISPLAY` de `@omni/shared/theme`) con la palabra
  * acentuada en `primary`, mismo peso y sin itálica: "Películas y _Series_", "¡Te damos la bienvenida a _Omni_!".
- * `accent` es la palabra o frase de `children` que va en `primary` (una por título); si no aparece, el título
- * queda sin acento. `header` (por defecto sí) lo marca como encabezado para TalkBack; sin él es un texto más (mensajes
+ * `accent` es la palabra o frase de `children` que va en `primary` (una por título, su última aparición, como
+ * `PageHeader` de web); si no aparece, el título queda sin acento. `header` (por defecto sí) lo marca como encabezado para TalkBack; sin él es un texto más (mensajes
  * de estados vacíos y de error).
  */
 export function DisplayTitle({ children, size = 'lg', accent, header = true, ...props }: DisplayTitleProps) {
@@ -27,7 +27,7 @@ export function DisplayTitle({ children, size = 'lg', accent, header = true, ...
     letterSpacing,
     textTransform: 'none',
   } as const;
-  const at = accent ? children.indexOf(accent) : -1;
+  const at = accent ? children.lastIndexOf(accent) : -1;
 
   return (
     <Paragraph color="$color" accessibilityRole={header ? 'header' : undefined} {...style} {...props}>

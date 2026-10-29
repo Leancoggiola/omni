@@ -10,8 +10,8 @@ import { useSheetQueue } from '../sheet/useSheetQueue';
 import { registerConfirmHandler, type ConfirmRequest } from './confirm';
 
 /**
- * Confirmaciones en una hoja inferior de v2 (título en `display`). Botones apilados a lo ancho: confirmar arriba (filled) y
- * cancelar abajo (outline), ver "Botones de acción" en `apps/mobile/CLAUDE.md`.
+ * Confirmaciones en una hoja inferior de v2 (título en `display`). Botones apilados a lo ancho: confirmar arriba
+ * (filled) y cancelar abajo (outline), ver "Botones de acción" en `apps/mobile/CLAUDE.md`.
  */
 export function ConfirmProvider({ children }: PropsWithChildren) {
   const queue = useSheetQueue<boolean, ConfirmRequest>(registerConfirmHandler, false);
@@ -23,7 +23,7 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
       <QueuedSheet queue={queue}>
         <YStack gap={SPACING.xs}>
           <DisplayTitle size="md">{request?.title ?? ''}</DisplayTitle>
-          <Paragraph fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl + 2} color="$dimmed">
+          <Paragraph fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl} color="$dimmed">
             {request?.description}
           </Paragraph>
         </YStack>

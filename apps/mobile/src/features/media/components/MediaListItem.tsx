@@ -1,5 +1,5 @@
 import { MEDIA_STATUS_LABELS, MEDIA_TYPE_LABELS } from '@omni/shared/media';
-import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
+import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { TrashIcon } from 'phosphor-react-native';
 import { memo } from 'react';
 import { Paragraph, XStack, YStack } from 'tamagui';
@@ -40,7 +40,7 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusPress, 
       <MediaPoster posterPath={item.posterPath} width={POSTER_WIDTH} />
       <YStack flex={1} gap={SPACING.xs} justifyContent="space-between">
         <XStack gap={SPACING.xs} alignItems="flex-start">
-          <Paragraph flex={1} fontSize={FONT_SIZE.lg} lineHeight={22} fontWeight="600" numberOfLines={2}>
+          <Paragraph flex={1} fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl} fontWeight="600" numberOfLines={2}>
             {item.title}
           </Paragraph>
           <YStack paddingTop={SPACING['3xs']}>
