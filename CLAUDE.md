@@ -68,12 +68,13 @@ Las de Mantine/Supabase son de terceros: se actualizan con `npx skills add … -
 ## MCP y tooling por máquina
 
 - **`codegraph`** — una sola tool, `codegraph_explore`: símbolos, call paths y blast radius en una llamada. Es punto de entrada, no herramienta de iteración: una llamada por tarea, sin releer lo que ya devolvió, y formulada como flujo ("flujo JWT refresh shared→api→web"), no como ubicación. Setup: `pnpm codegraph:init` (índice local en `.codegraph/`, gitignored); auto-sync por file watcher, `pnpm codegraph:status` si sospechás desfase.
+- **MCP en Windows y macOS** — los servers stdio de `.mcp.json` se lanzan con `node .claude/mcp/npx.mjs` (envuelve `npx` y usa shell solo en Windows), así que no dependen de `cmd`. La ruta es relativa al cwd: abrir Claude Code desde la raíz del repo o de un worktree.
 - **Arranque de MCP** — `codegraph` y `mantine` corren con `npx -y`: en frío (caché vacío) pueden pasar los 30 s por defecto. `.claude/settings.json` fija `MCP_TIMEOUT=90000`; si igual fallan, reconectar con `/mcp`.
 - **`supabase`** — SQL, RLS, advisors, en **solo lectura** (`read_only=true`) sobre `omni-dev`. Requiere `SUPABASE_ACCESS_TOKEN` en el entorno. Las versiones de los MCP están fijadas en `.mcp.json`; subirlas a mano al actualizar.
 - **`mantine`** — props/Styles API en vivo de la versión exacta del repo.
 - **`playwright`** — revisión visual de la web (Chromium con ventana). Requiere `dev:api-web` corriendo; login con `ADMIN_USERNAME`/`ADMIN_PASSWORD` de `apps/api/.env` (admin del seed en la base de dev; las de `.env.e2e` no existen ahí). Revisar claro y oscuro; forzar errores interceptando requests con `page.route` (vía `browser_run_code_unsafe`) en vez de tocar código. Capturas en `.playwright-mcp/` (gitignored). Para flujos repetibles, specs en `apps/e2e`, no MCP.
 - Las definiciones de tools MCP pesan en cada request: deshabilitar `supabase`/`mantine`/`playwright` (`/mcp`) fuera de sesiones de DB, de `apps/web` o de revisión de UI.
-- **RTK** (opcional, por máquina) — comprime el output de los comandos Bash. Instalar: `winget install rtk-ai.rtk` y `rtk init -g` (registra el hook en `~/.claude/settings.json`; no está en el repo). Comandos persistentes (`vite`, `expo start`, `turbo run dev`) se excluyen en `%APPDATA%\rtk\config.toml`.
+- **RTK** (opcional, por máquina) — comprime el output de los comandos Bash. Instalar: `winget install rtk-ai.rtk` (Windows) o `brew install rtk` (macOS) y `rtk init -g` (registra el hook en `~/.claude/settings.json`; no está en el repo). Comandos persistentes (`vite`, `expo start`, `turbo run dev`) se excluyen en `%APPDATA%\rtk\config.toml` (Windows) o `~/Library/Application Support/rtk/config.toml` (macOS).
 
 ---
 
