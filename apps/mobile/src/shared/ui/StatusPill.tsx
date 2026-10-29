@@ -5,24 +5,25 @@ import { Paragraph, XStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 
-/**
- * Mismos tokens que el Select de estado de web (`MediaStatusSelect.module.scss`): por ver es neutro,
- * viendo es terracota y vista es sage.
- */
 const STATUS_TOKENS = {
-  to_watch: { background: '$dimmedSurface', border: '$dimmedBorder' },
+  to_watch: { background: '$disabledSurface', border: '$borderSubtle' },
   watching: { background: '$accentSurface', border: '$accentBorder' },
   watched: { background: '$successSurface', border: '$successBorder' },
 } as const satisfies Record<MediaStatus, { background: string; border: string }>;
 
+const PILL_HEIGHT = 28;
+
 type StatusPillProps = {
   status: MediaStatus;
-  /** Con `onPress` la pill se vuelve un disparador (muestra un caret), p. ej. para abrir un Sheet. */
   onPress?: () => void;
-  /** Reemplaza al label por defecto; en listas, con el título del ítem ("Estado de Dune: Vista"). */
   accessibilityLabel?: string;
 };
 
+/**
+ * Pill de estado de v2 (alto 28, borde de 1): por ver es neutro (`disabled-surface`), viendo es terracota y vista es
+ * sage, como el Select de estado de web (`MediaStatusSelect.module.scss`). Con `onPress` es un disparador con chevron.
+ * `accessibilityLabel` reemplaza al label por defecto; en listas, con el título del ítem ("Estado de Dune: Vista").
+ */
 export function StatusPill({ status, onPress, accessibilityLabel }: StatusPillProps) {
   const colors = useSemanticColors();
   const tokens = STATUS_TOKENS[status];
@@ -33,8 +34,8 @@ export function StatusPill({ status, onPress, accessibilityLabel }: StatusPillPr
       alignSelf="flex-start"
       alignItems="center"
       gap={SPACING['2xs']}
+      height={PILL_HEIGHT}
       paddingHorizontal={SPACING.sm}
-      paddingVertical={SPACING['2xs']}
       borderRadius={RADIUS.full}
       borderWidth={1}
       backgroundColor={tokens.background}
@@ -45,10 +46,10 @@ export function StatusPill({ status, onPress, accessibilityLabel }: StatusPillPr
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityLabel={accessibilityLabel ?? (onPress ? `Estado: ${label}. Cambiar estado` : `Estado: ${label}`)}
     >
-      <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600">
+      <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600" color="$color">
         {label}
       </Paragraph>
-      {onPress ? <CaretDownIcon size={12} color={colors.text} weight="bold" /> : null}
+      {onPress ? <CaretDownIcon size={14} color={colors.text} /> : null}
     </XStack>
   );
 }

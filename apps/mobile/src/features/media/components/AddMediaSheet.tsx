@@ -1,22 +1,22 @@
 import { getTmdbResultKey, getTmdbResultTitle, MEDIA_STATUS_OPTIONS, resolveMediaType } from '@omni/shared/media';
-import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
+import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { MagnifyingGlassIcon, XIcon } from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard, Modal } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Paragraph, Sheet, XStack, YStack } from 'tamagui';
 
 import {
   Banner,
   Button,
+  DisplayTitle,
   ErrorState,
   getErrorMessage,
   IconButton,
   SegmentedControl,
   SHEET_EXIT_MS,
+  SheetFrame,
   Spinner,
   TextField,
-  Title,
 } from '@/shared/ui';
 
 import { MIN_SEARCH_LENGTH, useMediaSearch } from '../hooks/useMediaSearch';
@@ -49,7 +49,6 @@ type AddMediaSheetProps = {
  * sobrevive al remonte por `key`.
  */
 export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, onClosed }: AddMediaSheetProps) {
-  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const [selection, setSelection] = useState<Selection | null>(null);
   const [status, setStatus] = useState<MediaStatus>('to_watch');
@@ -160,22 +159,14 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
         transition="medium"
       >
         <Sheet.Overlay transition="lazy" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }} />
-        <Sheet.Handle />
-        <Sheet.Frame
-          backgroundColor="$backgroundStrong"
-          borderTopLeftRadius={RADIUS.lg}
-          borderTopRightRadius={RADIUS.lg}
-          padding={SPACING.lg}
-          paddingBottom={SPACING.lg + insets.bottom}
-          gap={SPACING.md}
-        >
+        <SheetFrame>
           <XStack alignItems="center" justifyContent="space-between" gap={SPACING.sm}>
-            <Title order={3} flexShrink={1}>
+            <DisplayTitle size="md" flexShrink={1}>
               Agregar película / serie
-            </Title>
+            </DisplayTitle>
             <IconButton
               icon={XIcon}
-              color="dimmed"
+              variant="light"
               accessibilityLabel="Cerrar"
               disabled={submitting}
               onPress={() => handleOpenChange(false)}
@@ -205,7 +196,7 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
             {renderResults()}
           </Sheet.ScrollView>
           <YStack gap={SPACING['2xs']}>
-            <Paragraph fontSize={FONT_SIZE.md} fontWeight="600">
+            <Paragraph fontSize={FONT_SIZE.lg} lineHeight={24} fontWeight="600">
               Estado
             </Paragraph>
             <SegmentedControl
@@ -215,10 +206,10 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
               accessibilityLabel="Estado"
             />
           </YStack>
-          <Button fullWidth disabled={!selection} loading={submitting} onPress={() => void handleSubmit()}>
+          <Button fullWidth size="lg" disabled={!selection} loading={submitting} onPress={() => void handleSubmit()}>
             Agregar
           </Button>
-        </Sheet.Frame>
+        </SheetFrame>
       </Sheet>
     </Modal>
   );

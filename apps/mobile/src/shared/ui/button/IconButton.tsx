@@ -45,7 +45,7 @@ export function IconButton({
       theme={palette.theme}
       width={metrics.height}
       height={metrics.height}
-      borderRadius={RADIUS.md}
+      borderRadius={RADIUS.full}
       borderWidth={1}
       borderColor={palette.borderColor}
       backgroundColor={palette.background}

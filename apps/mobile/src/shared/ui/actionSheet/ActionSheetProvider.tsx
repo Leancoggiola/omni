@@ -1,4 +1,4 @@
-import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
+import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { CheckIcon } from 'phosphor-react-native';
 import { type PropsWithChildren } from 'react';
 import { useWindowDimensions } from 'react-native';
@@ -7,20 +7,23 @@ import { Paragraph, Sheet, XStack, YStack } from 'tamagui';
 import { useSemanticColors } from '@/core/theme';
 
 import { Button } from '../button/Button';
+import { DisplayTitle } from '../DisplayTitle';
 import { QueuedSheet } from '../sheet/QueuedSheet';
 import { useSheetQueue } from '../sheet/useSheetQueue';
-import { Title } from '../Title';
 
 import { registerActionSheetHandler, type ActionSheetRequest } from './actionSheet';
 
-const OPTION_HEIGHT = 48;
+const OPTION_HEIGHT = 44;
 /**
  * Con muchas opciones la lista scrollea dentro de este alto: título y "Cancelar" siempre quedan a la vista.
  * `Sheet.ScrollView` coordina el scroll con el arrastre del sheet.
  */
 const MAX_LIST_RATIO = 0.5;
 
-/** Opciones de `actionSheet()` en un bottom sheet: una por fila, check en la actual y "Cancelar" abajo. */
+/**
+ * Opciones de `actionSheet()` en una hoja inferior de v2: una por fila con divisor `hairline`, check en la actual y
+ * "Cancelar" abajo.
+ */
 export function ActionSheetProvider({ children }: PropsWithChildren) {
   const colors = useSemanticColors();
   const { height } = useWindowDimensions();
@@ -32,15 +35,15 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
       {children}
       <QueuedSheet queue={queue}>
         <YStack gap={SPACING.xs}>
-          <Title order={3}>{request?.title}</Title>
+          <DisplayTitle size="md">{request?.title ?? ''}</DisplayTitle>
           {request?.description ? (
-            <Paragraph fontSize={FONT_SIZE.md} color="$dimmed">
+            <Paragraph fontSize={FONT_SIZE.lg} color="$dimmed">
               {request.description}
             </Paragraph>
           ) : null}
         </YStack>
         <Sheet.ScrollView maxHeight={height * MAX_LIST_RATIO} bounces={false}>
-          <YStack gap={SPACING['2xs']} accessibilityRole="menu">
+          <YStack accessibilityRole="menu">
             {request?.options.map(option => {
               const selected = option.value === request.value;
               const OptionIcon = option.icon;
@@ -48,11 +51,11 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
                 <XStack
                   key={option.value}
                   height={OPTION_HEIGHT}
-                  paddingHorizontal={SPACING.sm}
+                  paddingHorizontal={SPACING['2xs']}
                   gap={SPACING.sm}
                   alignItems="center"
-                  borderRadius={RADIUS.md}
-                  backgroundColor={selected ? '$primarySurface' : 'transparent'}
+                  borderBottomWidth={1}
+                  borderBottomColor="$hairline"
                   pressStyle={{ backgroundColor: '$hover' }}
                   onPress={() => queue.close(option.value)}
                   accessible
@@ -75,7 +78,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
             })}
           </YStack>
         </Sheet.ScrollView>
-        <Button fullWidth variant="outline" onPress={() => queue.close(null)}>
+        <Button fullWidth size="lg" variant="outline" onPress={() => queue.close(null)}>
           {request?.cancelLabel ?? ''}
         </Button>
       </QueuedSheet>

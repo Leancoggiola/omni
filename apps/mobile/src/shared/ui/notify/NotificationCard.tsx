@@ -1,26 +1,17 @@
-import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
-import { LinearGradient } from 'expo-linear-gradient';
+import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon, type Icon } from 'phosphor-react-native';
-import { StyleSheet } from 'react-native';
 import { Paragraph, XStack, YStack } from 'tamagui';
 
-import { useSemanticColors } from '@/core/theme';
-import { elevation } from '@/theme/elevation';
-import { gradientPoints, transparentOf } from '@/theme/gradient';
+import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
+import { themedElevation } from '@/theme/elevation';
 
 import { IconButton } from '../button/IconButton';
 
 import type { NotificationVariant } from './notify';
 
 const ICON_SIZE = 18;
-/** Lavado horizontal, como web: del color del estado a transparente al 90 %. */
-const WASH = gradientPoints(90);
-const ACCENT_BAR_WIDTH = 3;
+const DOT_SIZE = 32;
 
-/**
- * Acento (`icons-{variante}`: ícono y barra izquierda) y wash (`surfaces-{variante}-light`): los mismos
- * tokens que `NotificationCard.module.scss` de web.
- */
 const VARIANTS = {
   success: { icon: CheckCircleIcon, accent: 'successIcon', wash: 'successSurface' },
   error: { icon: WarningIcon, accent: 'errorIcon', wash: 'errorSurface' },
@@ -35,57 +26,49 @@ type NotificationCardProps = {
   onClose: () => void;
 };
 
+/**
+ * Toast de v2: superficie sólida de radio 16 con borde `hairline` y sombra `float`, el ícono en un círculo de 32 con el
+ * wash del color, título (14/20, 700), mensaje (12/16, atenuado) y la X de "Cerrar notificación".
+ */
 export function NotificationCard({ variant, title, message, onClose }: NotificationCardProps) {
   const colors = useSemanticColors();
+  const { colorScheme } = useColorSchemeControl();
   const { icon: IconComponent, accent, wash } = VARIANTS[variant];
-  const accentColor = colors[accent];
-  const washColor = colors[wash];
-  const washClear = transparentOf(washColor);
 
   return (
-    <YStack
+    <XStack
       backgroundColor="$backgroundStrong"
-      borderRadius={RADIUS.md}
-      overflow="hidden"
-      {...elevation('md')}
+      borderWidth={1}
+      borderColor="$hairline"
+      borderRadius={RADIUS.lg}
+      paddingVertical={SPACING.sm}
+      paddingLeft={SPACING.md}
+      paddingRight={SPACING['2xs']}
+      gap={SPACING.sm}
+      alignItems="center"
+      {...themedElevation('float', colorScheme)}
       accessibilityRole="alert"
       accessibilityLiveRegion={variant === 'error' ? 'assertive' : 'polite'}
     >
-      <LinearGradient
-        colors={[washColor, washClear]}
-        locations={[0, 0.9]}
-        start={WASH.start}
-        end={WASH.end}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
       <YStack
-        position="absolute"
-        left={0}
-        top={0}
-        bottom={0}
-        width={ACCENT_BAR_WIDTH}
-        backgroundColor={accentColor}
-        pointerEvents="none"
-      />
-      <XStack
-        paddingVertical={SPACING.xs}
-        paddingLeft={SPACING.sm}
-        paddingRight={SPACING['2xs']}
-        gap={SPACING.xs}
+        width={DOT_SIZE}
+        height={DOT_SIZE}
+        borderRadius={RADIUS.full}
+        backgroundColor={colors[wash]}
         alignItems="center"
+        justifyContent="center"
       >
-        <IconComponent size={ICON_SIZE} color={accentColor} weight="fill" />
-        <YStack flex={1} gap={SPACING['3xs']}>
-          <Paragraph fontSize={FONT_SIZE.sm} lineHeight={LINE_HEIGHT.sm} fontWeight="700">
-            {title}
-          </Paragraph>
-          <Paragraph fontSize={FONT_SIZE.sm} lineHeight={LINE_HEIGHT.sm} color="$dimmed">
-            {message}
-          </Paragraph>
-        </YStack>
-        <IconButton icon={XIcon} color="dimmed" size="sm" accessibilityLabel="Cerrar notificación" onPress={onClose} />
-      </XStack>
-    </YStack>
+        <IconComponent size={ICON_SIZE} color={colors[accent]} weight="fill" />
+      </YStack>
+      <YStack flex={1}>
+        <Paragraph fontSize={FONT_SIZE.md} lineHeight={20} fontWeight="700">
+          {title}
+        </Paragraph>
+        <Paragraph fontSize={FONT_SIZE.sm} lineHeight={16} color="$dimmed">
+          {message}
+        </Paragraph>
+      </YStack>
+      <IconButton icon={XIcon} color="dimmed" size="sm" accessibilityLabel="Cerrar notificación" onPress={onClose} />
+    </XStack>
   );
 }
