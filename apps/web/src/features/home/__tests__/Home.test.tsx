@@ -27,6 +27,11 @@ describe('HomePage', () => {
     expect(screen.getByText('María')).toBeInTheDocument();
   });
 
+  it('el saludo y el nombre forman el h1 de la página', () => {
+    renderWithProviders(<HomePage />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/María/);
+  });
+
   it('muestra un saludo según la hora', () => {
     renderWithProviders(<HomePage />);
     expect(screen.getByText(/Buenos días|Buenas tardes|Buenas noches/)).toBeInTheDocument();

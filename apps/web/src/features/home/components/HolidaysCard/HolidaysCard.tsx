@@ -1,20 +1,7 @@
 import { FC, FocusEvent, KeyboardEvent, useId, useState } from 'react';
-import {
-  ActionIcon,
-  getGradient,
-  Group,
-  Paper,
-  Skeleton,
-  Stack,
-  Text,
-  ThemeIcon,
-  Title,
-  useMantineTheme,
-} from '@mantine/core';
+import { ActionIcon, Group, Paper, Skeleton, Stack, Text, ThemeIcon, Title } from '@mantine/core';
 
 import { ErrorState } from '@/shared/ui';
-import { GRADIENTS } from '@/theme/gradients';
-import { useIsDark } from '@/theme/useIsDark';
 
 import { useHolidayCarousel } from '../../hooks/useHolidayCarousel';
 import { useTodayHolidays } from '../../hooks/useTodayHolidays';
@@ -25,8 +12,6 @@ import { ArrowSquareOutIcon, ConfettiIcon } from '@phosphor-icons/react';
 
 export const HolidaysCard: FC = () => {
   const { holidays, isLoading, error, mutate } = useTodayHolidays();
-  const isDark = useIsDark();
-  const theme = useMantineTheme();
   const currentItemId = useId();
   const [hovered, setHovered] = useState(false);
   const [focusWithin, setFocusWithin] = useState(false);
@@ -65,7 +50,9 @@ export const HolidaysCard: FC = () => {
   return (
     <Paper
       withBorder
-      bg={getGradient(isDark ? GRADIENTS.cardDark : GRADIENTS.cardLight, theme)}
+      bg="var(--mantine-color-surfaces-primary-light)"
+      radius="lg"
+      shadow="none"
       p="none"
       pos="relative"
       style={{ cursor: isCarousel ? 'pointer' : undefined, overflow: 'hidden' }}
@@ -76,7 +63,13 @@ export const HolidaysCard: FC = () => {
       onBlur={handleBlur}
     >
       <Group align="flex-start" wrap="nowrap" gap="sm" p="md">
-        <ThemeIcon variant="white" c="var(--mantine-primary-color-filled)" size="lg" radius="sm">
+        <ThemeIcon
+          variant="transparent"
+          bg="var(--mantine-color-surfaces-card)"
+          c="var(--mantine-color-text-primary)"
+          size="2.75rem"
+          radius="full"
+        >
           <ConfettiIcon size="1.25rem" />
         </ThemeIcon>
 
@@ -91,18 +84,18 @@ export const HolidaysCard: FC = () => {
             onKeyDown: handleKeyDown,
           })}
         >
-          <Title order={5} c="var(--mantine-color-text-black)">
+          <Title order={5} fz="md" lh="1.5rem" fw={700}>
             Efemérides de hoy
           </Title>
 
           {holidays.items.length === 0 && (
-            <Text size="xs" fw={600} c="var(--mantine-color-text-black)">
+            <Text size="sm" fw={600}>
               Hoy no hay efemérides registradas
             </Text>
           )}
 
           {currentItem && (
-            <Text id={currentItemId} size="xs" fw={600} c="var(--mantine-color-text-black)">
+            <Text id={currentItemId} size="sm" fw={600}>
               {currentItem.title}
               {currentItem.isArgentina ? ' · en Argentina' : ''}
             </Text>
@@ -115,7 +108,8 @@ export const HolidaysCard: FC = () => {
           target="_blank"
           rel="noopener noreferrer"
           variant="transparent"
-          c="var(--mantine-color-text-black)"
+          size="2.75rem"
+          radius="full"
           ml="auto"
           onClick={event => event.stopPropagation()}
           onKeyDown={event => event.stopPropagation()}
