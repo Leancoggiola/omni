@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Progress } from '@mantine/core';
 
-import { useIsDark } from '@/theme/useIsDark';
-
 type HolidayProgressProps = {
   duration?: number;
   /** Con el carrusel en pausa (hover, foco o reduced motion) la barra queda vacía. */
@@ -11,7 +9,6 @@ type HolidayProgressProps = {
 
 export function HolidayProgress({ duration = 3000, running = true }: HolidayProgressProps) {
   const [value, setValue] = useState(0);
-  const isDark = useIsDark();
 
   useEffect(() => {
     if (!running) return;
@@ -27,9 +24,9 @@ export function HolidayProgress({ duration = 3000, running = true }: HolidayProg
     <Progress
       value={value}
       transitionDuration={duration}
-      size="xs"
-      color={isDark ? 'var(--mantine-color-surfaces-white)' : 'var(--mantine-primary-color-filled)'}
-      bg="transparent"
+      size="0.25rem"
+      color="var(--mantine-color-brand-filled)"
+      bg="var(--mantine-color-surfaces-track)"
     />
   );
 }
