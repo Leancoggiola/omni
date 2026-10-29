@@ -27,7 +27,8 @@ type IconButtonProps = {
 
 /**
  * Equivalente de `ActionIcon` de Mantine: botón circular de 36 / 44 / 48 dp con las variantes de `Button`. `subtle` es
- * la variante por defecto (la que más usa web); `glass` es el volver del encabezado de Perfil.
+ * la variante por defecto (la que más usa web); `glass` es el volver del encabezado de Perfil
+ * y ignora `color`.
  */
 export function IconButton({
   icon: IconComponent,

@@ -29,10 +29,10 @@ function accentWord(title: string, accent?: string): string | undefined {
 
 /**
  * Equivalente de `PageHeader` de web en v2: chip de ícono opcional en `primarySurface`, el título en `display` (`size`
- * `md` por defecto; `lg` en Perfil y `xl` en "Más") con una palabra
- * en `primary` (sin itálica) y el subtítulo. `accent` es esa palabra (por defecto, la última) y tiene que ser una
- * palabra completa de `title`; un título de una sola palabra no se resalta. Pantallas de stack (Perfil): `onBack`
- * agrega un `IconButton` glass de volver, que `backLabel` nombra ("Volver a Más").
+ * `md` por defecto; `lg` en Perfil y `xl` en "Más") con una palabra en `primary` (sin itálica) y el subtítulo.
+ * `accent` es esa palabra (por defecto, la última) y tiene que ser una palabra completa de `title`; un título de una
+ * sola palabra no se resalta. Pantallas de stack (Perfil): `onBack` agrega un `IconButton` glass de volver, que
+ * `backLabel` nombra ("Volver a Más").
  */
 export function ScreenHeader({
   icon: IconComponent,
