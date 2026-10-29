@@ -5,20 +5,33 @@ import { Paragraph, XStack, YStack } from 'tamagui';
 import { useSemanticColors } from '@/core/theme';
 
 import { IconButton } from './button/IconButton';
-import { Title } from './Title';
+import { DisplayTitle } from './DisplayTitle';
 
 const CHIP_SIZE = 44;
 
 type ScreenHeaderProps = {
   icon: Icon;
   title: string;
+  accent?: string;
   subtitle?: string;
-  /** Pantallas de stack (Perfil): agrega un `IconButton` de volver antes del chip. */
   onBack?: () => void;
 };
 
-/** Equivalente de `PageHeader` de web: chip de ícono terracota + título + subtítulo. */
-export function ScreenHeader({ icon: IconComponent, title, subtitle, onBack }: ScreenHeaderProps) {
+/** La palabra acentuada por defecto: la última, si el título tiene más de una; `accent` tiene que ser una palabra entera. */
+function accentWord(title: string, accent?: string): string | undefined {
+  const words = title.trim().split(/\s+/);
+  if (words.length < 2) return undefined;
+  if (accent === undefined) return words[words.length - 1];
+  return words.includes(accent) ? accent : undefined;
+}
+
+/**
+ * Equivalente de `PageHeader` de web en v2: chip de ícono en `primarySurface`, el título en `display` con una palabra
+ * en `primary` (sin itálica) y el subtítulo. `accent` es esa palabra (por defecto, la última) y tiene que ser una
+ * palabra completa de `title`; un título de una sola palabra no se resalta. Pantallas de stack (Perfil): `onBack`
+ * agrega un `IconButton` de volver antes del chip.
+ */
+export function ScreenHeader({ icon: IconComponent, title, accent, subtitle, onBack }: ScreenHeaderProps) {
   const colors = useSemanticColors();
 
   return (
@@ -28,17 +41,17 @@ export function ScreenHeader({ icon: IconComponent, title, subtitle, onBack }: S
         <YStack
           width={CHIP_SIZE}
           height={CHIP_SIZE}
-          borderRadius={RADIUS.sm}
-          backgroundColor="$accentSurface"
+          borderRadius={RADIUS.full}
+          backgroundColor="$primarySurface"
           alignItems="center"
           justifyContent="center"
         >
-          <IconComponent size={24} color={colors.accent} />
+          <IconComponent size={22} color={colors.primary} />
         </YStack>
-        <YStack flexShrink={1} gap={SPACING['3xs']}>
-          <Title order={1} numberOfLines={1}>
+        <YStack flexShrink={1} gap={SPACING['2xs']}>
+          <DisplayTitle size="md" accent={accentWord(title, accent)} numberOfLines={1}>
             {title}
-          </Title>
+          </DisplayTitle>
           {subtitle ? (
             <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
               {subtitle}

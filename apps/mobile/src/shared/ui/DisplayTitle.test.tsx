@@ -46,4 +46,24 @@ describe('DisplayTitle', () => {
     expect(screen.queryByRole('header')).toBeNull();
     expect(screen.getByText('Algo salió mal')).toBeTruthy();
   });
+
+  it('el acento es la última aparición del texto (como PageHeader de web)', () => {
+    render(<DisplayTitle accent="Serie">Serie y Serie</DisplayTitle>);
+
+    expect(screen.getAllByText('Serie')).toHaveLength(1);
+    expect(screen.getByRole('header', { name: 'Serie y Serie' })).toBeTruthy();
+  });
+
+  it('el acento es una palabra entera: no resalta un fragmento dentro de otra palabra', () => {
+    render(<DisplayTitle accent="Mi">Mi Miniatura</DisplayTitle>);
+
+    expect(screen.getByText('Mi', { exact: true })).toHaveProp('color', '$primary');
+    expect(screen.getByRole('header', { name: 'Mi Miniatura' })).toBeTruthy();
+  });
+
+  it('acepta un acento pegado a la puntuación', () => {
+    render(<DisplayTitle accent="Omni">¡Te damos la bienvenida a Omni!</DisplayTitle>);
+
+    expect(screen.getByText('Omni')).toHaveProp('color', '$primary');
+  });
 });

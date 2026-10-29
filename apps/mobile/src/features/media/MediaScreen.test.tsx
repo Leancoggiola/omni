@@ -98,10 +98,10 @@ describe('MediaScreen · lista', () => {
     expect(mutate).toHaveBeenCalledTimes(1);
   });
 
-  it('mientras carga muestra el spinner y no el estado vacío', () => {
+  it('mientras carga muestra las filas skeleton ("Cargando") y no el estado vacío', () => {
     renderWith({ isLoading: true });
 
-    expect(screen.getByTestId('spinner')).toBeTruthy();
+    expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
     expect(screen.queryByText('Tu lista está vacía')).toBeNull();
   });
 
