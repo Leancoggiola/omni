@@ -14,7 +14,7 @@ export const ProfileSectionCard: FC<ProfileSectionCardProps> = ({ title, subtitl
   <Paper shadow={nested ? 'none' : 'sm'} withBorder={nested}>
     <Stack gap="lg">
       <Stack gap="2xs">
-        <Title order={4} fw={600}>
+        <Title order={2} size="h4" fw={600}>
           {title}
         </Title>
         <Text c="dimmed" size="sm">

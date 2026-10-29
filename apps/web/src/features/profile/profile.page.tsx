@@ -75,7 +75,7 @@ export const ProfilePage: FC = () => {
   }
 
   return (
-    <Stack gap="xl">
+    <Stack gap="xl" maw="60rem" mx="auto">
       <PageHeader
         icon={<UserIcon size="1.5rem" />}
         title="Mi Perfil"
