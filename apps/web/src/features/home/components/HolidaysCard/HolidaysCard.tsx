@@ -16,9 +16,9 @@ import { ErrorState } from '@/shared/ui';
 import { GRADIENTS } from '@/theme/gradients';
 import { useIsDark } from '@/theme/useIsDark';
 
-import { useTodayHolidays } from '../../hooks';
+import { useHolidayCarousel } from '../../hooks/useHolidayCarousel';
+import { useTodayHolidays } from '../../hooks/useTodayHolidays';
 import { HolidayProgress } from './HolidayProgress';
-import { useHolidayCarousel } from './utils';
 
 import { HOLIDAY_CAROUSEL_DURATION_MS } from '@omni/shared/holidays';
 import { ArrowSquareOutIcon, ConfettiIcon } from '@phosphor-icons/react';
