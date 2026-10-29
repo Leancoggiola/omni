@@ -14,9 +14,9 @@ export const LogoAvatar: FC<LogoAvatarProps> = ({ size = 'md', bg = 'brand.2' })
     src={logoUrl}
     alt="Omni-logo"
     size={size}
-    radius="md"
+    radius="lg"
     bg={bg}
-    bd="1px solid var(--mantine-color-brand-9)"
-    styles={{ image: { objectFit: 'contain', padding: '5%' }, root: { boxShadow: 'var(--mantine-shadow-md)' } }}
+    bd="1px solid var(--mantine-color-border-subtle)"
+    styles={{ image: { objectFit: 'contain', padding: '5%' }, root: { boxShadow: 'var(--mantine-shadow-card)' } }}
   />
 );

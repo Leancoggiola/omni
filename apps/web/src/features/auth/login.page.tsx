@@ -60,7 +60,7 @@ export const LoginPage: FC = () => {
   };
 
   return (
-    <AuthCard title="¡Te damos la bienvenida a Omni!">
+    <AuthCard title="¡Te damos la bienvenida a Omni!" accent="Omni">
       {error && <Alert color="destructive">{error}</Alert>}
 
       <form noValidate onSubmit={form.onSubmit(handleSubmit)}>

@@ -1,3 +1,4 @@
+export { AccentTitle } from './AccentTitle';
 export { confirm } from './confirm/confirm';
 export { ConfirmProvider } from './confirm/ConfirmProvider';
 export type { ConfirmOptions } from './confirm/types';
