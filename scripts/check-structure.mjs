@@ -4,7 +4,8 @@
  * `node scripts/check-structure.mjs <web|mobile>`. Reglas (los tests, `__tests__/` y `*.test.*`, no cuentan
  * como archivos auxiliares ni como hooks):
  * - `index.ts` solo en las fronteras: `features/<name>/`, `core/<area>/`, `shared/<area>/`, `layouts/` y
- *   `__tests__/helpers/`.
+ *   `__tests__/helpers/`. Solo se mira bajo `src/`: en mobile, `app/` se recorre
+ *   para las demás reglas pero sus `index.tsx` son rutas de Expo Router.
  * - Sin `modules/_shared`, y `modules/` solo con dos o más módulos.
  * - Una carpeta de componente (hija directa de `components/`) tiene al menos dos archivos.
  * - Los `use*.ts` / `use*.tsx` de `features/` viven en `hooks/` (los hooks de `core/`, `shared/` y `theme/` no son de features).
