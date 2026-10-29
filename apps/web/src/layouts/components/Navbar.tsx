@@ -14,13 +14,13 @@ import {
   ThemeIcon,
 } from '@mantine/core';
 
-import { ADMIN_NAV_ITEMS, MAIN_NAV_ITEMS } from '@/app/navigation/nav-registry';
 import { useAuth } from '@/core/auth';
+import { ADMIN_NAV_ITEMS, MAIN_NAV_ITEMS } from '@/shared/navigation';
 import { confirm, LogoAvatar, UserAvatar } from '@/shared/ui';
 
-import { ColorSchemeToggle } from '../ColorSchemeToggle';
+import { ColorSchemeToggle } from './ColorSchemeToggle';
 
-import type { NavItemConfig } from '@/layouts/navConfig';
+import type { NavItemConfig } from '@/shared/navigation';
 import type { FC } from 'react';
 
 import { SignOutIcon } from '@phosphor-icons/react';

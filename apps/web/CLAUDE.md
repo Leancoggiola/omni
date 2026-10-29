@@ -4,24 +4,19 @@ Hooks SWR: skill `swr-hooks`. Formularios: skill `mantine-form`. Nueva feature: 
 
 ## Estructura
 
-| Capa            | Uso                                                                        |
-| --------------- | -------------------------------------------------------------------------- |
-| `src/app/`      | `router.tsx`, `routes.ts`, `navigation/nav-registry.tsx`                   |
-| `src/features/` | Dominio (1 ítem de navbar = 1 feature)                                     |
-| `src/shared/`   | `api/` (client, fetcher, `SWR_KEYS`) y `ui/` (`@/shared` ≠ `@omni/shared`) |
-| `src/core/`     | `auth`, `guards`, `providers` globales                                     |
-| `src/layouts/`  | Shell (RootLayout, Navbar, Header)                                         |
-| `src/theme/`    | Mantine theme                                                              |
+| Capa            | Uso                                                            |
+| --------------- | -------------------------------------------------------------- |
+| `src/app/`      | `router.tsx`, `routes.ts`                                      |
+| `src/features/` | Dominio (1 ítem de navbar = 1 feature)                         |
+| `src/shared/`   | `api/`, `navigation/` y `ui/` (`@/shared` ≠ `@omni/shared`)    |
+| `src/core/`     | `auth`, `guards`, `providers`, `serverWake` y `theme` globales |
+| `src/layouts/`  | Shell (RootLayout, Navbar, Header)                             |
+| `src/theme/`    | Mantine theme                                                  |
 
-Convención de features (árbol y reglas completas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile). En corto:
-
-- `features/<name>/`: `<page>.page.tsx`, `<name>.routes.tsx` e `index.ts`, el único barrel (exporta la ruta). Adentro, `components/`, `hooks/useX.ts` (un hook por archivo, nunca en `utils/`), `utils/` y `__tests__/`, sin `index.ts`.
-- Un componente tiene carpeta propia solo si tiene auxiliares (`./components/X/X`). `modules/<m>/` solo con ≥ 2 subdominios con UI propia; sin `modules/_shared`.
-
-> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue.
+Estructura de features (árbol y reglas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile).
 
 - **Prohibido:** `features/A` → `features/B` (lo hace cumplir ESLint). UI usada en 2+ features → `shared/ui/`.
-- Navbar: clave en `NAV_REGISTRY` / `MAIN_NAV_ORDER` de `@omni/shared/navigation` (compartido con mobile) + ícono en `NAV_ICONS` de `app/navigation/nav-registry.tsx`.
+- Navbar: clave en `NAV_REGISTRY` / `MAIN_NAV_ORDER` de `@omni/shared/navigation` (compartido con mobile) + ícono en `NAV_ICONS` de `shared/navigation/nav-registry.tsx`.
 - Scaffolding: `pnpm new-feature <name> --web --register-route` desde la raíz (ver `docs/web/new-feature.md`).
 - Referencias: `home` (simple), `media` (SWR + mutations), `profile` (forms + PATCH), `split-expenses` (CRUD anidado).
 
@@ -35,7 +30,7 @@ El núcleo HTTP (request JSON, 401 → refresh single-flight → reintento, pars
 
 ## Cold start de la API
 
-La API (Render free) duerme y tarda ~1 min en despertar (tope de espera: 90 s, el último sondeo incluido). `fetcher`, `api` y el refresh usan `fetchWithWake` (`shared/api/serverWake.ts`), nunca `fetch` directo: reintenta solo si la respuesta es del proxy o de la plataforma (no es JSON y trae status 502/503/504 o `content-type: text/html`: el request no llegó a la API, se reintenta con cualquier método salvo un 504 en un request no idempotente, que lanza `ApiError` 504 porque la API pudo procesarlo; cualquier JSON, aunque sea un 502 de la API, un 404 o un 304 se devuelven tal cual) o si `fetch` lanza un error de red, y esto último solo en GET/HEAD/PUT/DELETE (en POST/PATCH el error se propaga: no se sabe si la API llegó a procesarlo). Cada intento tiene tope hasta los headers, 30 s si es idempotente y 100 s si no (POST/PATCH esperan el cold start, que retiene el request ~1 min): al vencer lanza `ApiError` con status 0 (si es idempotente cuenta como error de red), y un `signal` del caller se respeta. El refresh se pide con `{ idempotent: true }`: la API acepta la misma cookie dentro de su gracia de rotación. Hace polling a `SWR_KEYS.health` con backoff y, si no despierta, lanza `ApiError` 503. Sin conexión no espera 90 s: con `navigator.onLine === false` corta enseguida, y si no, tras 2 sondeos seguidos con error de red (no por su timeout) sin ninguna respuesta HTTP previa; en ambos casos sin aviso y relanzando el error de red del request (el `ErrorState` aparece casi al instante); una respuesta del proxy (502/503/504, HTML) o un timeout del sondeo siguen el polling. `ServerWakeNotice` (`core/providers`) muestra el aviso, que aparece cuando falla el primer sondeo o pasan ~1,5 s sin respuesta, lo que ocurra primero. Cualquier POST/PATCH (no solo el login) que pasa 1,5 s sin headers sondea el health en paralelo (sin reintentarse) para encender el aviso, y uno que sale con un sondeo en curso lo espera antes de enviarse (hasta 90 s). `LoginPage` llama a `ensureServerAwake()` al montar, así la API despierta mientras el usuario escribe; el POST del login espera ese sondeo si sigue en curso, y los campos quedan deshabilitados mientras carga. `serverWake.ts` es solo una instancia de `createServerWake` de `@omni/shared/server-wake` (que tiene la orquestación, las constantes y la decisión pura); los tests de esa lógica viven en `packages/shared/src/server-wake/__tests__/`; `shared/api/__tests__/serverWake.test.ts` solo prueba el cableado de la instancia web y su integración con `fetcher`, `api` y el refresh.
+La API (Render free) duerme y tarda ~1 min en despertar (tope de espera: 90 s, el último sondeo incluido). `fetcher`, `api` y el refresh usan `fetchWithWake` (`shared/api/serverWake.ts`), nunca `fetch` directo: reintenta solo si la respuesta es del proxy o de la plataforma (no es JSON y trae status 502/503/504 o `content-type: text/html`: el request no llegó a la API, se reintenta con cualquier método salvo un 504 en un request no idempotente, que lanza `ApiError` 504 porque la API pudo procesarlo; cualquier JSON, aunque sea un 502 de la API, un 404 o un 304 se devuelven tal cual) o si `fetch` lanza un error de red, y esto último solo en GET/HEAD/PUT/DELETE (en POST/PATCH el error se propaga: no se sabe si la API llegó a procesarlo). Cada intento tiene tope hasta los headers, 30 s si es idempotente y 100 s si no (POST/PATCH esperan el cold start, que retiene el request ~1 min): al vencer lanza `ApiError` con status 0 (si es idempotente cuenta como error de red), y un `signal` del caller se respeta. El refresh se pide con `{ idempotent: true }`: la API acepta la misma cookie dentro de su gracia de rotación. Hace polling a `SWR_KEYS.health` con backoff y, si no despierta, lanza `ApiError` 503. Sin conexión no espera 90 s: con `navigator.onLine === false` corta enseguida, y si no, tras 2 sondeos seguidos con error de red (no por su timeout) sin ninguna respuesta HTTP previa; en ambos casos sin aviso y relanzando el error de red del request (el `ErrorState` aparece casi al instante); una respuesta del proxy (502/503/504, HTML) o un timeout del sondeo siguen el polling. `ServerWakeNotice` (`core/serverWake`) muestra el aviso, que aparece cuando falla el primer sondeo o pasan ~1,5 s sin respuesta, lo que ocurra primero. Cualquier POST/PATCH (no solo el login) que pasa 1,5 s sin headers sondea el health en paralelo (sin reintentarse) para encender el aviso, y uno que sale con un sondeo en curso lo espera antes de enviarse (hasta 90 s). `LoginPage` llama a `ensureServerAwake()` al montar, así la API despierta mientras el usuario escribe; el POST del login espera ese sondeo si sigue en curso, y los campos quedan deshabilitados mientras carga. `serverWake.ts` es solo una instancia de `createServerWake` de `@omni/shared/server-wake` (que tiene la orquestación, las constantes y la decisión pura); los tests de esa lógica viven en `packages/shared/src/server-wake/__tests__/`; `shared/api/__tests__/serverWake.test.ts` solo prueba el cableado de la instancia web y su integración con `fetcher`, `api` y el refresh.
 
 ## SWR
 

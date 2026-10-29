@@ -3,7 +3,7 @@ import { AppShell, Burger, Group, Text } from '@mantine/core';
 import { useAuth } from '@/core/auth';
 import { LogoAvatar, UserAvatar } from '@/shared/ui';
 
-import { ColorSchemeToggle } from '../ColorSchemeToggle';
+import { ColorSchemeToggle } from './ColorSchemeToggle';
 
 import type { FC } from 'react';
 

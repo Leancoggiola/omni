@@ -23,12 +23,7 @@ apps/mobile/
     theme/                # tamagui.config, fonts, elevation, gradient
 ```
 
-Convención de features, la misma que web (árbol y reglas completas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile). En corto:
-
-- `src/features/<name>/`: `<Name>Screen.tsx` e `index.ts`, el único barrel (exporta el Screen). Adentro, `components/`, `hooks/useX.ts` (un hook por archivo, nunca en `utils/`) y `utils/`, sin `index.ts`; cada test al lado de su archivo.
-- `app/<ruta>.tsx` solo declara la ruta e importa `@/features/<name>`.
-
-> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue.
+Estructura de features (la misma que web; árbol y reglas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile).
 
 - Scaffolding: `pnpm new-feature <name> --mobile` desde la raíz (ver `docs/mobile/new-feature.md`).
 - Imports: `@/shared/api`, `@/shared/ui`, `@/core/auth`, `@/features/...`, `@/theme/...`.
