@@ -26,7 +26,12 @@ export const ErrorState: FC<ErrorStateProps> = ({ message = 'No se pudieron carg
   };
 
   return (
-    <Alert color="destructive" title={<Text size="sm">{message}</Text>} icon={<WarningCircleIcon size="1.25rem" />}>
+    <Alert
+      color="destructive"
+      radius="xl"
+      title={<Text size="sm">{message}</Text>}
+      icon={<WarningCircleIcon size="1.25rem" />}
+    >
       {onRetry && (
         <Button size="xs" variant="default" loading={retrying} onClick={() => void handleRetry()} mt="md">
           Reintentar

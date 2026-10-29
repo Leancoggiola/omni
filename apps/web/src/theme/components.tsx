@@ -1,10 +1,23 @@
-import { ActionIcon, Alert, AppShell, Card, Combobox, Input, Modal, NavLink, Paper, Select, Tabs } from '@mantine/core';
+import {
+  ActionIcon,
+  Alert,
+  AppShell,
+  Card,
+  Combobox,
+  Input,
+  Menu,
+  Modal,
+  NavLink,
+  Paper,
+  Popover,
+  SegmentedControl,
+  Select,
+  Tabs,
+} from '@mantine/core';
 
 import { componentOverrides } from './components.overrides';
 
 import { CaretRightIcon } from '@phosphor-icons/react';
-
-const surfaceBg = 'var(--mantine-color-default)';
 
 export const ComponentsOverride = {
   ActionIcon: ActionIcon.extend({
@@ -17,15 +30,13 @@ export const ComponentsOverride = {
   AppShell: AppShell.extend({
     classNames: componentOverrides.appShell,
     styles: {
-      header: { backgroundColor: surfaceBg },
+      header: { backgroundColor: 'var(--mantine-color-surfaces-glass)' },
     },
   }),
 
   Card: Card.extend({
-    defaultProps: { shadow: 'sm', withBorder: false, radius: 'sm' },
-    styles: {
-      root: { backgroundColor: surfaceBg },
-    },
+    classNames: componentOverrides.glass,
+    defaultProps: { shadow: 'card', withBorder: false, radius: 'xl' },
   }),
 
   Combobox: Combobox.extend({
@@ -36,8 +47,13 @@ export const ComponentsOverride = {
     defaultProps: { size: 'md' },
   }),
 
+  Menu: Menu.extend({
+    classNames: componentOverrides.dropdown,
+  }),
+
   Modal: Modal.extend({
     classNames: componentOverrides.modal,
+    defaultProps: { radius: 'xl', shadow: 'sheet' },
   }),
 
   NavLink: NavLink.extend({
@@ -50,10 +66,17 @@ export const ComponentsOverride = {
   }),
 
   Paper: Paper.extend({
-    defaultProps: { p: 'lg', shadow: 'sm', withBorder: false },
-    styles: {
-      root: { backgroundColor: surfaceBg },
-    },
+    classNames: componentOverrides.glass,
+    defaultProps: { p: 'lg', shadow: 'card', withBorder: false, radius: 'xl' },
+  }),
+
+  Popover: Popover.extend({
+    classNames: componentOverrides.dropdown,
+  }),
+
+  SegmentedControl: SegmentedControl.extend({
+    classNames: componentOverrides.segmented,
+    defaultProps: { radius: 'full' },
   }),
 
   Select: Select.extend({
@@ -62,5 +85,6 @@ export const ComponentsOverride = {
 
   Tabs: Tabs.extend({
     classNames: componentOverrides.tabs,
+    defaultProps: { variant: 'pills', radius: 'full' },
   }),
 };

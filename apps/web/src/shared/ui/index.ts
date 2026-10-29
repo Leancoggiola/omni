@@ -10,5 +10,6 @@ export { LoadingState } from './LoadingState';
 export { LogoAvatar } from './LogoAvatar';
 export { notifyError, notifyPersistent, notifySuccess } from './notify/notify';
 export { PageHeader } from './PageHeader';
+export { useDisplayStyles } from './useDisplayStyles';
 export { UserAvatar } from './UserAvatar';
 export { getErrorMessage } from '@omni/shared/api';

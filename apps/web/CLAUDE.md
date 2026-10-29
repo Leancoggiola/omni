@@ -149,7 +149,7 @@ Grupos de acciones de un form o modal van **alineados a la derecha**, nunca full
 
 ## Paper anidado
 
-Un `Paper` apoyado directo sobre el canvas de la página **no** lleva borde (el `shadow="sm"` ya alcanza para separarlo del fondo). Un `Paper` anidado dentro de otro `Paper` **sí** necesita `withBorder`: comparten el mismo `surfaceBg`, así que sin borde el límite entre ambos no es perceptible — problema de accesibilidad (contraste no textual), no solo estético.
+`Paper` y `Card` son glass de v2 (`surfaces-glass`, radio 24, `shadow="card"` y un borde `border-glass` que trae el theme). Un `Paper` apoyado directo sobre el canvas de la página **no** lleva `withBorder`: la sombra y el glass ya lo separan del fondo. Un `Paper` anidado dentro de otro `Paper` **sí** necesita `withBorder` (el theme lo pinta con `border-subtle`): comparten el mismo fondo glass, así que sin ese borde el límite entre ambos no es perceptible — problema de accesibilidad (contraste no textual), no solo estético.
 
 ```tsx
 // ✅ Paper contra el canvas — sin borde
