@@ -26,12 +26,9 @@ jest.mock('@/shared/ui', () => ({
   notifySuccess: jest.fn(),
   notifyError: jest.fn(),
 }));
-jest.mock('./hooks', () => ({
-  MIN_SEARCH_LENGTH: 2,
-  useMyMediaList: () => mockUseMyMediaList(),
-  useMediaMutations: () => mockMutations,
-  useMediaSearch: () => mockSearch(),
-}));
+jest.mock('./hooks/useMyMediaList', () => ({ useMyMediaList: () => mockUseMyMediaList() }));
+jest.mock('./hooks/useMediaMutations', () => ({ useMediaMutations: () => mockMutations }));
+jest.mock('./hooks/useMediaSearch', () => ({ MIN_SEARCH_LENGTH: 2, useMediaSearch: () => mockSearch() }));
 
 const mockActionSheet = jest.mocked(actionSheet);
 const mockConfirm = jest.mocked(confirm);

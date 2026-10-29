@@ -5,7 +5,7 @@ import useSWRImmutable from 'swr/immutable';
 import { api } from '@/shared/api';
 import { API_KEYS } from '@/shared/api/keys';
 
-import { useAccountActions, useProfile } from './hooks';
+import { useProfile } from './useProfile';
 
 import type { ProfileResponse } from '@omni/shared/auth';
 import type { UserPreferences, UserProfile } from '@omni/shared/users';
@@ -150,21 +150,5 @@ describe('useProfile · updateProfile', () => {
 
     expect(mockPatch).toHaveBeenCalledWith(API_KEYS.users.profile, { phone: '456' });
     expect(result.current.profile.profile?.phone).toBe('456');
-  });
-});
-
-describe('useAccountActions · changePassword', () => {
-  it('envía la contraseña actual y la nueva en el PATCH', async () => {
-    mockPatch.mockResolvedValue({ message: 'ok' });
-    const { result } = renderHook(() => useAccountActions());
-
-    await act(async () => {
-      await result.current.changePassword({ currentPassword: 'actual-123', newPassword: 'nueva-clave-1' });
-    });
-
-    expect(mockPatch).toHaveBeenCalledWith(API_KEYS.users.password, {
-      currentPassword: 'actual-123',
-      newPassword: 'nueva-clave-1',
-    });
   });
 });

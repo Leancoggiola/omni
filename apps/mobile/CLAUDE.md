@@ -21,6 +21,7 @@ apps/mobile/
     shared/navigation/    # NAV_ICONS, NAV_HREFS, TAB_ROUTES y MORE_TAB (lo que depende de auth/router; shared/ui es presentacional)
     features/<name>/      # screen + hooks (ver abajo)
     theme/                # tamagui.config, fonts, elevation, gradient
+    assets.d.ts           # tipos de las imágenes estáticas (`*.png`) que resuelve Metro
 ```
 
 Estructura de features (la misma que web; árbol y reglas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile).

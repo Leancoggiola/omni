@@ -31,7 +31,8 @@ import { AddMediaFab, FAB_SIZE } from './components/AddMediaFab';
 import { AddMediaSheet } from './components/AddMediaSheet';
 import { MediaListItem } from './components/MediaListItem';
 import { MediaToolbar } from './components/MediaToolbar';
-import { useMediaMutations, useMyMediaList } from './hooks';
+import { useMediaMutations } from './hooks/useMediaMutations';
+import { useMyMediaList } from './hooks/useMyMediaList';
 
 import type { MediaItem, MediaListFilters, MediaStatus, MediaType } from '@omni/shared/media';
 

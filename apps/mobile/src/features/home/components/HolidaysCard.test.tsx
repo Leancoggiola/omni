@@ -11,8 +11,8 @@ jest.mock('@/core/theme', () => ({
   useColorSchemeControl: () => ({ colorScheme: 'light' }),
 }));
 jest.mock('expo-linear-gradient', () => ({ LinearGradient: () => null }));
-jest.mock('../hooks', () => ({
-  useTodayHolidays: () => mockUseTodayHolidays(),
+jest.mock('../hooks/useTodayHolidays', () => ({ useTodayHolidays: () => mockUseTodayHolidays() }));
+jest.mock('../hooks/useHolidayCarousel', () => ({
   useHolidayCarousel: () => ({ currentIndex: 0, currentItem: null, isAutoPlaying: false, next: jest.fn() }),
 }));
 

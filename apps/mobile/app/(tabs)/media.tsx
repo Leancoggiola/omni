@@ -1,4 +1,4 @@
-import { MediaScreen } from '@/features/media/MediaScreen';
+import { MediaScreen } from '@/features/media';
 
 export default function MediaRoute() {
   return <MediaScreen />;
