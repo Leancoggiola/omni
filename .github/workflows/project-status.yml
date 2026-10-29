@@ -84,6 +84,7 @@ jobs:
             exit 0
           fi
 
+          err=$(mktemp)
           for issue in $issues; do
             response=$(gh api graphql -f owner="${REPO%%/*}" -f name="${REPO##*/}" -F issue="$issue" \
               -f query='
@@ -99,7 +100,8 @@ jobs:
                     }
                   }
                 }
-              }' 2>&1) || {
+              }' 2>"$err") || {
+              response=$(cat "$err")
               if grep -q 'Could not resolve to an Issue' <<<"$response"; then
                 echo "::warning::#$issue no es un issue del repo: se omite."
                 continue
