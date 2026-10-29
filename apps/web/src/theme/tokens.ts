@@ -17,7 +17,7 @@ function toRem<K extends string>(scale: Record<K, number>): Record<K, string> {
   return Object.fromEntries(entries) as Record<K, string>;
 }
 
-/** Sombra nativa de `@omni/shared/theme` en CSS: `0 8px 32px rgb(150 120 111 / 0.12)`. */
+/** Sombra nativa de `@omni/shared/theme` en CSS: `0 8px 32px rgb(150 120 111 / 0.12)`. El color tiene que ser `#RRGGBB` (el formato corto da `NaN`). */
 function shadowCss({
   color,
   offsetY,

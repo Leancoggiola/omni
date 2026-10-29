@@ -137,7 +137,7 @@ Los dos clientes usan **Montserrat** (400/500/600/700) e íconos **Phosphor** co
 | `accent`           | 32 / 36           | 800  | —        | La palabra acentuada de un título, en `primary`     |
 | `amountHero`       | 48 / 52           | 800  | −1 px    | Monto protagonista (Agregar gasto, saldo total)     |
 
-`OVERLINE` (12 / 16, 700, 0,6 px, en mayúsculas, Montserrat) es el encabezado de sección y el separador de día del feed. Los interlineados de `HEADING` y `LINE_HEIGHT` siguen como estaban: llevarlos a múltiplos de 4 mueve el alto de todo el texto y es parte de #152 y #154.
+`OVERLINE` (12 / 16, 700, 0,6 px, en mayúsculas, Montserrat) es el encabezado de sección y el separador de día del feed. `display` solo admite los pesos 700 y 800: son las únicas caras cargadas y en mobile un peso menor se renderiza como 700 sin aviso. Los interlineados de `HEADING` y `LINE_HEIGHT` siguen como estaban: llevarlos a múltiplos de 4 mueve el alto de todo el texto y es parte de #152 y #154.
 
 ### Gradientes
 
