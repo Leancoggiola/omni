@@ -3,7 +3,7 @@ name: Project Status
 on:
   pull_request:
     branches: [develop, main]
-    types: [opened, reopened, closed]
+    types: [opened, reopened, ready_for_review, closed]
 
 concurrency:
   group: project-status-${{ github.event.pull_request.number }}
@@ -20,18 +20,27 @@ env:
 jobs:
   move-cards:
     name: Mover tarjetas
-    if: github.event.action != 'closed' || github.event.pull_request.merged
+    if: >-
+      github.event.action == 'closed' && github.event.pull_request.merged ||
+      github.event.action != 'closed' && !github.event.pull_request.draft
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Pasar las tarjetas de los issues enlazados a En revisión o Hecho
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          REPO_TOKEN: ${{ github.token }}
+          FROM_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           STATUS: ${{ github.event.action == 'closed' && 'Hecho' || 'En revisión' }}
         run: |
           set -euo pipefail
+
+          if [ "$FROM_FORK" = 'true' ]; then
+            echo "::warning::PR desde un fork: los secrets no están disponibles, no se mueven tarjetas."
+            exit 0
+          fi
 
           if [ -z "$GH_TOKEN" ]; then
             echo "::error::Falta el secret PROJECT_TOKEN (PAT clásico con scope project)."
@@ -60,7 +69,7 @@ jobs:
             exit 1
           fi
 
-          issues=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json closingIssuesReferences \
+          issues=$(GH_TOKEN="$REPO_TOKEN" gh pr view "$PR_NUMBER" --repo "$REPO" --json closingIssuesReferences \
             --jq '.closingIssuesReferences[].number')
 
           if [ -z "$issues" ]; then
@@ -70,7 +79,7 @@ jobs:
 
           for issue in $issues; do
             item_id=$(gh api graphql -f owner="${REPO%%/*}" -f name="${REPO##*/}" -F issue="$issue" \
-              -f project="$project_id" -f query='
+              -f query='
               query($owner: String!, $name: String!, $issue: Int!) {
                 repository(owner: $owner, name: $name) {
                   issue(number: $issue) {

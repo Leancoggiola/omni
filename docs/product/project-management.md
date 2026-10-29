@@ -60,7 +60,7 @@ Si la historia toca contrato API↔clientes: **`shared` → `api` → web y/o mo
 
 ### Workflow `project-status.yml`
 
-Mueve las tarjetas de los issues que el PR enlaza con `Closes #N` (las que GitHub reconoce como `closingIssuesReferences`): a **En revisión** al abrir o reabrir el PR y a **Hecho** al mergearlo. Un issue que no esté en Omni Roadmap se omite con un aviso.
+Mueve las tarjetas de los issues que el PR enlaza con `Closes #N` (las que GitHub reconoce como `closingIssuesReferences`): a **En revisión** al abrir o reabrir el PR y a **Hecho** al mergearlo. Un PR en draft no mueve la tarjeta hasta que pasa a listo para revisión, un issue que no esté en Omni Roadmap se omite con un aviso y los PRs desde forks se omiten porque no reciben secrets. Un PR cerrado sin merge no revierte la tarjeta: se mueve a mano.
 
 Necesita el secret del repo `PROJECT_TOKEN`: un PAT **clásico** con el único scope `project`. El `GITHUB_TOKEN` y los PAT de grano fino no acceden a los Projects v2 de un usuario. Si falla con `Falta el secret PROJECT_TOKEN`, el token no está cargado o venció.
 
