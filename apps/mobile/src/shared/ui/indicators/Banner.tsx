@@ -3,7 +3,8 @@ import { useEffect } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { Paragraph, XStack } from 'tamagui';
 
-import { useSemanticColors } from '@/core/theme';
+import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
+import { themedElevation } from '@/theme/elevation';
 
 import type { Icon } from 'phosphor-react-native';
 
@@ -14,6 +15,7 @@ type BannerProps = {
   children: string;
   color?: BannerColor;
   icon?: Icon;
+  floating?: boolean;
 };
 
 type SemanticColors = ReturnType<typeof useSemanticColors>;
@@ -40,10 +42,12 @@ const ICON_COLOR = {
 
 /**
  * Equivalente de `Alert` de web (variante `light-custom`, la que tiene por defecto): wash del color,
- * borde de 1 y texto en el color. Para errores de formulario: `<Banner color="destructive">`.
+ * borde de 1 y texto en el color. Para errores de formulario: `<Banner color="destructive">`. `floating` (fondo de
+ * card y sombra `float` en vez del wash del color) es para el aviso global (`ServerWakeNotice`).
  */
-export function Banner({ children, color = 'brand', icon: IconComponent }: BannerProps) {
+export function Banner({ children, color = 'brand', icon: IconComponent, floating = false }: BannerProps) {
   const colors = useSemanticColors();
+  const { colorScheme } = useColorSchemeControl();
   const t = BANNER_TOKENS[color];
 
   useEffect(() => {
@@ -52,7 +56,7 @@ export function Banner({ children, color = 'brand', icon: IconComponent }: Banne
 
   return (
     <XStack
-      backgroundColor={t.surface}
+      backgroundColor={floating ? '$backgroundStrong' : t.surface}
       borderWidth={1}
       borderColor={t.border}
       borderRadius={RADIUS.md}
@@ -63,6 +67,7 @@ export function Banner({ children, color = 'brand', icon: IconComponent }: Banne
       accessible
       accessibilityRole="alert"
       accessibilityLabel={children}
+      {...(floating ? themedElevation('float', colorScheme) : null)}
     >
       {IconComponent ? <IconComponent size={20} color={ICON_COLOR[color](colors)} /> : null}
       <Paragraph flex={1} color={t.text} fontSize={FONT_SIZE.md}>
