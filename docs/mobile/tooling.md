@@ -85,3 +85,41 @@ Lo que más pesa en Windows es **Microsoft Defender** escaneando cada archivo qu
 | React Compiler | No activado (ver [#29](https://github.com/Leancoggiola/omni/issues/29)) | **Activo** (`experiments.reactCompiler` en `app.json`) |
 
 Nuevo feature: [new-feature.md](./new-feature.md). Web: [web/tooling.md](../web/tooling.md).
+
+## Correr la app en un emulador Android (macOS, Apple Silicon)
+
+Mismo flujo que en Windows, sin los pasos de rutas largas (no aplican) ni CMake aparte. Validado en una Mac M-series con 24 GB: build en frío de Gradle ~1m 40s–2m, emulador listo en ~20 s, primer bundle de Metro en segundos.
+
+### Setup (una sola vez por máquina)
+
+1. **Android Studio** + AVD **arm64** (por ejemplo Pixel con imagen Google APIs `arm64-v8a`).
+2. **JDK 17** (Zulu o Temurin): `brew install --cask zulu@17`. Mismo motivo que en Windows: Gradle 8.14 no soporta Java 25.
+3. Variables de entorno (por ejemplo en un `~/omni-android-env.sh` que se hace `source` antes de trabajar):
+   ```bash
+   export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+   export ANDROID_HOME=$HOME/Library/Android/sdk
+   export ANDROID_SDK_ROOT=$ANDROID_HOME
+   export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
+   ```
+4. `pnpm install`, `apps/api/.env` y `apps/mobile/.env` (`EXPO_PUBLIC_API_URL=http://10.0.2.2:3000`).
+5. **Cliente de Prisma**: `pnpm --filter api db:generate` (el cliente está gitignoreado; sin esto la API falla con `ERR_MODULE_NOT_FOUND` en `src/generated/prisma/client`).
+
+### Correr
+
+```bash
+pnpm dev:api                                                   # :3000 (la base de dev es Supabase remoto, no hace falta Docker)
+emulator -avd <nombre-del-avd> -no-snapshot-save               # esperar: adb wait-for-device
+pnpm --filter mobile prebuild                                  # solo si no existe apps/mobile/android
+(cd apps/mobile/android && ./gradlew app:installDebug -PreactNativeArchitectures=arm64-v8a --max-workers=2)
+pnpm --filter mobile start                                     # Metro
+adb reverse tcp:8081 tcp:8081
+adb shell am start -a android.intent.action.VIEW -d 'exp+omni://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081'
+```
+
+Notas:
+
+- `expo prebuild` agrega un script `"ios": "expo run:ios"` a `apps/mobile/package.json`: revertirlo (`git checkout apps/mobile/package.json`) antes de commitear.
+- Si el primer bundle da `SocketTimeoutException`, pedirlo con `curl` (`launchAsset` del manifest con header `expo-platform: android`), `adb shell am force-stop com.omni.app` y reabrir.
+- Con la API en un puerto distinto (varias sesiones en paralelo), `PORT` del entorno gana sobre el `.env` (dotenv no pisa variables ya definidas) y `EXPO_PUBLIC_API_URL` debe usar ese puerto.
+- Varias sesiones en paralelo: un AVD por sesión (`emulator-5554`, `emulator-5556`), puertos de API y Metro distintos y `adb -s <serial>`. Cerrar el Gradle propio por PID, no con `--stop` (mataría el de las otras).
+- `metro.config.js` fija `resolver.useWatchman = false`: con Watchman, un worktree anidado (`.claude/worktrees/*`) hereda la raíz del checkout principal y el bundle falla con `Unable to resolve module whatwg-fetch`.
