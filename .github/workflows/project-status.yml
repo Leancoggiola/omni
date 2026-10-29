@@ -76,7 +76,7 @@ jobs:
           fi
 
           issues=$(GH_TOKEN="$REPO_TOKEN" gh pr view "$PR_NUMBER" --repo "$REPO" --json body --jq '.body' \
-            | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?):? +#[0-9]+' | grep -oE '[0-9]+' | sort -u || true)
+            | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?):? +#[0-9]+(, *#[0-9]+)*' | grep -oE '[0-9]+' | sort -u || true)
 
           if [ -z "$issues" ]; then
             echo "El PR #$PR_NUMBER no enlaza ningún issue con Closes #N: no hay tarjetas que mover."
@@ -84,18 +84,31 @@ jobs:
           fi
 
           for issue in $issues; do
-            item_id=$(gh api graphql -f owner="${REPO%%/*}" -f name="${REPO##*/}" -F issue="$issue" \
+            item=$(gh api graphql -f owner="${REPO%%/*}" -f name="${REPO##*/}" -F issue="$issue" \
               -f query='
               query($owner: String!, $name: String!, $issue: Int!) {
                 repository(owner: $owner, name: $name) {
                   issue(number: $issue) {
-                    projectItems(first: 20) { nodes { id project { id } } }
+                    projectItems(first: 20) {
+                      nodes {
+                        id
+                        project { id }
+                        fieldValueByName(name: "Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } }
+                      }
+                    }
                   }
                 }
-              }' --jq ".data.repository.issue.projectItems.nodes[] | select(.project.id == \"$project_id\") | .id")
+              }' | jq -r --arg pid "$project_id" '.data.repository.issue.projectItems.nodes[] | select(.project.id == $pid) | [.id, (.fieldValueByName.name // "")] | @tsv')
+            item_id=${item%%$'\t'*}
+            current=${item#*$'\t'}
 
             if [ -z "$item_id" ]; then
               echo "::warning::El issue #$issue no está en Omni Roadmap: se omite."
+              continue
+            fi
+
+            if [ "$current" = 'Hecho' ] && [ "$STATUS" != 'Hecho' ]; then
+              echo "Issue #$issue ya está en Hecho: no se mueve hacia atrás."
               continue
             fi
 
