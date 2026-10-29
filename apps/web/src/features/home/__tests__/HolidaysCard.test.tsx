@@ -2,13 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@/__tests__/helpers';
 
-import { HolidaysCard } from '../components/HolidaysCard';
+import { HolidaysCard } from '../components/HolidaysCard/HolidaysCard';
 
 import { act, fireEvent, screen } from '@testing-library/react';
 
 const useTodayHolidays = vi.fn();
 
-vi.mock('../hooks', () => ({
+vi.mock('../hooks/useTodayHolidays', () => ({
   useTodayHolidays: () => useTodayHolidays(),
 }));
 

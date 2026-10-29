@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useToday } from '../hooks';
+import { useToday } from '../hooks/useToday';
 
 import { act, renderHook } from '@testing-library/react';
 

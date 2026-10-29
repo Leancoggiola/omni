@@ -3,7 +3,7 @@ import useSWRImmutable from 'swr/immutable';
 
 import { buildQueryString, SWR_KEYS } from '@/shared/api';
 
-import { useToday } from '../useToday';
+import { useToday } from './useToday';
 
 import type { TodayHolidays } from '@omni/shared/holidays';
 

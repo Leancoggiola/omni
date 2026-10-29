@@ -2,7 +2,7 @@ import { Paper, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core';
 
 import { useAuth } from '@/core/auth';
 
-import { HolidaysCard } from '../HolidaysCard';
+import { HolidaysCard } from './HolidaysCard/HolidaysCard';
 
 import type { FC } from 'react';
 

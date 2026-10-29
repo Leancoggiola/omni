@@ -13,7 +13,12 @@ export default mergeConfig(
       coverage: {
         provider: 'v8',
         reporter: ['text', 'lcov', 'html'],
-        include: ['src/shared/api/client.ts', 'src/shared/api/serverWake.ts', 'src/**/utils/**/*.ts'],
+        include: [
+          'src/shared/api/client.ts',
+          'src/shared/api/serverWake.ts',
+          'src/features/home/hooks/useHolidayCarousel.ts',
+          'src/**/utils/**/*.ts',
+        ],
         exclude: ['src/**/utils/**/index.ts', 'src/**/*.{test,spec}.{ts,tsx}', 'src/**/__tests__/**'],
         thresholds: {
           lines: 80,
