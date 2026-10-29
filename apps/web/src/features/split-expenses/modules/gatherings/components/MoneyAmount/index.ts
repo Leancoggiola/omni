@@ -1,1 +1,0 @@
-export { MoneyAmount } from './MoneyAmount';

@@ -3,8 +3,8 @@ import { Divider, Modal, Stack } from '@mantine/core';
 
 import { EmptyState, ErrorState, LoadingState, notifySuccess } from '@/shared/ui';
 
-import { useSplitExpensesMutations } from '../../../_shared';
-import { useSplitFriends } from '../../hooks';
+import { useSplitExpensesMutations } from '../../../../hooks/useSplitExpensesMutations';
+import { useSplitFriends } from '../../hooks/useSplitFriends';
 import { FriendForm } from './FriendForm';
 import { FriendRow } from './FriendRow';
 

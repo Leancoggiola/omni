@@ -2,7 +2,7 @@ import { FC, useState } from 'react';
 import { ActionIcon, Badge, Combobox, Group, Stack, Text, TextInput, useCombobox } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 
-import { useSplitFriendsSuggest } from '../../../friends';
+import { useSplitFriendsSuggest } from '../../../friends/hooks/useSplitFriendsSuggest';
 
 import type { GatheringParticipantDraft } from '../../utils/newGatheringForm';
 

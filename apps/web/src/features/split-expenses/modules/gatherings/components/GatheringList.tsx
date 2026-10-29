@@ -3,7 +3,7 @@ import { Button, Stack } from '@mantine/core';
 
 import { EmptyState, ErrorState, LoadingState } from '@/shared/ui';
 
-import { GatheringCard } from '../GatheringCard';
+import { GatheringCard } from './GatheringCard/GatheringCard';
 
 import type { GatheringSummary } from '@omni/shared/split-expenses';
 
