@@ -4,6 +4,7 @@ import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 
 import { useSyncColorScheme } from '@/core/theme';
 
+import { AppBackground } from './components/AppBackground/AppBackground';
 import { Header } from './components/Header';
 import { Navbar } from './components/Navbar';
 
@@ -20,14 +21,15 @@ export const RootLayout: FC = () => {
       padding={isDesktop ? '2xl' : 'md'}
       header={{ height: 60, collapsed: !!isDesktop }}
       navbar={{
-        width: '19rem',
+        width: '20rem',
         breakpoint: 'md',
         collapsed: { mobile: !opened },
       }}
       layout="alt"
       withBorder={false}
-      styles={{ root: { '--app-shell-navbar-width': '19rem' } }}
+      styles={{ root: { '--app-shell-navbar-width': '20rem' } }}
     >
+      <AppBackground />
       <Header opened={opened} onToggle={toggle} />
       <Navbar onClose={close} toggle={toggle} />
 
