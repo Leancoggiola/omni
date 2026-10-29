@@ -32,7 +32,7 @@ afterEach(() => {
 /** Corre `scripts/new-feature.mjs` contra el repo temporal y devuelve su salida y código de salida. */
 function run(...args) {
   const result = spawnSync('node', [script, ...args], {
-    env: { ...process.env, OMNI_REPO_ROOT: root },
+    env: { ...process.env, OMNI_NEW_FEATURE_TEST_ROOT: root },
     encoding: 'utf8',
   });
   return { status: result.status, stdout: result.stdout, stderr: result.stderr };
