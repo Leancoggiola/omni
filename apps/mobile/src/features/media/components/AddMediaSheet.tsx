@@ -19,7 +19,7 @@ import {
   Title,
 } from '@/shared/ui';
 
-import { MIN_SEARCH_LENGTH, useMediaSearch } from '../hooks';
+import { MIN_SEARCH_LENGTH, useMediaSearch } from '../hooks/useMediaSearch';
 import { TmdbResultRow } from './TmdbResultRow';
 
 import type { MediaStatus, MediaType } from '@omni/shared/media';

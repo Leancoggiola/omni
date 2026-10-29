@@ -1,9 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { SWRConfig } from 'swr';
 
-import { useMediaMutations, useMediaSearch, useMyMediaList } from './hooks';
+import { useMediaMutations } from './useMediaMutations';
+import { useMyMediaList } from './useMyMediaList';
 
-import type { MediaItem, TmdbSearchResponse } from '@omni/shared/media';
+import type { MediaItem } from '@omni/shared/media';
 import type { ReactNode } from 'react';
 
 const mockApi = { post: jest.fn(), patch: jest.fn(), delete: jest.fn() };
@@ -31,15 +32,7 @@ const item = (id: string, status: MediaItem['status']): MediaItem => ({
 
 /** "Servidor": lo que devuelve el GET de la lista. Las mutaciones lo cambian al resolver. */
 let server: MediaItem[] = [];
-const searchResponse: TmdbSearchResponse = {
-  page: 1,
-  total_pages: 1,
-  total_results: 1,
-  results: [{ id: 1, media_type: 'movie', title: 'Dune', poster_path: null }],
-} as TmdbSearchResponse;
-const fetcher = jest.fn((key: string) =>
-  Promise.resolve(key.startsWith('/api/media/search') ? searchResponse : server.map(i => ({ ...i })))
-);
+const fetcher = jest.fn(() => Promise.resolve(server.map(i => ({ ...i }))));
 
 function deferred() {
   let resolve!: () => void;
@@ -141,30 +134,5 @@ describe('useMediaMutations', () => {
       await result.current.addToList(3, 'movie', 'watching');
     });
     expect(statuses(result.current.list.data)).toEqual(['3:watching', '1:to_watch', '2:to_watch']);
-  });
-});
-
-describe('useMediaSearch', () => {
-  afterEach(() => jest.useRealTimers());
-
-  it('con menos de 2 caracteres no busca; al escribir, carga durante el debounce y después trae resultados', async () => {
-    jest.useFakeTimers();
-    const { result, rerender } = renderHook(({ q }: { q: string }) => useMediaSearch(q), {
-      wrapper,
-      initialProps: { q: 'd' },
-    });
-    expect(result.current).toMatchObject({ tooShort: true, isLoading: false, results: [] });
-
-    rerender({ q: 'du' });
-    expect(result.current).toMatchObject({ tooShort: false, isLoading: true });
-    expect(fetcher).not.toHaveBeenCalled();
-
-    await act(async () => {
-      jest.advanceTimersByTime(400);
-    });
-    jest.useRealTimers();
-    await waitFor(() => expect(result.current.results).toHaveLength(1));
-    expect(fetcher).toHaveBeenCalledWith('/api/media/search?page=1&query=du&type=multi');
-    expect(result.current.isLoading).toBe(false);
   });
 });

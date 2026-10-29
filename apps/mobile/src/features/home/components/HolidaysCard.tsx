@@ -10,7 +10,8 @@ import { gradientPoints } from '@/theme/gradient';
 import { HOLIDAY_CAROUSEL_DURATION_MS } from '@omni/shared/holidays';
 import { BRAND, GRADIENT_STOPS, RADIUS, SEMANTIC, SPACING } from '@omni/shared/theme';
 
-import { useHolidayCarousel, useTodayHolidays } from '../hooks';
+import { useHolidayCarousel } from '../hooks/useHolidayCarousel';
+import { useTodayHolidays } from '../hooks/useTodayHolidays';
 
 const CARD_MIN_HEIGHT = 60;
 /** `activate` es el doble toque de VoiceOver/TalkBack sobre el elemento enfocado. */

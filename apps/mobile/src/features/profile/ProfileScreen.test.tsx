@@ -37,8 +37,8 @@ jest.mock('@/shared/ui', () => ({
   notifyError: jest.fn(),
   notifyWarning: jest.fn(),
 }));
-jest.mock('./hooks', () => ({
-  useProfile: () => mockProfile(),
+jest.mock('./hooks/useProfile', () => ({ useProfile: () => mockProfile() }));
+jest.mock('./hooks/useAccountActions', () => ({
   useAccountActions: () => ({ changePassword: mockChangePassword, deleteAccount: mockDeleteAccount }),
 }));
 

@@ -21,12 +21,13 @@ apps/mobile/
     shared/navigation/    # NAV_ICONS, NAV_HREFS, TAB_ROUTES y MORE_TAB (lo que depende de auth/router; shared/ui es presentacional)
     features/<name>/      # screen + hooks (ver abajo)
     theme/                # tamagui.config, fonts, elevation, gradient
+    assets.d.ts           # tipos de las imágenes estáticas (`*.png`) que resuelve Metro
 ```
 
 Convención de features, la misma que web (árbol y reglas completas): [docs/architecture.md](../../docs/architecture.md#estructura-de-features-web-y-mobile). En corto:
 
 - `src/features/<name>/`: `<Name>Screen.tsx` e `index.ts`, el único barrel (exporta el Screen). Adentro, `components/`, `hooks/useX.ts` (un hook por archivo, nunca en `utils/`) y `utils/`, sin `index.ts`; cada test al lado de su archivo.
-- `app/<ruta>.tsx` solo declara la ruta e importa `@/features/<name>`.
+- `app/<ruta>.tsx` solo declara la ruta e importa `@/features/<name>` (por el barrel, nunca `@/features/<name>/<Name>Screen`).
 
 > **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue.
 
