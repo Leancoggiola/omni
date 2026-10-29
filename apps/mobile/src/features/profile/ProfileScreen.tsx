@@ -21,7 +21,8 @@ import { LogoutAllCard } from './components/LogoutAllCard';
 import { PasswordCard } from './components/PasswordCard';
 import { PersonalInfoCard } from './components/PersonalInfoCard';
 import { PreferencesCard } from './components/PreferencesCard';
-import { useAccountActions, useProfile } from './hooks';
+import { useAccountActions } from './hooks/useAccountActions';
+import { useProfile } from './hooks/useProfile';
 
 import type { UpdatePreferencesPayload } from '@omni/shared/users';
 

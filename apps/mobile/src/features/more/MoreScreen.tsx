@@ -12,7 +12,7 @@ import { Button, confirm, getErrorMessage, notifyError, Screen, ScreenHeader, Se
 import { NavRow } from './components/NavRow';
 import { ThemeRow } from './components/ThemeRow';
 import { UserCard } from './components/UserCard';
-import { MORE_NAV_KEYS } from './moreNavKeys';
+import { MORE_NAV_KEYS } from './utils/moreNavKeys';
 
 /** Launcher de "Más": cuenta, tema, módulos y administración (lo que en web es el navbar). */
 export function MoreScreen() {

@@ -2,9 +2,10 @@ import { Outlet } from 'react-router-dom';
 import { AppShell, Container, Overlay } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 
-import { useSyncColorScheme } from '@/core';
+import { useSyncColorScheme } from '@/core/theme';
 
-import { Header, Navbar } from './components';
+import { Header } from './components/Header';
+import { Navbar } from './components/Navbar';
 
 import type { FC } from 'react';
 

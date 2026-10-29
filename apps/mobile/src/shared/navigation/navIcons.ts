@@ -13,7 +13,7 @@ import {
 
 import type { NavKey } from '@omni/shared/navigation';
 
-/** Mismos íconos que `NAV_ICONS` de web (`app/navigation/nav-registry.tsx`). */
+/** Mismos íconos que `NAV_ICONS` de web (`shared/navigation/nav-registry.tsx`). */
 export const NAV_ICONS: Record<NavKey, Icon> = {
   home: HouseIcon,
   media: FilmSlateIcon,

@@ -83,17 +83,18 @@ src/
   app/
     router.tsx
     routes.ts
-    navigation/
-      nav-registry.tsx
   features/               ← Dominio de producto (1 navbar item = 1 feature)
     home/ · auth/ · media/ · profile/ · admin/ · split-expenses/
   shared/
     api/                  ← client, fetcher, SWR_KEYS
-    ui/                   ← componentes cross-feature (UserAvatar, …)
+    navigation/           ← nav-registry (NAV_ICONS, MAIN_NAV_ITEMS, ADMIN_NAV_ITEMS) y NavItemConfig
+    ui/                   ← componentes cross-feature, planos (UserAvatar.tsx, …)
   core/
     auth/
     guards/
     providers/
+    serverWake/           ← ServerWakeNotice (aviso de cold start)
+    theme/
   layouts/
     RootLayout.tsx
     AuthLayout.tsx
@@ -143,7 +144,7 @@ app/<ruta>.tsx              solo la ruta: importa @/features/<name>
 - **Tests:** cada cliente mantiene su ubicación (web en `__tests__/`, mobile al lado del archivo).
 - **Scaffolding:** `pnpm new-feature <name> [--web] [--mobile] [--path /x] [--register-route]`. Checklists: [web/new-feature.md](./web/new-feature.md) y [mobile/new-feature.md](./mobile/new-feature.md).
 
-> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue (`core/serverWake/` y `shared/navigation/` en web también llegan con esa migración).
+> **Migración en curso ([#122](https://github.com/Leancoggiola/omni/issues/122)):** el código nuevo sigue esta convención; las features existentes se migran en los PRs siguientes del issue.
 
 ### Convenciones Web
 
@@ -207,7 +208,7 @@ Web ignora los tokens del body. Mobile los guarda en SecureStore, en una sola cl
 
 ## Shared UI (Web)
 
-Componentes usados en 2+ features → `shared/ui/<Component>/`.
+Componentes usados en 2+ features → `shared/ui/<Component>.tsx` (plano; carpeta solo con auxiliares, como `notify/` con su `.module.scss`).
 
 ---
 
