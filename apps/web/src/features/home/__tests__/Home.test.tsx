@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { createMockAuthValue, createMockSessionUser, renderWithProviders } from '@/__tests__/helpers';
 
-import { HomePage } from '../../../home.page';
+import { HomePage } from '../home.page';
 
 import { screen } from '@testing-library/react';
 
@@ -13,7 +13,7 @@ vi.mock('@/core/auth', () => ({
     }),
 }));
 
-vi.mock('../hooks', () => ({
+vi.mock('../hooks/useTodayHolidays', () => ({
   useTodayHolidays: () => ({
     holidays: { date: '2026-10-07', month: '10', day: '07', count: 0, sourceUrl: 'https://wikipedia.org', items: [] },
     isLoading: false,

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useHolidayCarousel } from '../components/HolidaysCard/utils';
+import { useHolidayCarousel } from '../hooks/useHolidayCarousel';
 
 import { act, renderHook } from '@testing-library/react';
 

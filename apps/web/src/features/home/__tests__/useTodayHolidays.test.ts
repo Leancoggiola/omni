@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useTodayHolidays } from '../hooks';
+import { useTodayHolidays } from '../hooks/useTodayHolidays';
 
 import { HOLIDAY_STALE_DAY_RETRY_MS as STALE_DAY_RETRY_MS } from '@omni/shared/holidays';
 import { act, renderHook } from '@testing-library/react';

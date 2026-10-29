@@ -1,6 +1,6 @@
 import { Stack } from '@mantine/core';
 
-import { HomeMainCard } from './modules/greeting';
+import { HomeMainCard } from './components/HomeMainCard';
 
 import type { FC } from 'react';
 
