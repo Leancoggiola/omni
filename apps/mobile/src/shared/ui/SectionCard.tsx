@@ -1,7 +1,8 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { Paragraph, YStack } from 'tamagui';
 
-import { elevation } from '@/theme/elevation';
+import { useColorSchemeControl } from '@/core/theme';
+import { glassElevation } from '@/theme/elevation';
 
 import { Title } from './Title';
 
@@ -14,17 +15,21 @@ type SectionCardProps = {
 };
 
 /**
- * Superficie de contenido: equivale a `Paper` de web (card cálida, radio `lg`, sombra `sm`) y,
- * con `title`, a `ProfileSectionCard`.
+ * Superficie de contenido de v2: equivale a `Paper` de web (card glass de radio 24: `surface-glass`, `glass-border` y
+ * sombra `card`, esta última solo en iOS) y, con `title`, a `ProfileSectionCard`. No se anida: adentro van filas o superficies sólidas.
  */
 export function SectionCard({ title, subtitle, children }: SectionCardProps) {
+  const { colorScheme } = useColorSchemeControl();
+
   return (
     <YStack
-      backgroundColor="$backgroundStrong"
-      borderRadius={RADIUS.md}
+      backgroundColor="$surfaceGlass"
+      borderWidth={1}
+      borderColor="$glassBorder"
+      borderRadius={RADIUS.xl}
       padding={SPACING.lg}
-      gap={SPACING.lg}
-      {...elevation('sm')}
+      gap={SPACING.md}
+      {...glassElevation('card', colorScheme)}
     >
       {title ? (
         <YStack gap={SPACING['2xs']}>

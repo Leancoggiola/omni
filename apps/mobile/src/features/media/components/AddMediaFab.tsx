@@ -3,6 +3,7 @@ import { PlusIcon } from 'phosphor-react-native';
 import { XStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
+import { useTabBarClearance } from '@/shared/ui';
 import { elevation } from '@/theme/elevation';
 
 export const FAB_SIZE = 56;
@@ -17,13 +18,14 @@ type AddMediaFabProps = {
  */
 export function AddMediaFab({ onPress }: AddMediaFabProps) {
   const colors = useSemanticColors();
+  const bottom = useTabBarClearance();
 
   return (
     <XStack
       theme="active"
       position="absolute"
       right={SPACING.md}
-      bottom={SPACING.md}
+      bottom={bottom}
       width={FAB_SIZE}
       height={FAB_SIZE}
       borderRadius={RADIUS.full}

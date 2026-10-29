@@ -35,4 +35,15 @@ describe('DisplayTitle', () => {
     expect(screen.queryByText('Omni')).toBeNull();
     expect(screen.getByText('Mi Perfil')).toBeTruthy();
   });
+
+  it('con header={false} no es un encabezado (mensajes de estados)', () => {
+    render(
+      <DisplayTitle size="md" header={false}>
+        Algo salió mal
+      </DisplayTitle>
+    );
+
+    expect(screen.queryByRole('header')).toBeNull();
+    expect(screen.getByText('Algo salió mal')).toBeTruthy();
+  });
 });

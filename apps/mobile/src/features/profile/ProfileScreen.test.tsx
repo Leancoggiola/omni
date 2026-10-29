@@ -22,7 +22,7 @@ const mockBack = jest.fn();
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => ({
   ...jest.requireActual('@/test/themeMock'),
-  useColorSchemeControl: () => ({ clearOverride: mockClearOverride }),
+  useColorSchemeControl: () => ({ colorScheme: 'light', clearOverride: mockClearOverride }),
 }));
 jest.mock('@/core/auth', () => ({ useAuth: () => ({ logout: mockLogout, logoutAll: mockLogoutAll }) }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn() }) }));

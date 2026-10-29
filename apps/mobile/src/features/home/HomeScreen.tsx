@@ -4,16 +4,21 @@ import { ScrollView } from 'react-native';
 import { Paragraph, YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
-import { Screen, SectionCard, Title } from '@/shared/ui';
+import { DisplayTitle, Screen, SectionCard } from '@/shared/ui';
 
 import { HolidaysCard } from './components/HolidaysCard';
 
-const NAME_SKELETON = { width: 160, height: 28 } as const;
+const NAME_SKELETON = { width: 160, height: 36 } as const;
+const GREETING_LINE_HEIGHT = 24;
 
-/** Inicio (= `HomeMainCard` de web): una card con el saludo y las efemérides adentro, sin `ScreenHeader`. */
+/**
+ * Inicio (= `HomeMainCard` de web): una card glass con el saludo, el nombre en `display` y las efemérides adentro,
+ * sin `ScreenHeader`.
+ */
 export function HomeScreen() {
   const { user, isLoading } = useAuth();
   const greeting = getTimeGreeting();
+  const name = user?.name ?? '—';
 
   return (
     <Screen>
@@ -23,23 +28,23 @@ export function HomeScreen() {
             gap={SPACING['2xs']}
             accessible
             accessibilityRole="header"
-            accessibilityLabel={`Inicio. ${greeting}, ${isLoading ? 'cargando' : (user?.name ?? '—')}`}
+            accessibilityLabel={`Inicio. ${greeting}, ${isLoading ? 'cargando' : name}`}
           >
-            <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
+            <Paragraph color="$dimmed" fontSize={FONT_SIZE.lg} lineHeight={GREETING_LINE_HEIGHT} fontWeight="500">
               {greeting}
             </Paragraph>
             {isLoading ? (
               <YStack
                 {...NAME_SKELETON}
                 borderRadius={RADIUS.sm}
-                backgroundColor="$dimmedSurface"
+                backgroundColor="$disabledSurface"
                 accessible
                 accessibilityLabel="Cargando tu nombre"
               />
             ) : (
-              <Title order={3} color="$primary">
-                {user?.name ?? '—'}
-              </Title>
+              <DisplayTitle size="lg" accent={name} header={false}>
+                {name}
+              </DisplayTitle>
             )}
           </YStack>
           <HolidaysCard />

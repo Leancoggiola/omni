@@ -13,7 +13,7 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 24, bottom: 16, left: 0, right: 0 }),
 }));
 
-/** Doble de la tab bar: informa su alto como lo hace `MeasuredTabBar`. */
+/** Doble de la tab bar: informa su alto como lo hace `FloatingTabBar`. */
 function TabBar({ height }: { height: number }) {
   const setBottomOffset = useSetNotificationsBottomOffset();
   useEffect(() => {
