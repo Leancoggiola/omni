@@ -12,7 +12,8 @@
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0",
-    "check-api-paths": "node ../../scripts/check-api-paths.mjs web"
+    "check-api-paths": "node ../../scripts/check-api-paths.mjs web",
+    "check-structure": "node ../../scripts/check-structure.mjs web"
   },
   "dependencies": {
     "@mantine/core": "9.7.2",

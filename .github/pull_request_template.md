@@ -24,10 +24,10 @@ Closes #
 
 ```bash
 # web
-pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test
+pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test && pnpm --filter web check-structure
 
 # mobile
-pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile check-api-paths && pnpm --filter mobile test
+pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile check-api-paths && pnpm --filter mobile test && pnpm --filter mobile check-structure
 
 # api (si aplica) — los tests de integración necesitan la base efímera
 docker compose up -d db-test

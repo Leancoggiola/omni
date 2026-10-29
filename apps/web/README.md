@@ -42,6 +42,7 @@ Desde `apps/web` (o con `pnpm --filter web <script>` desde la raíz):
 | `pnpm --filter web lint`            | ESLint sobre `src/`                       |
 | `pnpm --filter web check-api-paths` | Verifica que no haya paths `/api` sueltos |
 | `pnpm --filter web test`            | Vitest                                    |
+| `pnpm --filter web check-structure` | Verifica la estructura de features        |
 | `pnpm --filter web test:watch`      | Vitest en modo watch                      |
 | `pnpm --filter web test:coverage`   | Vitest con coverage                       |
 

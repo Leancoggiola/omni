@@ -43,6 +43,7 @@ pnpm --filter web check-types
 pnpm --filter web lint
 pnpm --filter web check-api-paths
 pnpm --filter web test
+pnpm --filter web check-structure
 ```
 
 Prioridad de tests: alta en `shared/api` y utils; media 1–2 smokes con `renderWithProviders`; baja por cada componente Mantine.
