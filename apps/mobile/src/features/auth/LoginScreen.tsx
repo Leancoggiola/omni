@@ -1,28 +1,30 @@
 // tamagui-ignore
 import { loginSchema } from '@omni/shared/auth';
-import { BRAND, RADIUS, SPACING } from '@omni/shared/theme';
+import { RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef, useState } from 'react';
-import { Image, KeyboardAvoidingView, ScrollView, type TextInput } from 'react-native';
+import { Image, ScrollView, type TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { YStack, type TamaguiElement } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
+import { useColorSchemeControl } from '@/core/theme';
 import { ensureServerAwake } from '@/shared/api';
-import { Banner, Button, getErrorMessage, PasswordField, SectionCard, TextField, Title } from '@/shared/ui';
-import { elevation } from '@/theme/elevation';
+import { Banner, Button, DisplayTitle, getErrorMessage, PasswordField, TextField, useKeyboardInset } from '@/shared/ui';
+import { themedElevation } from '@/theme/elevation';
 
 import LOGO from '../../../assets/images/splash-icon.png';
 
 import { AuthBackground } from './components/AuthBackground';
 
-const LOGO_SIZE = 72;
-/** Ancho máximo de la card en pantallas grandes (web: `miw="25rem"`). */
-const CARD_MAX_WIDTH = 420;
+const LOGO_SIZE = 88;
+/** Ancho máximo del form en pantallas grandes (web: `miw="25rem"`). */
+const FORM_MAX_WIDTH = 420;
 
 type FieldErrors = Partial<Record<'username' | 'password', string>>;
 
 /**
- * Login. Al montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y
+ * Login v2: logo y título arriba y el form en una hoja inferior de radio 32 que sube con el teclado
+ * (`useKeyboardInset`). Al montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y
  * el aviso aparezca si tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en
  * curso, los campos (el ojo de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la
  * contraseña (el campo deshabilitado lo pierde y cierra el teclado).
@@ -30,6 +32,8 @@ type FieldErrors = Partial<Record<'username' | 'password', string>>;
 export function LoginScreen() {
   const { login } = useAuth();
   const insets = useSafeAreaInsets();
+  const { colorScheme } = useColorSchemeControl();
+  const keyboardInset = useKeyboardInset();
   const passwordRef = useRef<TamaguiElement>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -77,41 +81,46 @@ export function LoginScreen() {
   return (
     <YStack flex={1} backgroundColor="$background">
       <AuthBackground />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-        <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            justifyContent: 'center',
-            padding: SPACING.md,
-            paddingTop: insets.top + SPACING.md,
-            paddingBottom: insets.bottom + SPACING.md,
-          }}
-          keyboardShouldPersistTaps="handled"
-        >
-          <YStack width="100%" maxWidth={CARD_MAX_WIDTH} alignSelf="center">
-            <SectionCard>
-              <YStack alignItems="center">
-                <YStack
-                  width={LOGO_SIZE}
-                  height={LOGO_SIZE}
-                  borderRadius={RADIUS.md}
-                  borderWidth={1}
-                  borderColor={BRAND[9]}
-                  backgroundColor="$backgroundStrong"
-                  overflow="hidden"
-                  {...elevation('md')}
-                >
-                  <Image
-                    source={LOGO}
-                    style={{ width: '100%', height: '100%' }}
-                    resizeMode="contain"
-                    accessible={false}
-                  />
-                </YStack>
-              </YStack>
-              <Title order={2} textAlign="center">
-                ¡Te damos la bienvenida a Omni!
-              </Title>
+      <YStack flex={1} paddingBottom={keyboardInset}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+          <YStack
+            flex={1}
+            alignItems="center"
+            justifyContent="center"
+            gap={SPACING.lg}
+            paddingHorizontal={SPACING.xl}
+            paddingTop={insets.top + SPACING['3xl']}
+            paddingBottom={SPACING.xl}
+          >
+            <YStack
+              width={LOGO_SIZE}
+              height={LOGO_SIZE}
+              padding={SPACING['2xs']}
+              borderRadius={RADIUS.xl}
+              borderWidth={1}
+              borderColor="$borderSubtle"
+              backgroundColor="$backgroundStrong"
+              overflow="hidden"
+              {...themedElevation('card', colorScheme)}
+            >
+              <Image source={LOGO} style={{ width: '100%', height: '100%' }} resizeMode="contain" accessible={false} />
+            </YStack>
+            <DisplayTitle textAlign="center" accent="Omni">
+              ¡Te damos la bienvenida a Omni!
+            </DisplayTitle>
+          </YStack>
+
+          <YStack
+            backgroundColor="$backgroundStrong"
+            borderTopLeftRadius={RADIUS['2xl']}
+            borderTopRightRadius={RADIUS['2xl']}
+            paddingHorizontal={SPACING.xl}
+            paddingTop={SPACING.xl}
+            paddingBottom={insets.bottom + SPACING.xl}
+            {...themedElevation('sheet', colorScheme)}
+          >
+            <YStack width="100%" maxWidth={FORM_MAX_WIDTH} alignSelf="center" gap={SPACING.lg}>
+              <DisplayTitle size="md">Ingresá a tu cuenta</DisplayTitle>
 
               {error ? <Banner color="destructive">{error}</Banner> : null}
 
@@ -151,10 +160,10 @@ export function LoginScreen() {
                   Ingresar
                 </Button>
               </YStack>
-            </SectionCard>
+            </YStack>
           </YStack>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </YStack>
     </YStack>
   );
 }
