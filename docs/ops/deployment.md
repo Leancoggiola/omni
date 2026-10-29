@@ -159,14 +159,20 @@ En PowerShell, `Read-Host -AsSecureString` cumple el papel de `read -rs`, y `[Ur
 
 Render free duerme la API sin tráfico y Supabase free se pausa tras 7 días sin actividad. [cron-job.org](https://cron-job.org) (zona `America/Argentina/Buenos_Aires`) pega a `https://omni-nest.vercel.app/api/health/ready`:
 
-| Job           | Horario ART                   | Notificación    | Nota                                                                                      |
-| ------------- | ----------------------------- | --------------- | ----------------------------------------------------------------------------------------- |
-| `keep-alive`  | cada 10 min, de 7:00 a 1:59   | Mail ante falla | Mantiene despierta la API y toca la DB.                                                   |
-| `despertador` | todos los días a las **6:55** | Ninguna         | cron-job.org corta a los 30 s y el cold start dura ~1 min: "falla" pero despierta la API. |
+| Job           | Horario ART                   | Crontab               | Notificación    | Nota                                                                                      |
+| ------------- | ----------------------------- | --------------------- | --------------- | ----------------------------------------------------------------------------------------- |
+| `keep-alive`  | cada 10 min, de 7:00 a 1:59   | `*/10 0,1,7-23 * * *` | Mail ante falla | Mantiene despierta la API y toca la DB.                                                   |
+| `despertador` | todos los días a las **6:55** | `55 6 * * *`          | Ninguna         | cron-job.org corta a los 30 s y el cold start dura ~1 min: "falla" pero despierta la API. |
+
+Los jobs se crean con el horario **Personalizado** (zona del job `America/Argentina/Buenos_Aires`), método GET y "Guardar respuestas en el historial" activado. La cuenta de cron-job.org es del mantenedor: si no se puede entrar, los jobs se recrean con esta tabla.
 
 **Ventana fría:** de 2:00 a 7:00 ART la API duerme (≈600 de las 750 h free por mes). El primer request en frío tarda ~1 min; web y mobile muestran "Despertando el servidor…" y reintentan hasta ~90 s.
 
-cron-job.org deshabilita un job tras más de 25 fallas seguidas; el mail avisa antes.
+cron-job.org deshabilita un job tras más de 25 fallas seguidas; el mail avisa antes. Tras una falla no manda otro aviso hasta que el job vuelva a dar 200.
+
+**Verificar:** en el historial de `keep-alive` las ejecuciones de 7:10 a 1:50 deben dar `200`; la de 7:00 puede dar timeout si la API durmió. Sin jobs activos la API se duerme también dentro de la ventana (así pasó el 25/10 de 2026, al no existir los jobs).
+
+**Plan:** se mantiene Render free con keep-alive. Starter (US$ 7/mes, siempre activo, sin cold start) queda como alternativa si el keep-alive falla seguido o el consumo se acerca a 750 h; el cambio se hace a mano en el dashboard y en `plan` de `render.yaml`. El consumo se revisa a fin de noviembre (#209).
 
 ---
 
