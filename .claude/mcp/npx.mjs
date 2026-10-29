@@ -10,7 +10,7 @@ function launchNpx(args) {
   const isWindows = process.platform === 'win32';
   const child = spawn('npx', args, { stdio: 'inherit', shell: isWindows });
 
-  child.on('exit', (code, signal) => process.exit(code ?? (signal ? 0 : 1)));
+  child.on('exit', (code, signal) => process.exit(code ?? (signal === 'SIGINT' || signal === 'SIGTERM' ? 0 : 1)));
   child.on('error', err => {
     console.error(`npx-mcp: ${err.message}`);
     process.exit(1);
