@@ -13759,7 +13759,7 @@ snapshots:
       obug: 2.1.4
       std-env: 4.2.0
       tinyrainbow: 3.1.1
-      vitest: 5.0.0(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0)(happy-dom@21.0.4)(jsdom@20.0.3)(vite@8.1.6(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.49.0)(tsx@4.21.0)(yaml@2.9.0))
+      vitest: 5.0.0(@types/node@24.19.2)(@vitest/coverage-v8@5.0.0)(happy-dom@21.0.4)(jsdom@20.0.3)(vite@8.1.6(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.99.0)(sass@1.99.0)(terser@5.49.0)(tsx@4.21.0)(yaml@2.9.0))
 
   '@vitest/istanbul-lib-coverage@1.0.1': {}
 
