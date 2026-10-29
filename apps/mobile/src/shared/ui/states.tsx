@@ -1,6 +1,6 @@
 import { RADIUS, SPACING } from '@omni/shared/theme';
 import { WarningCircleIcon, type Icon } from 'phosphor-react-native';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated } from 'react-native';
 import { XStack, YStack } from 'tamagui';
 
@@ -10,6 +10,7 @@ import { glassElevation } from '@/theme/elevation';
 import { Button } from './button/Button';
 import { DisplayTitle } from './DisplayTitle';
 import { Spinner } from './Spinner';
+import { STATUS_PILL_HEIGHT } from './StatusPill';
 import { useReduceMotion } from './useReduceMotion';
 
 import type { ReactNode } from 'react';
@@ -56,7 +57,7 @@ function SkeletonRow() {
           <SkeletonBlock flex={1} height={20} radius={RADIUS.sm} />
           <SkeletonBlock width={64} height={20} radius={RADIUS.full} />
         </XStack>
-        <SkeletonBlock width={104} height={28} radius={RADIUS.full} />
+        <SkeletonBlock width={104} height={STATUS_PILL_HEIGHT} radius={RADIUS.full} />
       </YStack>
     </XStack>
   );
@@ -76,7 +77,7 @@ type LoadingStateProps = {
  */
 export function LoadingState({ variant = 'spinner', size = 'large', rows = SKELETON_ROWS }: LoadingStateProps) {
   const reduceMotion = useReduceMotion();
-  const pulse = useRef(new Animated.Value(1)).current;
+  const [pulse] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     if (variant !== 'skeleton' || reduceMotion) return;

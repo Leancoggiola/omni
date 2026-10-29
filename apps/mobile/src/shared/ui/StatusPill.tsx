@@ -11,7 +11,7 @@ const STATUS_TOKENS = {
   watched: { background: '$successSurface', border: '$successBorder' },
 } as const satisfies Record<MediaStatus, { background: string; border: string }>;
 
-const PILL_HEIGHT = 28;
+export const STATUS_PILL_HEIGHT = 28;
 
 type StatusPillProps = {
   status: MediaStatus;
@@ -34,7 +34,7 @@ export function StatusPill({ status, onPress, accessibilityLabel }: StatusPillPr
       alignSelf="flex-start"
       alignItems="center"
       gap={SPACING['2xs']}
-      height={PILL_HEIGHT}
+      height={STATUS_PILL_HEIGHT}
       paddingHorizontal={SPACING.sm}
       borderRadius={RADIUS.full}
       borderWidth={1}
