@@ -28,8 +28,9 @@ function splitAccent(title: string, accent?: string): [string, string, string] {
 }
 
 /**
- * Encabezado de página de v2: título en `display` con una palabra en `primary`, sin itálica. `accent` es esa palabra
- * (por defecto, la última) y tiene que ser una palabra completa de `title`; un título de una sola palabra no se resalta.
+ * Encabezado de página de v2: título en `display` con una palabra en `primary`, sin itálica. `accent` es esa
+ * palabra (por defecto, la última) y tiene que ser una palabra completa de `title`, tal cual está escrita:
+ * `"Perfil,"` no coincide. Si no coincide, o si el título tiene una sola palabra, no se resalta nada.
  */
 export const PageHeader: FC<PageHeaderProps> = ({ icon, title, accent, subtitle, actions }) => {
   const display = useDisplayStyles('xl');
