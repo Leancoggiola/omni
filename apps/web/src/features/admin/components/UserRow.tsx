@@ -47,7 +47,7 @@ export const UserRow: FC<UserRowProps> = ({ user, onDelete }) => {
   };
 
   return (
-    <Paper component="li" withBorder p="md" radius="md">
+    <Paper component="li" withBorder p="md" radius="sm">
       <Group justify="space-between" align="center" gap="md">
         <Group gap="md" wrap="nowrap" miw={0}>
           <UserAvatar name={user.name} src={user.avatarUrl} />

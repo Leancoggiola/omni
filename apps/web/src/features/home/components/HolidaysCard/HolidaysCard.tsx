@@ -76,7 +76,7 @@ export const HolidaysCard: FC = () => {
       onBlur={handleBlur}
     >
       <Group align="flex-start" wrap="nowrap" gap="sm" p="md">
-        <ThemeIcon variant="white" c="var(--mantine-primary-color-filled)" size="lg" radius="md">
+        <ThemeIcon variant="white" c="var(--mantine-primary-color-filled)" size="lg" radius="sm">
           <ConfettiIcon size="1.25rem" />
         </ThemeIcon>
 

@@ -22,7 +22,7 @@ export const ComponentsOverride = {
   }),
 
   Card: Card.extend({
-    defaultProps: { shadow: 'sm', withBorder: false, radius: 'md' },
+    defaultProps: { shadow: 'sm', withBorder: false, radius: 'sm' },
     styles: {
       root: { backgroundColor: surfaceBg },
     },

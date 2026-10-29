@@ -89,7 +89,7 @@ export const AddMediaForm: FC<AddMediaFormProps> = ({ loading, existingTmdbIds, 
               Poster (TMDB)
             </Text>
             <Box maw="7.5rem">
-              <Image src={posterPreviewUrl} alt={form.values.titleQuery} radius="md" />
+              <Image src={posterPreviewUrl} alt={form.values.titleQuery} radius="sm" />
             </Box>
           </Stack>
         )}

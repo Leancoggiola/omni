@@ -143,7 +143,7 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
                   aria-labelledby={themeLabelId}
                   data={[...PROFILE_THEME_OPTIONS]}
                   size="sm"
-                  radius="md"
+                  radius="sm"
                   color="brand.6"
                   fullWidth
                   value={form.values.theme}
