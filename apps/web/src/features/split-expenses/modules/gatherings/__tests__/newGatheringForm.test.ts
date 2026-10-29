@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { createInitialNewGatheringValues, newGatheringFormSchema, toCreateGatheringPayload } from '../newGatheringForm';
+import {
+  createInitialNewGatheringValues,
+  newGatheringFormSchema,
+  toCreateGatheringPayload,
+} from '../utils/newGatheringForm';
 
-import type { NewGatheringFormValues } from '../newGatheringForm';
+import type { NewGatheringFormValues } from '../utils/newGatheringForm';
 
 describe('createInitialNewGatheringValues', () => {
   it('starts empty with today as the date', () => {

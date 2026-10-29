@@ -4,8 +4,8 @@ import { ActionIcon, Badge, Button, Card, Collapse, Divider, Group, Menu, Stack,
 import { formatIsoDateStringForDisplay } from '@/shared/dates';
 import { confirm, ErrorState, getErrorMessage, LoadingState, notifyError, notifySuccess } from '@/shared/ui';
 
-import { useSplitExpensesMutations } from '../../../_shared';
-import { useGathering } from '../../hooks';
+import { useSplitExpensesMutations } from '../../../../hooks/useSplitExpensesMutations';
+import { useGathering } from '../../hooks/useGathering';
 import { AddExpenseForm } from '../AddExpenseForm';
 import { MoneyAmount } from '../MoneyAmount';
 import { GatheringExpenses } from './GatheringExpenses';

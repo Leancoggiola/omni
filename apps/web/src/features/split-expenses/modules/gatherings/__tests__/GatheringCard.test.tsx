@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@/__tests__/helpers';
 
-import { GatheringCard } from '../components/GatheringCard';
+import { GatheringCard } from '../components/GatheringCard/GatheringCard';
 
 import type { GatheringDetail, GatheringSummary } from '@omni/shared/split-expenses';
 
@@ -20,7 +20,7 @@ vi.mock('@/shared/ui', async importOriginal => ({
   confirm: mocks.confirm,
 }));
 
-vi.mock('../../_shared', () => ({
+vi.mock('../../../hooks/useSplitExpensesMutations', () => ({
   useSplitExpensesMutations: () => ({
     addGatheringExpense: vi.fn(),
     deleteGatheringExpense: mocks.deleteGatheringExpense,
@@ -29,7 +29,7 @@ vi.mock('../../_shared', () => ({
   }),
 }));
 
-vi.mock('../hooks', () => ({
+vi.mock('../hooks/useGathering', () => ({
   useGathering: () => ({ isLoading: false, mutate: mocks.mutate, ...mocks.state }),
 }));
 

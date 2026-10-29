@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SWR_KEYS } from '@/shared/api';
 
-import { useSplitExpensesMutations } from '../useSplitExpensesMutations';
+import { useSplitExpensesMutations } from '../hooks/useSplitExpensesMutations';
 
 import type { ReactNode } from 'react';
 

@@ -1,14 +1,12 @@
 import { FC, useState } from 'react';
 import { Stack } from '@mantine/core';
 
-import {
-  FriendsModal,
-  GatheringList,
-  NewGatheringModal,
-  SplitExpensesHeader,
-  useGatherings,
-  useSplitExpensesMutations,
-} from './modules';
+import { useSplitExpensesMutations } from './hooks/useSplitExpensesMutations';
+import { FriendsModal } from './modules/friends/components/FriendsModal/FriendsModal';
+import { GatheringList } from './modules/gatherings/components/GatheringList';
+import { NewGatheringModal } from './modules/gatherings/components/NewGatheringModal/NewGatheringModal';
+import { SplitExpensesHeader } from './modules/gatherings/components/SplitExpensesHeader';
+import { useGatherings } from './modules/gatherings/hooks/useGatherings';
 
 import type { CreateGatheringPayload } from '@omni/shared/split-expenses';
 

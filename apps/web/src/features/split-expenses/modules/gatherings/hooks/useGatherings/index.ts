@@ -1,1 +1,0 @@
-export { useGatherings } from './useGatherings';
