@@ -10,4 +10,11 @@ const child = spawn('npx', process.argv.slice(2), {
 });
 
 child.on('exit', code => process.exit(code ?? 1));
-child.on('error', () => process.exit(1));
+child.on('error', err => {
+  console.error(`npx-mcp: ${err.message}`);
+  process.exit(1);
+});
+
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, () => child.kill(signal));
+}

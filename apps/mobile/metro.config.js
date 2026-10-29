@@ -13,11 +13,6 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   return context.resolveRequest(isSwr ? { ...context, isESMImport: false } : context, moduleName, platform);
 };
 
-/**
- * Con Watchman, Metro toma como raíz el checkout principal cuando el proyecto vive en un worktree
- * anidado (`.claude/worktrees/*`) y no ve los symlinks de pnpm: el bundle falla con `Unable to
- * resolve module whatwg-fetch`. El crawler de Node resuelve bien en ambos casos.
- */
-config.resolver.useWatchman = false;
+config.resolver.useWatchman = !/[\\/]\.claude[\\/]worktrees[\\/]/.test(__dirname);
 
 module.exports = config;

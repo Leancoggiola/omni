@@ -122,4 +122,4 @@ Notas:
 - Si el primer bundle da `SocketTimeoutException`, pedirlo con `curl` (`launchAsset` del manifest con header `expo-platform: android`), `adb shell am force-stop com.omni.app` y reabrir.
 - Con la API en un puerto distinto (varias sesiones en paralelo), `PORT` del entorno gana sobre el `.env` (dotenv no pisa variables ya definidas) y `EXPO_PUBLIC_API_URL` debe usar ese puerto.
 - Varias sesiones en paralelo: un AVD por sesión (`emulator-5554`, `emulator-5556`), puertos de API y Metro distintos y `adb -s <serial>`. Cerrar el Gradle propio por PID, no con `--stop` (mataría el de las otras).
-- `metro.config.js` fija `resolver.useWatchman = false`: con Watchman, un worktree anidado (`.claude/worktrees/*`) hereda la raíz del checkout principal y el bundle falla con `Unable to resolve module whatwg-fetch`.
+- `metro.config.js` desactiva Watchman solo cuando el proyecto vive bajo `.claude/worktrees/`: con Watchman, un worktree anidado (`.claude/worktrees/*`) hereda la raíz del checkout principal y el bundle falla con `Unable to resolve module whatwg-fetch`.
