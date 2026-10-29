@@ -16,13 +16,14 @@ interface PageHeaderProps {
 /** Parte `title` en [antes, acento, después]; sin acento válido, el título entero queda sin resaltar. */
 function splitAccent(title: string, accent?: string): [string, string, string] {
   const words = title.trim().split(/\s+/);
-  if (words.length < 2) return [title, '', ''];
+  const clean = words.join(' ');
+  if (words.length < 2) return [clean, '', ''];
   const index = accent === undefined ? words.length - 1 : words.lastIndexOf(accent);
-  if (index < 0) return [title, '', ''];
+  if (index < 0) return [clean, '', ''];
   return [
-    words.slice(0, index).join(' ') + (index > 0 ? ' ' : ''),
+    index > 0 ? `${words.slice(0, index).join(' ')} ` : '',
     words[index] ?? '',
-    index < words.length - 1 ? ' ' + words.slice(index + 1).join(' ') : '',
+    index < words.length - 1 ? ` ${words.slice(index + 1).join(' ')}` : '',
   ];
 }
 
@@ -44,7 +45,7 @@ export const PageHeader: FC<PageHeaderProps> = ({ icon, title, accent, subtitle,
           <Title order={1} {...display}>
             {before}
             {highlighted && (
-              <Text span inherit c="var(--mantine-color-text-primary)" data-testid="page-header-accent">
+              <Text span inherit c="var(--mantine-color-text-primary)">
                 {highlighted}
               </Text>
             )}
