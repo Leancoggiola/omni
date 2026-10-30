@@ -10,11 +10,13 @@ import { DisplayTitle } from './DisplayTitle';
 const CHIP_SIZE = 44;
 
 type ScreenHeaderProps = {
-  icon: Icon;
+  icon?: Icon;
   title: string;
   accent?: string;
   subtitle?: string;
+  size?: 'md' | 'lg' | 'xl';
   onBack?: () => void;
+  backLabel?: string;
 };
 
 /** La palabra acentuada por defecto: la última, si el título tiene más de una; `accent` tiene que ser una palabra entera. */
@@ -26,30 +28,43 @@ function accentWord(title: string, accent?: string): string | undefined {
 }
 
 /**
- * Equivalente de `PageHeader` de web en v2: chip de ícono en `primarySurface`, el título en `display` con una palabra
- * en `primary` (sin itálica) y el subtítulo. `accent` es esa palabra (por defecto, la última) y tiene que ser una
- * palabra completa de `title`; un título de una sola palabra no se resalta. Pantallas de stack (Perfil): `onBack`
- * agrega un `IconButton` de volver antes del chip.
+ * Equivalente de `PageHeader` de web en v2: chip de ícono opcional en `primarySurface`, el título en `display` (`size`
+ * `md` por defecto; `lg` en Perfil y `xl` en "Más") con una palabra en `primary` (sin itálica) y el subtítulo.
+ * `accent` es esa palabra (por defecto, la última) y tiene que ser una palabra completa de `title`; un título de una
+ * sola palabra no se resalta. Pantallas de stack (Perfil): `onBack` agrega un `IconButton` glass de volver, que
+ * `backLabel` nombra ("Volver a Más").
  */
-export function ScreenHeader({ icon: IconComponent, title, accent, subtitle, onBack }: ScreenHeaderProps) {
+export function ScreenHeader({
+  icon: IconComponent,
+  title,
+  accent,
+  subtitle,
+  size = 'md',
+  onBack,
+  backLabel = 'Volver',
+}: ScreenHeaderProps) {
   const colors = useSemanticColors();
 
   return (
     <XStack alignItems="center" justifyContent="space-between" gap={SPACING.md}>
       <XStack alignItems="center" gap={SPACING.sm} flexShrink={1}>
-        {onBack ? <IconButton icon={ArrowLeftIcon} accessibilityLabel="Volver" onPress={onBack} /> : null}
-        <YStack
-          width={CHIP_SIZE}
-          height={CHIP_SIZE}
-          borderRadius={RADIUS.full}
-          backgroundColor="$primarySurface"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <IconComponent size={22} color={colors.primary} />
-        </YStack>
+        {onBack ? (
+          <IconButton icon={ArrowLeftIcon} variant="glass" accessibilityLabel={backLabel} onPress={onBack} />
+        ) : null}
+        {IconComponent ? (
+          <YStack
+            width={CHIP_SIZE}
+            height={CHIP_SIZE}
+            borderRadius={RADIUS.full}
+            backgroundColor="$primarySurface"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <IconComponent size={22} color={colors.primary} />
+          </YStack>
+        ) : null}
         <YStack flexShrink={1} gap={SPACING['2xs']}>
-          <DisplayTitle size="md" accent={accentWord(title, accent)} numberOfLines={1}>
+          <DisplayTitle size={size} accent={accentWord(title, accent)} numberOfLines={1}>
             {title}
           </DisplayTitle>
           {subtitle ? (
