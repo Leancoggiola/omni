@@ -8,15 +8,20 @@ interface UserAvatarProps {
   name: string;
   src?: string | null;
   size?: AvatarProps['size'];
+  color?: AvatarProps['color'];
 }
 
-export const UserAvatar: FC<UserAvatarProps> = ({ name, src, size = 'md' }) => (
-  <Avatar
-    src={src ?? undefined}
-    size={size}
-    name={name}
-    variant="gradient"
-    gradient={GRADIENTS.brand}
-    style={{ boxShadow: 'var(--mantine-shadow-brand)' }}
-  />
-);
+/** Sin `color` es el avatar de marca (degradé); con `color` pasa a un tono suave, para distinguir usuarios en una lista. */
+export const UserAvatar: FC<UserAvatarProps> = ({ name, src, size = 'md', color }) =>
+  color ? (
+    <Avatar src={src ?? undefined} size={size} name={name} variant="light" color={color} />
+  ) : (
+    <Avatar
+      src={src ?? undefined}
+      size={size}
+      name={name}
+      variant="gradient"
+      gradient={GRADIENTS.brand}
+      style={{ boxShadow: 'var(--mantine-shadow-brand)' }}
+    />
+  );
