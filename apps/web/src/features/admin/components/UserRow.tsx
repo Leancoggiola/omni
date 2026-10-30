@@ -22,7 +22,7 @@ const AVATAR_TONES = ['terracotta', 'sage', 'brand'] as const;
 /** Tono estable por usuario, derivado del id; el admin conserva el avatar de marca. */
 function avatarTone(user: AdminUser): (typeof AVATAR_TONES)[number] | undefined {
   if (user.role === 'ADMIN') return undefined;
-  const hash = [...user.id].reduce((total, char) => total + char.charCodeAt(0), 0);
+  const hash = [...user.id].reduce((total, char) => (Math.imul(total, 31) + char.charCodeAt(0)) >>> 0, 0);
   return AVATAR_TONES[hash % AVATAR_TONES.length];
 }
 
