@@ -267,11 +267,14 @@ export async function acceptInvite(userId: string, code: string): Promise<Househ
         checked: false,
       },
     });
-    for (const product of duplicateProducts) {
-      await tx.pantryShoppingListItem.updateMany({
-        where: { pantryProductId: product.id },
-        data: { pantryProductId: targetProductByName.get(product.nameNormalized) },
-      });
+    if (duplicateProducts.length > 0) {
+      const sourceIds = duplicateProducts.map(p => p.id);
+      const targetIds = duplicateProducts.map(p => targetProductByName.get(p.nameNormalized)!);
+      await tx.$executeRaw`
+        UPDATE "PantryShoppingListItem" AS i
+        SET "pantryProductId" = m.target_id
+        FROM unnest(${sourceIds}::text[], ${targetIds}::text[]) AS m(source_id, target_id)
+        WHERE i."pantryProductId" = m.source_id`;
     }
     await tx.pantryProduct.deleteMany({ where: { id: { in: duplicateProducts.map(p => p.id) } } });
     await tx.pantryProduct.updateMany({
