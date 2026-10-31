@@ -6,6 +6,7 @@ import { useAuth } from '@/core/auth';
 import { ErrorState, LoadingState, PageHeader } from '@/shared/ui';
 
 import { DeleteAccountButton } from './components/DeleteAccountButton';
+import { HouseholdCard } from './components/HouseholdCard';
 import { PasswordForm } from './components/PasswordForm';
 import { ProfileSectionCard } from './components/ProfileSectionCard';
 import { ProfileSettingsForm } from './components/ProfileSettingsForm';
@@ -83,6 +84,8 @@ export const ProfilePage: FC = () => {
       />
 
       <ProfileSettingsForm key={profile.updatedAt} profile={profile} isSaving={isMutating} onSave={handleSave} />
+
+      <HouseholdCard />
 
       <ProfileSectionCard title="Cambiar contraseña" subtitle="Actualizá la contraseña de tu cuenta">
         <PasswordForm onSubmit={handleChangePassword} />

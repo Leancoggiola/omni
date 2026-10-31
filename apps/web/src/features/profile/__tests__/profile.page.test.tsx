@@ -23,6 +23,8 @@ vi.mock('../components/DeleteAccountButton', () => ({
   ),
 }));
 
+vi.mock('../components/HouseholdCard', () => ({ HouseholdCard: () => <p>Hogar compartido</p> }));
+
 vi.mock('../components/PasswordForm', () => ({ PasswordForm: () => null }));
 
 vi.mock('../components/ProfileSectionCard', () => ({ ProfileSectionCard: () => null }));
@@ -101,5 +103,15 @@ describe('ProfilePage: error de carga', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     expect(mocks.mutate).toHaveBeenCalledOnce();
+  });
+});
+
+describe('ProfilePage: hogar compartido', () => {
+  it('muestra la card del hogar entre las preferencias y la contraseña', () => {
+    mocks.profileState = {};
+    mocks.auth = createMockAuthValue({});
+    renderProfile();
+
+    expect(screen.getByText('Hogar compartido')).toBeInTheDocument();
   });
 });

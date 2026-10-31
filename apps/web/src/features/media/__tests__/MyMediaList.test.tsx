@@ -5,9 +5,14 @@ import { renderWithProviders } from '@/__tests__/helpers';
 import { MyMediaList } from '../components/MyMediaList';
 
 import type { MediaItem } from '../types';
+import type { ItemAuthor } from '@omni/shared/household';
 import type { ComponentProps } from 'react';
 
 import { fireEvent, screen } from '@testing-library/react';
+
+const mocks = vi.hoisted(() => ({ author: undefined as ItemAuthor | undefined }));
+
+vi.mock('@/core/household', () => ({ useItemAuthor: () => mocks.author }));
 
 const item: MediaItem = {
   id: 'm1',
