@@ -381,13 +381,14 @@ export async function completeShoppingListItem(userId: string, itemId: string, d
 }
 
 export async function deleteShoppingListItem(userId: string, itemId: string) {
-  const householdId = await getHouseholdId(userId);
-  const item = await prisma.pantryShoppingListItem.findFirst({ where: { id: itemId, householdId } });
-  if (!item) throw new HttpError(404, 'Ítem no encontrado');
-  await prisma.pantryShoppingListItem.delete({ where: { id: itemId } });
+  await withHousehold(userId, async (tx, householdId) => {
+    const { count } = await tx.pantryShoppingListItem.deleteMany({ where: { id: itemId, householdId } });
+    if (count === 0) throw new HttpError(404, 'Ítem no encontrado');
+  });
 }
 
 export async function clearCheckedShoppingList(userId: string) {
-  const householdId = await getHouseholdId(userId);
-  await prisma.pantryShoppingListItem.deleteMany({ where: { householdId, checked: true } });
+  await withHousehold(userId, (tx, householdId) =>
+    tx.pantryShoppingListItem.deleteMany({ where: { householdId, checked: true } })
+  );
 }
