@@ -49,22 +49,27 @@ export async function getHouseholdId(userId: string, client: Client = prisma): P
 }
 
 /**
- * Corre una escritura de alacena o películas dentro de una transacción con el hogar bloqueado. Resuelve el hogar, lo
- * bloquea y lo vuelve a resolver: si una unión lo movió entre medio, reintenta. Así una alta nunca apunta a un hogar que
- * `acceptInvite` está por borrar.
+ * Resuelve el hogar de la persona, lo bloquea y lo vuelve a resolver: si una unión lo movió entre medio, reintenta.
+ * Devuelve el hogar ya bloqueado y vigente.
+ */
+async function lockOwnHousehold(tx: Client, userId: string): Promise<string> {
+  for (let attempt = 0; attempt < WITH_HOUSEHOLD_MAX_ATTEMPTS; attempt++) {
+    const householdId = await getHouseholdId(userId, tx);
+    await lockHouseholds(tx, [householdId]);
+    if (householdId === (await getHouseholdId(userId, tx))) return householdId;
+  }
+  throw new HttpError(409, 'Tu hogar cambió mientras se procesaba la operación, intentá de nuevo');
+}
+
+/**
+ * Corre una escritura de alacena o películas dentro de una transacción con el hogar bloqueado. Así una alta nunca
+ * apunta a un hogar que `acceptInvite` está por borrar.
  */
 export async function withHousehold<T>(
   userId: string,
   fn: (tx: Client, householdId: string) => Promise<T>
 ): Promise<T> {
-  return prisma.$transaction(async tx => {
-    for (let attempt = 0; attempt < WITH_HOUSEHOLD_MAX_ATTEMPTS; attempt++) {
-      const householdId = await getHouseholdId(userId, tx);
-      await lockHouseholds(tx, [householdId]);
-      if (householdId === (await getHouseholdId(userId, tx))) return fn(tx, householdId);
-    }
-    throw new HttpError(409, 'Tu hogar cambió mientras se procesaba la operación, intentá de nuevo');
-  });
+  return prisma.$transaction(async tx => fn(tx, await lockOwnHousehold(tx, userId)));
 }
 
 /**
@@ -112,8 +117,7 @@ export async function createInvite(userId: string): Promise<CreatedHouseholdInvi
 
 async function createInviteOnce(userId: string): Promise<CreatedHouseholdInvite> {
   return prisma.$transaction(async tx => {
-    const householdId = await getHouseholdId(userId, tx);
-    await lockHouseholds(tx, [householdId]);
+    const householdId = await lockOwnHousehold(tx, userId);
 
     const members = await tx.householdMember.count({ where: { householdId } });
     if (members >= HOUSEHOLD_MAX_MEMBERS) {
@@ -315,8 +319,7 @@ export async function acceptInvite(userId: string, code: string): Promise<Househ
  */
 export async function leaveHousehold(userId: string): Promise<HouseholdInfo> {
   await prisma.$transaction(async tx => {
-    const householdId = await getHouseholdId(userId, tx);
-    await lockHouseholds(tx, [householdId]);
+    const householdId = await lockOwnHousehold(tx, userId);
 
     const members = await tx.householdMember.count({ where: { householdId } });
     if (members < HOUSEHOLD_MAX_MEMBERS) {
@@ -366,18 +369,17 @@ export async function leaveHousehold(userId: string): Promise<HouseholdInfo> {
  * agregó pasa a anónima) y si era la única, el hogar se elimina con sus datos. Va dentro de la transacción del borrado.
  */
 export async function detachForAccountDeletion(tx: Client, userId: string): Promise<void> {
-  const member = await tx.householdMember.findUnique({ where: { userId }, select: { householdId: true } });
-  if (!member) return;
+  if (!(await tx.householdMember.findUnique({ where: { userId }, select: { userId: true } }))) return;
 
-  await lockHouseholds(tx, [member.householdId]);
-  const members = await tx.householdMember.count({ where: { householdId: member.householdId } });
+  const householdId = await lockOwnHousehold(tx, userId);
+  const members = await tx.householdMember.count({ where: { householdId } });
   if (members <= 1) {
-    await tx.household.delete({ where: { id: member.householdId } });
+    await tx.household.delete({ where: { id: householdId } });
     return;
   }
   const now = new Date();
   await tx.householdInvite.updateMany({
-    where: { householdId: member.householdId, ...pendingInviteWhere(now) },
+    where: { householdId, ...pendingInviteWhere(now) },
     data: { revokedAt: now },
   });
 }
