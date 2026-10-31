@@ -4,6 +4,7 @@ import { KeyboardAvoidingView, ScrollView } from 'react-native';
 import { YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
+import { useHousehold } from '@/core/household';
 import { useColorSchemeControl } from '@/core/theme';
 import {
   ErrorState,
@@ -16,6 +17,7 @@ import {
 } from '@/shared/ui';
 
 import { DeleteAccountCard } from './components/DeleteAccountCard';
+import { HouseholdCard } from './components/HouseholdCard';
 import { LogoutAllCard } from './components/LogoutAllCard';
 import { PasswordCard } from './components/PasswordCard';
 import { PersonalInfoCard } from './components/PersonalInfoCard';
@@ -36,7 +38,10 @@ export function ProfileScreen() {
   const { logout, logoutAll } = useAuth();
   const { clearOverride } = useColorSchemeControl();
   const { scrollRef, onScroll, scrollIntoView } = useScrollFocusedInputIntoView();
-  const refreshControl = usePullToRefresh(refresh);
+  const { mutate: refreshHousehold } = useHousehold();
+  const refreshControl = usePullToRefresh(async () => {
+    await Promise.all([refresh(), refreshHousehold()]);
+  });
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/more'));
 
@@ -81,6 +86,7 @@ export function ProfileScreen() {
             }}
             onChange={savePreferences}
           />
+          <HouseholdCard />
           <PasswordCard onSubmit={changePassword} onFieldFocus={scrollIntoView} />
           <LogoutAllCard onLogoutAll={logoutAll} />
           <DeleteAccountCard onDelete={handleDelete} />

@@ -26,6 +26,9 @@ jest.mock('@/shared/ui', () => ({
   notifySuccess: jest.fn(),
   notifyError: jest.fn(),
 }));
+const mockAuthor = jest.fn();
+
+jest.mock('@/core/household', () => ({ useItemAuthor: (id: string | null) => mockAuthor(id) }));
 jest.mock('./hooks/useMyMediaList', () => ({ useMyMediaList: () => mockUseMyMediaList() }));
 jest.mock('./hooks/useMediaMutations', () => ({ useMediaMutations: () => mockMutations }));
 jest.mock('./hooks/useMediaSearch', () => ({ MIN_SEARCH_LENGTH: 2, useMediaSearch: () => mockSearch() }));
@@ -109,6 +112,25 @@ describe('MediaScreen · lista', () => {
     renderWith({ data: [] });
     expect(screen.getByText('Tu lista está vacía')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Agregar' })).toBeTruthy();
+  });
+});
+
+describe('MediaScreen · autoría', () => {
+  beforeEach(() => mockAuthor.mockReset());
+
+  it('cada fila muestra quién la agregó, con "Vos" para la propia sesión', () => {
+    mockAuthor.mockImplementation((id: string | null) =>
+      id === 'u1' ? { kind: 'self', name: 'Leandro', avatarUrl: null } : undefined
+    );
+    renderWith();
+
+    expect(screen.getAllByLabelText('Agregado por Vos').length).toBeGreaterThan(0);
+  });
+
+  it('sin autor resuelto no muestra nada', () => {
+    renderWith();
+
+    expect(screen.queryByLabelText(/Agregado por/)).toBeNull();
   });
 });
 
