@@ -7,7 +7,7 @@ Nueva feature: `/new-feature`. Contratos: `packages/shared/CLAUDE.md`.
 ```
 apps/api/src/
   common/http/        HttpError, validatedQuery y la augmentación de Express.User
-  common/db/          prisma singleton, lockUserSessions (advisory lock de sesiones)
+  common/db/          prisma singleton, lockUserSessions (advisory lock de sesiones), lockHouseholds (advisory lock por hogar)
   common/utils/       validate, logger, http-logger (pino-http con redact), error-handler, rate-limit, client-ip, origin-guard, no-store,
                       cookies (set/clear de la sesión), password (hashPassword), not-found (404 JSON bajo /api)
   health/             /api/health (liveness) y /api/health/ready (SELECT 1); públicos, antes del guard
@@ -17,7 +17,7 @@ apps/api/src/
   config.ts · app.ts · main.ts · router.ts
 ```
 
-Features: `auth`, `media`, `users`, `admin`, `gym`, `pantry`, `expenses`, `split-expenses`, `holidays`. Registrar en `src/router.ts` con `router.use('/<feature>', featureRoutes)`.
+Features: `auth`, `media`, `users`, `admin`, `gym`, `pantry`, `expenses`, `split-expenses`, `holidays`, `household`. Registrar en `src/router.ts` con `router.use('/<feature>', featureRoutes)`.
 
 ```ts
 import { prisma } from '../common/db';
@@ -59,6 +59,10 @@ router.post('/list', validate(addMediaItemSchema), async (req, res) => { ... });
 - El logger HTTP (`createHttpLogger`) redacta los headers con credenciales: no montar `pino-http` directo.
 - Admin: `authenticateJwt` + `requireAdmin`.
 - Tipos: `AuthTokensResponse`, `refreshTokenBodySchema` en `@omni/shared/auth`.
+
+## Hogar
+
+`media` y `pantry` se scopean por hogar, no por usuario: los services reciben `userId` y resuelven el hogar con `getHouseholdId(userId)` de `household.service`. Las altas guardan `householdId` y `createdById`. Toda cuenta nueva se crea con su `HouseholdMember` y su `Household` anidados (`users.service.create`, seed, `createUser` de los tests). Cualquier cambio de integrantes (invitar, unirse, desvincular, borrar la cuenta) corre en una transacción que empieza con `lockHouseholds`. Toda escritura de `media`/`pantry` entra por `withHousehold`, que resuelve el hogar, lo bloquea y lo revalida (409 si una unión lo movió) para no escribir en uno que una unión está por borrar; las lecturas usan `getHouseholdId`, que solo resuelve el hogar, sin lock. Detalle y postura de RLS en `docs/api/household.md`.
 
 ## Errores
 

@@ -16,6 +16,7 @@ src/
   expenses/     gastos personales y recordatorios: categorías, recurrencias, schemas, tipos
   split-expenses/ amigos y juntadas: schemas, tipos, `computeBalances`/`computeSettlements`/`summarizeGatheringPayments`
   pantry/       alacena y lista de compras: categorías, unidades, schemas, `isLowStock`/`isExpiringSoon`
+  household/    hogar compartido (máx. 2 personas): constantes del código de invitación, `householdInviteCodeSchema`/`normalizeInviteCode` y tipos de hogar, invitación y vista previa
   holidays/     tipos de efemérides (Wikipedia), MAX_HOLIDAY_ITEMS y el carrusel (`HOLIDAY_CAROUSEL_DURATION_MS`, `HOLIDAY_STALE_DAY_RETRY_MS`, `nextCarouselIndex`, `clampCarouselIndex`, `isStaleHolidayDay`, `emptyTodayHolidays`)
   common/       paginación, cotas de entrada (limits), fechas en APP_TIMEZONE, `roundMoney`, `formatMoney`/`MONEY_FORMAT` (es-AR) y `getTimeGreeting`
   theme/        BRAND, SEMANTIC, GRAY, success/destructive, `contrastRatio` y `resolveColorScheme` (override > perfil > sistema) (web + mobile)

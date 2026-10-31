@@ -14,6 +14,7 @@
     "./split-expenses": "./src/split-expenses/index.ts",
     "./pantry": "./src/pantry/index.ts",
     "./holidays": "./src/holidays/index.ts",
+    "./household": "./src/household/index.ts",
     "./common": "./src/common/index.ts",
     "./navigation": "./src/navigation/index.ts",
     "./server-wake": "./src/server-wake/index.ts"

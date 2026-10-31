@@ -6,7 +6,13 @@ import { startOfTodayInAppTz } from '@omni/shared/common';
 import { prisma } from '../../common/db';
 import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
-import { createPantryProduct, createShoppingListItem, createUser, toJwtUser } from '../../test/integration/factories';
+import {
+  createPantryProduct,
+  createShoppingListItem,
+  createUser,
+  householdIdOf,
+  toJwtUser,
+} from '../../test/integration/factories';
 import { findRecordedCall, getRecordedCalls } from '../../test/integration/queryRecorder';
 import { withSavepoint } from '../../test/integration/withSavepoint';
 
@@ -112,7 +118,7 @@ describe('pantry routes (integration)', () => {
 
       expect(res.status).toBe(201);
       expect(res.body).toMatchObject({ name: 'Arroz', category: 'GRAINS', quantity: 2 });
-      const stored = await prisma.pantryProduct.findMany({ where: { userId: user.id } });
+      const stored = await prisma.pantryProduct.findMany({ where: { createdById: user.id } });
       expect(stored).toHaveLength(1);
       expect(stored[0]?.nameNormalized).toBe('arroz');
     });
@@ -189,7 +195,7 @@ describe('pantry routes (integration)', () => {
       const res = await request(app).post('/api/pantry/shopping-list/generate').set('Authorization', auth);
 
       expect(res.status).toBe(200);
-      expect(await prisma.pantryShoppingListItem.count({ where: { userId: user.id } })).toBe(1);
+      expect(await prisma.pantryShoppingListItem.count({ where: { createdById: user.id } })).toBe(1);
     });
 
     it('POST /shopping-list/items creates a manual item', async () => {
@@ -200,7 +206,7 @@ describe('pantry routes (integration)', () => {
 
       expect(res.status).toBe(201);
       expect(res.body).toMatchObject({ name: 'Leche', source: 'MANUAL' });
-      expect(await prisma.pantryShoppingListItem.count({ where: { userId: user.id } })).toBe(1);
+      expect(await prisma.pantryShoppingListItem.count({ where: { createdById: user.id } })).toBe(1);
     });
 
     it('PATCH /shopping-list/items/:itemId/complete increments the linked product', async () => {
@@ -272,7 +278,7 @@ describe('pantry routes (integration)', () => {
       const res = await request(app).delete('/api/pantry/shopping-list/checked').set('Authorization', auth);
 
       expect(res.status).toBe(204);
-      const remaining = await prisma.pantryShoppingListItem.findMany({ where: { userId: user.id } });
+      const remaining = await prisma.pantryShoppingListItem.findMany({ where: { createdById: user.id } });
       expect(remaining).toHaveLength(1);
       expect(remaining[0]?.name).toBe('Pendiente');
     });
@@ -310,7 +316,11 @@ describe('pantry routes (integration)', () => {
       const calls = getRecordedCalls();
       const claimIndex = calls.findIndex(c => c.model === 'pantryShoppingListItem' && c.operation === 'updateMany');
       const stockIndex = calls.findIndex(c => c.model === 'pantryProduct' && c.operation === 'update');
-      expect(calls[claimIndex]?.args?.where).toMatchObject({ id: item.id, userId: user.id, checked: false });
+      expect(calls[claimIndex]?.args?.where).toMatchObject({
+        id: item.id,
+        householdId: await householdIdOf(user.id),
+        checked: false,
+      });
       expect(claimIndex).toBeGreaterThanOrEqual(0);
       expect(claimIndex).toBeLessThan(stockIndex);
     });
@@ -324,7 +334,7 @@ describe('pantry routes (integration)', () => {
         .send({ category: 'BEVERAGES' });
 
       expect(res.status).toBe(409);
-      expect(await prisma.pantryProduct.count({ where: { userId: user.id } })).toBe(0);
+      expect(await prisma.pantryProduct.count({ where: { createdById: user.id } })).toBe(0);
     });
 
     it('leaves the item unchecked when the new product has no category', async () => {
@@ -338,7 +348,7 @@ describe('pantry routes (integration)', () => {
       expect(res.status).toBe(400);
       const stored = await prisma.pantryShoppingListItem.findUnique({ where: { id: item.id } });
       expect(stored?.checked).toBe(false);
-      expect(await prisma.pantryProduct.count({ where: { userId: user.id } })).toBe(0);
+      expect(await prisma.pantryProduct.count({ where: { createdById: user.id } })).toBe(0);
     });
 
     it('adds to the existing product with the same name instead of creating another', async () => {
@@ -351,7 +361,7 @@ describe('pantry routes (integration)', () => {
         .send({});
 
       expect(res.status).toBe(200);
-      expect(await prisma.pantryProduct.count({ where: { userId: user.id } })).toBe(1);
+      expect(await prisma.pantryProduct.count({ where: { createdById: user.id } })).toBe(1);
       const stored = await prisma.pantryProduct.findUnique({ where: { id: product.id } });
       expect(Number(stored?.quantity)).toBe(3);
     });
@@ -430,7 +440,7 @@ describe('pantry routes (integration)', () => {
 
       await createShoppingListItem(user.id, { pantryProductId: product.id, source: 'AUTO', checked: true });
       await createShoppingListItem(user.id, { pantryProductId: product.id, source: 'MANUAL' });
-      expect(await prisma.pantryShoppingListItem.count({ where: { userId: user.id } })).toBe(3);
+      expect(await prisma.pantryShoppingListItem.count({ where: { createdById: user.id } })).toBe(3);
     });
   });
 

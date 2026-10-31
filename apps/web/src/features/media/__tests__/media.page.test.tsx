@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
 
 const item: MediaItem = {
   id: 'm1',
-  userId: 'u1',
+  createdById: 'u1',
   tmdbId: 603,
   mediaType: 'movie',
   title: 'The Matrix',

@@ -48,6 +48,7 @@
 | ------------------------------------------ | --------------------------------- |
 | [prisma.md](./api/prisma.md)               | Migraciones Prisma                |
 | [route-testing.md](./api/route-testing.md) | Tests de integración de endpoints |
+| [household.md](./api/household.md)         | Hogar compartido y postura de RLS |
 
 ### Ops
 

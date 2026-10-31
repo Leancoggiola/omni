@@ -4,7 +4,7 @@ export type MediaStatus = 'to_watch' | 'watching' | 'watched';
 /** Shape returned by GET /api/media/list (lean doc → JSON) */
 export interface MediaItem {
   id: string;
-  userId: string;
+  createdById: string | null;
   tmdbId: number;
   mediaType: MediaType;
   title: string;

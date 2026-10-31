@@ -24,7 +24,7 @@ vi.mock('@/shared/api', async importOriginal => ({
 
 const item = (id: string, status: MediaItem['status']): MediaItem => ({
   id,
-  userId: 'u1',
+  createdById: 'u1',
   tmdbId: Number(id),
   mediaType: 'movie',
   title: `Título ${id}`,

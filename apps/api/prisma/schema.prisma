@@ -30,27 +30,30 @@ enum MediaStatus {
 }
 
 model User {
-  id            String           @id @default(cuid())
-  username      String           @unique
-  name          String
-  email         String?          @unique
-  password      String
-  role          Role             @default(USER)
-  avatarUrl     String?
-  phone         String?
-  birthDate     DateTime?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  refreshTokens RefreshToken[]
-  mediaItems    MediaItem[]
-  preferences   UserPreferences?
-  gymPlans      GymPlan[]
-  pantryProducts PantryProduct[]
-  pantryShoppingListItems PantryShoppingListItem[]
-  splitFriends  SplitFriend[]
-  gatherings    Gathering[]
-  personalExpenses PersonalExpense[]
-  expenseReminders ExpenseReminder[]
+  id                       String                   @id @default(cuid())
+  username                 String                   @unique
+  name                     String
+  email                    String?                  @unique
+  password                 String
+  role                     Role                     @default(USER)
+  avatarUrl                String?
+  phone                    String?
+  birthDate                DateTime?
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+  refreshTokens            RefreshToken[]
+  preferences              UserPreferences?
+  householdMember          HouseholdMember?
+  createdMediaItems        MediaItem[]
+  createdPantryProducts    PantryProduct[]
+  createdShoppingListItems PantryShoppingListItem[]
+  createdHouseholdInvites  HouseholdInvite[]        @relation("InviteCreatedBy")
+  usedHouseholdInvites     HouseholdInvite[]        @relation("InviteUsedBy")
+  gymPlans                 GymPlan[]
+  splitFriends             SplitFriend[]
+  gatherings               Gathering[]
+  personalExpenses         PersonalExpense[]
+  expenseReminders         ExpenseReminder[]
 }
 
 model UserPreferences {
@@ -77,19 +80,59 @@ model RefreshToken {
   @@index([previousTokenHash])
 }
 
-model MediaItem {
-  id                   String   @id @default(cuid())
-  userId               String
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tmdbId               Int
-  mediaType            MediaType
-  title                String
-  posterPath           String?
-  status               MediaStatus @default(to_watch)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+model Household {
+  id                String                   @id @default(cuid())
+  createdAt         DateTime                 @default(now())
+  members           HouseholdMember[]
+  invites           HouseholdInvite[]
+  mediaItems        MediaItem[]
+  pantryProducts    PantryProduct[]
+  shoppingListItems PantryShoppingListItem[]
+}
 
-  @@unique([userId, tmdbId, mediaType])
+model HouseholdMember {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt    DateTime  @default(now())
+
+  @@index([householdId])
+}
+
+model HouseholdInvite {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdById String?
+  createdBy   User?     @relation("InviteCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  codeHash    String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  usedById    String?
+  usedBy      User?     @relation("InviteUsedBy", fields: [usedById], references: [id], onDelete: SetNull)
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([householdId])
+}
+
+model MediaItem {
+  id          String      @id @default(cuid())
+  householdId String
+  household   Household   @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdById String?
+  createdBy   User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  tmdbId      Int
+  mediaType   MediaType
+  title       String
+  posterPath  String?
+  status      MediaStatus @default(to_watch)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([householdId, tmdbId, mediaType])
 }
 
 enum GymPlanStatus {
@@ -98,14 +141,14 @@ enum GymPlanStatus {
 }
 
 model GymPlan {
-  id         String         @id @default(cuid())
+  id         String        @id @default(cuid())
   userId     String
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   name       String?
-  status     GymPlanStatus  @default(ACTIVE)
+  status     GymPlanStatus @default(ACTIVE)
   archivedAt DateTime?
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
   days       GymPlanDay[]
 
   @@index([userId, status])
@@ -161,28 +204,32 @@ enum PantryShoppingSource {
 }
 
 model PantryProduct {
-  id             String         @id @default(cuid())
-  userId         String
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String                   @id @default(cuid())
+  householdId    String
+  household      Household                @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdById    String?
+  createdBy      User?                    @relation(fields: [createdById], references: [id], onDelete: SetNull)
   name           String
   nameNormalized String
   category       PantryCategory
   unit           PantryUnit
-  quantity       Decimal        @db.Decimal(10, 2)
-  minQuantity    Decimal?       @db.Decimal(10, 2)
-  expiresAt      DateTime?      @db.Date
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  quantity       Decimal                  @db.Decimal(10, 2)
+  minQuantity    Decimal?                 @db.Decimal(10, 2)
+  expiresAt      DateTime?                @db.Date
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
   shoppingItems  PantryShoppingListItem[]
 
-  @@unique([userId, nameNormalized])
-  @@index([userId, category])
+  @@unique([householdId, nameNormalized])
+  @@index([householdId, category])
 }
 
 model PantryShoppingListItem {
   id              String               @id @default(cuid())
-  userId          String
-  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  householdId     String
+  household       Household            @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdById     String?
+  createdBy       User?                @relation(fields: [createdById], references: [id], onDelete: SetNull)
   pantryProductId String?
   pantryProduct   PantryProduct?       @relation(fields: [pantryProductId], references: [id], onDelete: SetNull)
   name            String
@@ -193,7 +240,7 @@ model PantryShoppingListItem {
   createdAt       DateTime             @default(now())
   updatedAt       DateTime             @updatedAt
 
-  @@index([userId, checked])
+  @@index([householdId, checked])
 }
 
 model SplitFriend {
