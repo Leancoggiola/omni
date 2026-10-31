@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { lockUserSessions, prisma } from '../common/db';
 import { hashPassword } from '../common/utils/password';
 import { HttpError } from '../common/http';
+import { detachForAccountDeletion } from '../household/household.service';
 
 export async function create(dto: Omit<CreateUserPayload, 'role'> & { password: string; role?: Role }): Promise<User> {
   return prisma.user.create({
@@ -14,6 +15,7 @@ export async function create(dto: Omit<CreateUserPayload, 'role'> & { password: 
       email: dto.email?.toLowerCase() ?? null,
       password: dto.password,
       role: dto.role ?? 'USER',
+      householdMember: { create: { household: { create: {} } } },
     },
   });
 }
@@ -106,8 +108,12 @@ export async function changePassword(userId: string, { currentPassword, newPassw
   });
 }
 
+/** Estando vinculada equivale a desvincular: el hogar sigue con la otra persona y solo desaparece si era la última. */
 export async function deleteAccount(userId: string) {
-  await prisma.user.delete({ where: { id: userId } });
+  await prisma.$transaction(async tx => {
+    await detachForAccountDeletion(tx, userId);
+    await tx.user.deleteMany({ where: { id: userId } });
+  });
 }
 
 export async function updatePreferences(userId: string, dto: UpdatePreferencesPayload) {

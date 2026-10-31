@@ -17,12 +17,14 @@ import { paginationSkipTake } from '@omni/shared/common';
 import { prisma } from '../common/db';
 import { decimalToNumber, normalizeName, toIsoDateString, toIsoDateTimeString } from '../common/utils/lifestyle';
 import { HttpError } from '../common/http';
+import { getHouseholdId } from '../household/household.service';
 
 function mapProduct(row: PrismaPantryProduct, today = startOfTodayInAppTz()): PantryProduct {
   const quantity = decimalToNumber(row.quantity) ?? 0;
   const minQuantity = decimalToNumber(row.minQuantity);
   return {
     id: row.id,
+    createdById: row.createdById,
     name: row.name,
     category: row.category,
     unit: row.unit,
@@ -41,8 +43,8 @@ function computeQuantityToBuy(quantity: number, minQuantity: number): number {
   return Math.max(Math.ceil(diff), 1);
 }
 
-async function getOwnedProduct(userId: string, productId: string) {
-  const product = await prisma.pantryProduct.findFirst({ where: { id: productId, userId } });
+async function getHouseholdProduct(householdId: string, productId: string) {
+  const product = await prisma.pantryProduct.findFirst({ where: { id: productId, householdId } });
   if (!product) throw new HttpError(404, 'Producto no encontrado');
   return product;
 }
@@ -52,8 +54,9 @@ async function getOwnedProduct(userId: string, productId: string) {
  * puede estar en las dos listas). Fuente única del resumen de alacena.
  */
 export async function loadPantryAlerts(userId: string, today = startOfTodayInAppTz()) {
+  const householdId = await getHouseholdId(userId);
   const products = await prisma.pantryProduct.findMany({
-    where: { userId },
+    where: { householdId },
     select: { id: true, name: true, quantity: true, minQuantity: true, expiresAt: true },
     orderBy: [{ name: 'asc' }, { id: 'asc' }],
   });
@@ -68,9 +71,10 @@ export async function loadPantryAlerts(userId: string, today = startOfTodayInApp
 }
 
 export async function getSummary(userId: string): Promise<PantrySummary> {
+  const householdId = await getHouseholdId(userId);
   const [alerts, shoppingListCount] = await Promise.all([
     loadPantryAlerts(userId),
-    prisma.pantryShoppingListItem.count({ where: { userId, checked: false } }),
+    prisma.pantryShoppingListItem.count({ where: { householdId, checked: false } }),
   ]);
   return {
     totalProducts: alerts.totalProducts,
@@ -82,8 +86,9 @@ export async function getSummary(userId: string): Promise<PantrySummary> {
 
 export async function listProducts(userId: string, params: ListPantryProductsParams) {
   const { skip, take } = paginationSkipTake(params);
+  const householdId = await getHouseholdId(userId);
   const where = {
-    userId,
+    householdId,
     ...(params.category && { category: params.category }),
     ...(params.q && {
       OR: [
@@ -102,9 +107,10 @@ export async function listProducts(userId: string, params: ListPantryProductsPar
 
 export async function suggestProducts(userId: string, params: SuggestPantryProductsParams) {
   const q = normalizeName(params.q);
+  const householdId = await getHouseholdId(userId);
   const items = await prisma.pantryProduct.findMany({
     where: {
-      userId,
+      householdId,
       OR: [{ nameNormalized: { contains: q } }, { name: { contains: params.q.trim(), mode: 'insensitive' } }],
     },
     take: params.limit,
@@ -115,20 +121,22 @@ export async function suggestProducts(userId: string, params: SuggestPantryProdu
 }
 
 export async function getProduct(userId: string, productId: string) {
-  const product = await getOwnedProduct(userId, productId);
+  const product = await getHouseholdProduct(await getHouseholdId(userId), productId);
   return mapProduct(product);
 }
 
 export async function createProduct(userId: string, dto: CreatePantryProductPayload) {
   const nameNormalized = normalizeName(dto.name);
+  const householdId = await getHouseholdId(userId);
   const existing = await prisma.pantryProduct.findUnique({
-    where: { userId_nameNormalized: { userId, nameNormalized } },
+    where: { householdId_nameNormalized: { householdId, nameNormalized } },
   });
   if (existing) throw new HttpError(409, 'Ya existe un producto con ese nombre');
 
   const product = await prisma.pantryProduct.create({
     data: {
-      userId,
+      householdId,
+      createdById: userId,
       name: dto.name.trim(),
       nameNormalized,
       category: dto.category,
@@ -142,12 +150,13 @@ export async function createProduct(userId: string, dto: CreatePantryProductPayl
 }
 
 export async function updateProduct(userId: string, productId: string, dto: UpdatePantryProductPayload) {
-  const current = await getOwnedProduct(userId, productId);
+  const householdId = await getHouseholdId(userId);
+  const current = await getHouseholdProduct(householdId, productId);
   let nameNormalized = current.nameNormalized;
   if (dto.name && normalizeName(dto.name) !== current.nameNormalized) {
     nameNormalized = normalizeName(dto.name);
     const conflict = await prisma.pantryProduct.findUnique({
-      where: { userId_nameNormalized: { userId, nameNormalized } },
+      where: { householdId_nameNormalized: { householdId, nameNormalized } },
     });
     if (conflict && conflict.id !== productId) {
       throw new HttpError(409, 'Ya existe un producto con ese nombre');
@@ -171,7 +180,7 @@ export async function updateProduct(userId: string, productId: string, dto: Upda
 }
 
 export async function deleteProduct(userId: string, productId: string) {
-  await getOwnedProduct(userId, productId);
+  await getHouseholdProduct(await getHouseholdId(userId), productId);
   await prisma.$transaction(async tx => {
     await tx.pantryShoppingListItem.deleteMany({
       where: { pantryProductId: productId, source: 'AUTO', checked: false },
@@ -183,6 +192,7 @@ export async function deleteProduct(userId: string, productId: string) {
 function mapShoppingItem(
   row: {
     id: string;
+    createdById: string | null;
     name: string;
     source: 'AUTO' | 'MANUAL';
     quantityToBuy: PrismaPantryProduct['quantity'];
@@ -197,6 +207,7 @@ function mapShoppingItem(
   const minQuantity = product ? decimalToNumber(product.minQuantity) : null;
   return {
     id: row.id,
+    createdById: row.createdById,
     name: row.name,
     source: row.source,
     quantityToBuy: decimalToNumber(row.quantityToBuy) ?? 0,
@@ -217,8 +228,9 @@ function mapShoppingItem(
 }
 
 export async function listShoppingList(userId: string) {
+  const householdId = await getHouseholdId(userId);
   const items = await prisma.pantryShoppingListItem.findMany({
-    where: { userId },
+    where: { householdId },
     include: { pantryProduct: true },
     orderBy: [{ checked: 'asc' }, { createdAt: 'desc' }],
   });
@@ -227,9 +239,10 @@ export async function listShoppingList(userId: string) {
 }
 
 export async function generateShoppingList(userId: string) {
+  const householdId = await getHouseholdId(userId);
   await prisma.$transaction(async tx => {
     const withMinimum = await tx.pantryProduct.findMany({
-      where: { userId, minQuantity: { not: null } },
+      where: { householdId, minQuantity: { not: null } },
     });
     const lowStock = withMinimum.filter(p =>
       isLowStock(decimalToNumber(p.quantity) ?? 0, decimalToNumber(p.minQuantity))
@@ -238,7 +251,7 @@ export async function generateShoppingList(userId: string) {
 
     const pending = await tx.pantryShoppingListItem.findMany({
       where: {
-        userId,
+        householdId,
         source: 'AUTO',
         checked: false,
         pantryProductId: { in: lowStock.map(p => p.id) },
@@ -256,7 +269,8 @@ export async function generateShoppingList(userId: string) {
       const existing = pendingByProduct.get(product.id);
       if (!existing) {
         toCreate.push({
-          userId,
+          householdId,
+          createdById: userId,
           pantryProductId: product.id,
           name: product.name,
           source: 'AUTO',
@@ -284,11 +298,13 @@ export async function generateShoppingList(userId: string) {
 }
 
 export async function addShoppingListItem(userId: string, dto: AddShoppingListItemPayload) {
+  const householdId = await getHouseholdId(userId);
   if (dto.pantryProductId) {
-    const product = await getOwnedProduct(userId, dto.pantryProductId);
+    const product = await getHouseholdProduct(householdId, dto.pantryProductId);
     const item = await prisma.pantryShoppingListItem.create({
       data: {
-        userId,
+        householdId,
+        createdById: userId,
         pantryProductId: product.id,
         name: product.name,
         source: 'MANUAL',
@@ -301,7 +317,8 @@ export async function addShoppingListItem(userId: string, dto: AddShoppingListIt
 
   const item = await prisma.pantryShoppingListItem.create({
     data: {
-      userId,
+      householdId,
+      createdById: userId,
       name: dto.name!.trim(),
       source: 'MANUAL',
       quantityToBuy: dto.quantityToBuy,
@@ -312,9 +329,10 @@ export async function addShoppingListItem(userId: string, dto: AddShoppingListIt
 }
 
 export async function completeShoppingListItem(userId: string, itemId: string, dto: CompleteShoppingListItemPayload) {
+  const householdId = await getHouseholdId(userId);
   return prisma.$transaction(async tx => {
     const item = await tx.pantryShoppingListItem.findFirst({
-      where: { id: itemId, userId },
+      where: { id: itemId, householdId },
     });
     if (!item) throw new HttpError(404, 'Ítem no encontrado');
     if (item.checked) throw new HttpError(409, 'El ítem ya estaba marcado');
@@ -323,7 +341,7 @@ export async function completeShoppingListItem(userId: string, itemId: string, d
     const nameNormalized = normalizeName(item.name);
     const existingByName = item.pantryProductId
       ? null
-      : await tx.pantryProduct.findUnique({ where: { userId_nameNormalized: { userId, nameNormalized } } });
+      : await tx.pantryProduct.findUnique({ where: { householdId_nameNormalized: { householdId, nameNormalized } } });
     const existingId = item.pantryProductId ?? existingByName?.id;
     const target = existingId ? { existingId } : dto.category ? { newCategory: dto.category } : null;
     if (!target) {
@@ -331,7 +349,7 @@ export async function completeShoppingListItem(userId: string, itemId: string, d
     }
 
     const claimed = await tx.pantryShoppingListItem.updateMany({
-      where: { id: itemId, userId, checked: false },
+      where: { id: itemId, householdId, checked: false },
       data: { checked: true },
     });
     if (claimed.count === 0) throw new HttpError(409, 'El ítem ya estaba marcado');
@@ -344,7 +362,8 @@ export async function completeShoppingListItem(userId: string, itemId: string, d
           })
         : await tx.pantryProduct.create({
             data: {
-              userId,
+              householdId,
+              createdById: userId,
               name: item.name,
               nameNormalized,
               category: target.newCategory,
@@ -358,11 +377,13 @@ export async function completeShoppingListItem(userId: string, itemId: string, d
 }
 
 export async function deleteShoppingListItem(userId: string, itemId: string) {
-  const item = await prisma.pantryShoppingListItem.findFirst({ where: { id: itemId, userId } });
+  const householdId = await getHouseholdId(userId);
+  const item = await prisma.pantryShoppingListItem.findFirst({ where: { id: itemId, householdId } });
   if (!item) throw new HttpError(404, 'Ítem no encontrado');
   await prisma.pantryShoppingListItem.delete({ where: { id: itemId } });
 }
 
 export async function clearCheckedShoppingList(userId: string) {
-  await prisma.pantryShoppingListItem.deleteMany({ where: { userId, checked: true } });
+  const householdId = await getHouseholdId(userId);
+  await prisma.pantryShoppingListItem.deleteMany({ where: { householdId, checked: true } });
 }

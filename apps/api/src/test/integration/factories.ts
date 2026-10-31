@@ -33,8 +33,43 @@ export async function createUser(options: CreateUserOptions = {}) {
       email: options.email ?? null,
       password: await hash(options.password ?? TEST_PASSWORD, TEST_BCRYPT_ROUNDS),
       role: options.role ?? 'USER',
+      householdMember: { create: { household: { create: {} } } },
     },
   });
+}
+
+export async function householdIdOf(userId: string): Promise<string> {
+  const member = await prisma.householdMember.findUniqueOrThrow({ where: { userId } });
+  return member.householdId;
+}
+
+export interface CreateMediaItemOptions {
+  tmdbId?: number;
+  mediaType?: 'movie' | 'tv';
+  title?: string;
+  status?: 'to_watch' | 'watching' | 'watched';
+}
+
+export async function createMediaItem(userId: string, options: CreateMediaItemOptions = {}) {
+  sequence += 1;
+  return prisma.mediaItem.create({
+    data: {
+      householdId: await householdIdOf(userId),
+      createdById: userId,
+      tmdbId: options.tmdbId ?? 1000 + sequence,
+      mediaType: options.mediaType ?? 'movie',
+      title: options.title ?? `Película ${sequence}`,
+      status: options.status ?? 'to_watch',
+    },
+  });
+}
+
+export async function linkUsers(hostId: string, guestId: string) {
+  const householdId = await householdIdOf(hostId);
+  const guestHouseholdId = await householdIdOf(guestId);
+  await prisma.householdMember.update({ where: { userId: guestId }, data: { householdId } });
+  await prisma.household.delete({ where: { id: guestHouseholdId } });
+  return householdId;
 }
 
 export function toJwtUser(user: { id: string; username: string; role: string }): TestJwtUser {
@@ -177,7 +212,8 @@ export async function createPantryProduct(userId: string, options: CreatePantryP
   return prisma.pantryProduct.create({
     data: {
       id,
-      userId,
+      householdId: await householdIdOf(userId),
+      createdById: userId,
       name,
       nameNormalized: name.trim().toLowerCase(),
       category: options.category ?? 'GRAINS',
@@ -203,7 +239,8 @@ export async function createShoppingListItem(userId: string, options: CreateShop
   return prisma.pantryShoppingListItem.create({
     data: {
       id,
-      userId,
+      householdId: await householdIdOf(userId),
+      createdById: userId,
       name: options.name ?? `Item ${id}`,
       pantryProductId: options.pantryProductId ?? null,
       source: options.source ?? 'MANUAL',

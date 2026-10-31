@@ -3,6 +3,7 @@ import type { AddMediaItemPayload, FilterMediaParams, UpdateMediaItemPayload } f
 import { prisma } from '../common/db';
 import * as tmdbService from './tmdb.service';
 import { HttpError } from '../common/http';
+import { getHouseholdId } from '../household/household.service';
 
 export async function search(query: string, page: number, type: string) {
   switch (type) {
@@ -16,10 +17,11 @@ export async function search(query: string, page: number, type: string) {
 }
 
 export async function addToList(userId: string, dto: AddMediaItemPayload) {
+  const householdId = await getHouseholdId(userId);
   const existing = await prisma.mediaItem.findUnique({
     where: {
-      userId_tmdbId_mediaType: {
-        userId,
+      householdId_tmdbId_mediaType: {
+        householdId,
         tmdbId: dto.tmdbId,
         mediaType: dto.mediaType,
       },
@@ -45,7 +47,8 @@ export async function addToList(userId: string, dto: AddMediaItemPayload) {
 
   const item = await prisma.mediaItem.create({
     data: {
-      userId,
+      householdId,
+      createdById: userId,
       tmdbId: dto.tmdbId,
       mediaType: dto.mediaType,
       title,
@@ -58,9 +61,10 @@ export async function addToList(userId: string, dto: AddMediaItemPayload) {
 }
 
 export async function getList(userId: string, filters: FilterMediaParams) {
+  const householdId = await getHouseholdId(userId);
   return prisma.mediaItem.findMany({
     where: {
-      userId,
+      householdId,
       ...(filters.status && { status: filters.status }),
       ...(filters.mediaType && { mediaType: filters.mediaType }),
     },
@@ -69,8 +73,9 @@ export async function getList(userId: string, filters: FilterMediaParams) {
 }
 
 export async function updateStatus(userId: string, itemId: string, dto: UpdateMediaItemPayload) {
+  const householdId = await getHouseholdId(userId);
   const item = await prisma.mediaItem.findFirst({
-    where: { id: itemId, userId },
+    where: { id: itemId, householdId },
   });
 
   if (!item) {
@@ -86,8 +91,9 @@ export async function updateStatus(userId: string, itemId: string, dto: UpdateMe
 }
 
 export async function removeFromList(userId: string, itemId: string): Promise<void> {
+  const householdId = await getHouseholdId(userId);
   const item = await prisma.mediaItem.findFirst({
-    where: { id: itemId, userId },
+    where: { id: itemId, householdId },
   });
 
   if (!item) {

@@ -107,7 +107,7 @@ describe('media routes (integration)', () => {
         posterPath: '/poster.jpg',
         status: 'to_watch',
       });
-      expect(await prisma.mediaItem.count({ where: { userId: user.id } })).toBe(1);
+      expect(await prisma.mediaItem.count({ where: { createdById: user.id } })).toBe(1);
     });
 
     it('POST /list uses the name field for tv shows', async () => {
@@ -135,7 +135,7 @@ describe('media routes (integration)', () => {
 
       expect(res.status).toBe(409);
       expect(res.body.message).toBe('Este elemento ya está en tu lista');
-      expect(await prisma.mediaItem.count({ where: { userId: user.id } })).toBe(1);
+      expect(await prisma.mediaItem.count({ where: { createdById: user.id } })).toBe(1);
     });
 
     it('GET /list returns only the items of the authenticated user', async () => {
@@ -211,7 +211,7 @@ describe('media routes (integration)', () => {
       const res = await request(app).delete(`/api/media/list/${created.body.id}`).set('Authorization', auth);
 
       expect(res.status).toBe(204);
-      expect(await prisma.mediaItem.count({ where: { userId: user.id } })).toBe(0);
+      expect(await prisma.mediaItem.count({ where: { createdById: user.id } })).toBe(0);
     });
 
     it('DELETE /list/:id returns 404 for an unknown item', async () => {
