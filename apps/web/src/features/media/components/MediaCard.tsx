@@ -1,6 +1,9 @@
 import { memo } from 'react';
 import { ActionIcon, Badge, Box, Card, Stack, Text } from '@mantine/core';
 
+import { useItemAuthor } from '@/core/household';
+import { AuthorTag } from '@/shared/ui';
+
 import { MediaPoster } from './MediaPoster';
 import { MediaStatusSelect } from './MediaStatusSelect/MediaStatusSelect';
 
@@ -16,6 +19,8 @@ interface MediaCardProps {
 }
 
 export const MediaCard = memo(function MediaCard({ item, onStatusChange, onDelete }: MediaCardProps) {
+  const author = useItemAuthor(item.createdById);
+
   return (
     <Card p="none" bg="var(--mantine-color-surfaces-card)" bd="1px solid var(--mantine-color-border-subtle)" h="100%">
       <Card.Section pos="relative">
@@ -48,6 +53,8 @@ export const MediaCard = memo(function MediaCard({ item, onStatusChange, onDelet
         <Text fw={600} size="md" lineClamp={2}>
           {item.title}
         </Text>
+
+        {author && <AuthorTag author={author} />}
 
         <Box mt="auto">
           <MediaStatusSelect

@@ -37,6 +37,10 @@ jest.mock('@/shared/ui', () => ({
   notifyError: jest.fn(),
   notifyWarning: jest.fn(),
 }));
+const mockRefreshHousehold = jest.fn();
+
+jest.mock('@/core/household', () => ({ useHousehold: () => ({ mutate: mockRefreshHousehold }) }));
+jest.mock('./components/HouseholdCard', () => ({ HouseholdCard: () => null }));
 jest.mock('./hooks/useProfile', () => ({ useProfile: () => mockProfile() }));
 jest.mock('./hooks/useAccountActions', () => ({
   useAccountActions: () => ({ changePassword: mockChangePassword, deleteAccount: mockDeleteAccount }),
@@ -81,6 +85,7 @@ describe('ProfileScreen · carga y error', () => {
     await act(async () => screen.UNSAFE_getByType(RefreshControl).props.onRefresh());
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRefreshHousehold).toHaveBeenCalledTimes(1);
   });
 
   it('muestra el spinner mientras carga, sin formulario', () => {

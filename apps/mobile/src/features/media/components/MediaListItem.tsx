@@ -4,8 +4,9 @@ import { TrashIcon } from 'phosphor-react-native';
 import { memo } from 'react';
 import { Paragraph, XStack, YStack } from 'tamagui';
 
+import { useItemAuthor } from '@/core/household';
 import { useColorSchemeControl } from '@/core/theme';
-import { Badge, IconButton, StatusPill } from '@/shared/ui';
+import { AuthorTag, Badge, IconButton, StatusPill } from '@/shared/ui';
 import { glassElevation } from '@/theme/elevation';
 
 import { MediaPoster } from './MediaPoster';
@@ -26,6 +27,7 @@ type MediaListItemProps = {
  */
 export const MediaListItem = memo(function MediaListItem({ item, onStatusPress, onDeletePress }: MediaListItemProps) {
   const { colorScheme } = useColorSchemeControl();
+  const author = useItemAuthor(item.createdById);
 
   return (
     <XStack
@@ -49,6 +51,7 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusPress, 
             </Badge>
           </YStack>
         </XStack>
+        {author ? <AuthorTag author={author} /> : null}
         <XStack alignItems="center" justifyContent="space-between">
           <StatusPill
             status={item.status}
