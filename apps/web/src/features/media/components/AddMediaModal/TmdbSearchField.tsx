@@ -42,6 +42,8 @@ export const TmdbSearchField: FC<TmdbSearchFieldProps> = ({
     onDropdownOpen: () => combobox.selectFirstOption(),
   });
 
+  const showSearchError = trimmedQuery.length >= MIN_QUERY_LENGTH && !!searchError;
+
   const searchResults = useMemo(() => data?.results ?? [], [data]);
 
   const handleOptionSubmit = useCallback(
@@ -74,25 +76,27 @@ export const TmdbSearchField: FC<TmdbSearchFieldProps> = ({
       </Combobox.Target>
 
       <Combobox.Dropdown>
-        <Combobox.Options>
-          {trimmedQuery.length < MIN_QUERY_LENGTH ? (
-            <Combobox.Empty>Escribí al menos 2 caracteres</Combobox.Empty>
-          ) : searchError ? (
-            <ErrorState message="No se pudo buscar en TMDB" onRetry={() => mutate()} />
-          ) : searchResults.length > 0 ? (
-            searchResults.map(item => (
-              <TmdbSearchOption
-                key={getTmdbResultKey(item)}
-                item={item}
-                alreadyAdded={existingTmdbIds.has(getTmdbResultKey(item))}
-              />
-            ))
-          ) : isLoading ? (
-            <Combobox.Empty>Buscando...</Combobox.Empty>
-          ) : (
-            <Combobox.Empty>No se encontraron resultados</Combobox.Empty>
-          )}
-        </Combobox.Options>
+        {showSearchError ? (
+          <ErrorState message="No se pudo buscar en TMDB" onRetry={() => mutate()} />
+        ) : (
+          <Combobox.Options>
+            {trimmedQuery.length < MIN_QUERY_LENGTH ? (
+              <Combobox.Empty>Escribí al menos 2 caracteres</Combobox.Empty>
+            ) : searchResults.length > 0 ? (
+              searchResults.map(item => (
+                <TmdbSearchOption
+                  key={getTmdbResultKey(item)}
+                  item={item}
+                  alreadyAdded={existingTmdbIds.has(getTmdbResultKey(item))}
+                />
+              ))
+            ) : isLoading ? (
+              <Combobox.Empty>Buscando...</Combobox.Empty>
+            ) : (
+              <Combobox.Empty>No se encontraron resultados</Combobox.Empty>
+            )}
+          </Combobox.Options>
+        )}
       </Combobox.Dropdown>
     </Combobox>
   );
