@@ -67,32 +67,16 @@ export async function getList(userId: string, filters: FilterMediaParams) {
 }
 
 export async function updateStatus(userId: string, itemId: string, dto: UpdateMediaItemPayload) {
-  const householdId = await getHouseholdId(userId);
-  const item = await prisma.mediaItem.findFirst({
-    where: { id: itemId, householdId },
+  return withHousehold(userId, async (tx, householdId) => {
+    const item = await tx.mediaItem.findFirst({ where: { id: itemId, householdId } });
+    if (!item) throw new HttpError(404, 'Elemento no encontrado');
+    return tx.mediaItem.update({ where: { id: itemId }, data: { status: dto.status } });
   });
-
-  if (!item) {
-    throw new HttpError(404, 'Elemento no encontrado');
-  }
-
-  const updated = await prisma.mediaItem.update({
-    where: { id: itemId },
-    data: { status: dto.status },
-  });
-
-  return updated;
 }
 
 export async function removeFromList(userId: string, itemId: string): Promise<void> {
-  const householdId = await getHouseholdId(userId);
-  const item = await prisma.mediaItem.findFirst({
-    where: { id: itemId, householdId },
+  await withHousehold(userId, async (tx, householdId) => {
+    const { count } = await tx.mediaItem.deleteMany({ where: { id: itemId, householdId } });
+    if (count === 0) throw new HttpError(404, 'Elemento no encontrado');
   });
-
-  if (!item) {
-    throw new HttpError(404, 'Elemento no encontrado');
-  }
-
-  await prisma.mediaItem.delete({ where: { id: itemId } });
 }
