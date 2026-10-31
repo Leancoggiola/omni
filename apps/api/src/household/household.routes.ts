@@ -13,6 +13,15 @@ const inviteLimiter = createRateLimiter({
   },
 });
 
+const createInviteLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: {
+    statusCode: 429,
+    message: 'Demasiadas invitaciones generadas, intenta de nuevo más tarde',
+  },
+});
+
 const router = Router();
 router.use(authenticateJwt);
 
@@ -20,7 +29,7 @@ router.get('/', async (req, res) => {
   res.json(await householdService.getHousehold(req.user!.userId));
 });
 
-router.post('/invite', inviteLimiter, async (req, res) => {
+router.post('/invite', createInviteLimiter, async (req, res) => {
   res.status(201).json(await householdService.createInvite(req.user!.userId));
 });
 

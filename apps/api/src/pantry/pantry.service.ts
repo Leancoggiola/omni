@@ -17,7 +17,7 @@ import { paginationSkipTake } from '@omni/shared/common';
 import { prisma } from '../common/db';
 import { decimalToNumber, normalizeName, toIsoDateString, toIsoDateTimeString } from '../common/utils/lifestyle';
 import { HttpError } from '../common/http';
-import { getHouseholdId } from '../household/household.service';
+import { getHouseholdId, withHousehold } from '../household/household.service';
 
 function mapProduct(row: PrismaPantryProduct, today = startOfTodayInAppTz()): PantryProduct {
   const quantity = decimalToNumber(row.quantity) ?? 0;
@@ -127,26 +127,27 @@ export async function getProduct(userId: string, productId: string) {
 
 export async function createProduct(userId: string, dto: CreatePantryProductPayload) {
   const nameNormalized = normalizeName(dto.name);
-  const householdId = await getHouseholdId(userId);
-  const existing = await prisma.pantryProduct.findUnique({
-    where: { householdId_nameNormalized: { householdId, nameNormalized } },
-  });
-  if (existing) throw new HttpError(409, 'Ya existe un producto con ese nombre');
+  return withHousehold(userId, async (tx, householdId) => {
+    const existing = await tx.pantryProduct.findUnique({
+      where: { householdId_nameNormalized: { householdId, nameNormalized } },
+    });
+    if (existing) throw new HttpError(409, 'Ya existe un producto con ese nombre');
 
-  const product = await prisma.pantryProduct.create({
-    data: {
-      householdId,
-      createdById: userId,
-      name: dto.name.trim(),
-      nameNormalized,
-      category: dto.category,
-      unit: dto.unit,
-      quantity: dto.quantity,
-      minQuantity: dto.minQuantity ?? null,
-      expiresAt: dto.expiresAt ? parseIsoDateString(dto.expiresAt) : null,
-    },
+    const product = await tx.pantryProduct.create({
+      data: {
+        householdId,
+        createdById: userId,
+        name: dto.name.trim(),
+        nameNormalized,
+        category: dto.category,
+        unit: dto.unit,
+        quantity: dto.quantity,
+        minQuantity: dto.minQuantity ?? null,
+        expiresAt: dto.expiresAt ? parseIsoDateString(dto.expiresAt) : null,
+      },
+    });
+    return mapProduct(product);
   });
-  return mapProduct(product);
 }
 
 export async function updateProduct(userId: string, productId: string, dto: UpdatePantryProductPayload) {
@@ -239,8 +240,7 @@ export async function listShoppingList(userId: string) {
 }
 
 export async function generateShoppingList(userId: string) {
-  const householdId = await getHouseholdId(userId);
-  await prisma.$transaction(async tx => {
+  await withHousehold(userId, async (tx, householdId) => {
     const withMinimum = await tx.pantryProduct.findMany({
       where: { householdId, minQuantity: { not: null } },
     });
@@ -298,39 +298,40 @@ export async function generateShoppingList(userId: string) {
 }
 
 export async function addShoppingListItem(userId: string, dto: AddShoppingListItemPayload) {
-  const householdId = await getHouseholdId(userId);
-  if (dto.pantryProductId) {
-    const product = await getHouseholdProduct(householdId, dto.pantryProductId);
-    const item = await prisma.pantryShoppingListItem.create({
+  return withHousehold(userId, async (tx, householdId) => {
+    if (dto.pantryProductId) {
+      const product = await tx.pantryProduct.findFirst({ where: { id: dto.pantryProductId, householdId } });
+      if (!product) throw new HttpError(404, 'Producto no encontrado');
+      const item = await tx.pantryShoppingListItem.create({
+        data: {
+          householdId,
+          createdById: userId,
+          pantryProductId: product.id,
+          name: product.name,
+          source: 'MANUAL',
+          quantityToBuy: dto.quantityToBuy,
+          unit: product.unit,
+        },
+      });
+      return mapShoppingItem(item, product);
+    }
+
+    const item = await tx.pantryShoppingListItem.create({
       data: {
         householdId,
         createdById: userId,
-        pantryProductId: product.id,
-        name: product.name,
+        name: dto.name!.trim(),
         source: 'MANUAL',
         quantityToBuy: dto.quantityToBuy,
-        unit: product.unit,
+        unit: dto.unit!,
       },
     });
-    return mapShoppingItem(item, product);
-  }
-
-  const item = await prisma.pantryShoppingListItem.create({
-    data: {
-      householdId,
-      createdById: userId,
-      name: dto.name!.trim(),
-      source: 'MANUAL',
-      quantityToBuy: dto.quantityToBuy,
-      unit: dto.unit!,
-    },
+    return mapShoppingItem(item);
   });
-  return mapShoppingItem(item);
 }
 
 export async function completeShoppingListItem(userId: string, itemId: string, dto: CompleteShoppingListItemPayload) {
-  const householdId = await getHouseholdId(userId);
-  return prisma.$transaction(async tx => {
+  return withHousehold(userId, async (tx, householdId) => {
     const item = await tx.pantryShoppingListItem.findFirst({
       where: { id: itemId, householdId },
     });

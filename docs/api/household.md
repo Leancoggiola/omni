@@ -4,18 +4,18 @@ Dos personas comparten alacena (productos y lista de compras) y la lista de pel�
 
 ## Modelo
 
-| Tabla             | Rol                                                                              |
-| ----------------- | -------------------------------------------------------------------------------- |
-| `Household`       | Contenedor de los datos compartidos.                                             |
-| `HouseholdMember` | `userId` único: una persona está en un solo hogar. Máximo 2 por hogar.           |
-| `HouseholdInvite` | Código de un solo uso, hasheado (sha256), vigente 48 h, revocable (`revokedAt`). |
+| Tabla             | Rol                                                                                                                             |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `Household`       | Contenedor de los datos compartidos.                                                                                            |
+| `HouseholdMember` | `userId` único: una persona está en un solo hogar. Máximo 2 por hogar.                                                          |
+| `HouseholdInvite` | Código de un solo uso, hasheado (HMAC-SHA256 con clave derivada del secreto de refresh), vigente 48 h, revocable (`revokedAt`). |
 
 `MediaItem`, `PantryProduct` y `PantryShoppingListItem` pasan de `userId` a `householdId` y guardan `createdById` (nullable, `SetNull` al borrar la cuenta). La migración `20261031120000_household_sharing` da un hogar a cada usuario existente (`hh_<userId>`) y rellena ambas columnas.
 
 ## Reglas
 
 - **Máximo 2 integrantes** y cambios de integrantes serializados con `lockHouseholds` (advisory lock por hogar, en orden de id).
-- **Invitación:** un código vivo por hogar (generar otro revoca el anterior). Vencido, usado, revocado o inexistente responden igual (404). `preview` y `accept` llevan rate limit.
+- **Invitación:** un código vivo por hogar (generar otro revoca el anterior). Vencido, usado, revocado o inexistente responden igual (404). `preview` y `accept` comparten un rate limit estricto (10 por 15 min); generar el código tiene el suyo, más laxo.
 - **Unión:** los repetidos (película por `tmdbId` + tipo, producto por nombre normalizado) quedan con el registro del hogar que recibe. Los ítems de compra que apuntaban a un producto descartado pasan al equivalente del hogar que recibe.
 - **Desvincular:** quien se va recibe un hogar nuevo con una copia del estado actual; quien se queda conserva todo. No requiere aprobación.
 - **Borrar la cuenta** equivale a desvincular sin copia; el hogar se elimina solo si era el último integrante.

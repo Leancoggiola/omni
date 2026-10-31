@@ -1,4 +1,4 @@
-import { createHash, randomInt } from 'node:crypto';
+import { createHmac, randomInt } from 'node:crypto';
 import {
   HOUSEHOLD_INVITE_CODE_ALPHABET,
   HOUSEHOLD_INVITE_CODE_LENGTH,
@@ -8,6 +8,7 @@ import {
 } from '@omni/shared/household';
 import type { CreatedHouseholdInvite, HouseholdInfo, HouseholdInvitePreview } from '@omni/shared/household';
 
+import { config } from '../config';
 import { lockHouseholds, prisma } from '../common/db';
 import type { PrismaTransactionClient } from '../common/db';
 import { HttpError } from '../common/http';
@@ -17,8 +18,11 @@ const INVALID_CODE_MESSAGE = 'El código no es válido o ya venció';
 
 type Client = PrismaTransactionClient;
 
+const inviteCodeKey = createHmac('sha256', config.jwt.refreshSecret).update('household-invite-code').digest();
+
+/** HMAC con una clave derivada del secreto de refresh: un volcado de la tabla no alcanza para probar códigos offline. */
 function hashInviteCode(code: string): string {
-  return createHash('sha256').update(normalizeInviteCode(code)).digest('hex');
+  return createHmac('sha256', inviteCodeKey).update(normalizeInviteCode(code)).digest('hex');
 }
 
 function generateInviteCode(): string {
@@ -40,6 +44,24 @@ export async function getHouseholdId(userId: string, client: Client = prisma): P
   const member = await client.householdMember.findUnique({ where: { userId }, select: { householdId: true } });
   if (!member) throw new HttpError(403, 'Tu cuenta no tiene un hogar asignado');
   return member.householdId;
+}
+
+/**
+ * Corre una escritura de alacena o películas dentro de una transacción con el hogar bloqueado. Resuelve el hogar, lo
+ * bloquea y lo vuelve a resolver: si una unión lo movió entre medio, reintenta. Así una alta nunca apunta a un hogar que
+ * `acceptInvite` está por borrar.
+ */
+export async function withHousehold<T>(
+  userId: string,
+  fn: (tx: Client, householdId: string) => Promise<T>
+): Promise<T> {
+  return prisma.$transaction(async tx => {
+    for (;;) {
+      const householdId = await getHouseholdId(userId, tx);
+      await lockHouseholds(tx, [householdId]);
+      if (householdId === (await getHouseholdId(userId, tx))) return fn(tx, householdId);
+    }
+  });
 }
 
 /**

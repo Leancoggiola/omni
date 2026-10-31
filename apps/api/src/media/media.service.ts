@@ -3,7 +3,7 @@ import type { AddMediaItemPayload, FilterMediaParams, UpdateMediaItemPayload } f
 import { prisma } from '../common/db';
 import * as tmdbService from './tmdb.service';
 import { HttpError } from '../common/http';
-import { getHouseholdId } from '../household/household.service';
+import { getHouseholdId, withHousehold } from '../household/household.service';
 
 export async function search(query: string, page: number, type: string) {
   switch (type) {
@@ -17,20 +17,13 @@ export async function search(query: string, page: number, type: string) {
 }
 
 export async function addToList(userId: string, dto: AddMediaItemPayload) {
-  const householdId = await getHouseholdId(userId);
-  const existing = await prisma.mediaItem.findUnique({
-    where: {
-      householdId_tmdbId_mediaType: {
-        householdId,
-        tmdbId: dto.tmdbId,
-        mediaType: dto.mediaType,
-      },
-    },
+  const key = (householdId: string) => ({
+    householdId_tmdbId_mediaType: { householdId, tmdbId: dto.tmdbId, mediaType: dto.mediaType },
   });
+  const duplicate = () => new HttpError(409, 'Este elemento ya está en tu lista');
 
-  if (existing) {
-    throw new HttpError(409, 'Este elemento ya está en tu lista');
-  }
+  const householdId = await getHouseholdId(userId);
+  if (await prisma.mediaItem.findUnique({ where: key(householdId) })) throw duplicate();
 
   let title: string;
   let posterPath: string | null;
@@ -45,19 +38,20 @@ export async function addToList(userId: string, dto: AddMediaItemPayload) {
     posterPath = detail.poster_path;
   }
 
-  const item = await prisma.mediaItem.create({
-    data: {
-      householdId,
-      createdById: userId,
-      tmdbId: dto.tmdbId,
-      mediaType: dto.mediaType,
-      title,
-      posterPath,
-      status: dto.status || 'to_watch',
-    },
+  return withHousehold(userId, async (tx, lockedHouseholdId) => {
+    if (await tx.mediaItem.findUnique({ where: key(lockedHouseholdId) })) throw duplicate();
+    return tx.mediaItem.create({
+      data: {
+        householdId: lockedHouseholdId,
+        createdById: userId,
+        tmdbId: dto.tmdbId,
+        mediaType: dto.mediaType,
+        title,
+        posterPath,
+        status: dto.status || 'to_watch',
+      },
+    });
   });
-
-  return item;
 }
 
 export async function getList(userId: string, filters: FilterMediaParams) {
