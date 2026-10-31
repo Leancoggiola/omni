@@ -151,38 +151,41 @@ export async function createProduct(userId: string, dto: CreatePantryProductPayl
 }
 
 export async function updateProduct(userId: string, productId: string, dto: UpdatePantryProductPayload) {
-  const householdId = await getHouseholdId(userId);
-  const current = await getHouseholdProduct(householdId, productId);
-  let nameNormalized = current.nameNormalized;
-  if (dto.name && normalizeName(dto.name) !== current.nameNormalized) {
-    nameNormalized = normalizeName(dto.name);
-    const conflict = await prisma.pantryProduct.findUnique({
-      where: { householdId_nameNormalized: { householdId, nameNormalized } },
-    });
-    if (conflict && conflict.id !== productId) {
-      throw new HttpError(409, 'Ya existe un producto con ese nombre');
+  return withHousehold(userId, async (tx, householdId) => {
+    const current = await tx.pantryProduct.findFirst({ where: { id: productId, householdId } });
+    if (!current) throw new HttpError(404, 'Producto no encontrado');
+    let nameNormalized = current.nameNormalized;
+    if (dto.name && normalizeName(dto.name) !== current.nameNormalized) {
+      nameNormalized = normalizeName(dto.name);
+      const conflict = await tx.pantryProduct.findUnique({
+        where: { householdId_nameNormalized: { householdId, nameNormalized } },
+      });
+      if (conflict && conflict.id !== productId) {
+        throw new HttpError(409, 'Ya existe un producto con ese nombre');
+      }
     }
-  }
 
-  const product = await prisma.pantryProduct.update({
-    where: { id: productId },
-    data: {
-      ...(dto.name !== undefined && { name: dto.name.trim(), nameNormalized }),
-      ...(dto.category !== undefined && { category: dto.category }),
-      ...(dto.unit !== undefined && { unit: dto.unit }),
-      ...(dto.quantity !== undefined && { quantity: dto.quantity }),
-      ...(dto.minQuantity !== undefined && { minQuantity: dto.minQuantity }),
-      ...(dto.expiresAt !== undefined && {
-        expiresAt: dto.expiresAt ? parseIsoDateString(dto.expiresAt) : null,
-      }),
-    },
+    const product = await tx.pantryProduct.update({
+      where: { id: productId },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name.trim(), nameNormalized }),
+        ...(dto.category !== undefined && { category: dto.category }),
+        ...(dto.unit !== undefined && { unit: dto.unit }),
+        ...(dto.quantity !== undefined && { quantity: dto.quantity }),
+        ...(dto.minQuantity !== undefined && { minQuantity: dto.minQuantity }),
+        ...(dto.expiresAt !== undefined && {
+          expiresAt: dto.expiresAt ? parseIsoDateString(dto.expiresAt) : null,
+        }),
+      },
+    });
+    return mapProduct(product);
   });
-  return mapProduct(product);
 }
 
 export async function deleteProduct(userId: string, productId: string) {
-  await getHouseholdProduct(await getHouseholdId(userId), productId);
-  await prisma.$transaction(async tx => {
+  await withHousehold(userId, async (tx, householdId) => {
+    const product = await tx.pantryProduct.findFirst({ where: { id: productId, householdId } });
+    if (!product) throw new HttpError(404, 'Producto no encontrado');
     await tx.pantryShoppingListItem.deleteMany({
       where: { pantryProductId: productId, source: 'AUTO', checked: false },
     });

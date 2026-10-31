@@ -18,6 +18,8 @@ const INVALID_CODE_MESSAGE = 'El código no es válido o ya venció';
 
 type Client = PrismaTransactionClient;
 
+const WITH_HOUSEHOLD_MAX_ATTEMPTS = 3;
+
 const inviteCodeKey = createHmac('sha256', config.jwt.refreshSecret).update('household-invite-code').digest();
 
 /** HMAC con una clave derivada del secreto de refresh: un volcado de la tabla no alcanza para probar códigos offline. */
@@ -56,11 +58,12 @@ export async function withHousehold<T>(
   fn: (tx: Client, householdId: string) => Promise<T>
 ): Promise<T> {
   return prisma.$transaction(async tx => {
-    for (;;) {
+    for (let attempt = 0; attempt < WITH_HOUSEHOLD_MAX_ATTEMPTS; attempt++) {
       const householdId = await getHouseholdId(userId, tx);
       await lockHouseholds(tx, [householdId]);
       if (householdId === (await getHouseholdId(userId, tx))) return fn(tx, householdId);
     }
+    throw new HttpError(409, 'Tu hogar cambió mientras se procesaba la operación, intentá de nuevo');
   });
 }
 
