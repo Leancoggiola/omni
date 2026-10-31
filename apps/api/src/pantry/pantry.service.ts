@@ -54,7 +54,11 @@ async function getHouseholdProduct(householdId: string, productId: string) {
  * puede estar en las dos listas). Fuente única del resumen de alacena.
  */
 export async function loadPantryAlerts(userId: string, today = startOfTodayInAppTz()) {
-  const householdId = await getHouseholdId(userId);
+  return loadHouseholdAlerts(await getHouseholdId(userId), today);
+}
+
+/** Alertas de alacena de un hogar ya resuelto, para quien ya tiene el `householdId` y no quiere otra query. */
+async function loadHouseholdAlerts(householdId: string, today = startOfTodayInAppTz()) {
   const products = await prisma.pantryProduct.findMany({
     where: { householdId },
     select: { id: true, name: true, quantity: true, minQuantity: true, expiresAt: true },
@@ -73,7 +77,7 @@ export async function loadPantryAlerts(userId: string, today = startOfTodayInApp
 export async function getSummary(userId: string): Promise<PantrySummary> {
   const householdId = await getHouseholdId(userId);
   const [alerts, shoppingListCount] = await Promise.all([
-    loadPantryAlerts(userId),
+    loadHouseholdAlerts(householdId),
     prisma.pantryShoppingListItem.count({ where: { householdId, checked: false } }),
   ]);
   return {
