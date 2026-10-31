@@ -108,7 +108,11 @@ export async function changePassword(userId: string, { currentPassword, newPassw
   });
 }
 
-/** Estando vinculada equivale a desvincular: el hogar sigue con la otra persona y solo desaparece si era la última. */
+/**
+ * Estando vinculada equivale a desvincular: el hogar sigue con la otra persona y solo desaparece si era la última.
+ * Usa `deleteMany` a propósito: es idempotente y un P2025 abortaría la transacción; los llamadores ya validan que la
+ * cuenta existe.
+ */
 export async function deleteAccount(userId: string) {
   await prisma.$transaction(async tx => {
     await detachForAccountDeletion(tx, userId);
