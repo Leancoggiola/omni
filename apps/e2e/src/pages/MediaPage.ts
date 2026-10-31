@@ -12,6 +12,12 @@ export class MediaPage {
   readonly statusOf = (title: string) => this.page.getByRole('combobox', { name: `Estado de ${title}` });
   readonly deleteButtonOf = (title: string) => this.page.getByRole('button', { name: `Eliminar ${title}` });
   readonly viewToggle = () => this.page.getByRole('radiogroup', { name: 'Vista' });
+  readonly typeFilter = () => this.page.getByRole('combobox', { name: 'Tipo de contenido' });
+  readonly retryButton = () => this.page.getByRole('button', { name: 'Reintentar' });
+  readonly searchErrorText = () => this.page.getByText('No se pudo buscar en TMDB');
+  readonly searchEmptyText = () => this.page.getByText('No se encontraron resultados');
+  readonly noResultsText = () => this.page.getByText('No hay resultados');
+  readonly emptyListText = () => this.page.getByText('Tu lista está vacía');
   readonly posterOf = (title: string) => this.page.getByRole('button', { name: title, exact: true });
 
   async goto() {
@@ -41,6 +47,11 @@ export class MediaPage {
   async changeStatus(title: string, status: MediaStatus) {
     await this.statusOf(title).click();
     await this.page.getByRole('option', { name: status, exact: true }).click();
+  }
+
+  async filterByType(label: string) {
+    await this.typeFilter().click();
+    await this.page.getByRole('option', { name: label, exact: true }).click();
   }
 
   /** El botón de eliminar está siempre visible, también en la grilla. */

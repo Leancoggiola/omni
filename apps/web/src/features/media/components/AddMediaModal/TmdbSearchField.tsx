@@ -2,6 +2,8 @@ import { FC, useCallback, useMemo } from 'react';
 import { Combobox, TextInput, useCombobox } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 
+import { ErrorState } from '@/shared/ui';
+
 import { useMediaSearch } from '../../hooks/useMediaSearch';
 import { TmdbSearchOption } from './TmdbSearchOption';
 
@@ -28,7 +30,12 @@ export const TmdbSearchField: FC<TmdbSearchFieldProps> = ({
 }) => {
   const [debouncedQuery] = useDebouncedValue(value, 400);
   const trimmedQuery = debouncedQuery.trim();
-  const { data, isLoading } = useMediaSearch(trimmedQuery.length >= MIN_QUERY_LENGTH ? debouncedQuery : '', 1, 'multi');
+  const {
+    data,
+    isLoading,
+    error: searchError,
+    mutate,
+  } = useMediaSearch(trimmedQuery.length >= MIN_QUERY_LENGTH ? debouncedQuery : '', 1, 'multi');
 
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -70,6 +77,8 @@ export const TmdbSearchField: FC<TmdbSearchFieldProps> = ({
         <Combobox.Options>
           {trimmedQuery.length < MIN_QUERY_LENGTH ? (
             <Combobox.Empty>Escribí al menos 2 caracteres</Combobox.Empty>
+          ) : searchError ? (
+            <ErrorState message="No se pudo buscar en TMDB" onRetry={() => mutate()} />
           ) : searchResults.length > 0 ? (
             searchResults.map(item => (
               <TmdbSearchOption
