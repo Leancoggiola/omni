@@ -24,6 +24,41 @@ test.describe('media', () => {
     await expect(page.getByText('No se encontraron resultados')).toBeVisible();
   });
 
+  test('muestra el error con reintento cuando falla la búsqueda en TMDB', async ({ page }) => {
+    const media = new MediaPage(page);
+    await media.goto();
+    await page.route('**/api/media/search*', route =>
+      route.fulfill({ status: 500, contentType: 'application/json', body: '{"message":"boom"}' })
+    );
+
+    await media.addButton().click();
+    await media.searchField().fill('Inception');
+
+    await expect(media.searchErrorText()).toBeVisible();
+    await expect(media.searchEmptyText()).toBeHidden();
+
+    await page.unroute('**/api/media/search*');
+    await media.retryButton().click();
+
+    await expect(page.getByRole('option', { name: /Inception/i }).first()).toBeVisible();
+  });
+
+  test('muestra "No hay resultados" sin botón de agregar al filtrar por un tipo sin items', async ({
+    page,
+    freshUser,
+  }) => {
+    await freshUser('filtros');
+    const media = new MediaPage(page);
+    await media.goto();
+    await media.addViaApi(603, 'movie');
+    await expect(page.getByText('The Matrix')).toBeVisible();
+
+    await media.filterByType('Serie');
+
+    await expect(media.noResultsText()).toBeVisible();
+    await expect(media.emptyListText()).toBeHidden();
+  });
+
   test('cambia el estado de un item de la lista', async ({ page }) => {
     const media = new MediaPage(page);
     await media.goto();
