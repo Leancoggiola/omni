@@ -76,15 +76,16 @@ jobs:
       # Excepciones en auditConfig.ignoreCves de pnpm-workspace.yaml:
       # - CVE-2025-71329/CVE-2025-71330 (image-size): dependencia del bundler de
       #   mobile (metro) que pide la 1.x; el fix es 2.x.
-      # - CVE-2026-85393 (node-forge) y CVE-2026-93687 (braces): sin versión
-      #   parcheada upstream. En el grafo --prod solo aparecen bajo apps/mobile
-      #   (CLI de expo y plugin de babel de tamagui, herramientas de build); no
-      #   están en api ni en web. braces también llega por semantic-release.
+      # - CVE-2026-93687 (braces): sin versión parcheada upstream. En el grafo
+      #   --prod solo aparece bajo apps/mobile (plugin de babel de tamagui,
+      #   herramienta de build); no está en api ni en web. También llega por
+      #   semantic-release.
+      # node-forge se fija con un override en pnpm-workspace.yaml (>=1.4.1).
       # Revisar las excepciones cuando salga un parche.
       - name: Excepciones solo en mobile (bloqueante)
         shell: bash
         run: |
-          pnpm --filter '!mobile' why node-forge braces --prod --json | node -e "
+          pnpm --filter '!mobile' why braces --prod --json | node -e "
             const r = JSON.parse(require('fs').readFileSync(0, 'utf8'));
             if (!r.length) { console.error('sin proyectos evaluados'); process.exit(1); }
             const h = r.filter((p) => p.dependencies || p.devDependencies || p.optionalDependencies);
