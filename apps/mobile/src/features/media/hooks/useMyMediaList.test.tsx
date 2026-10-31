@@ -11,7 +11,7 @@ jest.mock('@/shared/api', () => jest.requireActual('@/shared/api/keys'));
 const LIST: MediaItem[] = [
   {
     id: '1',
-    userId: 'u1',
+    createdById: 'u1',
     tmdbId: 1,
     mediaType: 'movie',
     title: 'Título 1',

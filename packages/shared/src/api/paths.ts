@@ -33,6 +33,13 @@ export const API_PATHS = {
     gatheringExpense: (gatheringId: string, expenseId: string) =>
       `/api/split-expenses/gatherings/${gatheringId}/expenses/${expenseId}`,
   },
+  household: {
+    current: '/api/household',
+    invite: '/api/household/invite',
+    invitePreview: '/api/household/invite/preview',
+    inviteAccept: '/api/household/invite/accept',
+    leave: '/api/household/leave',
+  },
   holidays: {
     today: '/api/holidays/today',
   },

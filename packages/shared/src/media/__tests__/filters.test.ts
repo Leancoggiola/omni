@@ -21,7 +21,7 @@ const item = (
   status: MediaItem['status']
 ): MediaItem => ({
   id,
-  userId: 'u1',
+  createdById: 'u1',
   tmdbId: Number(id),
   mediaType,
   title,
