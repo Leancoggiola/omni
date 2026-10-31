@@ -62,7 +62,7 @@ router.post('/list', validate(addMediaItemSchema), async (req, res) => { ... });
 
 ## Hogar
 
-`media` y `pantry` se scopean por hogar, no por usuario: los services reciben `userId` y resuelven el hogar con `getHouseholdId(userId)` de `household.service`. Las altas guardan `householdId` y `createdById`. Toda cuenta nueva se crea con su `HouseholdMember` y su `Household` anidados (`users.service.create`, seed, `createUser` de los tests). Cualquier cambio de integrantes (invitar, unirse, desvincular, borrar la cuenta) corre en una transacción que empieza con `lockHouseholds`, y las altas de `media`/`pantry` y las escrituras que dependen de unicidad y las demás escrituras (editar, borrar, cambiar estado) entran por `withHousehold`; las lecturas usan `getHouseholdId`, que resuelve y bloquea el hogar para no escribir en uno que una unión está por borrar. Detalle y postura de RLS en `docs/api/household.md`.
+`media` y `pantry` se scopean por hogar, no por usuario: los services reciben `userId` y resuelven el hogar con `getHouseholdId(userId)` de `household.service`. Las altas guardan `householdId` y `createdById`. Toda cuenta nueva se crea con su `HouseholdMember` y su `Household` anidados (`users.service.create`, seed, `createUser` de los tests). Cualquier cambio de integrantes (invitar, unirse, desvincular, borrar la cuenta) corre en una transacción que empieza con `lockHouseholds`. Toda escritura de `media`/`pantry` entra por `withHousehold`, que resuelve el hogar, lo bloquea y lo revalida para no escribir en uno que una unión está por borrar; las lecturas usan `getHouseholdId`, que solo resuelve el hogar, sin lock. Detalle y postura de RLS en `docs/api/household.md`.
 
 ## Errores
 

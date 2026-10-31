@@ -20,6 +20,8 @@ type Client = PrismaTransactionClient;
 
 const WITH_HOUSEHOLD_MAX_ATTEMPTS = 3;
 
+const MEMBERSHIP_TX_OPTIONS = { timeout: 15_000 };
+
 const inviteCodeKey = createHmac('sha256', config.jwt.refreshSecret).update('household-invite-code').digest();
 
 /** HMAC con una clave derivada del secreto de refresh: un volcado de la tabla no alcanza para probar códigos offline. */
@@ -145,12 +147,14 @@ async function createInviteOnce(userId: string): Promise<CreatedHouseholdInvite>
 
 /** Revoca la invitación pendiente del hogar; 404 si no hay ninguna. */
 export async function revokeInvite(userId: string): Promise<void> {
-  const householdId = await getHouseholdId(userId);
-  const { count } = await prisma.householdInvite.updateMany({
-    where: { householdId, ...pendingInviteWhere() },
-    data: { revokedAt: new Date() },
+  await prisma.$transaction(async tx => {
+    const householdId = await lockOwnHousehold(tx, userId);
+    const { count } = await tx.householdInvite.updateMany({
+      where: { householdId, ...pendingInviteWhere() },
+      data: { revokedAt: new Date() },
+    });
+    if (count === 0) throw new HttpError(404, 'No hay una invitación pendiente');
   });
-  if (count === 0) throw new HttpError(404, 'No hay una invitación pendiente');
 }
 
 /**
@@ -308,7 +312,7 @@ export async function acceptInvite(userId: string, code: string): Promise<Househ
       data: { householdId: targetHouseholdId, joinedAt: now },
     });
     await tx.household.delete({ where: { id: ownHouseholdId } });
-  });
+  }, MEMBERSHIP_TX_OPTIONS);
 
   return getHousehold(userId);
 }
@@ -359,7 +363,7 @@ export async function leaveHousehold(userId: string): Promise<HouseholdInfo> {
     });
 
     await tx.householdMember.update({ where: { userId }, data: { householdId: fresh.id, joinedAt: now } });
-  });
+  }, MEMBERSHIP_TX_OPTIONS);
 
   return getHousehold(userId);
 }
