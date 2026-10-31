@@ -97,8 +97,20 @@ export async function getHousehold(userId: string, client: Client = prisma): Pro
   };
 }
 
-/** Genera un código nuevo y revoca el pendiente anterior: a lo sumo una invitación viva por hogar. */
+/**
+ * Genera un código nuevo y revoca el pendiente anterior: a lo sumo una invitación viva por hogar. Una colisión del
+ * hash (P2002) aborta la transacción, así que el reintento es una transacción nueva.
+ */
 export async function createInvite(userId: string): Promise<CreatedHouseholdInvite> {
+  try {
+    return await createInviteOnce(userId);
+  } catch (error) {
+    if ((error as { code?: string }).code !== 'P2002') throw error;
+    return createInviteOnce(userId);
+  }
+}
+
+async function createInviteOnce(userId: string): Promise<CreatedHouseholdInvite> {
   return prisma.$transaction(async tx => {
     const householdId = await getHouseholdId(userId, tx);
     await lockHouseholds(tx, [householdId]);

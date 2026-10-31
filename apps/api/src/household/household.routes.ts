@@ -33,7 +33,7 @@ router.post('/invite', createInviteLimiter, async (req, res) => {
   res.status(201).json(await householdService.createInvite(req.user!.userId));
 });
 
-router.delete('/invite', async (req, res) => {
+router.delete('/invite', createInviteLimiter, async (req, res) => {
   await householdService.revokeInvite(req.user!.userId);
   res.status(204).send();
 });
@@ -46,7 +46,7 @@ router.post('/invite/accept', inviteLimiter, validate(householdInviteCodeSchema)
   res.json(await householdService.acceptInvite(req.user!.userId, req.body.code));
 });
 
-router.post('/leave', async (req, res) => {
+router.post('/leave', createInviteLimiter, async (req, res) => {
   res.json(await householdService.leaveHousehold(req.user!.userId));
 });
 
