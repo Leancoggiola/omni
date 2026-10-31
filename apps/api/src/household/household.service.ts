@@ -127,6 +127,7 @@ export async function createInvite(userId: string): Promise<CreatedHouseholdInvi
   });
 }
 
+/** Revoca la invitación pendiente del hogar; 404 si no hay ninguna. */
 export async function revokeInvite(userId: string): Promise<void> {
   const householdId = await getHouseholdId(userId);
   const { count } = await prisma.householdInvite.updateMany({
