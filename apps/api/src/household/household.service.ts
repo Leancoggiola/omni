@@ -18,8 +18,6 @@ const INVALID_CODE_MESSAGE = 'El código no es válido o ya venció';
 
 type Client = PrismaTransactionClient;
 
-const WITH_HOUSEHOLD_MAX_ATTEMPTS = 3;
-
 const MEMBERSHIP_TX_OPTIONS = { timeout: 15_000 };
 
 const inviteCodeKey = createHmac('sha256', config.jwt.refreshSecret).update('household-invite-code').digest();
@@ -51,16 +49,17 @@ export async function getHouseholdId(userId: string, client: Client = prisma): P
 }
 
 /**
- * Resuelve el hogar de la persona, lo bloquea y lo vuelve a resolver: si una unión lo movió entre medio, reintenta.
- * Devuelve el hogar ya bloqueado y vigente.
+ * Resuelve el hogar de la persona, lo bloquea y lo vuelve a resolver. Si una unión lo movió entre medio responde 409
+ * en vez de reintentar: la transacción ya sostiene el lock del hogar viejo y tomar el del nuevo rompería el orden por
+ * id de `lockHouseholds` (riesgo de deadlock). Devuelve el hogar ya bloqueado y vigente.
  */
 async function lockOwnHousehold(tx: Client, userId: string): Promise<string> {
-  for (let attempt = 0; attempt < WITH_HOUSEHOLD_MAX_ATTEMPTS; attempt++) {
-    const householdId = await getHouseholdId(userId, tx);
-    await lockHouseholds(tx, [householdId]);
-    if (householdId === (await getHouseholdId(userId, tx))) return householdId;
+  const householdId = await getHouseholdId(userId, tx);
+  await lockHouseholds(tx, [householdId]);
+  if (householdId !== (await getHouseholdId(userId, tx))) {
+    throw new HttpError(409, 'Tu hogar cambió mientras se procesaba la operación, intentá de nuevo');
   }
-  throw new HttpError(409, 'Tu hogar cambió mientras se procesaba la operación, intentá de nuevo');
+  return householdId;
 }
 
 /**
@@ -71,7 +70,7 @@ export async function withHousehold<T>(
   userId: string,
   fn: (tx: Client, householdId: string) => Promise<T>
 ): Promise<T> {
-  return prisma.$transaction(async tx => fn(tx, await lockOwnHousehold(tx, userId)));
+  return prisma.$transaction(async tx => fn(tx, await lockOwnHousehold(tx, userId)), MEMBERSHIP_TX_OPTIONS);
 }
 
 /**
@@ -142,7 +141,7 @@ async function createInviteOnce(userId: string): Promise<CreatedHouseholdInvite>
       },
     });
     return { id: invite.id, code, expiresAt: toIsoDateTimeString(invite.expiresAt) };
-  });
+  }, MEMBERSHIP_TX_OPTIONS);
 }
 
 /** Revoca la invitación pendiente del hogar; 404 si no hay ninguna. */
@@ -154,7 +153,7 @@ export async function revokeInvite(userId: string): Promise<void> {
       data: { revokedAt: new Date() },
     });
     if (count === 0) throw new HttpError(404, 'No hay una invitación pendiente');
-  });
+  }, MEMBERSHIP_TX_OPTIONS);
 }
 
 /**
