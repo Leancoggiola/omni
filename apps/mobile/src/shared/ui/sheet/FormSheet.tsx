@@ -1,6 +1,6 @@
 import { SPACING } from '@omni/shared/theme';
 import { XIcon } from 'phosphor-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal } from 'react-native';
 import { Sheet, XStack, YStack } from 'tamagui';
 
@@ -25,21 +25,27 @@ type FormSheetProps = {
  * Hoja inferior de formulario que tapa las tabs: `Modal` de RN con el `Sheet` sin `modal` y `SheetFrame` (el portal
  * de Tamagui crashea en Fabric, ver `AddMediaSheet`). El Modal se oculta `SHEET_EXIT_MS` después de cerrar, y como
  * mientras está visible tapa los toasts, el error va en un `Banner` adentro y el éxito se avisa desde `onClosed`.
- * Con `busy` no se cierra ni por overlay, gesto, Atrás ni el botón de cerrar. `onClosed` llega cuando el Modal ya se
- * ocultó (ahí un toast queda a la vista) y no llega si la hoja se remonta antes.
+ * Con `busy` no se cierra ni por overlay, gesto, Atrás ni el botón de cerrar. `onClosed` llega una sola vez cuando el Modal
+ * ya se ocultó (ahí un toast queda a la vista), aunque el padre lo pase nuevo en cada render; no llega si la hoja se
+ * remonta antes ni si nunca se abrió.
  */
 export function FormSheet({ open, onOpenChange, title, busy = false, onClosed, children }: FormSheetProps) {
   const [visible, setVisible] = useState(open);
   if (open && !visible) setVisible(true);
 
+  const onClosedRef = useRef(onClosed);
   useEffect(() => {
-    if (open) return;
+    onClosedRef.current = onClosed;
+  });
+
+  useEffect(() => {
+    if (open || !visible) return;
     const timer = setTimeout(() => {
       setVisible(false);
-      onClosed?.();
+      onClosedRef.current?.();
     }, SHEET_EXIT_MS);
     return () => clearTimeout(timer);
-  }, [open, onClosed]);
+  }, [open, visible]);
 
   const handleOpenChange = (next: boolean) => {
     if (!next && busy) return;

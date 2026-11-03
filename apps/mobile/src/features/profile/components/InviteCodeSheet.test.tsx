@@ -47,6 +47,16 @@ describe('InviteCodeSheet', () => {
     expect(screen.getByRole('button', { name: 'Código copiado' })).toBeTruthy();
   });
 
+  it('si copiar falla lo avisa adentro y no confirma "copiado"', async () => {
+    jest.mocked(Clipboard.setStringAsync).mockRejectedValueOnce(new Error('x'));
+    renderSheet();
+
+    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Copiar código' })));
+
+    expect(screen.getByText(/No pudimos copiar el código/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Copiar código' })).toBeTruthy();
+  });
+
   it('compartir abre el menú del sistema con el mensaje', async () => {
     const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' });
     renderSheet();

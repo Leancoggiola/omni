@@ -10,7 +10,7 @@ describe('AuthorTag', () => {
   it('muestra el nombre del otro integrante', () => {
     renderWithProviders(<AuthorTag author={{ kind: 'member', name: 'Lucía', avatarUrl: null }} />);
 
-    expect(screen.getByLabelText('Agregado por Lucía')).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Agregado por Lucía' })).toBeInTheDocument();
     expect(screen.getByText('Lucía', { selector: 'p' })).toBeInTheDocument();
   });
 

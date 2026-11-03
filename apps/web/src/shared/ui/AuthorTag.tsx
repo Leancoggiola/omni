@@ -19,7 +19,7 @@ export const AuthorTag: FC<AuthorTagProps> = ({ author, showName = true }) => {
   const label = author.kind === 'self' ? 'Vos' : author.name;
 
   return (
-    <Group gap="xs" wrap="nowrap" aria-label={`Agregado por ${label}`}>
+    <Group gap="xs" wrap="nowrap" role="group" aria-label={`Agregado por ${label}`}>
       {author.kind === 'deleted' ? (
         <Avatar size="1.5rem" radius="xl" variant="default">
           ?
