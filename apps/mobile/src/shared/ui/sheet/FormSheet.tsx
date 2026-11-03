@@ -2,7 +2,7 @@ import { SPACING } from '@omni/shared/theme';
 import { XIcon } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { Modal } from 'react-native';
-import { Sheet, XStack } from 'tamagui';
+import { Sheet, XStack, YStack } from 'tamagui';
 
 import { IconButton } from '../button/IconButton';
 import { DisplayTitle } from '../DisplayTitle';
@@ -80,13 +80,8 @@ export function FormSheet({ open, onOpenChange, title, busy = false, onClosed, c
               onPress={() => handleOpenChange(false)}
             />
           </XStack>
-          <Sheet.ScrollView
-            flex={1}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ gap: SPACING.md }}
-          >
-            {children}
+          <Sheet.ScrollView flex={1} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            <YStack gap={SPACING.md}>{children}</YStack>
           </Sheet.ScrollView>
         </SheetFrame>
       </Sheet>

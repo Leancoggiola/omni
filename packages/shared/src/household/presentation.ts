@@ -1,6 +1,6 @@
 import { ApiError } from '../api/ApiError';
 import { getErrorMessage } from '../api/errors';
-import { HOUSEHOLD_INVITE_CODE_LENGTH } from './constants';
+import { HOUSEHOLD_INVITE_CODE_LENGTH, HOUSEHOLD_INVITE_TTL_HOURS } from './constants';
 
 import type { HouseholdMemberInfo } from './types';
 
@@ -44,10 +44,13 @@ export function formatInviteCode(code: string, separator = ' '): string {
   return `${code.slice(0, half)}${separator}${code.slice(half)}`;
 }
 
-/** Horas que le quedan a la invitación, redondeadas hacia arriba y nunca menos de 1 mientras no venció. */
+/**
+ * Horas que le quedan a la invitación, redondeadas hacia arriba, nunca menos de 1 mientras no venció y nunca más
+ * que el TTL: un reloj del dispositivo unos segundos atrasado no puede mostrar "49 h" para una invitación de 48.
+ */
 export function inviteHoursLeft(expiresAt: string, now: Date): number {
   const ms = new Date(expiresAt).getTime() - now.getTime();
-  return ms <= 0 ? 0 : Math.max(1, Math.ceil(ms / 3_600_000));
+  return ms <= 0 ? 0 : Math.min(HOUSEHOLD_INVITE_TTL_HOURS, Math.max(1, Math.ceil(ms / 3_600_000)));
 }
 
 /** Fecha de vencimiento legible en español rioplatense (`lun, 2 nov, 14:30`). */

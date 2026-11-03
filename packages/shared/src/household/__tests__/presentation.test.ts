@@ -64,6 +64,11 @@ describe('invitación', () => {
     expect(inviteHoursLeft('2026-10-31T09:00:00.000Z', now)).toBe(0);
   });
 
+  it('no pasa del TTL aunque el reloj del dispositivo esté unos segundos atrasado', () => {
+    const now = new Date('2026-10-31T09:59:50.000Z');
+    expect(inviteHoursLeft('2026-11-02T10:00:00.000Z', now)).toBe(48);
+  });
+
   it('arma el mensaje para compartir con el código y el vencimiento', () => {
     const now = new Date('2026-10-31T10:00:00.000Z');
     expect(buildInviteMessage('K7M2QX4P', '2026-11-02T10:00:00.000Z', now)).toBe(
