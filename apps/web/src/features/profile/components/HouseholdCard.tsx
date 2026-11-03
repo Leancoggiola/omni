@@ -219,23 +219,25 @@ interface LinkedBodyProps {
 const LinkedBody: FC<LinkedBodyProps> = ({ household, selfUsername, pushDismissed, busy, onDismissPush, onLeave }) => (
   <Stack gap="md">
     <Stack gap="sm">
-      {household.members.map((member, index) => (
-        <Stack key={member.userId} gap="sm">
-          {index > 0 && <Divider />}
-          <Group gap="sm" wrap="nowrap">
-            <UserAvatar name={member.name} src={member.avatarUrl} />
-            <Stack gap="3xs">
-              <Group gap="xs">
-                <Text fw={700}>{member.name}</Text>
-                {member.username === selfUsername && <Badge variant="light">Vos</Badge>}
-              </Group>
-              <Text size="sm" c="dimmed">
-                @{member.username} · desde {formatJoinedAt(member.joinedAt)}
-              </Text>
-            </Stack>
-          </Group>
-        </Stack>
-      ))}
+      {[...household.members]
+        .sort((a, b) => Number(b.username === selfUsername) - Number(a.username === selfUsername))
+        .map((member, index) => (
+          <Stack key={member.userId} gap="sm">
+            {index > 0 && <Divider />}
+            <Group gap="sm" wrap="nowrap">
+              <UserAvatar name={member.name} src={member.avatarUrl} />
+              <Stack gap="3xs">
+                <Group gap="xs">
+                  <Text fw={700}>{member.name}</Text>
+                  {member.username === selfUsername && <Badge variant="light">Vos</Badge>}
+                </Group>
+                <Text size="sm" c="dimmed">
+                  @{member.username} · desde {formatJoinedAt(member.joinedAt)}
+                </Text>
+              </Stack>
+            </Group>
+          </Stack>
+        ))}
     </Stack>
     <Group gap="xs">
       <Text size="xs" fw={700} tt="uppercase" c="dimmed">

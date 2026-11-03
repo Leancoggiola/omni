@@ -76,6 +76,12 @@ const JoinFlow: FC<Omit<JoinHouseholdModalProps, 'opened'>> = ({ onClose, onPrev
   }
 
   return (
-    <JoinCodeStep loading={loading} error={error} onSubmit={code => void handlePreview(code)} onCancel={onClose} />
+    <JoinCodeStep
+      loading={loading}
+      error={error}
+      onSubmit={code => void handlePreview(code)}
+      onEdit={() => setError(null)}
+      onCancel={onClose}
+    />
   );
 };

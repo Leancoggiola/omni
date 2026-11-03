@@ -91,6 +91,17 @@ describe('JoinHouseholdSheet', () => {
     expect(screen.queryByText(/se descarta/)).toBeNull();
   });
 
+  it('escribir en el campo descarta el error anterior', async () => {
+    onPreview.mockRejectedValue(new ApiError('Código inválido', 404));
+    renderSheet();
+    await typeCodeAndReview('K7M2QX4Z');
+    expect(screen.getByText(/no es válido o ya venció/)).toBeTruthy();
+
+    fireEvent.changeText(screen.getByLabelText('Código de invitación'), 'K7M2QX4');
+
+    expect(screen.queryByText(/no es válido o ya venció/)).toBeNull();
+  });
+
   it('un 404 muestra el mensaje único de código inválido', async () => {
     onPreview.mockRejectedValue(new ApiError('Código inválido', 404));
     renderSheet();

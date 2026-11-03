@@ -86,6 +86,17 @@ describe('JoinHouseholdModal', () => {
     expect(screen.queryByText(/se descarta/)).not.toBeInTheDocument();
   });
 
+  it('escribir en el campo descarta el error anterior', async () => {
+    onPreview.mockRejectedValue(new ApiError('Código inválido', 404));
+    renderModal();
+    await typeCodeAndReview('K7M2QX4Z');
+    await screen.findByText(/no es válido o ya venció/);
+
+    await userEvent.type(screen.getByLabelText('Código de invitación'), 'A');
+
+    expect(screen.queryByText(/no es válido o ya venció/)).not.toBeInTheDocument();
+  });
+
   it('un 404 muestra el mensaje único de código inválido', async () => {
     onPreview.mockRejectedValue(new ApiError('Código inválido', 404));
     renderModal();

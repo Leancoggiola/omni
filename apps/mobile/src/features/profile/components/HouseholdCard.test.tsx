@@ -132,6 +132,14 @@ describe('HouseholdCard', () => {
     expect(screen.queryByRole('button', { name: 'Tengo un código' })).toBeNull();
   });
 
+  it('vinculado: la propia persona va primero', () => {
+    show(LINKED);
+    render(<HouseholdCard />);
+
+    const names = screen.getAllByText(/^(Leandro \(vos\)|Lucía)$/).map(node => node.props.children);
+    expect(names).toEqual(['Leandro (vos)', 'Lucía']);
+  });
+
   it('vinculado: el aviso de push se descarta y no vuelve en la sesión', async () => {
     show(LINKED);
     const { unmount } = render(<HouseholdCard />);

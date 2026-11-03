@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Alert, Badge, Button, Divider, Group, Paper, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Alert, Button, Divider, Group, Paper, SimpleGrid, Stack, Text } from '@mantine/core';
 
 import { UserAvatar } from '@/shared/ui';
 
@@ -42,14 +42,12 @@ export const JoinPreviewStep: FC<JoinPreviewStepProps> = ({ preview, loading, er
       {discarded > 0 && (
         <Paper withBorder p="sm">
           <Stack gap="xs">
-            <Group justify="space-between" wrap="nowrap">
-              <Text fw={700}>
-                {discarded} {discarded === 1 ? 'repetido se descarta' : 'repetidos se descartan'}
-              </Text>
-              <Badge variant="light" color="terracotta">
-                Gana el registro de {inviter.name}
-              </Badge>
-            </Group>
+            <Text fw={700}>
+              {discarded} {discarded === 1 ? 'repetido se descarta' : 'repetidos se descartan'}
+            </Text>
+            <Text size="xs" c="dimmed">
+              Si algo está en los dos hogares, queda el registro de {inviter.name}.
+            </Text>
             {conflicts.media.map(item => (
               <Group key={`${item.mediaType}:${item.tmdbId}`} justify="space-between" wrap="nowrap">
                 <Text size="sm">{item.title}</Text>

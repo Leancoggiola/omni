@@ -278,19 +278,21 @@ function LinkedBody({ household, selfUsername, pushDismissed, busy, onDismissPus
   return (
     <YStack gap={SPACING.md}>
       <YStack gap={SPACING.sm}>
-        {household.members.map(member => (
-          <XStack key={member.userId} gap={SPACING.sm} alignItems="center">
-            <UserAvatar name={member.name} />
-            <YStack flex={1}>
-              <Paragraph fontWeight="700" fontSize={FONT_SIZE.lg}>
-                {member.username === selfUsername ? `${member.name} (vos)` : member.name}
-              </Paragraph>
-              <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
-                {`@${member.username} · desde ${formatJoinedAt(member.joinedAt)}`}
-              </Paragraph>
-            </YStack>
-          </XStack>
-        ))}
+        {[...household.members]
+          .sort((a, b) => Number(b.username === selfUsername) - Number(a.username === selfUsername))
+          .map(member => (
+            <XStack key={member.userId} gap={SPACING.sm} alignItems="center">
+              <UserAvatar name={member.name} />
+              <YStack flex={1}>
+                <Paragraph fontWeight="700" fontSize={FONT_SIZE.lg}>
+                  {member.username === selfUsername ? `${member.name} (vos)` : member.name}
+                </Paragraph>
+                <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+                  {`@${member.username} · desde ${formatJoinedAt(member.joinedAt)}`}
+                </Paragraph>
+              </YStack>
+            </XStack>
+          ))}
       </YStack>
       <YStack gap={SPACING['2xs']}>
         <Paragraph color="$dimmed" fontSize={FONT_SIZE.xs} fontWeight="700" textTransform="uppercase">

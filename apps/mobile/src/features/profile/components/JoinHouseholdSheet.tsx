@@ -92,7 +92,10 @@ export function JoinHouseholdSheet({
             label="Código de invitación"
             description="Podés pegarlo con espacios o guiones y en minúsculas: lo ordenamos por vos."
             value={raw}
-            onChangeText={setRaw}
+            onChangeText={text => {
+              setRaw(text);
+              setError(null);
+            }}
             autoCapitalize="characters"
             autoCorrect={false}
             disabled={loading}
