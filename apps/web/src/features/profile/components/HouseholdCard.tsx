@@ -98,7 +98,8 @@ export const HouseholdCard: FC = () => {
     setPushDismissed(true);
   };
 
-  if (error) return <ErrorState message="No pudimos cargar tu hogar. Revisá tu conexión." onRetry={() => mutate()} />;
+  if (error && !household)
+    return <ErrorState message="No pudimos cargar tu hogar. Revisá tu conexión." onRetry={() => mutate()} />;
   if (isLoading || !household) return <LoadingState />;
 
   const partner = household.members.find(member => member.username !== user?.username);

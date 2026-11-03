@@ -7,8 +7,8 @@ import type { CreatedHouseholdInvite, HouseholdInvitePreview } from '@omni/share
 
 /**
  * Acciones sobre el hogar. Unirse o desvincularse cambia qué ítems son "míos", así que además del hogar se
- * invalida la lista de media (la alacena todavía no tiene cliente). `useSWRImmutable` no revalida solo: se
- * vacía la key para que el próximo montaje la pida de nuevo.
+ * invalida la lista de media (la alacena todavía no tiene cliente). La lista es `useSWRImmutable`, que no revalida
+ * sola: se vacía su key para que el próximo montaje la pida de nuevo. El hogar es `useSWR`: alcanza con `mutate(key)`.
  */
 export function useHouseholdActions() {
   const { mutate } = useSWRConfig();

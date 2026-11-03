@@ -67,4 +67,36 @@ describe('FormSheet', () => {
     expect(onClosed).toHaveBeenCalledTimes(1);
     expect(screen.UNSAFE_getByType(Modal).props.visible).toBe(false);
   });
+
+  it('onClosed llega una sola vez aunque el padre lo pase nuevo en cada render', () => {
+    const calls = jest.fn();
+    const view = render(
+      <FormSheet open title="Ingresar código" onOpenChange={jest.fn()} onClosed={() => calls()}>
+        <Text>Contenido</Text>
+      </FormSheet>
+    );
+    const rerenderClosed = () =>
+      view.rerender(
+        <FormSheet open={false} title="Ingresar código" onOpenChange={jest.fn()} onClosed={() => calls()}>
+          <Text>Contenido</Text>
+        </FormSheet>
+      );
+
+    rerenderClosed();
+    act(() => jest.advanceTimersByTime(SHEET_EXIT_MS - 100));
+    rerenderClosed();
+    act(() => jest.advanceTimersByTime(100));
+    rerenderClosed();
+    act(() => jest.advanceTimersByTime(SHEET_EXIT_MS * 2));
+
+    expect(calls).toHaveBeenCalledTimes(1);
+  });
+
+  it('si nunca se abrió no avisa onClosed', () => {
+    const { onClosed } = renderSheet({ open: false });
+
+    act(() => jest.advanceTimersByTime(SHEET_EXIT_MS * 2));
+
+    expect(onClosed).not.toHaveBeenCalled();
+  });
 });

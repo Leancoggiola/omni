@@ -189,6 +189,14 @@ describe('HouseholdCard', () => {
     await waitFor(() => expect(mocks.notifyError).toHaveBeenCalledWith('No pudimos desvincular'));
   });
 
+  it('si falla una revalidación pero ya hay hogar, conserva la card', () => {
+    setHousehold(linked, { error: new Error('x') });
+    renderWithProviders(<HouseholdCard />);
+
+    expect(screen.getByText('2 de 2')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reintentar' })).not.toBeInTheDocument();
+  });
+
   it('con error de carga muestra el ErrorState y reintenta', async () => {
     setHousehold(null, { error: new Error('x') });
     renderWithProviders(<HouseholdCard />);

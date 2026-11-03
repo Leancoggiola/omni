@@ -31,11 +31,17 @@ export function InviteCodeSheet({ invite, open, onOpenChange, onRevoke, onClosed
   const revokingRef = useRef(false);
 
   const handleCopy = async () => {
-    await Clipboard.setStringAsync(invite.code);
-    setCopied(true);
+    setError(null);
+    try {
+      await Clipboard.setStringAsync(invite.code);
+      setCopied(true);
+    } catch {
+      setError('No pudimos copiar el código. Probá con "Compartir código".');
+    }
   };
 
   const handleShare = async () => {
+    setError(null);
     try {
       await Share.share({ message: buildInviteMessage(invite.code, invite.expiresAt, new Date()) });
     } catch {
