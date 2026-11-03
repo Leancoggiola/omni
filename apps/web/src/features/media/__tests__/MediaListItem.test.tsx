@@ -1,13 +1,18 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@/__tests__/helpers';
 
 import { MediaListItem } from '../components/MediaListItem';
 
 import type { MediaItem } from '../types';
+import type { ItemAuthor } from '@omni/shared/household';
 
 import { TMDB_POSTER_W185 } from '@omni/shared/media';
 import { fireEvent, screen } from '@testing-library/react';
+
+const mocks = vi.hoisted(() => ({ author: undefined as ItemAuthor | undefined }));
+
+vi.mock('@/core/household', () => ({ useItemAuthor: () => mocks.author }));
 
 const item: MediaItem = {
   id: 'm1',
@@ -67,5 +72,31 @@ describe('MediaListItem', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar The Matrix' }));
 
     expect(onDelete).toHaveBeenCalledWith(item);
+  });
+});
+
+describe('MediaListItem: autoría', () => {
+  afterEach(() => {
+    mocks.author = undefined;
+  });
+
+  it('muestra quién lo agregó', () => {
+    mocks.author = { kind: 'member', name: 'Lucía', avatarUrl: null };
+    renderWithProviders(<MediaListItem item={item} onStatusChange={vi.fn()} onDelete={vi.fn()} />);
+
+    expect(screen.getByLabelText('Agregado por Lucía')).toBeInTheDocument();
+  });
+
+  it('dice "Vos" cuando lo agregó la propia sesión', () => {
+    mocks.author = { kind: 'self', name: 'Leandro', avatarUrl: null };
+    renderWithProviders(<MediaListItem item={item} onStatusChange={vi.fn()} onDelete={vi.fn()} />);
+
+    expect(screen.getByLabelText('Agregado por Vos')).toBeInTheDocument();
+  });
+
+  it('sin autor resuelto no muestra nada', () => {
+    renderWithProviders(<MediaListItem item={item} onStatusChange={vi.fn()} onDelete={vi.fn()} />);
+
+    expect(screen.queryByLabelText(/Agregado por/)).not.toBeInTheDocument();
   });
 });

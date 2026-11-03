@@ -1,13 +1,18 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@/__tests__/helpers';
 
 import { MediaCard } from '../components/MediaCard';
 
 import type { MediaItem } from '../types';
+import type { ItemAuthor } from '@omni/shared/household';
 
 import { TMDB_POSTER_W500 } from '@omni/shared/media';
 import { fireEvent, screen } from '@testing-library/react';
+
+const mocks = vi.hoisted(() => ({ author: undefined as ItemAuthor | undefined }));
+
+vi.mock('@/core/household', () => ({ useItemAuthor: () => mocks.author }));
 
 const item: MediaItem = {
   id: 'm1',
@@ -75,5 +80,31 @@ describe('MediaCard', () => {
     renderCard();
 
     expect(screen.getByRole('button', { name: 'The Matrix' })).toHaveAttribute('tabindex', '0');
+  });
+});
+
+describe('MediaCard: autoría', () => {
+  afterEach(() => {
+    mocks.author = undefined;
+  });
+
+  it('muestra quién lo agregó', () => {
+    mocks.author = { kind: 'member', name: 'Lucía', avatarUrl: null };
+    renderWithProviders(<MediaCard item={item} onStatusChange={vi.fn()} onDelete={vi.fn()} />);
+
+    expect(screen.getByLabelText('Agregado por Lucía')).toBeInTheDocument();
+  });
+
+  it('dice "Vos" cuando lo agregó la propia sesión', () => {
+    mocks.author = { kind: 'self', name: 'Leandro', avatarUrl: null };
+    renderWithProviders(<MediaCard item={item} onStatusChange={vi.fn()} onDelete={vi.fn()} />);
+
+    expect(screen.getByLabelText('Agregado por Vos')).toBeInTheDocument();
+  });
+
+  it('sin autor resuelto no muestra nada', () => {
+    renderWithProviders(<MediaCard item={item} onStatusChange={vi.fn()} onDelete={vi.fn()} />);
+
+    expect(screen.queryByLabelText(/Agregado por/)).not.toBeInTheDocument();
   });
 });

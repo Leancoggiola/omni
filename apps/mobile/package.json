@@ -23,6 +23,7 @@
     "@react-navigation/native": "7.3.18",
     "@tamagui/config": "2.7.7",
     "expo": "~54.0.34",
+    "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.21",
     "expo-font": "~14.0.11",

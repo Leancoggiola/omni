@@ -1,6 +1,9 @@
 import { memo } from 'react';
 import { ActionIcon, Badge, Card, Group, Stack, Text } from '@mantine/core';
 
+import { useItemAuthor } from '@/core/household';
+import { AuthorTag } from '@/shared/ui';
+
 import { MediaPoster } from './MediaPoster';
 import { MediaStatusSelect } from './MediaStatusSelect/MediaStatusSelect';
 
@@ -20,6 +23,8 @@ interface MediaListItemProps {
  * Un título largo baja a la segunda línea, no empuja al badge.
  */
 export const MediaListItem = memo(function MediaListItem({ item, onStatusChange, onDelete }: MediaListItemProps) {
+  const author = useItemAuthor(item.createdById);
+
   return (
     <Card p="sm" bg="var(--mantine-color-surfaces-card)" bd="1px solid var(--mantine-color-border-subtle)">
       <Group gap="sm" wrap="nowrap" align="stretch">
@@ -33,6 +38,7 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusChange,
               {MEDIA_TYPE_LABELS[item.mediaType]}
             </Badge>
           </Group>
+          {author && <AuthorTag author={author} />}
           <Group gap="xs" wrap="nowrap" justify="space-between">
             <MediaStatusSelect
               aria-label={`Estado de ${item.title}`}
