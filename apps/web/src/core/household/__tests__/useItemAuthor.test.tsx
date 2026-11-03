@@ -1,5 +1,5 @@
 import { SWRConfig } from 'swr';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockAuthValue } from '@/__tests__/helpers';
 import { SWR_KEYS } from '@/shared/api';
@@ -11,8 +11,11 @@ import type { ReactNode } from 'react';
 
 import { renderHook, waitFor } from '@testing-library/react';
 
+const mocks = vi.hoisted(() => ({ signedIn: true }));
+
 vi.mock('@/core/auth', () => ({
-  useAuth: () => createMockAuthValue({ user: { ...createMockAuthValue().user!, username: 'leo' } }),
+  useAuth: () =>
+    createMockAuthValue({ user: mocks.signedIn ? { ...createMockAuthValue().user!, username: 'leo' } : null }),
 }));
 
 const household: HouseholdInfo = {
@@ -33,6 +36,10 @@ function wrapperFor(data: HouseholdInfo | Error) {
 }
 
 describe('useItemAuthor', () => {
+  afterEach(() => {
+    mocks.signedIn = true;
+  });
+
   it('resuelve al integrante que creó el ítem', async () => {
     const { result } = renderHook(() => useItemAuthor('u2'), { wrapper: wrapperFor(household) });
 
@@ -49,6 +56,14 @@ describe('useItemAuthor', () => {
     const { result } = renderHook(() => useItemAuthor(null), { wrapper: wrapperFor(household) });
 
     await waitFor(() => expect(result.current?.kind).toBe('deleted'));
+  });
+
+  it('sin la sesión cargada no hay autor: no se puede distinguir "Vos" de la pareja', async () => {
+    mocks.signedIn = false;
+    const { result } = renderHook(() => useItemAuthor('u1'), { wrapper: wrapperFor(household) });
+
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(result.current).toBeUndefined();
   });
 
   it('mientras el hogar no cargó, o si falla, no hay autor', async () => {

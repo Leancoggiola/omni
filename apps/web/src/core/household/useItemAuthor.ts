@@ -6,10 +6,13 @@ import type { ItemAuthor } from '@omni/shared/household';
 
 import { resolveItemAuthor } from '@omni/shared/household';
 
-/** Autor de un ítem compartido, o `undefined` mientras el hogar no cargó o si ya no es integrante. */
+/**
+ * Autor de un ítem compartido, o `undefined` mientras el hogar o la sesión no cargaron (sin sesión no se distingue
+ * "Vos" de la pareja) o si ya no es integrante.
+ */
 export function useItemAuthor(createdById: string | null): ItemAuthor | undefined {
   const { household } = useHousehold();
   const { user } = useAuth();
 
-  return household ? resolveItemAuthor(household.members, createdById, user?.username) : undefined;
+  return household && user ? resolveItemAuthor(household.members, createdById, user.username) : undefined;
 }

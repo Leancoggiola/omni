@@ -7,7 +7,9 @@ import type { HouseholdInfo } from '@omni/shared/household';
 import type { ReactNode } from 'react';
 
 jest.mock('@/shared/api', () => jest.requireActual('@/shared/api/keys'));
-jest.mock('@/core/auth', () => ({ useAuth: () => ({ user: { username: 'leo' } }) }));
+let mockSignedIn = true;
+
+jest.mock('@/core/auth', () => ({ useAuth: () => ({ user: mockSignedIn ? { username: 'leo' } : null }) }));
 
 const HOUSEHOLD: HouseholdInfo = {
   id: 'h1',
@@ -29,6 +31,10 @@ function wrapperWith(fetcher: jest.Mock) {
 }
 
 describe('useItemAuthor', () => {
+  afterEach(() => {
+    mockSignedIn = true;
+  });
+
   it('pide el hogar de /api/household y resuelve al integrante', async () => {
     const fetcher = jest.fn().mockResolvedValue(HOUSEHOLD);
     const { result } = renderHook(() => useItemAuthor('u2'), { wrapper: wrapperWith(fetcher) });
@@ -49,6 +55,15 @@ describe('useItemAuthor', () => {
     const { result } = renderHook(() => useItemAuthor(null), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current?.kind).toBe('deleted'));
+  });
+
+  it('sin la sesión cargada no hay autor: no se puede distinguir "Vos" de la pareja', async () => {
+    mockSignedIn = false;
+    const fetcher = jest.fn().mockResolvedValue(HOUSEHOLD);
+    const { result } = renderHook(() => useItemAuthor('u1'), { wrapper: wrapperWith(fetcher) });
+
+    await waitFor(() => expect(fetcher).toHaveBeenCalled());
+    expect(result.current).toBeUndefined();
   });
 
   it('si el hogar falla no hay autor', async () => {

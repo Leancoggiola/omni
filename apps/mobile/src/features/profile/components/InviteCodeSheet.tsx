@@ -16,13 +16,13 @@ type InviteCodeSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onRevoke: () => Promise<void>;
-  /** El Modal ya se ocultó: el padre avisa ahí lo que haya pasado (revocar). */
   onClosed: () => void;
 };
 
 /**
  * Muestra el código recién generado, la única vez que existe en claro. El padre lo remonta con `key` por invitación.
  * Va en una hoja que tapa los toasts: "copiado" cambia el botón, un error de revocar sale en un `Banner`.
+ * `onClosed` se llama cuando el Modal ya se ocultó: ahí el padre avisa lo que haya pasado (revocar).
  */
 export function InviteCodeSheet({ invite, open, onOpenChange, onRevoke, onClosed }: InviteCodeSheetProps) {
   const [copied, setCopied] = useState(false);

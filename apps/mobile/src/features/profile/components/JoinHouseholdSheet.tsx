@@ -14,7 +14,6 @@ type JoinHouseholdSheetProps = {
   onOpenChange: (open: boolean) => void;
   onPreview: (code: string) => Promise<HouseholdInvitePreview>;
   onAccept: (code: string) => Promise<void>;
-  /** Se llama con el nombre de quien invitó cuando la unión se confirmó; el aviso lo da el padre en `onClosed`. */
   onJoined: (inviterName: string) => void;
   onClosed: () => void;
 };
@@ -24,6 +23,7 @@ type Reviewed = { code: string; preview: HouseholdInvitePreview };
 /**
  * "Tengo un código": primero se revisa (`preview`, sin cambiar nada) y recién después se acepta. El padre lo remonta
  * con `key` en cada apertura, así arranca limpio. Los errores salen en un `Banner` adentro: la hoja tapa los toasts.
+ * `onJoined` recibe el nombre de quien invitó cuando la unión se confirmó; el aviso lo da el padre en `onClosed`.
  */
 export function JoinHouseholdSheet({
   open,

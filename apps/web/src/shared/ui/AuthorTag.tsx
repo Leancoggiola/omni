@@ -7,13 +7,13 @@ import type { FC } from 'react';
 
 interface AuthorTagProps {
   author: ItemAuthor;
-  /** Con `false` queda solo el avatar (el nombre sigue como `aria-label`). */
   showName?: boolean;
 }
 
 /**
  * Quién agregó un ítem compartido: avatar chico y, opcionalmente, el nombre ("Vos" si es la propia sesión). La
  * cuenta eliminada es un avatar neutro con "?". Mismo contrato que `AuthorTag` de mobile.
+ * Con `showName={false}` queda solo el avatar (el nombre sigue como `aria-label`).
  */
 export const AuthorTag: FC<AuthorTagProps> = ({ author, showName = true }) => {
   const label = author.kind === 'self' ? 'Vos' : author.name;

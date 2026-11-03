@@ -8,12 +8,12 @@ interface JoinCodeStepProps {
   loading: boolean;
   error: string | null;
   onSubmit: (code: string) => void;
-  /** Escribir en el campo descarta el error anterior: ya no habla del texto que hay. */
   onEdit: () => void;
   onCancel: () => void;
 }
 
-/** Primer paso de "Tengo un código": el campo acepta minúsculas, espacios y guiones y muestra cómo se lee. */
+/** Primer paso de "Tengo un código": el campo acepta minúsculas, espacios y guiones y muestra cómo se lee. `onEdit`
+ * avisa cada vez que se escribe, para descartar el error anterior: ya no habla del texto que hay. */
 export const JoinCodeStep: FC<JoinCodeStepProps> = ({ loading, error, onSubmit, onEdit, onCancel }) => {
   const [raw, setRaw] = useState('');
   const parsed = householdInviteCodeSchema.safeParse({ code: raw });

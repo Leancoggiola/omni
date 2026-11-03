@@ -16,9 +16,7 @@ type FormSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  /** Con una operación en curso no se cierra ni por overlay, gesto, Atrás ni el botón de cerrar. */
   busy?: boolean;
-  /** El Modal ya se ocultó: recién ahí un toast queda a la vista. No llega si se remonta antes. */
   onClosed?: () => void;
   children: ReactNode;
 };
@@ -27,6 +25,8 @@ type FormSheetProps = {
  * Hoja inferior de formulario que tapa las tabs: `Modal` de RN con el `Sheet` sin `modal` y `SheetFrame` (el portal
  * de Tamagui crashea en Fabric, ver `AddMediaSheet`). El Modal se oculta `SHEET_EXIT_MS` después de cerrar, y como
  * mientras está visible tapa los toasts, el error va en un `Banner` adentro y el éxito se avisa desde `onClosed`.
+ * Con `busy` no se cierra ni por overlay, gesto, Atrás ni el botón de cerrar. `onClosed` llega cuando el Modal ya se
+ * ocultó (ahí un toast queda a la vista) y no llega si la hoja se remonta antes.
  */
 export function FormSheet({ open, onOpenChange, title, busy = false, onClosed, children }: FormSheetProps) {
   const [visible, setVisible] = useState(open);
