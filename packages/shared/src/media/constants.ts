@@ -1,5 +1,8 @@
 import type { MediaType, MediaStatus } from './types';
 
+/** Cada cuánto se refresca la lista compartida mientras la pantalla está visible (ms). */
+export const MEDIA_LIST_REFRESH_MS = 20_000;
+
 export const MEDIA_TYPES = ['movie', 'tv'] as const satisfies readonly MediaType[];
 export const MEDIA_STATUSES = ['to_watch', 'watching', 'watched'] as const satisfies readonly MediaStatus[];
 export const SEARCH_TYPES = ['movie', 'tv', 'multi'] as const;

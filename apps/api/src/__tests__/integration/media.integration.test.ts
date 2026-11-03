@@ -4,7 +4,7 @@ import request from 'supertest';
 import { prisma } from '../../common/db';
 import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
-import { createUser, toJwtUser } from '../../test/integration/factories';
+import { createUser, linkUsers, toJwtUser } from '../../test/integration/factories';
 
 vi.mock('../../media/tmdb.service');
 
@@ -219,6 +219,111 @@ describe('media routes (integration)', () => {
 
       expect(res.status).toBe(404);
       expect(res.body.message).toBe('Elemento no encontrado');
+    });
+  });
+
+  describe('lista compartida entre dos personas vinculadas', () => {
+    let partner: Awaited<ReturnType<typeof createUser>>;
+    let partnerAuth: string;
+
+    beforeEach(async () => {
+      partner = await createUser({ username: 'media-partner' });
+      partnerAuth = authHeader(toJwtUser(partner));
+      await linkUsers(user.id, partner.id);
+    });
+
+    it('GET /list devuelve a ambos la misma lista, con quién agregó cada ítem', async () => {
+      await request(app).post('/api/media/list').set('Authorization', auth).send({ tmdbId: 550, mediaType: 'movie' });
+      await request(app)
+        .post('/api/media/list')
+        .set('Authorization', partnerAuth)
+        .send({ tmdbId: 1399, mediaType: 'tv' });
+
+      const mine = await request(app).get('/api/media/list').set('Authorization', auth);
+      const theirs = await request(app).get('/api/media/list').set('Authorization', partnerAuth);
+
+      expect(mine.status).toBe(200);
+      expect(mine.body).toHaveLength(2);
+      expect(theirs.body).toEqual(mine.body);
+      const authors = Object.fromEntries(
+        mine.body.map((i: { tmdbId: number; createdById: string }) => [i.tmdbId, i.createdById])
+      );
+      expect(authors).toEqual({ 550: user.id, 1399: partner.id });
+    });
+
+    it('POST /list devuelve 409 si la otra persona ya lo agregó', async () => {
+      await request(app).post('/api/media/list').set('Authorization', auth).send({ tmdbId: 550, mediaType: 'movie' });
+
+      const res = await request(app)
+        .post('/api/media/list')
+        .set('Authorization', partnerAuth)
+        .send({ tmdbId: 550, mediaType: 'movie' });
+
+      expect(res.status).toBe(409);
+      expect(res.body.message).toBe('Este elemento ya está en tu lista');
+      expect(await prisma.mediaItem.count()).toBe(1);
+    });
+
+    it('PATCH /list/:id permite a la otra persona cambiar el estado común y no cambia la autoría', async () => {
+      const created = await request(app)
+        .post('/api/media/list')
+        .set('Authorization', auth)
+        .send({ tmdbId: 550, mediaType: 'movie' });
+
+      const res = await request(app)
+        .patch(`/api/media/list/${created.body.id}`)
+        .set('Authorization', partnerAuth)
+        .send({ status: 'watched' });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ status: 'watched', createdById: user.id });
+      const seen = await request(app).get('/api/media/list').set('Authorization', auth);
+      expect(seen.body[0].status).toBe('watched');
+    });
+
+    it('PATCH /list/:id con ediciones seguidas gana la última', async () => {
+      const created = await request(app)
+        .post('/api/media/list')
+        .set('Authorization', auth)
+        .send({ tmdbId: 550, mediaType: 'movie' });
+      const url = `/api/media/list/${created.body.id}`;
+
+      await request(app).patch(url).set('Authorization', auth).send({ status: 'watching' });
+      await request(app).patch(url).set('Authorization', partnerAuth).send({ status: 'watched' });
+
+      const res = await request(app).get('/api/media/list').set('Authorization', auth);
+      expect(res.body[0].status).toBe('watched');
+    });
+
+    it('DELETE /list/:id permite a la otra persona borrar el ítem', async () => {
+      const created = await request(app)
+        .post('/api/media/list')
+        .set('Authorization', auth)
+        .send({ tmdbId: 550, mediaType: 'movie' });
+
+      const res = await request(app).delete(`/api/media/list/${created.body.id}`).set('Authorization', partnerAuth);
+
+      expect(res.status).toBe(204);
+      const seen = await request(app).get('/api/media/list').set('Authorization', auth);
+      expect(seen.body).toHaveLength(0);
+    });
+
+    it('una tercera persona sin vincular no ve ni toca la lista del hogar', async () => {
+      const created = await request(app)
+        .post('/api/media/list')
+        .set('Authorization', auth)
+        .send({ tmdbId: 550, mediaType: 'movie' });
+      const stranger = await createUser({ username: 'media-stranger' });
+      const strangerAuth = authHeader(toJwtUser(stranger));
+
+      const list = await request(app).get('/api/media/list').set('Authorization', strangerAuth);
+      const patch = await request(app)
+        .patch(`/api/media/list/${created.body.id}`)
+        .set('Authorization', strangerAuth)
+        .send({ status: 'watched' });
+
+      expect(list.body).toEqual([]);
+      expect(patch.status).toBe(404);
     });
   });
 });

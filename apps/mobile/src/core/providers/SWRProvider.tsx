@@ -25,6 +25,7 @@ const SWR_OPTIONS: SWRConfiguration = {
   fetcher,
   ...SWR_RETRY_OPTIONS,
   initFocus: initAppStateFocus,
+  isVisible: () => AppState.currentState !== 'background',
 };
 
 const appStore = new Map<string, State>();
@@ -54,7 +55,8 @@ type SWRProviderProps = PropsWithChildren<{
 /**
  * Configuración global de SWR, montada por encima de `AuthProvider` para que la sesión y los datos compartan la
  * misma caché (`clearSession` la vacía entera). `initFocus` solo se aplica con `provider`: por eso la caché propia.
- * Los `useSWR` revalidan al volver a primer plano; los `useSWRImmutable` (sesión, perfil) no. Los datos viven en
+ * Los `useSWR` revalidan al volver a primer plano; los `useSWRImmutable` (sesión, perfil) no. `isVisible` es falso con la
+ * app en segundo plano: ahí no corre el `refreshInterval` ni los reintentos. Los datos viven en
  * `store`, fuera del componente (`appStore`; los tests pasan uno nuevo, y se toma solo al montar): expo-router
  * vuelve a montar el layout raíz al redirigir (del login a las tabs, al cerrar sesión) y una caché creada al montar
  * se perdería, la sesión incluida.
