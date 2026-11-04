@@ -17,7 +17,8 @@ jest.mock('@/core/auth', () => ({
     logout: mockLogout,
   }),
 }));
-jest.mock('expo-router', () => ({ useRouter: () => ({ navigate: jest.fn() }) }));
+const mockNavigate = jest.fn();
+jest.mock('expo-router', () => ({ useRouter: () => ({ navigate: mockNavigate }) }));
 jest.mock(
   'react-native-safe-area-context',
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default
@@ -39,6 +40,14 @@ describe('MoreScreen', () => {
 
     expect(screen.getAllByText('Próximamente').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'Gimnasio, próximamente', disabled: true })).toBeTruthy();
+  });
+
+  it('Administración está disponible para ADMIN y navega a /admin', () => {
+    render(<MoreScreen />);
+
+    expect(screen.queryByRole('button', { name: 'Administración, próximamente' })).toBeNull();
+    fireEvent.press(screen.getByRole('button', { name: 'Administración' }));
+    expect(mockNavigate).toHaveBeenCalledWith('/admin');
   });
 
   it('muestra la tarjeta de usuario que lleva a Perfil', () => {
