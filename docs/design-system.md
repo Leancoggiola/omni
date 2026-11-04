@@ -282,6 +282,7 @@ Lo que **no** es automático y hay que replicar a mano en mobile:
 | Media: lista, filtros, agregar, estado   | Hecho (#68) — `MediaListItem` (póster 56 dp, `Badge`, `StatusPill`, tacho), `MediaToolbar`, FAB + Sheet                                                   |
 | Contraste de rellenos en oscuro          | Hecho (#68) — `onFill()` en `SEMANTIC` y `--mantine-color-<color>-on-filled` en web                                                                       |
 | Inicio: una card con saludo y efemérides | Hecho (#69) — `HomeScreen` = `HomeMainCard` de web (sin `ScreenHeader` ni ícono de destellos)                                                             |
+| Inicio: widget fijo "Seguís viendo"      | Hecho (#236) — `WatchingCard` en web y mobile; hasta 3 ítems en "Viendo" vía `useWatchingMedia` (`home` no importa `media`), sin toggle ni "Personalizar" |
 | Perfil: cards, preferencias instantáneas | Hecho (#69) — Información personal, Preferencias (Switch + `SegmentedControl` de Tema, guardan al instante), Contraseña y Zona de peligro con `confirm()` |
 | Más: `Badge` de "Próximamente"           | Hecho (#69) — `NavRow` con `Badge color="dimmed"`; "Cerrar sesión" es un `Button` outline destructivo                                                     |
 | Card de efemérides (gradiente)           | Hecho — `GRADIENT_STOPS` + `expo-linear-gradient`                                                                                                         |
