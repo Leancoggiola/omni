@@ -4,12 +4,21 @@ import { RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, type TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { YStack, type TamaguiElement } from 'tamagui';
+import { Paragraph, YStack, type TamaguiElement } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { useColorSchemeControl } from '@/core/theme';
-import { ensureServerAwake } from '@/shared/api';
-import { Banner, Button, DisplayTitle, getErrorMessage, PasswordField, TextField, useKeyboardInset } from '@/shared/ui';
+import { clearRememberedUser, ensureServerAwake, getRememberedUser, setRememberedUser } from '@/shared/api';
+import {
+  Banner,
+  Button,
+  DisplayTitle,
+  getErrorMessage,
+  PasswordField,
+  TextField,
+  UserAvatar,
+  useKeyboardInset,
+} from '@/shared/ui';
 import { themedElevation } from '@/theme/elevation';
 
 import LOGO from '../../../assets/images/splash-icon.png';
@@ -26,7 +35,9 @@ type FieldErrors = Partial<Record<'username' | 'password', string>>;
  * (`useKeyboardInset`); el form no pasa de 420 de ancho en pantallas grandes (web: `miw="25rem"`). Al montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y
  * el aviso aparezca si tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en
  * curso, los campos (el ojo de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la
- * contraseña (el campo deshabilitado lo pierde y cierra el teclado).
+ * contraseña (el campo deshabilitado lo pierde y cierra el teclado). Tras un login exitoso guarda solo el usuario
+ * (`setRememberedUser`); si hay uno guardado, la hoja muestra la variante "usuario recordado" (avatar, saludo y un único
+ * campo de contraseña) y "Ingresar con otro usuario" lo olvida y vuelve al formulario completo. Cerrar sesión no lo borra.
  */
 export function LoginScreen() {
   const { login } = useAuth();
@@ -39,11 +50,33 @@ export function LoginScreen() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [remembered, setRemembered] = useState<string | null | undefined>(undefined);
   const submitting = useRef(false);
 
   useEffect(() => {
     void ensureServerAwake();
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    void getRememberedUser().then(value => {
+      if (!active) return;
+      setRemembered(value);
+      if (value) setUsername(value);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const forgetUser = () => {
+    void clearRememberedUser();
+    setRemembered(null);
+    setUsername('');
+    setPassword('');
+    setFieldErrors({});
+    setError(null);
+  };
 
   useEffect(() => {
     if (error && !loading) (passwordRef.current as TextInput | null)?.focus();
@@ -69,6 +102,7 @@ export function LoginScreen() {
     setError(null);
     try {
       await login(parsed.data.username, parsed.data.password);
+      await setRememberedUser(parsed.data.username);
     } catch (err) {
       setError(getErrorMessage(err, 'Error al iniciar sesión'));
     } finally {
@@ -119,46 +153,67 @@ export function LoginScreen() {
             {...themedElevation('sheet', colorScheme)}
           >
             <YStack width="100%" maxWidth={FORM_MAX_WIDTH} alignSelf="center" gap={SPACING.lg}>
-              <DisplayTitle size="md">Ingresá a tu cuenta</DisplayTitle>
+              {remembered === undefined ? null : (
+                <>
+                  {remembered ? (
+                    <YStack alignItems="center" gap={SPACING.sm}>
+                      <UserAvatar name={remembered.charAt(0)} size={64} />
+                      <DisplayTitle size="md" textAlign="center">
+                        {`¡Hola, ${remembered.charAt(0).toUpperCase()}${remembered.slice(1)}!`}
+                      </DisplayTitle>
+                      <Paragraph color="$dimmed">{`Ingresando como ${remembered}`}</Paragraph>
+                    </YStack>
+                  ) : (
+                    <DisplayTitle size="md">Ingresá a tu cuenta</DisplayTitle>
+                  )}
 
-              {error ? <Banner color="destructive">{error}</Banner> : null}
+                  {error ? <Banner color="destructive">{error}</Banner> : null}
 
-              <YStack gap={SPACING.md}>
-                <TextField
-                  label="Usuario"
-                  value={username}
-                  onChangeText={value => {
-                    setUsername(value);
-                    setFieldErrors(prev => ({ ...prev, username: undefined }));
-                  }}
-                  error={fieldErrors.username}
-                  disabled={loading}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="username"
-                  returnKeyType="next"
-                  submitBehavior="submit"
-                  onSubmitEditing={() => (passwordRef.current as TextInput | null)?.focus()}
-                />
-                <PasswordField
-                  ref={passwordRef}
-                  label="Contraseña"
-                  value={password}
-                  onChangeText={value => {
-                    setPassword(value);
-                    setFieldErrors(prev => ({ ...prev, password: undefined }));
-                  }}
-                  error={fieldErrors.password}
-                  disabled={loading}
-                  autoComplete="current-password"
-                  returnKeyType="go"
-                  submitBehavior="submit"
-                  onSubmitEditing={() => void onSubmit()}
-                />
-                <Button size="lg" fullWidth loading={loading} onPress={() => void onSubmit()}>
-                  Ingresar
-                </Button>
-              </YStack>
+                  <YStack gap={SPACING.md}>
+                    {remembered ? null : (
+                      <TextField
+                        label="Usuario"
+                        value={username}
+                        onChangeText={value => {
+                          setUsername(value);
+                          setFieldErrors(prev => ({ ...prev, username: undefined }));
+                        }}
+                        error={fieldErrors.username}
+                        disabled={loading}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        autoComplete="username"
+                        returnKeyType="next"
+                        submitBehavior="submit"
+                        onSubmitEditing={() => (passwordRef.current as TextInput | null)?.focus()}
+                      />
+                    )}
+                    <PasswordField
+                      ref={passwordRef}
+                      label="Contraseña"
+                      value={password}
+                      onChangeText={value => {
+                        setPassword(value);
+                        setFieldErrors(prev => ({ ...prev, password: undefined }));
+                      }}
+                      error={fieldErrors.password}
+                      disabled={loading}
+                      autoComplete="current-password"
+                      returnKeyType="go"
+                      submitBehavior="submit"
+                      onSubmitEditing={() => void onSubmit()}
+                    />
+                    <Button size="lg" fullWidth loading={loading} onPress={() => void onSubmit()}>
+                      Ingresar
+                    </Button>
+                    {remembered ? (
+                      <Button variant="subtle" fullWidth disabled={loading} onPress={forgetUser}>
+                        Ingresar con otro usuario
+                      </Button>
+                    ) : null}
+                  </YStack>
+                </>
+              )}
             </YStack>
           </YStack>
         </ScrollView>

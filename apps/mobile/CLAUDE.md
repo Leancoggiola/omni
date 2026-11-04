@@ -31,7 +31,7 @@ Estructura de features (la misma que web; árbol y reglas): [docs/architecture.m
 - **Prohibido:** feature A → feature B.
 - Contratos desde `@omni/shared/*`; no duplicar schemas.
 - **React Compiler activo** en mobile (`experiments.reactCompiler: true` en `app.json`). Web no lo tiene activado.
-- **Tokens:** SecureStore vive en `src/shared/api/tokenStorage.ts` (una sola clave con access y refresh). Solo ese módulo habla con `expo-secure-store`.
+- **Tokens:** SecureStore vive en `src/shared/api/tokenStorage.ts` (una sola clave con access y refresh). Solo `tokenStorage` y `rememberedUser` hablan con `expo-secure-store`.
 
 ## Navegación
 
@@ -78,6 +78,7 @@ Un hook por archivo en `hooks/` de la feature (`hooks/useX.ts`), nombre de funci
 ## Auth
 
 - **No cookies.** Tokens en `expo-secure-store` vía `tokenStorage`, en **una sola clave** (`omni.session`, JSON con access y refresh): `setTokens` los escribe juntos o no escribe nada. `tokenStorage` migra una vez por proceso las claves anteriores (`omni.accessToken` / `omni.refreshToken`) sin cerrar la sesión; los tests de `tokenStorage` cubren que sea idempotente. Los tokens se leen siempre por `tokenStorage`, nunca con `SecureStore` directo. El par de JWT ronda los 600 bytes (la API firma `sub`, `username` y `role` en el access, y `sub` y `jti` en el refresh): si se suman claims o se soporta iOS, `expo-secure-store` avisa a partir de ~2048 bytes por valor.
+- **Usuario recordado:** tras un login exitoso `LoginScreen` guarda solo el nombre de usuario (`rememberedUser.ts` en `shared/api`, clave `omni.rememberedUser`; nunca contraseña ni tokens, y fuera de `tokenStorage`). Con uno guardado el login muestra avatar, saludo y solo la contraseña; "Ingresar con otro usuario" lo borra. Cerrar sesión no lo borra.
 - Login/refresh devuelven `accessToken` + `refreshToken` en el body (`AuthTokensResponse`).
 - Cada request: `Authorization: Bearer <access>` y `X-Client: mobile` (`CLIENT_HEADER`, `src/shared/api/client.ts`). Con ese header la API emite un refresh token de 90 días que se renueva en cada refresh: la sesión vence solo tras 90 días sin abrir la app.
 - 401 → refresh con `{ refreshToken }` → reintento. Lo maneja el client: no reimplementar en cada hook. Un solo refresh a la vez; si el access ya cambió cuando llega el 401 (otro request refrescó antes), reintenta sin rotar de nuevo.
