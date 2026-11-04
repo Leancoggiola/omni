@@ -75,11 +75,12 @@ describe('AdminScreen', () => {
     render(<AdminScreen />);
 
     expect(screen.getByText('2 usuarios')).toBeTruthy();
-    expect(screen.getByText('@usuario01 · ana@omni.dev')).toBeTruthy();
+    expect(screen.getByText('@usuario01')).toBeTruthy();
     expect(screen.getByText('@admin')).toBeTruthy();
+    expect(screen.getByText('Usuarios registrados')).toBeTruthy();
     expect(screen.getByText('Administrador')).toBeTruthy();
     expect(screen.getByText('Usuario')).toBeTruthy();
-    expect(screen.getAllByText('Alta 07/03/2026')).toHaveLength(2);
+    expect(screen.getAllByText(' · Alta 07/03/2026')).toHaveLength(2);
   });
 
   it('el tacho solo aparece para USER', () => {

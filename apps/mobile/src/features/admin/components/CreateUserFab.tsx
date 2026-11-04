@@ -1,6 +1,6 @@
-import { RADIUS, SIZE, SPACING } from '@omni/shared/theme';
+import { FONT_SIZE, RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { UserPlusIcon } from 'phosphor-react-native';
-import { XStack } from 'tamagui';
+import { Paragraph, XStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { themedElevation } from '@/theme/elevation';
@@ -11,7 +11,7 @@ type CreateUserFabProps = {
   onPress: () => void;
 };
 
-/** Botón flotante "Crear usuario" (en web es el botón del `PageHeader`); mismo estilo que el de Media. */
+/** FAB extendido "Crear usuario" (en web es el botón del `PageHeader`; el canvas mobile lo lleva con texto): filled de marca de alto `SIZE.fab`. */
 export function CreateUserFab({ onPress }: CreateUserFabProps) {
   const colors = useSemanticColors();
   const { colorScheme } = useColorSchemeControl();
@@ -22,7 +22,8 @@ export function CreateUserFab({ onPress }: CreateUserFabProps) {
       position="absolute"
       right={SPACING.md}
       bottom={SPACING.md}
-      width={FAB_SIZE}
+      paddingHorizontal={SPACING.lg}
+      gap={SPACING.xs}
       height={FAB_SIZE}
       borderRadius={RADIUS.full}
       backgroundColor="$background"
@@ -35,7 +36,10 @@ export function CreateUserFab({ onPress }: CreateUserFabProps) {
       accessibilityLabel="Crear usuario"
       {...themedElevation('float', colorScheme)}
     >
-      <UserPlusIcon size={24} weight="bold" color={colors.onPrimaryFill} />
+      <UserPlusIcon size={20} weight="bold" color={colors.onPrimaryFill} />
+      <Paragraph color={colors.onPrimaryFill} fontSize={FONT_SIZE.md} fontWeight="600">
+        Crear usuario
+      </Paragraph>
     </XStack>
   );
 }

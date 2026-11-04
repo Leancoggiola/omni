@@ -1,10 +1,10 @@
 // tamagui-ignore
-import { SPACING } from '@omni/shared/theme';
+import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { Redirect, useRouter } from 'expo-router';
 import { GearIcon, UsersIcon } from 'phosphor-react-native';
 import { useCallback, useRef, useState } from 'react';
-import { FlatList, type ListRenderItem } from 'react-native';
-import { Paragraph, YStack } from 'tamagui';
+import { ScrollView } from 'react-native';
+import { Paragraph, XStack, YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import {
@@ -17,6 +17,8 @@ import {
   notifySuccess,
   Screen,
   ScreenHeader,
+  SectionCard,
+  Title,
   usePullToRefresh,
 } from '@/shared/ui';
 
@@ -86,51 +88,53 @@ function AdminUsersScreen() {
   );
 
   const onDeletePress = useCallback((target: AdminUser) => void handleDelete(target), [handleDelete]);
-  const renderItem = useCallback<ListRenderItem<AdminUser>>(
-    ({ item }) => <UserRow user={item} deleting={deletingId === item.id} onDeletePress={onDeletePress} />,
-    [deletingId, onDeletePress]
-  );
 
-  const renderEmpty = () => {
+  const renderUsers = () => {
     if (error) return <ErrorState message="No se pudieron cargar los usuarios" onRetry={() => void mutate()} />;
     if (isLoading) return <LoadingState variant="skeleton" rows={4} />;
-    return <EmptyState icon={UsersIcon} title="Todavía no hay usuarios" />;
+    if (users.length === 0) return <EmptyState icon={UsersIcon} title="Todavía no hay usuarios" />;
+
+    return (
+      <YStack>
+        {users.map(item => (
+          <UserRow key={item.id} user={item} deleting={deletingId === item.id} onDeletePress={onDeletePress} />
+        ))}
+      </YStack>
+    );
   };
 
   return (
     <Screen insetBottom>
-      <FlatList
-        data={error ? [] : users}
-        keyExtractor={item => item.id}
-        renderItem={renderItem}
-        extraData={deletingId}
-        ListHeaderComponent={
-          <YStack gap={SPACING.md} paddingBottom={SPACING.md}>
-            <ScreenHeader
-              icon={GearIcon}
-              title="Administración"
-              subtitle="Gestión de usuarios"
-              size="lg"
-              onBack={goBack}
-              backLabel="Volver a Más"
-            />
-            {!error && !isLoading ? (
-              <Paragraph color="$dimmed">{`${users.length} ${users.length === 1 ? 'usuario' : 'usuarios'}`}</Paragraph>
-            ) : null}
-          </YStack>
-        }
-        ListEmptyComponent={renderEmpty()}
-        ItemSeparatorComponent={Separator}
+      <ScrollView
         refreshControl={refreshControl}
-        contentContainerStyle={{ paddingBottom: FAB_SIZE + SPACING.md * 2 }}
         showsVerticalScrollIndicator={false}
-      />
+        contentContainerStyle={{ gap: SPACING.md, paddingBottom: FAB_SIZE + SPACING.md * 2 }}
+      >
+        <ScreenHeader
+          icon={GearIcon}
+          title="Administración"
+          subtitle="Gestión de usuarios"
+          size="lg"
+          onBack={goBack}
+          backLabel="Volver a Más"
+        />
+        <SectionCard>
+          <XStack alignItems="baseline" gap={SPACING.xs}>
+            <Title order={4} fontWeight="600">
+              Usuarios registrados
+            </Title>
+            {!error && !isLoading ? (
+              <Paragraph
+                color="$dimmed"
+                fontSize={FONT_SIZE.sm}
+              >{`${users.length} ${users.length === 1 ? 'usuario' : 'usuarios'}`}</Paragraph>
+            ) : null}
+          </XStack>
+          {renderUsers()}
+        </SectionCard>
+      </ScrollView>
       <CreateUserFab onPress={openCreate} />
       <CreateUserSheet key={createKey} open={createOpen} onOpenChange={setCreateOpen} onCreate={createUser} />
     </Screen>
   );
-}
-
-function Separator() {
-  return <YStack height={SPACING.sm} />;
 }

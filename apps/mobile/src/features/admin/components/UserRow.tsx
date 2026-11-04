@@ -1,12 +1,10 @@
 import { ROLE_LABELS } from '@omni/shared/auth';
-import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
+import { FONT_SIZE, LINE_HEIGHT, SPACING } from '@omni/shared/theme';
 import { TrashIcon } from 'phosphor-react-native';
 import { memo } from 'react';
 import { Paragraph, XStack, YStack } from 'tamagui';
 
-import { useColorSchemeControl } from '@/core/theme';
 import { Badge, IconButton, UserAvatar } from '@/shared/ui';
-import { glassElevation } from '@/theme/elevation';
 
 import { formatCreatedAt } from '../utils/formatCreatedAt';
 
@@ -19,34 +17,29 @@ type UserRowProps = {
 };
 
 /**
- * Fila de usuario (= `UserRow` de web) en una card glass: avatar, nombre, `@usuario · email`, badge de rol, fecha de
- * alta y tacho, que solo tienen los USER (un ADMIN no se elimina desde acá).
+ * Fila de usuario (= `UserRow` de web, con la estructura del canvas mobile): avatar, nombre, badge de rol con
+ * `@usuario · Alta dd/mm/aaaa` y tacho, que solo tienen los USER (un ADMIN deja el lugar vacío para alinear).
  */
 export const UserRow = memo(function UserRow({ user, deleting, onDeletePress }: UserRowProps) {
-  const { colorScheme } = useColorSchemeControl();
+  const created = formatCreatedAt(user.createdAt);
 
   return (
-    <XStack
-      backgroundColor="$surfaceGlass"
-      borderWidth={1}
-      borderColor="$glassBorder"
-      borderRadius={RADIUS.xl}
-      padding={SPACING.sm}
-      gap={SPACING.sm}
-      alignItems="center"
-      {...glassElevation('card', colorScheme)}
-    >
+    <XStack alignItems="center" gap={SPACING.sm} paddingVertical={SPACING.xs}>
       <UserAvatar name={user.name} />
       <YStack flex={1} gap={SPACING['3xs']}>
         <Paragraph fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl} fontWeight="600" numberOfLines={1}>
           {user.name}
         </Paragraph>
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
-          {user.email ? `@${user.username} · ${user.email}` : `@${user.username}`}
-        </Paragraph>
         <XStack gap={SPACING.xs} alignItems="center">
           <Badge color={user.role === 'ADMIN' ? 'accent' : 'dimmed'}>{ROLE_LABELS[user.role]}</Badge>
-          <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>{`Alta ${formatCreatedAt(user.createdAt)}`}</Paragraph>
+          <XStack flex={1} minWidth={0} accessible accessibilityLabel={`@${user.username}, alta ${created}`}>
+            <Paragraph flexShrink={1} color="$dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
+              {`@${user.username}`}
+            </Paragraph>
+            <Paragraph flexShrink={0} color="$dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
+              {` · Alta ${created}`}
+            </Paragraph>
+          </XStack>
         </XStack>
       </YStack>
       {user.role === 'USER' ? (
