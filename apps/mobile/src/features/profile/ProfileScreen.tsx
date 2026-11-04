@@ -22,6 +22,7 @@ import { LogoutAllCard } from './components/LogoutAllCard';
 import { PasswordCard } from './components/PasswordCard';
 import { PersonalInfoCard } from './components/PersonalInfoCard';
 import { PreferencesCard } from './components/PreferencesCard';
+import { ProfilePhotoCard } from './components/ProfilePhotoCard';
 import { useAccountActions } from './hooks/useAccountActions';
 import { useProfile } from './hooks/useProfile';
 
@@ -78,6 +79,7 @@ export function ProfileScreen() {
           contentContainerStyle={{ gap: SPACING.md, paddingBottom: SPACING.xl }}
         >
           {errorState}
+          <ProfilePhotoCard profile={profile} />
           <PersonalInfoCard profile={profile} onSave={updateProfile} onFieldFocus={scrollIntoView} />
           <PreferencesCard
             values={{
@@ -99,7 +101,7 @@ export function ProfileScreen() {
     <Screen insetBottom>
       <ScreenHeader
         title="Mi Perfil"
-        subtitle="Gestiona tu información personal y preferencias"
+        subtitle="Gestioná tu información personal y preferencias"
         size="lg"
         onBack={goBack}
         backLabel="Volver a Más"

@@ -20,7 +20,7 @@ export function DeleteAccountCard({ onDelete }: DeleteAccountCardProps) {
       const confirmed = await confirm({
         title: 'Eliminar cuenta',
         description:
-          '¿Seguro que quieres eliminar tu cuenta? Esta acción no se puede deshacer. Se borrarán todos tus datos de forma permanente.',
+          '¿Seguro que querés eliminar tu cuenta? Esta acción no se puede deshacer. Se borrarán todos tus datos de forma permanente.',
         confirmLabel: 'Sí, eliminar mi cuenta',
       });
       if (!confirmed) return;
