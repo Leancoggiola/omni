@@ -83,4 +83,13 @@ describe('WatchingCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(mutate).toHaveBeenCalledOnce();
   });
+
+  it('si el póster falla al cargar, lo reemplaza por el ícono', () => {
+    state({ items: [media('1', 'The Bear', 'tv', '/bear.jpg')] });
+    const { container } = renderCard();
+    const poster = container.querySelector('img');
+    expect(poster).toHaveAttribute('src', expect.stringContaining('/bear.jpg'));
+    fireEvent.error(poster as HTMLImageElement);
+    expect(container.querySelector('img')).toBeNull();
+  });
 });
