@@ -19,12 +19,6 @@ jest.mock('@/shared/api', () => ({
   setRememberedUser: (username: string) => mockSetRememberedUser(username),
   clearRememberedUser: () => mockClearRememberedUser(),
 }));
-jest.mock('@/shared/ui/UserAvatar', () => ({
-  UserAvatar: ({ name }: { name: string }) => {
-    const { Text } = jest.requireActual('react-native');
-    return <Text>{`avatar:${name}`}</Text>;
-  },
-}));
 jest.mock(
   'react-native-safe-area-context',
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default
@@ -221,7 +215,11 @@ describe('LoginScreen', () => {
     it('con usuario guardado muestra avatar, saludo y solo la contraseña', async () => {
       await renderRemembered();
 
-      expect(screen.getByText('avatar:a')).toBeTruthy();
+      expect(screen.getByText('A')).toBeTruthy();
+      expect(screen.getByText('Ingresando como admin01')).toBeTruthy();
+      expect(screen.queryByText('Ingresá a tu cuenta')).toBeNull();
+      expect(screen.queryByText('¡Te damos la bienvenida a Omni!')).toBeNull();
+      expect(screen.getByPlaceholderText('Contraseña')).toBeTruthy();
       expect(screen.getByRole('header', { name: '¡Hola, Admin01!' })).toBeTruthy();
       expect(screen.queryByLabelText('Usuario')).toBeNull();
       expect(screen.getByLabelText('Contraseña')).toBeTruthy();

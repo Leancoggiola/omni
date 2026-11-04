@@ -9,16 +9,7 @@ import { Paragraph, YStack, type TamaguiElement } from 'tamagui';
 import { useAuth } from '@/core/auth';
 import { useColorSchemeControl } from '@/core/theme';
 import { clearRememberedUser, ensureServerAwake, getRememberedUser, setRememberedUser } from '@/shared/api';
-import {
-  Banner,
-  Button,
-  DisplayTitle,
-  getErrorMessage,
-  PasswordField,
-  TextField,
-  UserAvatar,
-  useKeyboardInset,
-} from '@/shared/ui';
+import { Banner, Button, DisplayTitle, getErrorMessage, PasswordField, TextField, useKeyboardInset } from '@/shared/ui';
 import { themedElevation } from '@/theme/elevation';
 
 import LOGO from '../../../assets/images/splash-icon.png';
@@ -26,6 +17,7 @@ import LOGO from '../../../assets/images/splash-icon.png';
 import { AuthBackground } from './components/AuthBackground';
 
 const LOGO_SIZE = 88;
+const AVATAR_SIZE = 80;
 const FORM_MAX_WIDTH = 420;
 
 type FieldErrors = Partial<Record<'username' | 'password', string>>;
@@ -111,6 +103,8 @@ export function LoginScreen() {
     }
   };
 
+  const greetingName = remembered ? `${remembered.charAt(0).toUpperCase()}${remembered.slice(1)}` : '';
+
   return (
     <YStack flex={1} backgroundColor="$background">
       <AuthBackground />
@@ -125,22 +119,56 @@ export function LoginScreen() {
             paddingTop={insets.top + SPACING['3xl']}
             paddingBottom={SPACING.xl}
           >
-            <YStack
-              width={LOGO_SIZE}
-              height={LOGO_SIZE}
-              padding={SPACING['2xs']}
-              borderRadius={RADIUS.xl}
-              borderWidth={1}
-              borderColor="$borderSubtle"
-              backgroundColor="$backgroundStrong"
-              overflow="hidden"
-              {...themedElevation('card', colorScheme)}
-            >
-              <Image source={LOGO} style={{ width: '100%', height: '100%' }} resizeMode="contain" accessible={false} />
-            </YStack>
-            <DisplayTitle textAlign="center" accent="Omni">
-              ¡Te damos la bienvenida a Omni!
-            </DisplayTitle>
+            {remembered === undefined ? null : remembered ? (
+              <>
+                <YStack
+                  width={AVATAR_SIZE}
+                  height={AVATAR_SIZE}
+                  borderRadius={AVATAR_SIZE / 2}
+                  alignItems="center"
+                  justifyContent="center"
+                  borderWidth={1}
+                  borderColor="$borderSubtle"
+                  backgroundColor="$backgroundStrong"
+                  accessible={false}
+                  {...themedElevation('card', colorScheme)}
+                >
+                  <Paragraph fontFamily="$display" fontSize={28} fontWeight="800" color="$primary">
+                    {remembered.charAt(0).toUpperCase()}
+                  </Paragraph>
+                </YStack>
+                <YStack alignItems="center" gap={SPACING['2xs']}>
+                  <DisplayTitle textAlign="center">{`¡Hola, ${greetingName}!`}</DisplayTitle>
+                  <Paragraph color="$dimmed" fontSize={14} lineHeight={20}>
+                    {`Ingresando como ${remembered}`}
+                  </Paragraph>
+                </YStack>
+              </>
+            ) : (
+              <>
+                <YStack
+                  width={LOGO_SIZE}
+                  height={LOGO_SIZE}
+                  padding={SPACING['2xs']}
+                  borderRadius={RADIUS.xl}
+                  borderWidth={1}
+                  borderColor="$borderSubtle"
+                  backgroundColor="$backgroundStrong"
+                  overflow="hidden"
+                  {...themedElevation('card', colorScheme)}
+                >
+                  <Image
+                    source={LOGO}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="contain"
+                    accessible={false}
+                  />
+                </YStack>
+                <DisplayTitle textAlign="center" accent="Omni">
+                  ¡Te damos la bienvenida a Omni!
+                </DisplayTitle>
+              </>
+            )}
           </YStack>
 
           <YStack
@@ -155,17 +183,7 @@ export function LoginScreen() {
             <YStack width="100%" maxWidth={FORM_MAX_WIDTH} alignSelf="center" gap={SPACING.lg}>
               {remembered === undefined ? null : (
                 <>
-                  {remembered ? (
-                    <YStack alignItems="center" gap={SPACING.sm}>
-                      <UserAvatar name={remembered.charAt(0)} size={64} />
-                      <DisplayTitle size="md" textAlign="center">
-                        {`¡Hola, ${remembered.charAt(0).toUpperCase()}${remembered.slice(1)}!`}
-                      </DisplayTitle>
-                      <Paragraph color="$dimmed">{`Ingresando como ${remembered}`}</Paragraph>
-                    </YStack>
-                  ) : (
-                    <DisplayTitle size="md">Ingresá a tu cuenta</DisplayTitle>
-                  )}
+                  {remembered ? null : <DisplayTitle size="md">Ingresá a tu cuenta</DisplayTitle>}
 
                   {error ? <Banner color="destructive">{error}</Banner> : null}
 
@@ -190,7 +208,9 @@ export function LoginScreen() {
                     )}
                     <PasswordField
                       ref={passwordRef}
-                      label="Contraseña"
+                      {...(remembered
+                        ? { accessibilityLabel: 'Contraseña', placeholder: 'Contraseña' }
+                        : { label: 'Contraseña' })}
                       value={password}
                       onChangeText={value => {
                         setPassword(value);
@@ -207,7 +227,7 @@ export function LoginScreen() {
                       Ingresar
                     </Button>
                     {remembered ? (
-                      <Button variant="subtle" fullWidth disabled={loading} onPress={forgetUser}>
+                      <Button variant="subtle" size="sm" alignSelf="center" disabled={loading} onPress={forgetUser}>
                         Ingresar con otro usuario
                       </Button>
                     ) : null}
