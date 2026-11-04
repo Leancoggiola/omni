@@ -51,7 +51,7 @@ export function ProfilePhotoCard({ profile }: ProfilePhotoCardProps) {
       <XStack alignItems="center" gap={SPACING.lg}>
         <UserAvatar name={profile.name} size={80} uri={previewUri ?? profile.avatarUrl} />
         <YStack flex={1} gap={SPACING['2xs']}>
-          <Button leftSection={CameraIcon} onPress={() => void handlePick()}>
+          <Button variant="light" leftSection={CameraIcon} onPress={() => void handlePick()}>
             Cambiar foto
           </Button>
           <Paragraph color="$dimmed" fontSize={FONT_SIZE.xs}>
