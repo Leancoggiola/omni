@@ -29,8 +29,10 @@ import {
 
 import { AddMediaFab, FAB_SIZE } from './components/AddMediaFab';
 import { AddMediaSheet } from './components/AddMediaSheet';
+import { MediaGridCard } from './components/MediaGridCard';
 import { MediaListItem } from './components/MediaListItem';
 import { MediaToolbar } from './components/MediaToolbar';
+import { MediaViewToggle, type MediaView } from './components/MediaViewToggle';
 import { useMediaMutations } from './hooks/useMediaMutations';
 import { useMyMediaList } from './hooks/useMyMediaList';
 
@@ -38,6 +40,7 @@ import type { MediaItem, MediaListFilters, MediaStatus, MediaType } from '@omni/
 
 export function MediaScreen() {
   const [filters, setFilters] = useState<MediaListFilters>(DEFAULT_MEDIA_FILTERS);
+  const [view, setView] = useState<MediaView>('list');
   const [addOpen, setAddOpen] = useState(false);
   const [addKey, setAddKey] = useState(0);
   const pendingAddNotice = useRef(false);
@@ -126,8 +129,13 @@ export function MediaScreen() {
   const onStatusPress = useCallback((item: MediaItem) => void handleStatusPress(item), [handleStatusPress]);
   const onDeletePress = useCallback((item: MediaItem) => void handleDeletePress(item), [handleDeletePress]);
   const renderItem = useCallback<ListRenderItem<MediaItem>>(
-    ({ item }) => <MediaListItem item={item} onStatusPress={onStatusPress} onDeletePress={onDeletePress} />,
-    [onStatusPress, onDeletePress]
+    ({ item }) =>
+      view === 'grid' ? (
+        <MediaGridCard item={item} onStatusPress={onStatusPress} onDeletePress={onDeletePress} />
+      ) : (
+        <MediaListItem item={item} onStatusPress={onStatusPress} onDeletePress={onDeletePress} />
+      ),
+    [view, onStatusPress, onDeletePress]
   );
 
   const renderEmpty = () => {
@@ -152,6 +160,9 @@ export function MediaScreen() {
   return (
     <Screen>
       <FlatList
+        key={view}
+        numColumns={view === 'grid' ? 2 : 1}
+        columnWrapperStyle={view === 'grid' ? { gap: SPACING.sm } : undefined}
         data={listData}
         keyExtractor={item => item.id}
         renderItem={renderItem}
@@ -159,6 +170,7 @@ export function MediaScreen() {
           <YStack gap={SPACING.md} paddingBottom={SPACING.md}>
             <ScreenHeader icon={FilmSlateIcon} title="Películas y Series" subtitle="Tu lista de seguimiento" />
             <MediaToolbar filters={filters} onChange={setFilters} />
+            <MediaViewToggle value={view} onChange={setView} />
           </YStack>
         }
         ListEmptyComponent={renderEmpty()}

@@ -115,6 +115,48 @@ describe('MediaScreen · lista', () => {
   });
 });
 
+describe('MediaScreen · vista', () => {
+  it('abre en lista y el grupo Vista permite pasar a Grilla y volver', () => {
+    renderWith();
+
+    expect(screen.UNSAFE_getByProps({ accessibilityRole: 'radiogroup', accessibilityLabel: 'Vista' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Lista', selected: true })).toBeTruthy();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Grilla' }));
+    expect(screen.getByRole('button', { name: 'Grilla', selected: true })).toBeTruthy();
+    expect(screen.getByText('Dune: Part Two')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Eliminar Dune: Part Two' })).toBeTruthy();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Lista' }));
+    expect(screen.getByRole('button', { name: 'Lista', selected: true })).toBeTruthy();
+  });
+
+  it('en grilla los filtros y las acciones funcionan igual', async () => {
+    mockActionSheet.mockResolvedValue('watched');
+    mockMutations.updateStatus.mockResolvedValue(undefined);
+    renderWith();
+    fireEvent.press(screen.getByRole('button', { name: 'Grilla' }));
+
+    fireEvent.changeText(screen.getByLabelText('Buscar en tu lista'), 'bear');
+    expect(screen.queryByText('Breaking Bad')).toBeNull();
+    await act(async () =>
+      fireEvent.press(screen.getByRole('button', { name: 'Estado de The Bear: Viendo. Cambiar estado' }))
+    );
+    expect(mockMutations.updateStatus).toHaveBeenCalledWith('3', 'watched');
+
+    fireEvent.changeText(screen.getByLabelText('Buscar en tu lista'), 'zzz');
+    expect(screen.getByText('No hay resultados')).toBeTruthy();
+  });
+
+  it('en grilla el error de SWR se renderiza y no hay tarjetas', () => {
+    renderWith({ data: ITEMS, error: new Error('500') });
+    fireEvent.press(screen.getByRole('button', { name: 'Grilla' }));
+
+    expect(screen.getByText('No se pudo cargar tu lista')).toBeTruthy();
+    expect(screen.queryByText('Breaking Bad')).toBeNull();
+  });
+});
+
 describe('MediaScreen · autoría', () => {
   beforeEach(() => mockAuthor.mockReset());
 

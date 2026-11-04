@@ -23,6 +23,8 @@ type IconButtonProps = {
   color?: ButtonColor;
   size?: ButtonSize;
   disabled?: boolean;
+  /** Estado de selección que anuncia el lector de pantalla (opciones de un grupo, como Lista/Grilla). */
+  selected?: boolean;
 };
 
 /**
@@ -38,6 +40,7 @@ export function IconButton({
   color = 'brand',
   size = 'md',
   disabled = false,
+  selected,
 }: IconButtonProps) {
   const colors = useSemanticColors();
   const metrics = BUTTON_SIZES[size];
@@ -60,7 +63,7 @@ export function IconButton({
       accessible
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ disabled }}
+      accessibilityState={selected === undefined ? { disabled } : { disabled, selected }}
     >
       <IconComponent size={metrics.icon + 2} color={palette.icon} />
     </XStack>

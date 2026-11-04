@@ -280,6 +280,7 @@ Lo que **no** es automático y hay que replicar a mano en mobile:
 | Primitivas de formulario y acción        | Hechas (#76); las usan Login (#67), Media (#68) y Perfil (#69); ESLint prohíbe `Button`/`Input`/`Switch` crudos                                           |
 | Login: card con logo, blobs y `Banner`   | Hecho (#67) — `LoginScreen` + `AuthBackground` (blobs de reanimated, quietos con "reducir movimiento")                                                    |
 | Media: lista, filtros, agregar, estado   | Hecho (#68) — `MediaListItem` (póster 56 dp, `Badge`, `StatusPill`, tacho), `MediaToolbar`, FAB + Sheet                                                   |
+| Media: vista en grilla                   | Hecho (#237) — `MediaViewToggle` (Lista/Grilla, siempre abre en lista) y `MediaGridCard` (2 columnas, póster 2:3, badge y tacho encima, `StatusPill`)     |
 | Contraste de rellenos en oscuro          | Hecho (#68) — `onFill()` en `SEMANTIC` y `--mantine-color-<color>-on-filled` en web                                                                       |
 | Inicio: una card con saludo y efemérides | Hecho (#69) — `HomeScreen` = `HomeMainCard` de web (sin `ScreenHeader` ni ícono de destellos)                                                             |
 | Perfil: cards, preferencias instantáneas | Hecho (#69) — Información personal, Preferencias (Switch + `SegmentedControl` de Tema, guardan al instante), Contraseña y Zona de peligro con `confirm()` |
