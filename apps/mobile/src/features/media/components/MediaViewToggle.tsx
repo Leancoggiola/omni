@@ -18,7 +18,7 @@ type MediaViewToggleProps = {
 export function MediaViewToggle({ value, onChange }: MediaViewToggleProps) {
   return (
     <XStack
-      alignSelf="flex-end"
+      flexShrink={0}
       backgroundColor="$surfaceGlass"
       borderWidth={1}
       borderColor="$glassBorder"

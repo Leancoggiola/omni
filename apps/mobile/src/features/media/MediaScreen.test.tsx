@@ -148,6 +148,12 @@ describe('MediaScreen · vista', () => {
     expect(screen.getByText('No hay resultados')).toBeTruthy();
   });
 
+  it('en grilla, cargando muestra el skeleton', () => {
+    renderWith({ isLoading: true });
+    fireEvent.press(screen.getByRole('button', { name: 'Grilla' }));
+    expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
+  });
+
   it('en grilla el error de SWR se renderiza y no hay tarjetas', () => {
     renderWith({ data: ITEMS, error: new Error('500') });
     fireEvent.press(screen.getByRole('button', { name: 'Grilla' }));

@@ -162,15 +162,19 @@ export function MediaScreen() {
       <FlatList
         key={view}
         numColumns={view === 'grid' ? 2 : 1}
-        columnWrapperStyle={view === 'grid' ? { gap: SPACING.sm } : undefined}
+        columnWrapperStyle={view === 'grid' ? { marginHorizontal: -SPACING.sm / 2 } : undefined}
         data={listData}
         keyExtractor={item => item.id}
         renderItem={renderItem}
         ListHeaderComponent={
           <YStack gap={SPACING.md} paddingBottom={SPACING.md}>
-            <ScreenHeader icon={FilmSlateIcon} title="Películas y Series" subtitle="Tu lista de seguimiento" />
+            <ScreenHeader
+              icon={FilmSlateIcon}
+              title="Películas y Series"
+              subtitle="Tu lista de seguimiento"
+              action={<MediaViewToggle value={view} onChange={setView} />}
+            />
             <MediaToolbar filters={filters} onChange={setFilters} />
-            <MediaViewToggle value={view} onChange={setView} />
           </YStack>
         }
         ListEmptyComponent={renderEmpty()}
