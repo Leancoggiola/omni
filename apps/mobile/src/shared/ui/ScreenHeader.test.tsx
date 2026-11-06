@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { FilmSlateIcon } from 'phosphor-react-native';
+import { Text } from 'react-native';
 
 import { ScreenHeader } from './ScreenHeader';
 
@@ -50,5 +51,11 @@ describe('ScreenHeader', () => {
     render(<ScreenHeader title="Mi Perfil" onBack={() => undefined} backLabel="Volver a Más" />);
 
     expect(screen.getByRole('button', { name: 'Volver a Más' })).toHaveProp('backgroundColor', '$surfaceGlass');
+  });
+
+  it('con action dibuja el control a la derecha del título', () => {
+    render(<ScreenHeader title="Películas y Series" action={<Text>Control</Text>} />);
+
+    expect(screen.getByText('Control')).toBeTruthy();
   });
 });

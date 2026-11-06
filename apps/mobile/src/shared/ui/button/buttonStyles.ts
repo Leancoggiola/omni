@@ -111,7 +111,7 @@ export function buttonPalette(
         backgroundPress: '$surfaceGlass',
         borderColor: '$glassBorder',
         color: '$color',
-        icon: colors.text,
+        icon: color === 'destructive' ? colors.destructive : colors.text,
         pressOpacity: 0.75,
       };
     case 'subtle':
