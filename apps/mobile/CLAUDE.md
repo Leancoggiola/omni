@@ -10,6 +10,7 @@ apps/mobile/
     _layout.tsx           # Tamagui + SWRProvider + AuthProvider + Notifications/Confirm/ActionSheet + AuthGate (Stack)
     login.tsx
     profile.tsx           # ruta de stack sobre las tabs (se abre solo desde la tarjeta de usuario de "Más")
+    admin.tsx             # ruta de stack, solo ADMIN (se abre desde "Más")
     (tabs)/index|media|pantry|more.tsx
   src/
     core/auth/            # AuthProvider (sesión; los tokens se leen y escriben vía `@/shared/api`, módulo `tokenStorage`)
@@ -37,7 +38,7 @@ Estructura de features (la misma que web; árbol y reglas): [docs/architecture.m
 
 - Tabs **Inicio · Media · Alacena · Más**, sin header de React Navigation: cada pantalla arranca con `Screen` + `ScreenHeader` (Inicio es la excepción: una sola card con el saludo, como web). Perfil (`/profile`, ruta de stack, también sin header nativo) se abre **solo desde Más** y su `ScreenHeader` lleva el botón de volver (`onBack`): los headers de las tabs no llevan avatar.
 - Labels, rutas y disponibilidad salen de `NAV_REGISTRY` de `@omni/shared/navigation` (el mismo que usa el navbar de web); los íconos, de `NAV_ICONS`. Tabs: `MOBILE_TAB_KEYS`.
-- "Más" es el launcher: tarjeta de usuario → Perfil, toggle de tema (override de la sesión), módulos (los que no tienen `"mobile"` en `availableOn` salen con el `Badge` "Próximamente"), Administración si el rol es ADMIN y cerrar sesión (que solo está acá, no en Perfil; Perfil tiene "Cerrar sesión en todos los dispositivos").
+- "Más" es el launcher: tarjeta de usuario → Perfil, toggle de tema (override de la sesión), módulos (los que no tienen `"mobile"` en `availableOn` salen con el `Badge` "Próximamente"), Administración si el rol es ADMIN (`/admin`, ruta de stack con `onBack`; `AdminScreen` redirige a Inicio si el rol no es ADMIN, como `AdminRoute` de web) y cerrar sesión (que solo está acá, no en Perfil; Perfil tiene "Cerrar sesión en todos los dispositivos").
 - Módulo nuevo en mobile: sumar `"mobile"` a su `availableOn`, crear la ruta en `app/` con el mismo `path` y registrarla en `NAV_HREFS` (`src/shared/navigation/navHrefs.ts`, tipada con `typedRoutes`).
 
 ## API paths

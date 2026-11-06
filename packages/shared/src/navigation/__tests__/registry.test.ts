@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ADMIN_NAV_ORDER, MAIN_NAV_ORDER, MOBILE_TAB_KEYS, NAV_KEYS } from '..';
+import { ADMIN_NAV_ORDER, isNavAvailable, MAIN_NAV_ORDER, MOBILE_TAB_KEYS, NAV_KEYS } from '..';
 
 import type { NavKey } from '..';
 
@@ -14,5 +14,10 @@ describe('registro de navegación', () => {
   it('las tabs de mobile son módulos del menú principal', () => {
     const main: readonly NavKey[] = MAIN_NAV_ORDER;
     expect(MOBILE_TAB_KEYS.every(key => main.includes(key))).toBe(true);
+  });
+
+  it('Administración está disponible en web y en mobile', () => {
+    expect(isNavAvailable('admin', 'web')).toBe(true);
+    expect(isNavAvailable('admin', 'mobile')).toBe(true);
   });
 });
