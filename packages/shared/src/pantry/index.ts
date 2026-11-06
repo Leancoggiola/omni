@@ -9,6 +9,7 @@ export {
   listPantryProductsSchema,
   suggestPantryProductsSchema,
   updatePantryProductSchema,
+  updateShoppingListItemSchema,
 } from './schemas';
 export type {
   AddShoppingListItemPayload,
@@ -17,4 +18,5 @@ export type {
   ListPantryProductsParams,
   SuggestPantryProductsParams,
   UpdatePantryProductPayload,
+  UpdateShoppingListItemPayload,
 } from './schemas';
