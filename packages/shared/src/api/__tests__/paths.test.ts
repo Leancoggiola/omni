@@ -9,6 +9,10 @@ describe('API_PATHS', () => {
     expect(API_PATHS.admin.user('u1')).toBe('/api/admin/users/u1');
   });
 
+  it('expone el path de la foto de perfil bajo users', () => {
+    expect(API_PATHS.users.avatar).toBe('/api/users/avatar');
+  });
+
   it('arma los paths de split-expenses', () => {
     expect(API_PATHS.splitExpenses.friend('f1')).toBe('/api/split-expenses/friends/f1');
     expect(API_PATHS.splitExpenses.gathering('g1')).toBe('/api/split-expenses/gatherings/g1');
