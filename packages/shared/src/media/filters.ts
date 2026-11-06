@@ -46,3 +46,11 @@ export function filterMediaItems(items: readonly MediaItem[], filters: MediaList
 export function hasActiveFilters(filters: MediaListFilters): boolean {
   return filters.status !== 'all' || filters.mediaType !== 'all' || filters.query.trim() !== '';
 }
+
+/** Los primeros `limit` ítems con ese estado, del actualizado más recientemente al más viejo (sin mutar la lista). */
+export function takeMediaByStatus(items: readonly MediaItem[], status: MediaStatus, limit: number): MediaItem[] {
+  return items
+    .filter(item => item.status === status)
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0, Math.max(0, limit));
+}
