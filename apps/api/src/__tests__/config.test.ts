@@ -5,6 +5,7 @@ import {
   resolveJwtConfig,
   resolveOriginSecret,
   resolveRateLimitGlobalMax,
+  resolveStorageConfig,
   resolveTmdbApiKey,
 } from '../config';
 
@@ -145,5 +146,44 @@ describe('resolveJwtConfig', () => {
     expect(() => resolveJwtConfig({ ...secrets, mobileRefreshExpiresIn: '90 días' }, isProduction)).toThrow(
       /JWT_REFRESH_EXPIRES_IN_MOBILE inválido/
     );
+  });
+});
+
+describe('resolveStorageConfig', () => {
+  const env = { supabaseUrl: undefined, serviceRoleKey: undefined, avatarsBucket: undefined };
+
+  it('sin nada definido deja el storage sin configurar y usa el bucket avatars', () => {
+    expect(resolveStorageConfig(env)).toEqual({
+      supabaseUrl: undefined,
+      serviceRoleKey: undefined,
+      avatarsBucket: 'avatars',
+    });
+    expect(resolveStorageConfig({ ...env, supabaseUrl: '  ', serviceRoleKey: '' }).supabaseUrl).toBeUndefined();
+  });
+
+  it('con la URL y la service key las devuelve recortadas y sin barra final', () => {
+    expect(
+      resolveStorageConfig({
+        supabaseUrl: ' https://abc.supabase.co/ ',
+        serviceRoleKey: ' clave ',
+        avatarsBucket: 'fotos',
+      })
+    ).toEqual({ supabaseUrl: 'https://abc.supabase.co', serviceRoleKey: 'clave', avatarsBucket: 'fotos' });
+  });
+
+  it('con una sola de las dos falla al arrancar', () => {
+    expect(() => resolveStorageConfig({ ...env, supabaseUrl: 'https://abc.supabase.co' })).toThrow(
+      /SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY/
+    );
+    expect(() => resolveStorageConfig({ ...env, serviceRoleKey: 'clave' })).toThrow(
+      /SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY/
+    );
+  });
+
+  it('rechaza una URL que no es http(s) y un nombre de bucket inválido', () => {
+    expect(() => resolveStorageConfig({ ...env, supabaseUrl: 'abc.supabase.co', serviceRoleKey: 'clave' })).toThrow(
+      /SUPABASE_URL inválida/
+    );
+    expect(() => resolveStorageConfig({ ...env, avatarsBucket: 'Mis Fotos/' })).toThrow(/SUPABASE_AVATARS_BUCKET/);
   });
 });
