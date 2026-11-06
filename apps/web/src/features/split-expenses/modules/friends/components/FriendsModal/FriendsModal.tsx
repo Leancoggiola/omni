@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Divider, Modal, Stack } from '@mantine/core';
+import { Modal, Stack } from '@mantine/core';
 
 import { EmptyState, ErrorState, LoadingState, notifySuccess } from '@/shared/ui';
 
@@ -29,6 +29,8 @@ export const FriendsModal: FC<FriendsModalProps> = ({ opened, onClose }) => {
   return (
     <Modal opened={opened} onClose={onClose} title="Amigos guardados" centered>
       <Stack gap="md">
+        <FriendForm onCreate={handleCreate} />
+
         {error ? (
           <ErrorState message="No se pudieron cargar los amigos" onRetry={() => mutate()} />
         ) : isLoading ? (
@@ -36,16 +38,12 @@ export const FriendsModal: FC<FriendsModalProps> = ({ opened, onClose }) => {
         ) : friends.length === 0 ? (
           <EmptyState icon={<UsersThreeIcon />} title="Sin amigos guardados" />
         ) : (
-          <Stack gap="xs">
+          <Stack gap="none">
             {friends.map(friend => (
               <FriendRow key={friend.id} friend={friend} onUpdate={updateFriend} onDelete={deleteFriend} />
             ))}
           </Stack>
         )}
-
-        <Divider />
-
-        <FriendForm onCreate={handleCreate} />
       </Stack>
     </Modal>
   );

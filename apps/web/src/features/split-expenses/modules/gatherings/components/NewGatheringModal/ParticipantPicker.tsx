@@ -1,142 +1,143 @@
 import { FC, useState } from 'react';
-import { ActionIcon, Badge, Combobox, Group, Stack, Text, TextInput, useCombobox } from '@mantine/core';
-import { useDebouncedValue } from '@mantine/hooks';
+import { ActionIcon, Badge, Button, Chip, Group, Input, Stack, Text, TextInput } from '@mantine/core';
 
-import { useSplitFriendsSuggest } from '../../../friends/hooks/useSplitFriendsSuggest';
+import { ErrorState, LoadingState } from '@/shared/ui';
+
+import { useSplitFriends } from '../../../friends/hooks/useSplitFriends';
+import { ParticipantAvatar } from '../ParticipantAvatar';
 
 import type { GatheringParticipantDraft } from '../../utils/newGatheringForm';
+
+import classes from './ParticipantPicker.module.scss';
 
 import { SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
 import { PlusIcon, XIcon } from '@phosphor-icons/react';
 
-const FREE_TEXT_VALUE = '__free_text__';
-
 interface ParticipantPickerProps {
   participants: GatheringParticipantDraft[];
-  onAdd: (friendId: string | null, displayName: string) => void;
+  onToggleFriend: (friendId: string, displayName: string) => void;
+  onAddNew: (displayName: string) => void;
   onRemove: (index: number) => void;
   error?: string;
 }
 
-export const ParticipantPicker: FC<ParticipantPickerProps> = ({ participants, onAdd, onRemove, error }) => {
+/**
+ * "¿Quiénes participan?": "Vos" fijo, los amigos guardados como chips que se marcan y se desmarcan, y "Amigo nuevo"
+ * para sumar a alguien por nombre (queda solo en esa juntada, sin guardarse como amigo).
+ */
+export const ParticipantPicker: FC<ParticipantPickerProps> = ({
+  participants,
+  onToggleFriend,
+  onAddNew,
+  onRemove,
+  error,
+}) => {
+  const [adding, setAdding] = useState(false);
   const [input, setInput] = useState('');
+  const { items: friends, isLoading, error: friendsError, mutate } = useSplitFriends();
 
-  const combobox = useCombobox({
-    onDropdownClose: () => combobox.resetSelectedOption(),
-  });
-
-  const [debouncedQuery] = useDebouncedValue(input, 300);
-  const { items: suggestions } = useSplitFriendsSuggest(debouncedQuery.trim());
+  const freeParticipants = participants
+    .map((participant, index) => ({ participant, index }))
+    .filter(({ participant }) => participant.friendId === null);
 
   const isDuplicate = (name: string) =>
     participants.some(participant => participant.displayName.toLowerCase() === name.toLowerCase());
 
-  const addParticipant = (friendId: string | null, displayName: string) => {
-    const name = displayName.trim();
-    if (name && !isDuplicate(name)) onAdd(friendId, name);
+  const addNew = () => {
+    const name = input.trim();
+    if (name && !isDuplicate(name)) onAddNew(name);
     setInput('');
-    combobox.closeDropdown();
+    setAdding(false);
   };
-
-  const handleOptionSubmit = (value: string) => {
-    if (value === FREE_TEXT_VALUE) {
-      addParticipant(null, input);
-      return;
-    }
-    const friend = suggestions.find(item => item.id === value);
-    if (friend) addParticipant(friend.id, friend.name);
-  };
-
-  const trimmedInput = input.trim();
-  const availableSuggestions = suggestions.filter(friend => !isDuplicate(friend.name));
 
   return (
     <Stack gap="xs">
-      <Text size="sm" fw={500}>
-        Participantes
-      </Text>
+      <Group justify="space-between" align="baseline">
+        <Input.Label>¿Quiénes participan?</Input.Label>
+        <Text size="xs" c="dimmed">
+          {participants.length + 1} personas
+        </Text>
+      </Group>
 
-      {participants.length > 0 && (
-        <Group gap="xs">
-          {participants.map((participant, index) => (
-            <Badge
-              key={participant.key}
-              variant="light"
-              color="brand"
-              size="lg"
-              radius="sm"
-              rightSection={
-                <ActionIcon
-                  variant="transparent"
-                  color="brand"
-                  size="xs"
-                  aria-label={`Quitar ${participant.displayName}`}
-                  onClick={() => onRemove(index)}
-                >
-                  <XIcon size="0.8rem" />
-                </ActionIcon>
+      <Group gap="xs">
+        <Badge
+          variant="light"
+          size="lg"
+          tt="none"
+          leftSection={<ParticipantAvatar name="Vos" tone={undefined} size="1.5rem" />}
+        >
+          Vos
+        </Badge>
+
+        {friends.map(friend => (
+          <Chip
+            key={friend.id}
+            checked={participants.some(participant => participant.friendId === friend.id)}
+            onChange={() => onToggleFriend(friend.id, friend.name)}
+          >
+            {friend.name}
+          </Chip>
+        ))}
+
+        {freeParticipants.map(({ participant, index }) => (
+          <Badge
+            key={participant.key}
+            variant="light"
+            color="brand"
+            size="lg"
+            tt="none"
+            rightSection={
+              <ActionIcon
+                variant="transparent"
+                color="brand"
+                size="xs"
+                aria-label={`Quitar ${participant.displayName}`}
+                onClick={() => onRemove(index)}
+              >
+                <XIcon size="0.8rem" />
+              </ActionIcon>
+            }
+          >
+            {participant.displayName}
+          </Badge>
+        ))}
+
+        {!adding && (
+          <button type="button" className={classes.newFriend} onClick={() => setAdding(true)}>
+            <PlusIcon size="1rem" />
+            Amigo nuevo
+          </button>
+        )}
+      </Group>
+
+      {adding && (
+        <Group gap="xs" align="flex-start" wrap="nowrap">
+          <TextInput
+            style={{ flex: 1 }}
+            aria-label="Nombre del participante"
+            placeholder="Nombre"
+            value={input}
+            maxLength={SPLIT_FRIEND_NAME_MAX}
+            data-autofocus
+            onChange={event => setInput(event.currentTarget.value)}
+            onKeyDown={event => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                addNew();
               }
-            >
-              {participant.displayName}
-            </Badge>
-          ))}
+            }}
+          />
+          <Button type="button" variant="light" aria-label="Agregar participante" onClick={addNew}>
+            Agregar
+          </Button>
         </Group>
       )}
 
-      <Group gap="xs" align="flex-start" wrap="nowrap">
-        <Combobox store={combobox} onOptionSubmit={handleOptionSubmit} withinPortal={false}>
-          <Combobox.Target>
-            <TextInput
-              style={{ flex: 1 }}
-              aria-label="Nombre o alias del participante"
-              placeholder="Nombre o alias"
-              value={input}
-              maxLength={SPLIT_FRIEND_NAME_MAX}
-              onChange={event => {
-                setInput(event.currentTarget.value);
-                combobox.openDropdown();
-              }}
-              onFocus={() => combobox.openDropdown()}
-              onKeyDown={event => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  addParticipant(null, input);
-                }
-              }}
-            />
-          </Combobox.Target>
-          <Combobox.Dropdown hidden={trimmedInput.length === 0}>
-            <Combobox.Options>
-              {availableSuggestions.map(friend => (
-                <Combobox.Option key={friend.id} value={friend.id}>
-                  <Text size="sm">
-                    {friend.name}
-                    {friend.alias ? (
-                      <Text span c="dimmed" size="sm">
-                        {' '}
-                        ({friend.alias})
-                      </Text>
-                    ) : null}
-                  </Text>
-                </Combobox.Option>
-              ))}
-              {trimmedInput.length > 0 && !isDuplicate(trimmedInput) && (
-                <Combobox.Option value={FREE_TEXT_VALUE}>
-                  <Text size="sm">Agregar &quot;{trimmedInput}&quot;</Text>
-                </Combobox.Option>
-              )}
-            </Combobox.Options>
-          </Combobox.Dropdown>
-        </Combobox>
-        <ActionIcon
-          variant="gradient"
-          size="lg"
-          aria-label="Agregar participante"
-          onClick={() => addParticipant(null, input)}
-        >
-          <PlusIcon size="1.1rem" weight="bold" />
-        </ActionIcon>
-      </Group>
+      {friendsError ? (
+        <ErrorState message="No se pudieron cargar tus amigos" onRetry={() => mutate()} />
+      ) : (
+        isLoading && <LoadingState size="sm" py="xs" />
+      )}
 
       {error && (
         <Text size="xs" c="error">
