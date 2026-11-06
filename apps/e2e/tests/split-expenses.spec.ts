@@ -48,33 +48,82 @@ test.describe('amigos guardados', () => {
 });
 
 test.describe('juntadas', () => {
-  test('crea una juntada con participantes', async ({ page, freshUser }) => {
+  test('crea una juntada con participantes y la deja elegida', async ({ page, freshUser }) => {
     await freshUser('gat');
     const split = new SplitExpensesPage(page);
     await split.goto();
 
     await split.createGathering('Asado del sábado', ['Ana', 'Bruno']);
 
-    await expect(page.getByText('Asado del sábado')).toBeVisible();
-    await expect(page.getByText('3 participantes')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Asado del sábado' })).toBeVisible();
+    await expect(split.feed()).toContainText('3 personas');
+    await expect(split.gatheringList()).toContainText('Activas');
+    await expect(split.gatheringItem('Asado del sábado')).toHaveAttribute('aria-current', 'true');
   });
 
-  test('agrega un gasto y calcula la liquidación', async ({ page, freshUser }) => {
+  test('suma a la juntada un amigo guardado desde su chip', async ({ page, freshUser }) => {
+    await freshUser('chip');
+    const split = new SplitExpensesPage(page);
+    await split.goto();
+    await split.openFriends();
+    await split.submitFriend('Camila Chip', 'camila.chip');
+    await expect(page.getByText('camila.chip')).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    await split.openNewGathering('Cena con Camila');
+    await split.friendChip('Camila Chip').click();
+    await expect(split.friendCheckbox('Camila Chip')).toBeChecked();
+    await split.createGatheringButton().click();
+
+    await expect(split.feed()).toContainText('2 personas');
+    await expect(split.balances()).toContainText('Camila Chip');
+  });
+
+  test('agrega un gasto, calcula la liquidación y resume el saldo propio', async ({ page, freshUser }) => {
     await freshUser('liq');
     const split = new SplitExpensesPage(page);
     await split.goto();
     await split.createGathering('Cena', ['Ana', 'Bruno']);
-    await split.ensureExpanded('Cena');
 
     await split.addExpense('Ana', '10000', 'Carne');
 
-    await expect(page.getByText('Carne')).toBeVisible();
-    await expect(page.getByText('Total: $10.000,00')).toBeVisible();
+    await expect(split.feed().getByText('Carne')).toBeVisible();
+    await expect(split.feed()).toContainText('$10.000,00');
 
-    const settlements = split.settlements();
-    await expect(settlements).toContainText('Bruno');
-    await expect(settlements).toContainText('Ana');
-    await expect(settlements).toContainText('$3.333,33');
+    await expect(split.settlements()).toContainText('Bruno → Ana');
+    await expect(split.settlements()).toContainText('Vos → Ana');
+    await expect(split.settlements()).toContainText('$3.333,33');
+    await expect(split.balances()).toContainText('+$6.666,67');
+
+    await expect(split.gatheringItem('Cena')).toContainText('Debés $3.333,33');
+    await expect(split.subtitle()).toHaveText('Debés $3.333,33');
+  });
+
+  test('un gasto propio suma a "Te deben" en el saldo', async ({ page, freshUser }) => {
+    await freshUser('deben');
+    const split = new SplitExpensesPage(page);
+    await split.goto();
+    await split.createGathering('Almuerzo', ['Ana']);
+
+    await split.addExpense('Vos', '4000', 'Pizza');
+
+    await expect(split.gatheringItem('Almuerzo')).toContainText('Te deben $2.000,00');
+    await expect(split.subtitle()).toHaveText('Te deben $2.000,00');
+  });
+
+  test('cambia el feed al elegir otra juntada de la lista', async ({ page, freshUser }) => {
+    await freshUser('cambia');
+    const split = new SplitExpensesPage(page);
+    await split.goto();
+    await split.createGathering('Primera', ['Ana']);
+    await expect(page.getByRole('heading', { name: 'Primera' })).toBeVisible();
+    await split.createGathering('Segunda', ['Bruno']);
+    await expect(page.getByRole('heading', { name: 'Segunda' })).toBeVisible();
+
+    await split.gatheringItem('Primera').click();
+
+    await expect(page.getByRole('heading', { name: 'Primera' })).toBeVisible();
+    await expect(split.gatheringItem('Primera')).toHaveAttribute('aria-current', 'true');
   });
 
   test('pide confirmación antes de eliminar un gasto', async ({ page, freshUser }) => {
@@ -82,7 +131,6 @@ test.describe('juntadas', () => {
     const split = new SplitExpensesPage(page);
     await split.goto();
     await split.createGathering('Parrilla', ['Ana', 'Bruno']);
-    await split.ensureExpanded('Parrilla');
     await split.addExpense('Ana', '4000', 'Chorizos');
     await expect(page.getByText('Chorizos')).toBeVisible();
 
@@ -117,17 +165,35 @@ test.describe('juntadas', () => {
     await expect(page.getByRole('alert')).toBeHidden();
   });
 
-  test('marca la juntada como saldada', async ({ page, freshUser }) => {
+  test('si falla el saldo, el header lo dice y el resto de la pantalla sigue', async ({ page, freshUser }) => {
+    await freshUser('saldo');
+    await page.route('**/api/split-expenses/balance', route =>
+      route.fulfill({ status: 500, contentType: 'application/json', body: '{"message":"boom"}' })
+    );
+    const split = new SplitExpensesPage(page);
+    await split.goto();
+
+    await expect(split.subtitle()).toHaveText('No se pudo cargar tu saldo');
+    await expect(page.getByText('Todavía no tenés juntadas')).toBeVisible();
+  });
+
+  test('marca la juntada como saldada y la reabre', async ({ page, freshUser }) => {
     await freshUser('sal');
     const split = new SplitExpensesPage(page);
     await split.goto();
     await split.createGathering('Cumpleaños', ['Ana', 'Bruno']);
-    await split.ensureExpanded('Cumpleaños');
 
     await split.settleButton().click();
 
-    await expect(page.getByText('Saldado')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Marcar como pendiente' })).toBeVisible();
+    await expect(split.gatheringList()).toContainText('Saldadas');
+    await expect(split.gatheringItem('Cumpleaños')).toContainText('Saldada');
+    await expect(split.settlePanel()).toContainText('Todo saldado');
+    await expect(split.payerGroup()).toBeHidden();
+
+    await split.reopenButton().click();
+
+    await expect(split.settleButton()).toBeVisible();
+    await expect(split.payerGroup()).toBeVisible();
   });
 
   test('elimina la juntada desde el menú de opciones', async ({ page, freshUser }) => {
@@ -135,13 +201,14 @@ test.describe('juntadas', () => {
     const split = new SplitExpensesPage(page);
     await split.goto();
     await split.createGathering('Picada', ['Ana', 'Bruno']);
-    await expect(page.getByText('Picada')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Picada' })).toBeVisible();
 
     await split.optionsButton().click();
     await page.getByRole('menuitem', { name: 'Eliminar juntada' }).click();
     await page.getByRole('button', { name: 'Eliminar', exact: true }).click();
     await expect(page.getByRole('dialog')).toBeHidden();
 
-    await expect(page.getByText('Picada')).toBeHidden();
+    await expect(page.getByRole('heading', { name: 'Picada' })).toBeHidden();
+    await expect(page.getByText('Todavía no tenés juntadas')).toBeVisible();
   });
 });
