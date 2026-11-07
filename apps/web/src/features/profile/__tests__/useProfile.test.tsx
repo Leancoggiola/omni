@@ -13,10 +13,16 @@ import type { ReactNode } from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 const patch = vi.fn();
+const put = vi.fn();
+const del = vi.fn();
 
 vi.mock('@/shared/api', async importOriginal => ({
   ...(await importOriginal<typeof import('@/shared/api')>()),
-  api: { patch: (...args: unknown[]) => patch(...args) },
+  api: {
+    patch: (...args: unknown[]) => patch(...args),
+    put: (...args: unknown[]) => put(...args),
+    delete: (...args: unknown[]) => del(...args),
+  },
 }));
 
 const preferences = {
@@ -60,6 +66,37 @@ function useProfileAndSession() {
 describe('useProfile', () => {
   beforeEach(() => {
     patch.mockReset();
+    put.mockReset();
+    del.mockReset();
+  });
+
+  it('subir la foto manda un FormData con el campo avatar y actualiza perfil y sesión', async () => {
+    const url = 'https://cdn.test/u1/a.png';
+    put.mockResolvedValue({ user: { ...profile, avatarUrl: url } });
+    const { result } = renderHook(() => useProfileAndSession(), { wrapper });
+    await waitFor(() => expect(result.current.profile).not.toBeNull());
+    await waitFor(() => expect(result.current.auth).toBeDefined());
+    const file = new File(['x'], 'a.png', { type: 'image/png' });
+
+    await act(() => result.current.uploadAvatar(file));
+
+    const [path, form] = put.mock.calls[0] as [string, FormData];
+    expect(path).toBe(SWR_KEYS.users.avatar);
+    expect(form.get('avatar')).toBeInstanceOf(File);
+    expect(result.current.profile?.avatarUrl).toBe(url);
+    expect(result.current.auth?.user.avatarUrl).toBe(url);
+  });
+
+  it('quitar la foto deja avatarUrl en null en perfil y sesión', async () => {
+    del.mockResolvedValue({ user: { ...profile, avatarUrl: null } });
+    const { result } = renderHook(() => useProfileAndSession(), { wrapper });
+    await waitFor(() => expect(result.current.profile).not.toBeNull());
+
+    await act(() => result.current.removeAvatar());
+
+    expect(del).toHaveBeenCalledWith(SWR_KEYS.users.avatar);
+    expect(result.current.profile?.avatarUrl).toBeNull();
+    expect(result.current.auth?.user.avatarUrl).toBeNull();
   });
 
   it('al guardar el tema también actualiza el usuario de la sesión', async () => {

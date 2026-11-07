@@ -8,6 +8,7 @@ import { ErrorState, LoadingState, PageHeader } from '@/shared/ui';
 import { DeleteAccountButton } from './components/DeleteAccountButton';
 import { HouseholdCard } from './components/HouseholdCard';
 import { PasswordForm } from './components/PasswordForm';
+import { ProfilePhotoSection } from './components/ProfilePhotoSection';
 import { ProfileSectionCard } from './components/ProfileSectionCard';
 import { ProfileSettingsForm } from './components/ProfileSettingsForm';
 import { useAccountActions } from './hooks/useAccountActions';
@@ -18,7 +19,18 @@ import type { ChangePasswordPayload } from '@omni/shared/users';
 import { UserIcon } from '@phosphor-icons/react';
 
 export const ProfilePage: FC = () => {
-  const { profile, isLoading, isMutating, error, mutate, updateProfile, updatePreferences } = useProfile();
+  const {
+    profile,
+    isLoading,
+    isMutating,
+    isUpdatingAvatar,
+    error,
+    mutate,
+    updateProfile,
+    updatePreferences,
+    uploadAvatar,
+    removeAvatar,
+  } = useProfile();
   const { changePassword, deleteAccount } = useAccountActions();
   const { clearSession } = useAuth();
   const navigate = useNavigate();
@@ -81,6 +93,14 @@ export const ProfilePage: FC = () => {
         icon={<UserIcon size="1.5rem" />}
         title="Mi Perfil"
         subtitle="Gestioná tu información personal y preferencias"
+      />
+
+      <ProfilePhotoSection
+        name={profile.name}
+        avatarUrl={profile.avatarUrl}
+        isBusy={isUpdatingAvatar}
+        onUpload={uploadAvatar}
+        onRemove={removeAvatar}
       />
 
       <ProfileSettingsForm key={profile.updatedAt} profile={profile} isSaving={isMutating} onSave={handleSave} />
