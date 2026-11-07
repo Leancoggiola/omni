@@ -12,6 +12,7 @@ export const API_PATHS = {
     preferences: '/api/users/preferences',
     password: '/api/users/password',
     account: '/api/users/account',
+    avatar: '/api/users/avatar',
   },
   admin: {
     users: '/api/admin/users',

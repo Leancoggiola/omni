@@ -8,6 +8,7 @@ Nueva feature: `/new-feature`. Contratos: `packages/shared/CLAUDE.md`.
 apps/api/src/
   common/http/        HttpError, validatedQuery y la augmentación de Express.User
   common/db/          prisma singleton, lockUserSessions (advisory lock de sesiones), lockHouseholds (advisory lock por hogar)
+  common/storage/     AvatarStorage (interfaz + adaptador de Supabase Storage), getAvatarStorage y setAvatarStorageOverride (solo test)
   common/utils/       validate, logger, http-logger (pino-http con redact), error-handler, rate-limit, client-ip, origin-guard, no-store,
                       cookies (set/clear de la sesión), password (hashPassword), not-found (404 JSON bajo /api)
   health/             /api/health (liveness) y /api/health/ready (SELECT 1); públicos, antes del guard
@@ -68,6 +69,10 @@ router.post('/list', validate(addMediaItemSchema), async (req, res) => { ... });
 
 Las rutas no llevan `try/catch`: Express 5 propaga los rechazos de los handlers async al handler global (`common/utils/error-handler.ts`). Los errores de dominio se lanzan con `throw new HttpError(status, message)` de `common/http`, nunca con un literal. En rutas autenticadas, `req.user!` tiene `userId`, `username` y `role`; el query ya validado se lee con `validatedQuery<T>(req)`.
 
+## Foto de perfil
+
+`PUT`/`DELETE /users/avatar` (`users/avatar.service.ts`): multipart con `multer` (`memoryStorage`, tope `AVATAR_MAX_BYTES`), formato por magic bytes (`detectAvatarImage`, nunca el `Content-Type` ni el nombre) y almacenamiento en Supabase Storage con la service key (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`, juntas o ninguna; sin ellas 503). Siempre a través de `getAvatarStorage()`, no con `createClient` en un service. Al reemplazar o borrar (también al borrar la cuenta) se elimina el objeto anterior con `discardAvatarObject`, que nunca falla. Setup del bucket y contrato: `docs/api/avatar-storage.md`.
+
 ## Consultas
 
 Evitar N+1: resolver colecciones con un `findMany({ where: { id: { in: ids } } })` en vez de un query por ítem dentro de un loop.
@@ -83,7 +88,7 @@ Usar `createRateLimiter` de `common/utils`, no `express-rate-limit` directo: per
 | Integración | `__tests__/integration/*.integration.test.ts`  | No           | Sí  |
 | Unitarios   | `__tests__/*.test.ts` (schemas, utils, reglas) | No           | No  |
 
-Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet (`tmdb.service`). Patrón completo: `docs/api/route-testing.md`.
+Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet: `tmdb.service` y el storage de fotos (`createFakeAvatarStorage()` + `setAvatarStorageOverride`). Patrón completo: `docs/api/route-testing.md`.
 
 ```bash
 docker compose up -d db-test

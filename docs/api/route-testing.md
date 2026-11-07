@@ -62,6 +62,7 @@ Todos en `apps/api/src/test/integration/`:
 | `createUser()`, `create…()`   | Factories determinísticas, sin datos aleatorios                          |
 | `findRecordedCall(model, op)` | Devuelve los `args` que recibió Prisma — para assertear el SQL emitido   |
 | `withSavepoint(fn)`           | Aísla una request que provoca un error de base de datos                  |
+| `createFakeAvatarStorage()`   | Storage de fotos en memoria; se instala con `setAvatarStorageOverride`   |
 
 ---
 

@@ -6,6 +6,7 @@ import { lockUserSessions, prisma } from '../common/db';
 import { hashPassword } from '../common/utils/password';
 import { HttpError } from '../common/http';
 import { detachForAccountDeletion } from '../household/household.service';
+import { discardAvatarObject } from './avatar.service';
 
 export async function create(dto: Omit<CreateUserPayload, 'role'> & { password: string; role?: Role }): Promise<User> {
   return prisma.user.create({
@@ -111,13 +112,17 @@ export async function changePassword(userId: string, { currentPassword, newPassw
 /**
  * Estando vinculada equivale a desvincular: el hogar sigue con la otra persona y solo desaparece si era la última.
  * Usa `deleteMany` a propósito: es idempotente y un P2025 abortaría la transacción; los llamadores ya validan que la
- * cuenta existe.
+ * cuenta existe. Con la cuenta ya borrada se elimina del storage la foto de perfil, si tenía.
  */
 export async function deleteAccount(userId: string) {
-  await prisma.$transaction(async tx => {
+  const avatarUrl = await prisma.$transaction(async tx => {
     await detachForAccountDeletion(tx, userId);
+    const user = await tx.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } });
     await tx.user.deleteMany({ where: { id: userId } });
+    return user?.avatarUrl ?? null;
   });
+
+  await discardAvatarObject(userId, avatarUrl);
 }
 
 export async function updatePreferences(userId: string, dto: UpdatePreferencesPayload) {
