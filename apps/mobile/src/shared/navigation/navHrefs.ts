@@ -11,4 +11,5 @@ export const NAV_HREFS: Partial<Record<NavKey, Href>> = {
   media: '/media',
   pantry: '/pantry',
   profile: '/profile',
+  admin: '/admin',
 };
