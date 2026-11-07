@@ -10,12 +10,14 @@ export {
 } from './constants';
 export type {
   SplitFriend,
+  SplitFriendWithBalance,
   SplitFriendSuggest,
   GatheringParticipantSummary,
   GatheringExpense,
   Settlement,
   GatheringDetail,
   GatheringSummary,
+  SplitBalanceSummary,
 } from './types';
 export {
   createSplitFriendSchema,
@@ -37,5 +39,5 @@ export type {
 } from './schemas';
 export { computeBalances, computeSettlements } from './settlements';
 export type { SettlementParticipantInput, ParticipantBalance } from './settlements';
-export { summarizeGatheringPayments } from './gathering-summary';
+export { summarizeGatheringPayments, summarizeUserBalance, summarizeSplitBalance } from './gathering-summary';
 export type { GatheringSettlementSummary } from './gathering-summary';

@@ -40,6 +40,7 @@ const summary: GatheringSummary = {
   isSettled: false,
   participantCount: 2,
   totalAmount: 100,
+  myBalance: null,
 };
 
 const detail: GatheringDetail = {
@@ -47,8 +48,8 @@ const detail: GatheringDetail = {
   settledAt: null,
   fairShare: 50,
   participants: [
-    { id: 'p1', displayName: 'Ana', friendId: null, alias: null, totalPaid: 100 },
-    { id: 'p2', displayName: 'Beto', friendId: null, alias: null, totalPaid: 0 },
+    { id: 'p1', displayName: 'Ana', friendId: null, alias: null, totalPaid: 100, balance: 50, isSelf: false },
+    { id: 'p2', displayName: 'Beto', friendId: null, alias: null, totalPaid: 0, balance: -50, isSelf: false },
   ],
   expenses: [{ id: 'e1', participantId: 'p1', participantName: 'Ana', amount: 100, description: null, createdAt: '' }],
   settlements: [],

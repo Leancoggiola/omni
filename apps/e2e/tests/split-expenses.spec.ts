@@ -56,7 +56,7 @@ test.describe('juntadas', () => {
     await split.createGathering('Asado del sábado', ['Ana', 'Bruno']);
 
     await expect(page.getByText('Asado del sábado')).toBeVisible();
-    await expect(page.getByText('2 participantes')).toBeVisible();
+    await expect(page.getByText('3 participantes')).toBeVisible();
   });
 
   test('agrega un gasto y calcula la liquidación', async ({ page, freshUser }) => {
@@ -74,7 +74,7 @@ test.describe('juntadas', () => {
     const settlements = split.settlements();
     await expect(settlements).toContainText('Bruno');
     await expect(settlements).toContainText('Ana');
-    await expect(settlements).toContainText('$5.000,00');
+    await expect(settlements).toContainText('$3.333,33');
   });
 
   test('pide confirmación antes de eliminar un gasto', async ({ page, freshUser }) => {
