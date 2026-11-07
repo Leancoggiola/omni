@@ -33,14 +33,14 @@ import { ProductQuantityStepper } from './ProductQuantityStepper';
 import type { ProductFormValues } from '../utils/productForm';
 import type { CreatePantryProductPayload, PantryProduct } from '@omni/shared/pantry';
 
-import { PANTRY_CATEGORIES, PANTRY_CATEGORY_LABELS } from '@omni/shared/pantry';
+import { PANTRY_CATEGORIES, PANTRY_CATEGORY_LABELS, PANTRY_UNIT_LABELS, PANTRY_UNITS } from '@omni/shared/pantry';
 
 const CATEGORY_OPTIONS = PANTRY_CATEGORIES.map(value => ({ value, label: PANTRY_CATEGORY_LABELS[value] }));
 
-const UNIT_OPTIONS = [
-  { value: 'UNITS', label: 'Unidades' },
-  { value: 'PACKAGES', label: 'Paquetes' },
-];
+const UNIT_OPTIONS = PANTRY_UNITS.map(value => {
+  const plural = PANTRY_UNIT_LABELS[value].other;
+  return { value, label: plural.charAt(0).toUpperCase() + plural.slice(1) };
+});
 
 interface ProductFormModalProps {
   opened: boolean;

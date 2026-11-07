@@ -21,13 +21,13 @@ export function useShoppingListMutations() {
 
   const generate = useCallback(async () => {
     await api.post<PantryShoppingListItem[]>(SWR_KEYS.pantry.shoppingListGenerate);
-    await mutate(isPantryKey);
+    await mutate(isPantryKey).catch(() => undefined);
   }, [mutate]);
 
   const addItem = useCallback(
     async (payload: AddShoppingListItemPayload) => {
       const item = await api.post<PantryShoppingListItem>(SWR_KEYS.pantry.shoppingListItems, payload);
-      await mutate(isPantryKey);
+      await mutate(isPantryKey).catch(() => undefined);
       return item;
     },
     [mutate]
@@ -39,7 +39,7 @@ export function useShoppingListMutations() {
         SWR_KEYS.pantry.shoppingListItemComplete(id),
         payload
       );
-      await mutate(isPantryKey);
+      await mutate(isPantryKey).catch(() => undefined);
       return result;
     },
     [mutate]
@@ -48,7 +48,7 @@ export function useShoppingListMutations() {
   const updateItem = useCallback(
     async (id: string, quantityToBuy: number) => {
       await api.patch<PantryShoppingListItem>(SWR_KEYS.pantry.shoppingListItem(id), { quantityToBuy });
-      await mutate(isPantryKey);
+      await mutate(isPantryKey).catch(() => undefined);
     },
     [mutate]
   );
@@ -56,7 +56,7 @@ export function useShoppingListMutations() {
   const uncheckItem = useCallback(
     async (id: string) => {
       await api.patch<PantryShoppingListItem>(SWR_KEYS.pantry.shoppingListItemUncheck(id), {});
-      await mutate(isPantryKey);
+      await mutate(isPantryKey).catch(() => undefined);
     },
     [mutate]
   );
@@ -64,14 +64,14 @@ export function useShoppingListMutations() {
   const removeItem = useCallback(
     async (id: string) => {
       await api.delete(SWR_KEYS.pantry.shoppingListItem(id));
-      await mutate(isPantryKey);
+      await mutate(isPantryKey).catch(() => undefined);
     },
     [mutate]
   );
 
   const clearChecked = useCallback(async () => {
     await api.delete(SWR_KEYS.pantry.shoppingListChecked);
-    await mutate(isPantryKey);
+    await mutate(isPantryKey).catch(() => undefined);
   }, [mutate]);
 
   return { generate, addItem, completeItem, updateItem, uncheckItem, removeItem, clearChecked };

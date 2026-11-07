@@ -17,7 +17,7 @@ export function usePantryMutations() {
   const createProduct = useCallback(
     async (payload: CreatePantryProductPayload) => {
       const product = await api.post<PantryProduct>(SWR_KEYS.pantry.products, payload);
-      await mutate(isPantryKey);
+      await mutate(isPantryKey).catch(() => undefined);
       return product;
     },
     [mutate]
@@ -26,7 +26,7 @@ export function usePantryMutations() {
   const updateProduct = useCallback(
     async (id: string, payload: UpdatePantryProductPayload) => {
       const product = await api.patch<PantryProduct>(SWR_KEYS.pantry.product(id), payload);
-      await mutate(isPantryKey);
+      await mutate(isPantryKey).catch(() => undefined);
       return product;
     },
     [mutate]
@@ -35,7 +35,7 @@ export function usePantryMutations() {
   const deleteProduct = useCallback(
     async (id: string) => {
       await api.delete(SWR_KEYS.pantry.product(id));
-      await mutate((key: unknown) => isPantryKey(key) && key !== SWR_KEYS.pantry.product(id));
+      await mutate((key: unknown) => isPantryKey(key) && key !== SWR_KEYS.pantry.product(id)).catch(() => undefined);
     },
     [mutate]
   );
