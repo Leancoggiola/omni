@@ -522,6 +522,7 @@ describe('pantry routes (integration)', () => {
         .send({ quantityToBuy: 2 });
 
       expect(res.status).toBe(409);
+      expect(res.body.message).toBe('El ítem ya fue comprado: destildalo para editarlo');
     });
 
     it('PATCH /shopping-list/items/:itemId returns 404 for an item of another household', async () => {
@@ -561,6 +562,26 @@ describe('pantry routes (integration)', () => {
 
       expect(res.status).toBe(409);
       expect(res.body.message).toBe('El ítem no estaba marcado');
+    });
+
+    it('PATCH /shopping-list/items/:itemId/uncheck returns 409 when the product already has a pending AUTO item', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Arroz', quantity: 1, minQuantity: 2 });
+      const bought = await createShoppingListItem(user.id, {
+        name: 'Arroz',
+        source: 'AUTO',
+        pantryProductId: product.id,
+        checked: true,
+      });
+      await createShoppingListItem(user.id, { name: 'Arroz', source: 'AUTO', pantryProductId: product.id });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${bought.id}/uncheck`)
+        .set('Authorization', auth);
+
+      expect(res.status).toBe(409);
+      expect(res.body.message).toBe('Ya hay un ítem pendiente para este producto');
+      const stored = await prisma.pantryShoppingListItem.findUnique({ where: { id: bought.id } });
+      expect(stored?.checked).toBe(true);
     });
 
     it('PATCH /shopping-list/items/:itemId/uncheck returns 404 for an item of another household', async () => {

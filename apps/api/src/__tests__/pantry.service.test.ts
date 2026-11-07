@@ -72,6 +72,7 @@ describe('uncheckShoppingListItem', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('destilda con guarda sobre checked y registra quién lo hizo', async () => {
+    tx.pantryShoppingListItem.findFirst.mockResolvedValue({ ...row, checked: true });
     tx.pantryShoppingListItem.updateMany.mockResolvedValue({ count: 1 });
     tx.pantryShoppingListItem.findUniqueOrThrow.mockResolvedValue({ ...row, updatedById: 'beto' });
 
@@ -85,16 +86,28 @@ describe('uncheckShoppingListItem', () => {
   });
 
   it('responde 404 si el ítem no existe en el hogar', async () => {
-    tx.pantryShoppingListItem.updateMany.mockResolvedValue({ count: 0 });
     tx.pantryShoppingListItem.findFirst.mockResolvedValue(null);
 
     await expect(uncheckShoppingListItem('beto', 'item1')).rejects.toMatchObject({ status: 404 });
   });
 
   it('responde 409 si el ítem no estaba marcado', async () => {
-    tx.pantryShoppingListItem.updateMany.mockResolvedValue({ count: 0 });
     tx.pantryShoppingListItem.findFirst.mockResolvedValue(row);
 
     await expect(uncheckShoppingListItem('beto', 'item1')).rejects.toMatchObject({ status: 409 });
+    expect(tx.pantryShoppingListItem.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('responde 409 si un AUTO ya tiene otro AUTO pendiente para el producto', async () => {
+    const auto = { ...row, source: 'AUTO' as const, pantryProductId: 'p1', checked: true };
+    tx.pantryShoppingListItem.findFirst
+      .mockResolvedValueOnce(auto)
+      .mockResolvedValueOnce({ ...auto, id: 'item2', checked: false });
+
+    await expect(uncheckShoppingListItem('beto', 'item1')).rejects.toMatchObject({
+      status: 409,
+      message: 'Ya hay un ítem pendiente para este producto',
+    });
+    expect(tx.pantryShoppingListItem.updateMany).not.toHaveBeenCalled();
   });
 });

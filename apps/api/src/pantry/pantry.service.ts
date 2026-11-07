@@ -408,7 +408,7 @@ export async function updateShoppingListItem(userId: string, itemId: string, dto
   return withHousehold(userId, async (tx, householdId) => {
     const item = await tx.pantryShoppingListItem.findFirst({ where: { id: itemId, householdId } });
     if (!item) throw new HttpError(404, 'Ítem no encontrado');
-    if (item.checked) throw new HttpError(409, 'El ítem ya estaba marcado');
+    if (item.checked) throw new HttpError(409, 'El ítem ya fue comprado: destildalo para editarlo');
 
     const updated = await tx.pantryShoppingListItem.update({
       where: { id: itemId },
@@ -421,19 +421,28 @@ export async function updateShoppingListItem(userId: string, itemId: string, dto
 
 /**
  * Destilda un ítem comprado y registra quién lo hizo. No toca el stock del producto: la cantidad que sumó al
- * marcarlo se corrige desde el producto.
+ * marcarlo se corrige desde el producto. Un ítem AUTO no se destilda si el producto ya tiene otro AUTO pendiente
+ * (a lo sumo hay uno por producto): 409.
  */
 export async function uncheckShoppingListItem(userId: string, itemId: string) {
   return withHousehold(userId, async (tx, householdId) => {
+    const target = await tx.pantryShoppingListItem.findFirst({ where: { id: itemId, householdId } });
+    if (!target) throw new HttpError(404, 'Ítem no encontrado');
+    if (!target.checked) throw new HttpError(409, 'El ítem no estaba marcado');
+
+    if (target.source === 'AUTO' && target.pantryProductId) {
+      const pending = await tx.pantryShoppingListItem.findFirst({
+        where: { householdId, pantryProductId: target.pantryProductId, source: 'AUTO', checked: false },
+      });
+      if (pending) throw new HttpError(409, 'Ya hay un ítem pendiente para este producto');
+    }
+
     const claimed = await tx.pantryShoppingListItem.updateMany({
       where: { id: itemId, householdId, checked: true },
       data: { checked: false, updatedById: userId },
     });
-    if (claimed.count === 0) {
-      const exists = await tx.pantryShoppingListItem.findFirst({ where: { id: itemId, householdId } });
-      if (!exists) throw new HttpError(404, 'Ítem no encontrado');
-      throw new HttpError(409, 'El ítem no estaba marcado');
-    }
+    if (claimed.count === 0) throw new HttpError(409, 'El ítem no estaba marcado');
+
     const item = await tx.pantryShoppingListItem.findUniqueOrThrow({
       where: { id: itemId },
       include: { pantryProduct: true },
