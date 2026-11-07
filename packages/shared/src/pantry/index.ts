@@ -1,5 +1,11 @@
 export type { PantryCategory, PantryShoppingSource, PantryUnit } from './constants';
-export { PANTRY_CATEGORIES, PANTRY_EXPIRING_SOON_DAYS, PANTRY_SHOPPING_SOURCES, PANTRY_UNITS } from './constants';
+export {
+  PANTRY_CATEGORIES,
+  PANTRY_EXPIRING_SOON_DAYS,
+  PANTRY_LIST_REFRESH_MS,
+  PANTRY_SHOPPING_SOURCES,
+  PANTRY_UNITS,
+} from './constants';
 export type { PantryProduct, PantryShoppingListItem, PantrySummary } from './types';
 export { isLowStock, isExpiringSoon } from './alerts';
 export {
@@ -20,3 +26,4 @@ export type {
   UpdatePantryProductPayload,
   UpdateShoppingListItemPayload,
 } from './schemas';
+export { PANTRY_CATEGORY_LABELS, PANTRY_UNIT_LABELS, computeQuantityToBuy, formatPantryQuantity } from './presentation';
