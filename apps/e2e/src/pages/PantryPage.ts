@@ -24,6 +24,13 @@ export class PantryPage {
   readonly uncheckOf = (name: string) => this.page.getByRole('checkbox', { name: `Destildar ${name}` });
   readonly retryButton = () => this.page.getByRole('button', { name: 'Reintentar' });
 
+  /** Ancho del documento vs. el del viewport: si el primero es mayor hay scroll horizontal. */
+  async pageWidths() {
+    return (await this.page.evaluate(
+      '({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth })'
+    )) as { scrollWidth: number; clientWidth: number };
+  }
+
   async goto() {
     await this.page.goto('/pantry');
   }

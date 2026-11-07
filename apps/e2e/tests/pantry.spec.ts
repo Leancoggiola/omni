@@ -329,6 +329,7 @@ test.describe('pantry', () => {
 
     await expect(pantry.rowOf('Té')).toBeVisible();
     await expect(pantry.addProductButton()).toBeVisible();
-    await expect(page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).resolves.toBe(true);
+    const { scrollWidth, clientWidth } = await pantry.pageWidths();
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 0.5);
   });
 });
