@@ -4,6 +4,7 @@ import {
   DEFAULT_MEDIA_FILTERS,
   filterMediaItems,
   hasActiveFilters,
+  takeMediaByStatus,
   MEDIA_STATUS_FILTER_OPTIONS,
   MEDIA_STATUS_LABELS,
   MEDIA_STATUS_OPTIONS,
@@ -74,5 +75,34 @@ describe('hasActiveFilters', () => {
     expect(hasActiveFilters({ ...DEFAULT_MEDIA_FILTERS, status: 'watched' })).toBe(true);
     expect(hasActiveFilters({ ...DEFAULT_MEDIA_FILTERS, mediaType: 'movie' })).toBe(true);
     expect(hasActiveFilters({ ...DEFAULT_MEDIA_FILTERS, query: 'bear' })).toBe(true);
+  });
+});
+
+describe('takeMediaByStatus', () => {
+  const at = (id: string, status: MediaItem['status'], updatedAt: string): MediaItem => ({
+    ...item(id, `Título ${id}`, 'tv', status),
+    updatedAt,
+  });
+  const LIST = [
+    at('1', 'watching', '2026-01-01'),
+    at('2', 'to_watch', '2026-05-01'),
+    at('3', 'watching', '2026-03-01'),
+    at('4', 'watching', '2026-02-01'),
+    at('5', 'watching', '2026-04-01'),
+  ];
+
+  it('toma solo los del estado, del más reciente al más viejo, hasta el límite', () => {
+    expect(takeMediaByStatus(LIST, 'watching', 3).map(i => i.id)).toEqual(['5', '3', '4']);
+  });
+
+  it('no muta la lista original', () => {
+    const copy = [...LIST];
+    takeMediaByStatus(LIST, 'watching', 2);
+    expect(LIST).toEqual(copy);
+  });
+
+  it('sin coincidencias o con límite 0 devuelve vacío', () => {
+    expect(takeMediaByStatus(LIST, 'watched', 3)).toEqual([]);
+    expect(takeMediaByStatus(LIST, 'watching', 0)).toEqual([]);
   });
 });

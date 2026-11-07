@@ -7,13 +7,14 @@ import { useAuth } from '@/core/auth';
 import { DisplayTitle, Screen, SectionCard } from '@/shared/ui';
 
 import { HolidaysCard } from './components/HolidaysCard';
+import { WatchingCard } from './components/WatchingCard';
 
 const NAME_SKELETON = { width: 160, height: 36 } as const;
 const GREETING_LINE_HEIGHT = 24;
 
 /**
  * Inicio (= `HomeMainCard` de web): una card glass con el saludo, el nombre en `display` y las efemérides adentro,
- * sin `ScreenHeader`.
+ * sin `ScreenHeader`. Debajo va la card fija "Seguís viendo". `Screen` ya reserva el lugar de la tab bar.
  */
 export function HomeScreen() {
   const { user, isLoading } = useAuth();
@@ -22,7 +23,10 @@ export function HomeScreen() {
 
   return (
     <Screen>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: SPACING.xl }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: SPACING.xl, gap: SPACING.md }}
+      >
         <SectionCard>
           <YStack
             gap={SPACING['2xs']}
@@ -49,6 +53,7 @@ export function HomeScreen() {
           </YStack>
           <HolidaysCard />
         </SectionCard>
+        <WatchingCard />
       </ScrollView>
     </Screen>
   );
