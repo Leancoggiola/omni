@@ -17,6 +17,13 @@ describe('API_PATHS', () => {
     expect(API_PATHS.splitExpenses.gatheringExpense('g1', 'e1')).toBe('/api/split-expenses/gatherings/g1/expenses/e1');
     expect(API_PATHS.splitExpenses.balance).toBe('/api/split-expenses/balance');
   });
+
+  it('arma los paths de pantry', () => {
+    expect(API_PATHS.pantry.product('p1')).toBe('/api/pantry/products/p1');
+    expect(API_PATHS.pantry.shoppingListItem('i1')).toBe('/api/pantry/shopping-list/items/i1');
+    expect(API_PATHS.pantry.shoppingListItemComplete('i1')).toBe('/api/pantry/shopping-list/items/i1/complete');
+    expect(API_PATHS.pantry.shoppingListItemUncheck('i1')).toBe('/api/pantry/shopping-list/items/i1/uncheck');
+  });
 });
 
 describe('buildQueryString', () => {

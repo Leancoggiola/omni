@@ -12,6 +12,19 @@ Dos personas comparten alacena (productos y lista de compras) y la lista de pel�
 
 `MediaItem`, `PantryProduct` y `PantryShoppingListItem` pasan de `userId` a `householdId` y guardan `createdById` (nullable, `SetNull` al borrar la cuenta). La migración `20261031120000_household_sharing` da un hogar a cada usuario existente (`hh_<userId>`) y rellena ambas columnas.
 
+## Alacena: autoría y edición
+
+`PantryProduct` y `PantryShoppingListItem` guardan también `updatedById` (nullable, `SetNull` al borrar la cuenta; migración `20261106120000_pantry_updated_by`). Se escribe en cada alta y cambio: crear, editar, completar, destildar y `generate`. Los tipos de `@omni/shared/pantry` lo exponen junto a `createdById`.
+
+Endpoints de la lista de compras que cambian ítems (todos con `withHousehold`):
+
+| Endpoint                                                | Qué hace                                                                                                                |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `PATCH /api/pantry/shopping-list/items/:itemId`         | Cambia `quantityToBuy` de un ítem pendiente. 409 si ya está comprado, 404 si no es del hogar.                           |
+| `PATCH /api/pantry/shopping-list/items/:itemId/uncheck` | Destilda un ítem comprado. No revierte el stock que sumó al marcarlo. 409 si no estaba marcado, 404 si no es del hogar. |
+
+`POST /shopping-list/generate` recalcula la cantidad de los ítems AUTO pendientes: una edición manual sobre uno de ellos se pierde en la próxima generación.
+
 ## Reglas
 
 - **Máximo 2 integrantes** y cambios de integrantes serializados con `lockHouseholds` (advisory lock por hogar, en orden de id). La base no impone el tope: un script, el seed o SQL manual que no pase por `lockHouseholds` puede violarlo.

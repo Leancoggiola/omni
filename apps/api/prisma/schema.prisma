@@ -47,6 +47,8 @@ model User {
   createdMediaItems        MediaItem[]
   createdPantryProducts    PantryProduct[]
   createdShoppingListItems PantryShoppingListItem[]
+  updatedPantryProducts    PantryProduct[]          @relation("PantryProductUpdatedBy")
+  updatedShoppingListItems PantryShoppingListItem[] @relation("PantryShoppingItemUpdatedBy")
   createdHouseholdInvites  HouseholdInvite[]        @relation("InviteCreatedBy")
   usedHouseholdInvites     HouseholdInvite[]        @relation("InviteUsedBy")
   gymPlans                 GymPlan[]
@@ -209,6 +211,8 @@ model PantryProduct {
   household      Household                @relation(fields: [householdId], references: [id], onDelete: Cascade)
   createdById    String?
   createdBy      User?                    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  updatedById    String?
+  updatedBy      User?                    @relation("PantryProductUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   name           String
   nameNormalized String
   category       PantryCategory
@@ -230,6 +234,8 @@ model PantryShoppingListItem {
   household       Household            @relation(fields: [householdId], references: [id], onDelete: Cascade)
   createdById     String?
   createdBy       User?                @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  updatedById     String?
+  updatedBy       User?                @relation("PantryShoppingItemUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   pantryProductId String?
   pantryProduct   PantryProduct?       @relation(fields: [pantryProductId], references: [id], onDelete: SetNull)
   name            String
