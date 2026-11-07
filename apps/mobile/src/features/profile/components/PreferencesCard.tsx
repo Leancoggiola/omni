@@ -44,7 +44,7 @@ export function PreferencesCard({ values, onChange }: PreferencesCardProps) {
   };
 
   return (
-    <SectionCard title="Preferencias" subtitle="Personaliza tu experiencia">
+    <SectionCard title="Preferencias" subtitle="Personalizá tu experiencia">
       <YStack gap={SPACING.lg}>
         <Switch
           label="Notificaciones"

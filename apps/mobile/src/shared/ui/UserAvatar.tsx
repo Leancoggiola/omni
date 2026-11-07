@@ -1,4 +1,5 @@
 import { GRADIENT_STOPS } from '@omni/shared/theme';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Paragraph } from 'tamagui';
 
@@ -13,14 +14,27 @@ const BRAND_POINTS = gradientPoints(BRAND.deg);
 type UserAvatarProps = {
   name: string;
   size?: number;
+  /** Foto: si viene, reemplaza las iniciales. */
+  uri?: string | null;
 };
 
 /**
  * Equivalente de `UserAvatar` de web: círculo con el gradiente de marca e iniciales. La foto
- * (`avatarUrl`) llega con #39.
+ * (`uri`) reemplaza las iniciales.
  */
-export function UserAvatar({ name, size = 40 }: UserAvatarProps) {
+export function UserAvatar({ name, size = 40, uri }: UserAvatarProps) {
   const colors = useSemanticColors();
+
+  if (uri) {
+    return (
+      <Image
+        source={{ uri }}
+        accessibilityLabel={`Foto de ${name}`}
+        style={{ width: size, height: size, borderRadius: size / 2 }}
+        contentFit="cover"
+      />
+    );
+  }
 
   return (
     <LinearGradient

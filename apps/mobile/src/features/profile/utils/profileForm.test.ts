@@ -1,4 +1,4 @@
-import { validatePasswordForm } from './profileForm';
+import { birthDateToDisplay, maskBirthDateInput, parseBirthDateInput, validatePasswordForm } from './profileForm';
 
 describe('validatePasswordForm', () => {
   it('acepta la contraseña actual y dos contraseñas nuevas iguales de 8 a 72 caracteres', () => {
@@ -29,5 +29,41 @@ describe('validatePasswordForm', () => {
       confirmPassword: 'Las contraseñas no coinciden',
     });
     expect(validatePasswordForm('actual', '12345678', '')).toEqual({ confirmPassword: 'Las contraseñas no coinciden' });
+  });
+});
+
+describe('maskBirthDateInput', () => {
+  it('pone las barras solas y deja solo dígitos hasta 8', () => {
+    expect(maskBirthDateInput('1')).toBe('1');
+    expect(maskBirthDateInput('150')).toBe('15/0');
+    expect(maskBirthDateInput('15051990')).toBe('15/05/1990');
+    expect(maskBirthDateInput('15/05/1990999')).toBe('15/05/1990');
+    expect(maskBirthDateInput('ab')).toBe('');
+  });
+});
+
+describe('birthDateToDisplay', () => {
+  it('muestra el día de calendario de la API en dd/mm/aaaa', () => {
+    expect(birthDateToDisplay('1990-05-15T00:00:00.000Z')).toBe('15/05/1990');
+    expect(birthDateToDisplay(null)).toBe('');
+    expect(birthDateToDisplay(undefined)).toBe('');
+  });
+});
+
+describe('parseBirthDateInput', () => {
+  const today = new Date(2026, 10, 4);
+
+  it('devuelve el día en YYYY-MM-DD o null si el campo está vacío', () => {
+    expect(parseBirthDateInput('15/05/1990', today)).toBe('1990-05-15');
+    expect(parseBirthDateInput('', today)).toBeNull();
+    expect(parseBirthDateInput('  ', today)).toBeNull();
+  });
+
+  it('rechaza fechas incompletas, inexistentes, anteriores a 1900 o futuras', () => {
+    expect(parseBirthDateInput('15/05', today)).toBeUndefined();
+    expect(parseBirthDateInput('31/02/1990', today)).toBeUndefined();
+    expect(parseBirthDateInput('15/05/1899', today)).toBeUndefined();
+    expect(parseBirthDateInput('05/11/2026', today)).toBeUndefined();
+    expect(parseBirthDateInput('04/11/2026', today)).toBe('2026-11-04');
   });
 });
