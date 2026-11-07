@@ -33,6 +33,7 @@ export const API_PATHS = {
     gatheringExpenses: (gatheringId: string) => `/api/split-expenses/gatherings/${gatheringId}/expenses`,
     gatheringExpense: (gatheringId: string, expenseId: string) =>
       `/api/split-expenses/gatherings/${gatheringId}/expenses/${expenseId}`,
+    balance: '/api/split-expenses/balance',
   },
   household: {
     current: '/api/household',
@@ -40,6 +41,19 @@ export const API_PATHS = {
     invitePreview: '/api/household/invite/preview',
     inviteAccept: '/api/household/invite/accept',
     leave: '/api/household/leave',
+  },
+  pantry: {
+    summary: '/api/pantry/summary',
+    products: '/api/pantry/products',
+    productsSuggest: '/api/pantry/products/suggest',
+    product: (id: string) => `/api/pantry/products/${id}`,
+    shoppingList: '/api/pantry/shopping-list',
+    shoppingListGenerate: '/api/pantry/shopping-list/generate',
+    shoppingListItems: '/api/pantry/shopping-list/items',
+    shoppingListItem: (id: string) => `/api/pantry/shopping-list/items/${id}`,
+    shoppingListItemComplete: (id: string) => `/api/pantry/shopping-list/items/${id}/complete`,
+    shoppingListItemUncheck: (id: string) => `/api/pantry/shopping-list/items/${id}/uncheck`,
+    shoppingListChecked: '/api/pantry/shopping-list/checked',
   },
   holidays: {
     today: '/api/holidays/today',

@@ -29,7 +29,9 @@ export function useSplitExpensesMutations() {
       const excluded = excludeGatheringId ? SWR_KEYS.splitExpenses.gathering(excludeGatheringId) : null;
       await mutate(
         (key: unknown) =>
-          typeof key === 'string' && key.startsWith(SWR_KEYS.splitExpenses.gatherings) && key !== excluded
+          typeof key === 'string' &&
+          ((key.startsWith(SWR_KEYS.splitExpenses.gatherings) && key !== excluded) ||
+            key === SWR_KEYS.splitExpenses.balance)
       );
     },
     [mutate]

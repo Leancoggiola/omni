@@ -3,6 +3,7 @@ import type { PantryCategory, PantryShoppingSource, PantryUnit } from './constan
 export interface PantryProduct {
   id: string;
   createdById: string | null;
+  updatedById: string | null;
   name: string;
   category: PantryCategory;
   unit: PantryUnit;
@@ -25,6 +26,7 @@ export interface PantrySummary {
 export interface PantryShoppingListItem {
   id: string;
   createdById: string | null;
+  updatedById: string | null;
   name: string;
   source: PantryShoppingSource;
   quantityToBuy: number;

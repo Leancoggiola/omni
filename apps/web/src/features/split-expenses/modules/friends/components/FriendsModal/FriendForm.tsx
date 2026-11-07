@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Alert, Button, Group, Stack, Text, TextInput } from '@mantine/core';
+import { Alert, Button, Group, Stack, TextInput } from '@mantine/core';
 import { schemaResolver, useForm } from '@mantine/form';
 
 import { getErrorMessage } from '@/shared/ui';
@@ -43,31 +43,28 @@ export const FriendForm: FC<FriendFormProps> = ({ onCreate }) => {
 
   return (
     <form noValidate onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap="sm">
-        <Text size="xs" fw={700} c="dimmed" tt="uppercase">
-          Agregar amigo
-        </Text>
-
+      <Stack gap="xs">
         {submitError && <Alert color="destructive">{submitError}</Alert>}
 
-        <TextInput
-          aria-label="Nombre"
-          placeholder="Nombre"
-          required
-          maxLength={SPLIT_FRIEND_NAME_MAX}
-          {...form.getInputProps('name')}
-        />
-        <TextInput
-          aria-label="Alias"
-          placeholder="Alias"
-          required
-          maxLength={SPLIT_FRIEND_ALIAS_MAX}
-          {...form.getInputProps('alias')}
-        />
-
-        <Group justify="flex-end">
+        <Group gap="xs" align="flex-start">
+          <TextInput
+            aria-label="Nombre"
+            placeholder="Nombre"
+            required
+            maxLength={SPLIT_FRIEND_NAME_MAX}
+            style={{ flex: '1 1 8rem' }}
+            {...form.getInputProps('name')}
+          />
+          <TextInput
+            aria-label="Alias"
+            placeholder="Alias"
+            required
+            maxLength={SPLIT_FRIEND_ALIAS_MAX}
+            style={{ flex: '1 1 8rem' }}
+            {...form.getInputProps('alias')}
+          />
           <Button type="submit" loading={loading} disabled={!form.isDirty()}>
-            Guardar amigo
+            Agregar
           </Button>
         </Group>
       </Stack>

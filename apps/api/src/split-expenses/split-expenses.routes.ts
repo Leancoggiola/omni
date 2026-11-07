@@ -59,6 +59,11 @@ router.delete('/friends/:friendId', validate(idParamsSchema('friendId'), 'params
   res.status(204).send();
 });
 
+router.get('/balance', async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await splitService.getBalance(userId));
+});
+
 router.get('/gatherings', validate(listGatheringsSchema, 'query'), async (req, res) => {
   const { userId } = req.user!;
   res.json(await splitService.listGatherings(userId, validatedQuery<ListGatheringsParams>(req)));

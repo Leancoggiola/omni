@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Alert, Button, Group, Stack, TextInput } from '@mantine/core';
+import { Alert, Button, Group, Stack, Text, TextInput } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { schemaResolver, useForm } from '@mantine/form';
 
@@ -50,10 +50,14 @@ export const NewGatheringForm: FC<NewGatheringFormProps> = ({ loading, onCreate,
   return (
     <form noValidate onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="md">
+        <Text size="sm" c="dimmed">
+          Después cargás los gastos en el feed.
+        </Text>
+
         {submitError && <Alert color="destructive">{submitError}</Alert>}
 
         <TextInput
-          label="Nombre de la juntada"
+          label="Nombre"
           placeholder="Asado del sábado"
           required
           maxLength={GATHERING_NAME_MAX}
@@ -71,8 +75,13 @@ export const NewGatheringForm: FC<NewGatheringFormProps> = ({ loading, onCreate,
         <ParticipantPicker
           participants={form.values.participants}
           error={form.errors.participants as string | undefined}
-          onAdd={(friendId, displayName) =>
-            form.insertListItem('participants', { key: crypto.randomUUID(), friendId, displayName })
+          onToggleFriend={(friendId, displayName) => {
+            const index = form.values.participants.findIndex(participant => participant.friendId === friendId);
+            if (index >= 0) form.removeListItem('participants', index);
+            else form.insertListItem('participants', { key: crypto.randomUUID(), friendId, displayName });
+          }}
+          onAddNew={displayName =>
+            form.insertListItem('participants', { key: crypto.randomUUID(), friendId: null, displayName })
           }
           onRemove={index => form.removeListItem('participants', index)}
         />
@@ -82,7 +91,7 @@ export const NewGatheringForm: FC<NewGatheringFormProps> = ({ loading, onCreate,
             Cancelar
           </Button>
           <Button type="submit" loading={loading} disabled={!form.isDirty()}>
-            Crear
+            Crear juntada
           </Button>
         </Group>
       </Stack>

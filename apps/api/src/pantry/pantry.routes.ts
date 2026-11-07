@@ -7,6 +7,7 @@ import {
   listPantryProductsSchema,
   suggestPantryProductsSchema,
   updatePantryProductSchema,
+  updateShoppingListItemSchema,
   type ListPantryProductsParams,
   type SuggestPantryProductsParams,
 } from '@omni/shared/pantry';
@@ -92,6 +93,21 @@ router.patch(
     res.json(await pantryService.completeShoppingListItem(userId, req.params.itemId as string, req.body));
   }
 );
+
+router.patch(
+  '/shopping-list/items/:itemId',
+  validate(idParamsSchema('itemId'), 'params'),
+  validate(updateShoppingListItemSchema),
+  async (req, res) => {
+    const { userId } = req.user!;
+    res.json(await pantryService.updateShoppingListItem(userId, req.params.itemId as string, req.body));
+  }
+);
+
+router.patch('/shopping-list/items/:itemId/uncheck', validate(idParamsSchema('itemId'), 'params'), async (req, res) => {
+  const { userId } = req.user!;
+  res.json(await pantryService.uncheckShoppingListItem(userId, req.params.itemId as string));
+});
 
 router.delete('/shopping-list/items/:itemId', validate(idParamsSchema('itemId'), 'params'), async (req, res) => {
   const { userId } = req.user!;

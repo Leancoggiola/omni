@@ -14,7 +14,7 @@ src/
   media/        MEDIA_TYPES, MEDIA_STATUSES, schemas de alta/edición/búsqueda/filtro (`MediaFilters`), tipos de TMDB, utils de TMDB (`resolveMediaType`, `buildMediaTmdbKey`, `getTmdbResultKey`, `getTmdbResultTitle`), `MEDIA_STATUS_OPTIONS`/`MEDIA_TYPE_OPTIONS` y el filtro de la lista en el cliente (`MediaListFilters`, `DEFAULT_MEDIA_FILTERS`, `filterMediaItems`, `hasActiveFilters`)
   gym/          planes y ejercicios: schemas, tipos, GYM_PLAN_STATUSES
   expenses/     gastos personales y recordatorios: categorías, recurrencias, schemas, tipos
-  split-expenses/ amigos y juntadas: schemas, tipos, `computeBalances`/`computeSettlements`/`summarizeGatheringPayments`
+  split-expenses/ amigos y juntadas: schemas, tipos, `computeBalances`/`computeSettlements`/`summarizeGatheringPayments`/`summarizeUserBalance`/`summarizeSplitBalance`
   pantry/       alacena y lista de compras: categorías, unidades, schemas, `isLowStock`/`isExpiringSoon`
   household/    hogar compartido (máx. 2 personas): constantes del código de invitación, `householdInviteCodeSchema`/`normalizeInviteCode` y tipos de hogar, invitación y vista previa
   holidays/     tipos de efemérides (Wikipedia), MAX_HOLIDAY_ITEMS y el carrusel (`HOLIDAY_CAROUSEL_DURATION_MS`, `HOLIDAY_STALE_DAY_RETRY_MS`, `nextCarouselIndex`, `clampCarouselIndex`, `isStaleHolidayDay`, `emptyTodayHolidays`)
