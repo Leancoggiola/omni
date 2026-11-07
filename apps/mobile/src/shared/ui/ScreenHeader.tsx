@@ -7,6 +7,8 @@ import { useSemanticColors } from '@/core/theme';
 import { IconButton } from './button/IconButton';
 import { DisplayTitle } from './DisplayTitle';
 
+import type { ReactNode } from 'react';
+
 const CHIP_SIZE = 44;
 
 type ScreenHeaderProps = {
@@ -17,6 +19,7 @@ type ScreenHeaderProps = {
   size?: 'md' | 'lg' | 'xl';
   onBack?: () => void;
   backLabel?: string;
+  action?: ReactNode;
 };
 
 /** La palabra acentuada por defecto: la última, si el título tiene más de una; `accent` tiene que ser una palabra entera. */
@@ -32,7 +35,7 @@ function accentWord(title: string, accent?: string): string | undefined {
  * `md` por defecto; `lg` en Perfil y `xl` en "Más") con una palabra en `primary` (sin itálica) y el subtítulo.
  * `accent` es esa palabra (por defecto, la última) y tiene que ser una palabra completa de `title`; un título de una
  * sola palabra no se resalta. Pantallas de stack (Perfil): `onBack` agrega un `IconButton` glass de volver, que
- * `backLabel` nombra ("Volver a Más").
+ * `backLabel` nombra ("Volver a Más"). `action` es un control opcional a la derecha (el Lista/Grilla de Media).
  */
 export function ScreenHeader({
   icon: IconComponent,
@@ -42,6 +45,7 @@ export function ScreenHeader({
   size = 'md',
   onBack,
   backLabel = 'Volver',
+  action,
 }: ScreenHeaderProps) {
   const colors = useSemanticColors();
 
@@ -74,6 +78,7 @@ export function ScreenHeader({
           ) : null}
         </YStack>
       </XStack>
+      {action}
     </XStack>
   );
 }

@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createMockAuthValue, createMockSessionUser, renderWithProviders } from '@/__tests__/helpers';
@@ -21,19 +22,36 @@ vi.mock('../hooks/useTodayHolidays', () => ({
   }),
 }));
 
+vi.mock('../hooks/useWatchingMedia', () => ({
+  WATCHING_LIMIT: 3,
+  useWatchingMedia: () => ({ items: [], isLoading: false, error: undefined, mutate: vi.fn() }),
+}));
+
+const renderHome = () =>
+  renderWithProviders(
+    <MemoryRouter>
+      <HomePage />
+    </MemoryRouter>
+  );
+
 describe('HomePage', () => {
   it('muestra el nombre del usuario autenticado', () => {
-    renderWithProviders(<HomePage />);
+    renderHome();
     expect(screen.getByText('María')).toBeInTheDocument();
   });
 
   it('el saludo y el nombre forman el h1 de la página', () => {
-    renderWithProviders(<HomePage />);
+    renderHome();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/María/);
   });
 
+  it('incluye la tarjeta fija "Seguís viendo"', () => {
+    renderHome();
+    expect(screen.getByRole('heading', { name: 'Seguís viendo' })).toBeInTheDocument();
+  });
+
   it('muestra un saludo según la hora', () => {
-    renderWithProviders(<HomePage />);
+    renderHome();
     expect(screen.getByText(/Buenos días|Buenas tardes|Buenas noches/)).toBeInTheDocument();
   });
 });
