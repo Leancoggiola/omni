@@ -31,7 +31,7 @@ export const ConfirmProvider: FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <>
       {children}
-      <Modal opened={request !== null} onClose={() => close(false)} title={content?.title} centered>
+      <Modal opened={request !== null} onClose={() => close(false)} title={content?.title} centered zIndex={400}>
         <Text size="md" mb="lg">
           {content?.description}
         </Text>
