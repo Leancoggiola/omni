@@ -51,7 +51,7 @@ export function PasswordCard({ onSubmit, onFieldFocus }: PasswordCardProps) {
   };
 
   return (
-    <SectionCard title="Cambiar contraseña" subtitle="Actualiza la contraseña de tu cuenta">
+    <SectionCard title="Cambiar contraseña" subtitle="Actualizá la contraseña de tu cuenta">
       <YStack gap={SPACING.md}>
         <PasswordField
           label="Contraseña actual"
