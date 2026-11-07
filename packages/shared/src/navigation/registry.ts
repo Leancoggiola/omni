@@ -45,7 +45,7 @@ export const NAV_REGISTRY: Record<NavKey, NavEntry> = {
     availableOn: ['web'],
   },
   profile: { label: 'Perfil', path: '/profile', availableOn: ['web', 'mobile'] },
-  admin: { label: 'Administración', path: '/admin', availableOn: ['web'] },
+  admin: { label: 'Administración', path: '/admin', availableOn: ['web', 'mobile'] },
 };
 
 /** Orden de los módulos: navbar de web y lista de "Más" en mobile. */
