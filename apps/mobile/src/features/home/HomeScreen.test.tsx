@@ -16,6 +16,11 @@ jest.mock('./components/HolidaysCard', () => {
   return { HolidaysCard: () => <Text>Efemérides de hoy</Text> };
 });
 
+jest.mock('./components/WatchingCard', () => {
+  const { Text } = jest.requireActual('react-native');
+  return { WatchingCard: () => <Text>Seguís viendo</Text> };
+});
+
 afterEach(() => {
   jest.useRealTimers();
 });
@@ -30,6 +35,7 @@ describe('HomeScreen', () => {
     expect(screen.getByRole('header', { name: 'Inicio. Buenos días, Admin Omni' })).toBeTruthy();
     expect(screen.getByText('Admin Omni')).toBeTruthy();
     expect(screen.getByText('Efemérides de hoy')).toBeTruthy();
+    expect(screen.getByText('Seguís viendo')).toBeTruthy();
     expect(screen.queryByText('Bienvenido a Omni')).toBeNull();
   });
 

@@ -1,35 +1,51 @@
 import { SPACING } from '@omni/shared/theme';
 import { buildProfileUpdates, normalizeOptionalText, PHONE_MAX_LENGTH } from '@omni/shared/users';
-import { EnvelopeSimpleIcon, FloppyDiskIcon, PhoneIcon, UserIcon } from 'phosphor-react-native';
+import { CalendarBlankIcon, EnvelopeSimpleIcon, FloppyDiskIcon, PhoneIcon, UserIcon } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
 import { YStack } from 'tamagui';
 
 import { Button, getErrorMessage, notifyError, notifySuccess, SectionCard, TextField } from '@/shared/ui';
+
+import {
+  BIRTH_DATE_INVALID_MESSAGE,
+  BIRTH_DATE_PLACEHOLDER,
+  birthDateToDisplay,
+  maskBirthDateInput,
+  parseBirthDateInput,
+} from '../utils/profileForm';
 
 import type { UpdateProfilePayload, UserProfile } from '@omni/shared/users';
 
 const READ_ONLY_DESCRIPTION = 'No se puede editar';
 
 type PersonalInfoCardProps = {
-  profile: Pick<UserProfile, 'name' | 'email' | 'phone'>;
+  profile: Pick<UserProfile, 'name' | 'email' | 'phone' | 'birthDate'>;
   onSave: (payload: UpdateProfilePayload) => Promise<unknown>;
-  /** Al enfocar el teléfono: la pantalla lo mantiene a la vista sobre el teclado. */
+  /** Al enfocar un campo: la pantalla lo mantiene a la vista sobre el teclado. */
   onFieldFocus?: () => void;
 };
 
-/** Información personal: nombre y email de solo lectura, teléfono editable (fecha de nacimiento: #38). */
+/** Información personal: nombre y email de solo lectura; teléfono y fecha de nacimiento (dd/mm/aaaa) editables. */
 export function PersonalInfoCard({ profile, onSave, onFieldFocus }: PersonalInfoCardProps) {
   const [phone, setPhone] = useState(profile.phone ?? '');
   const [serverPhone, setServerPhone] = useState(profile.phone);
+  const [birthDate, setBirthDate] = useState(birthDateToDisplay(profile.birthDate));
+  const [serverBirthDate, setServerBirthDate] = useState(profile.birthDate);
   const [saving, setSaving] = useState(false);
 
   if (profile.phone !== serverPhone) {
     setServerPhone(profile.phone);
     if (phone === (serverPhone ?? '')) setPhone(profile.phone ?? '');
   }
+  if (profile.birthDate !== serverBirthDate) {
+    setServerBirthDate(profile.birthDate);
+    if (birthDate === birthDateToDisplay(serverBirthDate)) setBirthDate(birthDateToDisplay(profile.birthDate));
+  }
   const submitting = useRef(false);
 
-  const updates = buildProfileUpdates(profile, { phone });
+  const birthDateDay = parseBirthDateInput(birthDate);
+  const birthDateError = birthDateDay === undefined ? BIRTH_DATE_INVALID_MESSAGE : undefined;
+  const updates = birthDateError ? {} : buildProfileUpdates(profile, { phone, birthDate: birthDateDay });
   const dirty = Object.keys(updates).length > 0;
 
   const handleSave = async () => {
@@ -49,7 +65,7 @@ export function PersonalInfoCard({ profile, onSave, onFieldFocus }: PersonalInfo
   };
 
   return (
-    <SectionCard title="Información personal" subtitle="Actualiza tus datos personales">
+    <SectionCard title="Información personal" subtitle="Actualizá tus datos personales">
       <YStack gap={SPACING.md}>
         <TextField
           label="Nombre completo"
@@ -75,6 +91,17 @@ export function PersonalInfoCard({ profile, onSave, onFieldFocus }: PersonalInfo
           autoComplete="tel"
           maxLength={PHONE_MAX_LENGTH}
           leftSection={PhoneIcon}
+        />
+        <TextField
+          label="Fecha de nacimiento"
+          onFocus={onFieldFocus}
+          value={birthDate}
+          onChangeText={text => setBirthDate(maskBirthDateInput(text))}
+          placeholder={BIRTH_DATE_PLACEHOLDER}
+          keyboardType="number-pad"
+          maxLength={10}
+          error={birthDate.length === 10 ? birthDateError : undefined}
+          leftSection={CalendarBlankIcon}
         />
         <Button
           fullWidth
