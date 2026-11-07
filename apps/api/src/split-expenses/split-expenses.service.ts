@@ -5,13 +5,20 @@ import type {
   GatheringDetail,
   GatheringSummary,
   ListGatheringsParams,
+  SplitBalanceSummary,
   SplitFriend,
   SplitFriendSuggest,
+  SplitFriendWithBalance,
   SuggestSplitFriendsParams,
   ToggleGatheringSettledPayload,
   UpdateSplitFriendPayload,
 } from '@omni/shared/split-expenses';
-import { summarizeGatheringPayments } from '@omni/shared/split-expenses';
+import {
+  computeBalances,
+  summarizeGatheringPayments,
+  summarizeSplitBalance,
+  summarizeUserBalance,
+} from '@omni/shared/split-expenses';
 import { parseIsoDateString, paginationSkipTake, roundMoney } from '@omni/shared/common';
 import type {
   GatheringExpense as PrismaGatheringExpense,
@@ -53,6 +60,55 @@ async function loadParticipantTotals(gatheringIds: string[]): Promise<Map<string
   return new Map(rows.map(row => [row.participantId, roundMoney(decimalToNumber(row._sum.amount) ?? 0)]));
 }
 
+/** Id del participante propio ("Vos") de una juntada, o `null` si es anterior a "Vos" y no lo tiene. */
+function findSelfParticipantId(participants: Array<{ id: string; isSelf: boolean }>): string | null {
+  return participants.find(participant => participant.isSelf)?.id ?? null;
+}
+
+/** Juntadas activas (no saldadas) del usuario con sus participantes y lo pagado por cada uno. */
+async function loadActiveGatheringParticipants(userId: string) {
+  const gatherings = await prisma.gathering.findMany({
+    where: { userId, isSettled: false },
+    select: { id: true, participants: { select: { id: true, displayName: true, friendId: true, isSelf: true } } },
+  });
+  const totals = await loadParticipantTotals(gatherings.map(gathering => gathering.id));
+  return gatherings.map(gathering =>
+    gathering.participants.map(participant => ({ ...participant, totalPaid: totals.get(participant.id) ?? 0 }))
+  );
+}
+
+/**
+ * Resumen de saldo propio sobre las juntadas activas: lo que te deben, lo que debés y el neto.
+ * Las juntadas sin participante propio (anteriores a "Vos") no suman.
+ */
+export async function getBalance(userId: string): Promise<SplitBalanceSummary> {
+  const gatherings = await loadActiveGatheringParticipants(userId);
+  return summarizeSplitBalance(
+    gatherings.map(participants => summarizeUserBalance(participants, findSelfParticipantId(participants)))
+  );
+}
+
+/**
+ * Saldo de cada amigo: suma de lo que pagó menos su parte en todas las juntadas activas donde participa
+ * (positivo = puso de más y el grupo le debe, negativo = debe).
+ */
+async function loadFriendBalances(userId: string): Promise<Map<string, number>> {
+  const gatherings = await loadActiveGatheringParticipants(userId);
+  const balanceByFriend = new Map<string, number>();
+
+  for (const participants of gatherings) {
+    const friendIdByParticipant = new Map(participants.map(participant => [participant.id, participant.friendId]));
+    const { fairShare } = summarizeGatheringPayments(participants);
+
+    for (const { id, balance } of computeBalances(participants, fairShare)) {
+      const friendId = friendIdByParticipant.get(id);
+      if (friendId) balanceByFriend.set(friendId, roundMoney((balanceByFriend.get(friendId) ?? 0) + balance));
+    }
+  }
+
+  return balanceByFriend;
+}
+
 export async function getGathering(userId: string, gatheringId: string): Promise<GatheringDetail> {
   const gathering = await prisma.gathering.findFirst({
     where: { id: gatheringId, userId },
@@ -61,6 +117,7 @@ export async function getGathering(userId: string, gatheringId: string): Promise
         include: {
           friend: true,
         },
+        orderBy: { isSelf: 'desc' },
       },
       expenses: {
         include: { participant: true },
@@ -80,6 +137,9 @@ export async function getGathering(userId: string, gatheringId: string): Promise
   }));
 
   const { totalAmount, fairShare, settlements } = summarizeGatheringPayments(participantSummaries);
+  const balanceByParticipant = new Map(
+    computeBalances(participantSummaries, fairShare).map(({ id, balance }) => [id, balance])
+  );
 
   return {
     id: gathering.id,
@@ -98,6 +158,8 @@ export async function getGathering(userId: string, gatheringId: string): Promise
         friendId: source?.friendId ?? null,
         alias: source?.friend?.alias ?? null,
         totalPaid: p.totalPaid,
+        balance: balanceByParticipant.get(p.id) ?? 0,
+        isSelf: source?.isSelf ?? false,
       };
     }),
     expenses: gathering.expenses.map((e: PrismaGatheringExpense & { participant: { displayName: string } }) => ({
@@ -109,6 +171,7 @@ export async function getGathering(userId: string, gatheringId: string): Promise
       createdAt: toIsoDateTimeString(e.createdAt),
     })),
     settlements,
+    myBalance: summarizeUserBalance(participantSummaries, findSelfParticipantId(gathering.participants)),
   };
 }
 
@@ -118,13 +181,16 @@ async function getOwnedFriend(userId: string, friendId: string) {
   return friend;
 }
 
-export async function listFriends(userId: string): Promise<SplitFriend[]> {
-  const rows = await prisma.splitFriend.findMany({
-    where: { userId },
-    orderBy: { name: 'asc' },
-    select: { id: true, name: true, alias: true, createdAt: true, updatedAt: true },
-  });
-  return rows.map(mapFriend);
+export async function listFriends(userId: string): Promise<SplitFriendWithBalance[]> {
+  const [rows, balanceByFriend] = await Promise.all([
+    prisma.splitFriend.findMany({
+      where: { userId },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, alias: true, createdAt: true, updatedAt: true },
+    }),
+    loadFriendBalances(userId),
+  ]);
+  return rows.map(row => ({ ...mapFriend(row), balance: balanceByFriend.get(row.id) ?? 0 }));
 }
 
 export async function suggestFriends(userId: string, params: SuggestSplitFriendsParams): Promise<SplitFriendSuggest[]> {
@@ -205,36 +271,38 @@ export async function listGatherings(userId: string, params: ListGatheringsParam
       take,
       orderBy: [{ isSettled: 'asc' }, { date: 'desc' }, { createdAt: 'desc' }],
       include: {
-        _count: { select: { participants: true } },
+        participants: { select: { id: true, displayName: true, isSelf: true } },
       },
     }),
     prisma.gathering.count({ where }),
   ]);
 
-  const sums = rows.length
-    ? await prisma.gatheringExpense.groupBy({
-        by: ['gatheringId'],
-        where: { gatheringId: { in: rows.map(g => g.id) } },
-        _sum: { amount: true },
-      })
-    : [];
-  const totalByGathering = new Map(
-    sums.map(row => [row.gatheringId, roundMoney(decimalToNumber(row._sum.amount) ?? 0)])
-  );
+  const totals = await loadParticipantTotals(rows.map(g => g.id));
 
-  const items: GatheringSummary[] = rows.map(g => ({
-    id: g.id,
-    name: g.name,
-    date: toIsoDateString(g.date),
-    isSettled: g.isSettled,
-    participantCount: g._count.participants,
-    totalAmount: totalByGathering.get(g.id) ?? 0,
-  }));
+  const items: GatheringSummary[] = rows.map(g => {
+    const participants = g.participants.map(p => ({ ...p, totalPaid: totals.get(p.id) ?? 0 }));
+    return {
+      id: g.id,
+      name: g.name,
+      date: toIsoDateString(g.date),
+      isSettled: g.isSettled,
+      participantCount: participants.length,
+      totalAmount: roundMoney(participants.reduce((sum, p) => sum + p.totalPaid, 0)),
+      myBalance: summarizeUserBalance(participants, findSelfParticipantId(participants)),
+    };
+  });
 
   return { items, total, page: params.page, limit: params.limit };
 }
 
+/**
+ * Crea la juntada con el usuario como primer participante (`isSelf`, con su nombre): los participantes del payload
+ * son los demás. Si alguno usa el nombre del usuario responde 409, porque ya está en la juntada.
+ */
 export async function createGathering(userId: string, dto: CreateGatheringPayload) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+  if (!user) throw new HttpError(404, 'Usuario no encontrado');
+
   const friendIds = dto.participants.filter((p): p is { friendId: string } => 'friendId' in p).map(p => p.friendId);
 
   const friends = friendIds.length
@@ -246,9 +314,9 @@ export async function createGathering(userId: string, dto: CreateGatheringPayloa
     if ('friendId' in participant) {
       const friend = friendById.get(participant.friendId);
       if (!friend) throw new HttpError(404, 'Amigo no encontrado');
-      return { displayName: friend.name, friendId: friend.id };
+      return { displayName: friend.name, friendId: friend.id, isSelf: false };
     }
-    return { displayName: participant.name.trim(), friendId: null };
+    return { displayName: participant.name.trim(), friendId: null, isSelf: false };
   });
 
   const names = participantsData.map(p => p.displayName.toLowerCase());
@@ -256,12 +324,17 @@ export async function createGathering(userId: string, dto: CreateGatheringPayloa
     throw new HttpError(409, 'Participantes duplicados en la juntada');
   }
 
+  const selfName = user.name.trim();
+  if (names.includes(selfName.toLowerCase())) {
+    throw new HttpError(409, 'Ya participás en la juntada: no hace falta agregarte');
+  }
+
   const gathering = await prisma.gathering.create({
     data: {
       userId,
       name: dto.name.trim(),
       date: parseIsoDateString(dto.date),
-      participants: { create: participantsData },
+      participants: { create: [{ displayName: selfName, friendId: null, isSelf: true }, ...participantsData] },
     },
   });
 

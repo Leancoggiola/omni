@@ -286,6 +286,7 @@ model GatheringParticipant {
   friendId    String?
   friend      SplitFriend?       @relation(fields: [friendId], references: [id], onDelete: SetNull)
   displayName String
+  isSelf      Boolean            @default(false)
   expenses    GatheringExpense[]
 
   @@unique([gatheringId, displayName])

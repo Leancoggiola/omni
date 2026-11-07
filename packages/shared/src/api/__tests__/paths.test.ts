@@ -15,6 +15,7 @@ describe('API_PATHS', () => {
     expect(API_PATHS.splitExpenses.gatheringSettled('g1')).toBe('/api/split-expenses/gatherings/g1/settled');
     expect(API_PATHS.splitExpenses.gatheringExpenses('g1')).toBe('/api/split-expenses/gatherings/g1/expenses');
     expect(API_PATHS.splitExpenses.gatheringExpense('g1', 'e1')).toBe('/api/split-expenses/gatherings/g1/expenses/e1');
+    expect(API_PATHS.splitExpenses.balance).toBe('/api/split-expenses/balance');
   });
 
   it('arma los paths de pantry', () => {
