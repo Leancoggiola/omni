@@ -246,6 +246,19 @@ describe('LoginScreen', () => {
       expect(mockEnsureServerAwake).toHaveBeenCalledTimes(1);
     });
 
+    it('si el usuario guardado no es válido, vuelve al formulario completo y muestra el error', async () => {
+      mockGetRememberedUser.mockResolvedValue('a');
+      render(<LoginScreen />);
+      await screen.findByText('Ingresando como a');
+      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => submit());
+
+      expect(mockLogin).not.toHaveBeenCalled();
+      expect(mockClearRememberedUser).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText('Usuario')).toBeTruthy();
+      expect(screen.queryByText('Ingresar con otro usuario')).toBeNull();
+    });
+
     it('mientras carga deshabilita la contraseña y el enlace', async () => {
       let finish!: () => void;
       mockLogin.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));

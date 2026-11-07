@@ -22,14 +22,75 @@ const FORM_MAX_WIDTH = 420;
 
 type FieldErrors = Partial<Record<'username' | 'password', string>>;
 
+type HeaderProps = { colorScheme: ReturnType<typeof useColorSchemeControl>['colorScheme'] };
+
+/** Cabecera de la variante "usuario recordado": avatar con la inicial, saludo y "Ingresando como …". */
+function RememberedHeader({ username, colorScheme }: HeaderProps & { username: string }) {
+  const greetingName = `${username.charAt(0).toUpperCase()}${username.slice(1)}`;
+
+  return (
+    <>
+      <YStack
+        width={AVATAR_SIZE}
+        height={AVATAR_SIZE}
+        borderRadius={AVATAR_SIZE / 2}
+        alignItems="center"
+        justifyContent="center"
+        borderWidth={1}
+        borderColor="$borderSubtle"
+        backgroundColor="$backgroundStrong"
+        accessible={false}
+        {...themedElevation('card', colorScheme)}
+      >
+        <Paragraph fontFamily="$display" fontSize={28} fontWeight="800" color="$primary">
+          {username.charAt(0).toUpperCase()}
+        </Paragraph>
+      </YStack>
+      <YStack alignItems="center" gap={SPACING['2xs']}>
+        <DisplayTitle textAlign="center">{`¡Hola, ${greetingName}!`}</DisplayTitle>
+        <Paragraph color="$dimmed" fontSize={14} lineHeight={20}>
+          {`Ingresando como ${username}`}
+        </Paragraph>
+      </YStack>
+    </>
+  );
+}
+
+/** Cabecera del formulario completo: logo de marca y bienvenida. */
+function DefaultHeader({ colorScheme }: HeaderProps) {
+  return (
+    <>
+      <YStack
+        width={LOGO_SIZE}
+        height={LOGO_SIZE}
+        padding={SPACING['2xs']}
+        borderRadius={RADIUS.xl}
+        borderWidth={1}
+        borderColor="$borderSubtle"
+        backgroundColor="$backgroundStrong"
+        overflow="hidden"
+        {...themedElevation('card', colorScheme)}
+      >
+        <Image source={LOGO} style={{ width: '100%', height: '100%' }} resizeMode="contain" accessible={false} />
+      </YStack>
+      <DisplayTitle textAlign="center" accent="Omni">
+        ¡Te damos la bienvenida a Omni!
+      </DisplayTitle>
+    </>
+  );
+}
+
 /**
  * Login v2: logo y título arriba y el form en una hoja inferior de radio 32 que sube con el teclado
- * (`useKeyboardInset`); el form no pasa de 420 de ancho en pantallas grandes (web: `miw="25rem"`). Al montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y
- * el aviso aparezca si tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en
- * curso, los campos (el ojo de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la
- * contraseña (el campo deshabilitado lo pierde y cierra el teclado). Tras un login exitoso guarda solo el usuario
- * (`setRememberedUser`); si hay uno guardado, la hoja muestra la variante "usuario recordado" (avatar, saludo y un único
- * campo de contraseña) y "Ingresar con otro usuario" lo olvida y vuelve al formulario completo. Cerrar sesión no lo borra.
+ * (`useKeyboardInset`); el form no pasa de 420 de ancho en pantallas grandes (web: `miw="25rem"`). Al montar sondea
+ * el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y el aviso aparezca si
+ * tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en curso, los campos (el ojo
+ * de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la contraseña (el campo deshabilitado
+ * lo pierde y cierra el teclado). Tras un login exitoso guarda solo el usuario (`setRememberedUser`); si hay uno
+ * guardado, la hoja muestra la variante "usuario recordado" (avatar, saludo y un único campo de contraseña) y
+ * "Ingresar con otro usuario" lo olvida, vuelve al formulario completo y deja el foco en Usuario. Si el usuario
+ * guardado no pasa la validación, también se vuelve al formulario completo para mostrar el error. Cerrar sesión no
+ * lo borra.
  */
 export function LoginScreen() {
   const { login } = useAuth();
@@ -37,6 +98,8 @@ export function LoginScreen() {
   const { colorScheme } = useColorSchemeControl();
   const keyboardInset = useKeyboardInset();
   const passwordRef = useRef<TamaguiElement>(null);
+  const usernameRef = useRef<TamaguiElement>(null);
+  const focusUsername = useRef(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -54,21 +117,35 @@ export function LoginScreen() {
     void getRememberedUser().then(value => {
       if (!active) return;
       setRemembered(value);
-      if (value) setUsername(value);
+      if (value) setUsername(prev => prev || value);
     });
     return () => {
       active = false;
     };
   }, []);
 
+  const forgetInvalidUser = () => {
+    void clearRememberedUser();
+    focusUsername.current = true;
+    setRemembered(null);
+  };
+
   const forgetUser = () => {
     void clearRememberedUser();
+    focusUsername.current = true;
     setRemembered(null);
     setUsername('');
     setPassword('');
     setFieldErrors({});
     setError(null);
   };
+
+  useEffect(() => {
+    if (remembered === null && focusUsername.current) {
+      focusUsername.current = false;
+      (usernameRef.current as TextInput | null)?.focus();
+    }
+  }, [remembered]);
 
   useEffect(() => {
     if (error && !loading) (passwordRef.current as TextInput | null)?.focus();
@@ -85,6 +162,7 @@ export function LoginScreen() {
       }
       setFieldErrors(errors);
       setError(null);
+      if (remembered && errors.username) forgetInvalidUser();
       return;
     }
 
@@ -103,8 +181,6 @@ export function LoginScreen() {
     }
   };
 
-  const greetingName = remembered ? `${remembered.charAt(0).toUpperCase()}${remembered.slice(1)}` : '';
-
   return (
     <YStack flex={1} backgroundColor="$background">
       <AuthBackground />
@@ -120,54 +196,9 @@ export function LoginScreen() {
             paddingBottom={SPACING.xl}
           >
             {remembered === undefined ? null : remembered ? (
-              <>
-                <YStack
-                  width={AVATAR_SIZE}
-                  height={AVATAR_SIZE}
-                  borderRadius={AVATAR_SIZE / 2}
-                  alignItems="center"
-                  justifyContent="center"
-                  borderWidth={1}
-                  borderColor="$borderSubtle"
-                  backgroundColor="$backgroundStrong"
-                  accessible={false}
-                  {...themedElevation('card', colorScheme)}
-                >
-                  <Paragraph fontFamily="$display" fontSize={28} fontWeight="800" color="$primary">
-                    {remembered.charAt(0).toUpperCase()}
-                  </Paragraph>
-                </YStack>
-                <YStack alignItems="center" gap={SPACING['2xs']}>
-                  <DisplayTitle textAlign="center">{`¡Hola, ${greetingName}!`}</DisplayTitle>
-                  <Paragraph color="$dimmed" fontSize={14} lineHeight={20}>
-                    {`Ingresando como ${remembered}`}
-                  </Paragraph>
-                </YStack>
-              </>
+              <RememberedHeader username={remembered} colorScheme={colorScheme} />
             ) : (
-              <>
-                <YStack
-                  width={LOGO_SIZE}
-                  height={LOGO_SIZE}
-                  padding={SPACING['2xs']}
-                  borderRadius={RADIUS.xl}
-                  borderWidth={1}
-                  borderColor="$borderSubtle"
-                  backgroundColor="$backgroundStrong"
-                  overflow="hidden"
-                  {...themedElevation('card', colorScheme)}
-                >
-                  <Image
-                    source={LOGO}
-                    style={{ width: '100%', height: '100%' }}
-                    resizeMode="contain"
-                    accessible={false}
-                  />
-                </YStack>
-                <DisplayTitle textAlign="center" accent="Omni">
-                  ¡Te damos la bienvenida a Omni!
-                </DisplayTitle>
-              </>
+              <DefaultHeader colorScheme={colorScheme} />
             )}
           </YStack>
 
@@ -190,6 +221,7 @@ export function LoginScreen() {
                   <YStack gap={SPACING.md}>
                     {remembered ? null : (
                       <TextField
+                        ref={usernameRef}
                         label="Usuario"
                         value={username}
                         onChangeText={value => {
