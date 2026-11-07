@@ -33,6 +33,17 @@ const headersOf = (fetchMock: FetchMock, call = 0) => initOf(fetchMock, call).he
 
 describe('createApiClient', () => {
   describe('request', () => {
+    it('un FormData va tal cual y sin Content-Type', async () => {
+      const fetchMock: FetchMock = vi.fn().mockResolvedValue(jsonResponse({ ok: true }));
+      const client = createApiClient({ fetch: fetchMock });
+      const form = new FormData();
+
+      await client.put('/api/users/avatar', form);
+
+      expect(initOf(fetchMock).body).toBe(form);
+      expect(headersOf(fetchMock)['Content-Type']).toBeUndefined();
+    });
+
     it('manda JSON con credentials y la URL de toUrl, y devuelve el body', async () => {
       const fetchMock: FetchMock = vi.fn().mockResolvedValue(jsonResponse({ ok: true }));
       const client = createApiClient({

@@ -34,7 +34,7 @@ import type { UpdatePreferencesPayload } from '@omni/shared/users';
  */
 export function ProfileScreen() {
   const router = useRouter();
-  const { profile, error, refresh, updateProfile, updatePreferences } = useProfile();
+  const { profile, error, refresh, updateProfile, updatePreferences, uploadAvatar, removeAvatar } = useProfile();
   const { changePassword, deleteAccount } = useAccountActions();
   const { logout, logoutAll } = useAuth();
   const { clearOverride } = useColorSchemeControl();
@@ -45,6 +45,13 @@ export function ProfileScreen() {
   });
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/more'));
+
+  const changeAvatar =
+    <A extends unknown[]>(action: (...args: A) => Promise<unknown>) =>
+    async (...args: A) => {
+      await action(...args);
+      void refreshHousehold();
+    };
 
   const savePreferences = async (payload: UpdatePreferencesPayload) => {
     await updatePreferences(payload);
@@ -79,7 +86,11 @@ export function ProfileScreen() {
           contentContainerStyle={{ gap: SPACING.md, paddingBottom: SPACING.xl }}
         >
           {errorState}
-          <ProfilePhotoCard profile={profile} />
+          <ProfilePhotoCard
+            profile={profile}
+            onUpload={changeAvatar(uploadAvatar)}
+            onRemove={changeAvatar(removeAvatar)}
+          />
           <PersonalInfoCard profile={profile} onSave={updateProfile} onFieldFocus={scrollIntoView} />
           <PreferencesCard
             values={{
