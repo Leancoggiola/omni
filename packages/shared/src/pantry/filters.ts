@@ -1,5 +1,15 @@
-import type { PantryProductFilters } from '../types';
-import type { PantryProduct } from '@omni/shared/pantry';
+import type { PantryCategory } from './constants';
+import type { PantryProduct } from './types';
+
+export type PantryAlertFilter = 'all' | 'low' | 'expiring';
+
+export interface PantryProductFilters {
+  query: string;
+  category: PantryCategory | 'all';
+  alert: PantryAlertFilter;
+}
+
+export type PantryProductSuggestion = Pick<PantryProduct, 'id' | 'name' | 'category' | 'unit'>;
 
 export const DEFAULT_PANTRY_FILTERS: PantryProductFilters = { query: '', category: 'all', alert: 'all' };
 

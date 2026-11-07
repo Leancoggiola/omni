@@ -3,9 +3,9 @@ import { useSWRConfig } from 'swr';
 
 import { api, SWR_KEYS } from '@/shared/api';
 
-import { isPantryKey } from '../utils/pantryKeys';
-
 import type { CreatePantryProductPayload, PantryProduct, UpdatePantryProductPayload } from '@omni/shared/pantry';
+
+import { isPantryKey } from '@omni/shared/pantry';
 
 /**
  * Altas, ediciones y bajas de productos. Ninguna escribe en la cache: cada una revalida las keys de la alacena

@@ -1,13 +1,12 @@
 import { FC, memo } from 'react';
 import { ActionIcon, Group, Paper, Table, Text } from '@mantine/core';
 
-import { formatExpiryShort } from '../utils/pantryFilters';
 import { CategoryTile } from './CategoryTile';
 import { ProductAlertBadges } from './ProductAlertBadges';
 
 import type { PantryProduct } from '@omni/shared/pantry';
 
-import { formatPantryQuantity, PANTRY_CATEGORY_LABELS } from '@omni/shared/pantry';
+import { formatExpiryShort, formatPantryQuantity, PANTRY_CATEGORY_LABELS } from '@omni/shared/pantry';
 import { PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
 
 interface ProductsTableProps {
