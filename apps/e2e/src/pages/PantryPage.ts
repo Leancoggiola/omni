@@ -42,4 +42,30 @@ export class PantryPage {
     if (minimum) await this.minimumField().fill(minimum);
     await this.submitProductButton().click();
   }
+
+  readonly inventoryTab = () =>
+    this.page.getByRole('radiogroup', { name: 'Alacena' }).locator('label', { hasText: 'Inventario' });
+  readonly categoryFilter = () => this.page.getByRole('combobox', { name: 'Categoría', exact: true });
+  readonly statCard = (name: string) => this.page.getByRole('button', { name: new RegExp(name) });
+  readonly itemNameField = () => this.page.getByRole('combobox', { name: 'Producto' });
+  readonly itemQuantityField = () => this.page.getByRole('textbox', { name: 'Cantidad' });
+  readonly addItemButton = () => this.page.getByRole('button', { name: 'Agregar', exact: true });
+  readonly editItemButtonOf = (name: string) => this.page.getByRole('button', { name: `Editar ${name}` });
+  readonly removeItemButtonOf = (name: string) => this.page.getByRole('button', { name: `Quitar ${name} de la lista` });
+  readonly clearCheckedButton = () => this.page.getByRole('button', { name: 'Limpiar comprados' });
+  readonly purchaseQuantityField = () => this.dialog().getByRole('textbox', { name: /Cantidad comprada/ });
+  readonly purchaseCategoryField = () => this.dialog().getByRole('combobox', { name: /Categoría/ });
+  readonly purchaseButton = () => this.dialog().getByRole('button', { name: 'Marcar como comprado' });
+  readonly saveItemButton = () => this.dialog().getByRole('button', { name: 'Guardar', exact: true });
+  readonly editItemQuantityField = () => this.dialog().getByRole('textbox', { name: /Cantidad a comprar/ });
+
+  async openShopping() {
+    await this.shoppingTab().click();
+    await this.page.getByRole('heading', { name: 'Por comprar' }).waitFor();
+  }
+
+  async createItemViaApi(data: Record<string, unknown>) {
+    const res = await this.page.request.post('/api/pantry/shopping-list/items', { data });
+    if (!res.ok()) throw new Error(`No se pudo precargar el ítem: ${await res.text()}`);
+  }
 }
