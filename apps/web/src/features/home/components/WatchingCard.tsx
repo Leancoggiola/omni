@@ -8,14 +8,13 @@ import {
   Group,
   Image,
   Paper,
-  Skeleton,
   Stack,
   Text,
   Title,
   UnstyledButton,
 } from '@mantine/core';
 
-import { EmptyState, ErrorState } from '@/shared/ui';
+import { EmptyState, ErrorState, LoadingState } from '@/shared/ui';
 
 import { useWatchingMedia, WATCHING_LIMIT } from '../hooks/useWatchingMedia';
 
@@ -78,7 +77,7 @@ const WatchingRow: FC<{ item: MediaItem }> = ({ item }) => (
 
 /**
  * Widget fijo "Seguís viendo" de Inicio: hasta `WATCHING_LIMIT` ítems en estado "Viendo" con enlace "Ver todo" a
- * Películas. Cargando es un skeleton, el error de SWR ofrece reintentar y nunca se muestra como vacío.
+ * Películas. Cargando usa el skeleton compartido, el error de SWR ofrece reintentar y nunca se muestra como vacío.
  */
 export const WatchingCard: FC = () => {
   const { items, isLoading, error, mutate } = useWatchingMedia();
@@ -98,11 +97,7 @@ export const WatchingCard: FC = () => {
         {error ? (
           <ErrorState message="No se pudo cargar tu lista" onRetry={() => mutate()} />
         ) : isLoading ? (
-          <Stack gap="sm" role="status" aria-busy="true" aria-label="Cargando tu lista">
-            {Array.from({ length: WATCHING_LIMIT }, (_, index) => (
-              <Skeleton key={index} h="3.75rem" />
-            ))}
-          </Stack>
+          <LoadingState variant="skeleton" rows={WATCHING_LIMIT} />
         ) : items.length === 0 ? (
           <EmptyState icon={<FilmSlateIcon size="1.5rem" />} title="No tenés nada en curso" />
         ) : (

@@ -64,7 +64,7 @@ describe('WatchingCard', () => {
   it('mientras carga muestra un skeleton accesible y no el vacío', () => {
     state({ isLoading: true });
     renderCard();
-    expect(screen.getByRole('status', { name: 'Cargando tu lista' })).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByRole('status', { name: 'Cargando' })).toBeInTheDocument();
     expect(screen.queryByText('No tenés nada en curso')).not.toBeInTheDocument();
   });
 

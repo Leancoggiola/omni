@@ -51,6 +51,6 @@ export function hasActiveFilters(filters: MediaListFilters): boolean {
 export function takeMediaByStatus(items: readonly MediaItem[], status: MediaStatus, limit: number): MediaItem[] {
   return items
     .filter(item => item.status === status)
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
     .slice(0, Math.max(0, limit));
 }
