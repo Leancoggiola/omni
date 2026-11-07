@@ -19,6 +19,7 @@ const del = vi.fn();
 
 vi.mock('@/shared/api', async importOriginal => ({
   ...(await importOriginal<typeof import('@/shared/api')>()),
+  fetcher: (...args: unknown[]) => fetcher(...args),
   api: {
     post: (...args: unknown[]) => post(...args),
     patch: (...args: unknown[]) => patch(...args),
@@ -47,6 +48,15 @@ describe('hooks de la alacena', () => {
 
     await waitFor(() => expect(result.current.products).toHaveLength(1));
     expect(fetcher).toHaveBeenCalledWith(`${SWR_KEYS.pantry.products}?limit=100`);
+  });
+
+  it('usePantryProducts junta todas las páginas cuando hay más de 100 productos', async () => {
+    const page = (id: string, total: number) => ({ items: [product({ id })], total, page: 1, limit: 100 });
+    fetcher.mockResolvedValueOnce(page('p1', 101)).mockResolvedValueOnce(page('p2', 101));
+    const { result } = renderHook(() => usePantryProducts(), { wrapper });
+
+    await waitFor(() => expect(result.current.products).toHaveLength(2));
+    expect(fetcher).toHaveBeenLastCalledWith(`${SWR_KEYS.pantry.products}?limit=100&page=2`);
   });
 
   it('expone el error del fetch en la lista de compras', async () => {
