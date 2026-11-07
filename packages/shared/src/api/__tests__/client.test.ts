@@ -35,7 +35,7 @@ describe('createApiClient', () => {
   describe('request', () => {
     it('un FormData va tal cual y sin Content-Type', async () => {
       const fetchMock: FetchMock = vi.fn().mockResolvedValue(jsonResponse({ ok: true }));
-      const client = createApiClient({ fetch: fetchMock });
+      const client = createApiClient({ fetch: fetchMock, refresh: vi.fn() });
       const form = new FormData();
 
       await client.put('/api/users/avatar', form);
