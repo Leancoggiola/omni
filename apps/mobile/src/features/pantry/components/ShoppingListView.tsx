@@ -110,14 +110,8 @@ export function ShoppingListView({ header }: ShoppingListViewProps) {
     if (confirmed) await runItemAction(item.id, () => removeItem(item.id), 'No se pudo quitar el ítem');
   };
 
-  const handleClearChecked = async () => {
-    try {
-      await clearChecked();
-      notifySuccess('Comprados limpiados');
-    } catch (err) {
-      notifyError(getErrorMessage(err, 'No se pudieron limpiar los comprados'));
-    }
-  };
+  const handleClearChecked = () =>
+    runItemAction('checked', clearChecked, 'No se pudieron limpiar los comprados', 'Comprados limpiados');
 
   const renderBody = () => {
     if (error) return <ErrorState message="No se pudo cargar tu lista de compras" onRetry={() => void retryList()} />;

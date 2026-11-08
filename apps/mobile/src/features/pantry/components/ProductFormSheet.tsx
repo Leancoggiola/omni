@@ -119,12 +119,12 @@ function ProductForm({
     }
     if (expiresAt === undefined) next.expiresAt = 'Ingresá una fecha válida (dd/mm/aaaa)';
     setErrors(next);
-    if (Object.keys(next).length > 0) return;
+    if (!result.success || Object.keys(next).length > 0) return;
 
     onSubmittingChange(true);
     setSubmitError(null);
     try {
-      await onSubmit(toProductPayload(values as Parameters<typeof toProductPayload>[0]));
+      await onSubmit(toProductPayload(result.data));
       onDone();
     } catch (err) {
       setSubmitError(getErrorMessage(err, 'No se pudo guardar el producto'));
