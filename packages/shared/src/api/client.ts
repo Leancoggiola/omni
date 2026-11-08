@@ -36,8 +36,8 @@ function sameAuthHeaders(a: AuthHeaders | null, b: AuthHeaders | null): boolean 
 }
 
 /**
- * Núcleo HTTP de web y mobile. Cada request lleva JSON (`Content-Type` fuera de GET; un `FormData` va tal cual y sin `Content-Type`, para que el cliente HTTP ponga el boundary), `credentials` y los headers de
- * `getAuthHeaders`; una respuesta no OK lanza `ApiError` (`toApiError`) y un 204 devuelve `undefined`.
+ * Núcleo HTTP de web y mobile. Cada request lleva JSON (`Content-Type` fuera de GET), `credentials` y los headers de
+ * `getAuthHeaders`; un `FormData` va tal cual y sin `Content-Type`, para que el cliente HTTP ponga el boundary; una respuesta no OK lanza `ApiError` (`toApiError`) y un 204 devuelve `undefined`.
  *
  * Ante un 401 (salvo en login, logout y refresh) recupera la sesión y reintenta una sola vez:
  * - sin `getAuthHeaders` (web, cookies) siempre refresca;

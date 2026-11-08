@@ -13,6 +13,7 @@ import { ProfileSectionCard } from './components/ProfileSectionCard';
 import { ProfileSettingsForm } from './components/ProfileSettingsForm';
 import { useAccountActions } from './hooks/useAccountActions';
 import { useProfile } from './hooks/useProfile';
+import { toProfileFormValues } from './utils/profileForm';
 
 import type { ChangePasswordPayload } from '@omni/shared/users';
 
@@ -103,7 +104,12 @@ export const ProfilePage: FC = () => {
         onRemove={removeAvatar}
       />
 
-      <ProfileSettingsForm key={profile.updatedAt} profile={profile} isSaving={isMutating} onSave={handleSave} />
+      <ProfileSettingsForm
+        key={JSON.stringify(toProfileFormValues(profile))}
+        profile={profile}
+        isSaving={isMutating}
+        onSave={handleSave}
+      />
 
       <HouseholdCard />
 
