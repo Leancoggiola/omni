@@ -54,7 +54,7 @@ describe('Navbar', () => {
 
   it.each(['Gimnasio', 'Gastos', 'PC Control'])('deja %s deshabilitado y sin destino', label => {
     renderNavbar();
-    const item = screen.getByRole('link', { name: label });
+    const item = screen.getByRole('link', { name: `${label} Pronto` });
     expect(item).toHaveAttribute('aria-disabled', 'true');
     expect(item).not.toHaveAttribute('href');
   });
