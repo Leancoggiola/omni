@@ -1,8 +1,7 @@
 import { FC } from 'react';
 import { Paper, SimpleGrid, Stack, Text } from '@mantine/core';
 
-import type { PantryAlertFilter } from '../types';
-import type { PantrySummary } from '@omni/shared/pantry';
+import type { PantryAlertFilter, PantrySummary } from '@omni/shared/pantry';
 import type { ReactNode } from 'react';
 
 import { PANTRY_EXPIRING_SOON_DAYS } from '@omni/shared/pantry';

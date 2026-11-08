@@ -3,6 +3,7 @@ export { actionSheet } from './actionSheet/actionSheet';
 export { ActionSheetProvider } from './actionSheet/ActionSheetProvider';
 export type { ButtonProps } from './button/Button';
 export { Button } from './button/Button';
+export { Fab, FAB_SIZE } from './button/Fab';
 export { IconButton } from './button/IconButton';
 export type { ConfirmOptions } from './confirm/confirm';
 export { confirm } from './confirm/confirm';

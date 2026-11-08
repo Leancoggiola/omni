@@ -3,13 +3,12 @@ import { Paragraph, XStack } from 'tamagui';
 
 import type { InlineAlign } from '../types';
 
-export type BadgeColor = 'accent' | 'dimmed';
-type BadgeVariant = 'filled' | 'light';
+export type BadgeColor = 'accent' | 'dimmed' | 'warning';
+type BadgeVariant = 'filled' | 'light' | 'outline';
 type BadgeSize = 'sm' | 'md';
 
 type BadgeProps = {
   children: string;
-  /** `accent` es el terracota del tipo de media; `dimmed`, el gris de "Próximamente". */
   color: BadgeColor;
   variant?: BadgeVariant;
   size?: BadgeSize;
@@ -27,14 +26,23 @@ const BADGE_TOKENS = {
     onFill: '$onAccentFill',
     surface: '$accentSurface',
     text: '$accent',
+    border: '$accentBorder',
   },
   dimmed: {
     fill: '$dimmed',
     onFill: '$onDimmed',
     surface: '$disabledSurface',
     text: '$dimmed',
+    border: '$borderColor',
   },
-} as const satisfies Record<BadgeColor, Record<'fill' | 'onFill' | 'surface' | 'text', string>>;
+  warning: {
+    fill: '$warning',
+    onFill: '$onDimmed',
+    surface: '$warningSurface',
+    text: '$warning',
+    border: '$warningBorder',
+  },
+} as const satisfies Record<BadgeColor, Record<'fill' | 'onFill' | 'surface' | 'text' | 'border', string>>;
 
 /** Alto y fuente de `Badge` de Mantine (`--badge-height-*`, `--badge-fz-*`). */
 const SIZES = {
@@ -42,11 +50,15 @@ const SIZES = {
   md: { height: 22, fontSize: 11, paddingX: 11 },
 } as const;
 
-/** Equivalente de `Badge` de Mantine: pill en mayúsculas, 700. */
+/**
+ * Equivalente de `Badge` de Mantine: pill en mayúsculas, 700. `color`: `accent` es el terracota del tipo de media;
+ * `dimmed`, el gris de "Próximamente"; `warning`, el ámbar de "Por vencer" (de un solo tono: va en `outline`, no hay
+ * un wash legible).
+ */
 export function Badge({ children, color, variant = 'light', size = 'sm', alignSelf = 'flex-start' }: BadgeProps) {
   const t = BADGE_TOKENS[color];
   const metrics = SIZES[size];
-  const background = variant === 'filled' ? t.fill : t.surface;
+  const background = variant === 'filled' ? t.fill : variant === 'outline' ? 'transparent' : t.surface;
   const text = variant === 'filled' ? t.onFill : t.text;
 
   return (
@@ -56,6 +68,8 @@ export function Badge({ children, color, variant = 'light', size = 'sm', alignSe
       paddingHorizontal={metrics.paddingX}
       alignItems="center"
       borderRadius={RADIUS.full}
+      borderWidth={variant === 'outline' ? 1 : 0}
+      borderColor={t.border}
       backgroundColor={background}
     >
       <Paragraph

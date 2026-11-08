@@ -5,7 +5,7 @@ import { getErrorMessage } from '@/shared/ui';
 
 import { CategoryTile } from './CategoryTile';
 
-import type { GeneratePreviewRow } from '../utils/shoppingList';
+import type { GeneratePreviewRow } from '@omni/shared/pantry';
 
 import { formatPantryQuantity } from '@omni/shared/pantry';
 

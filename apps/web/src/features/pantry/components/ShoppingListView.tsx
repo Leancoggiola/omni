@@ -17,7 +17,6 @@ import { usePantryProducts } from '../hooks/usePantryProducts';
 import { usePantrySummary } from '../hooks/usePantrySummary';
 import { useShoppingList } from '../hooks/useShoppingList';
 import { useShoppingListMutations } from '../hooks/useShoppingListMutations';
-import { buildGeneratePreview, splitShoppingList } from '../utils/shoppingList';
 import { AddShoppingItemForm } from './AddShoppingItemForm';
 import { CompletePurchaseModal } from './CompletePurchaseModal';
 import { EditShoppingItemModal } from './EditShoppingItemModal';
@@ -27,6 +26,7 @@ import { ShoppingItemRow } from './ShoppingItemRow';
 
 import type { PantryShoppingListItem } from '@omni/shared/pantry';
 
+import { buildGeneratePreview, splitShoppingList } from '@omni/shared/pantry';
 import { ShoppingCartIcon } from '@phosphor-icons/react';
 
 /**

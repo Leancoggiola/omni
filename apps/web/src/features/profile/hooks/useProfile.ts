@@ -6,9 +6,16 @@ import useSWRMutation from 'swr/mutation';
 import { api, SWR_KEYS } from '@/shared/api';
 
 import type { ProfileResponse } from '@omni/shared/auth';
-import type { UpdatePreferencesPayload, UpdateProfilePayload, UserPreferences, UserProfile } from '@omni/shared/users';
+import type {
+  AvatarResponse,
+  UpdatePreferencesPayload,
+  UpdateProfilePayload,
+  UserPreferences,
+  UserProfile,
+} from '@omni/shared/users';
 
 import { toSessionUser } from '@omni/shared/auth';
+import { AVATAR_FIELD } from '@omni/shared/users';
 
 /** Perfil y preferencias del usuario, con sus mutaciones. */
 export function useProfile() {
@@ -37,6 +44,12 @@ export function useProfile() {
     },
     [globalMutate]
   );
+
+  /** La API devuelve el perfil completo: reemplaza la cache de `users.profile` y de la sesión (navbar, hogar). */
+  function applyAvatarResponse(res: AvatarResponse) {
+    void mutate(res, { revalidate: false });
+    syncAuthCache(res.user);
+  }
 
   const { trigger: updateProfile, isMutating: isUpdatingProfile } = useSWRMutation(
     SWR_KEYS.users.profile,
@@ -77,13 +90,32 @@ export function useProfile() {
     }
   );
 
+  const { trigger: uploadAvatar, isMutating: isUploadingAvatar } = useSWRMutation(
+    SWR_KEYS.users.avatar,
+    (_url: string, { arg }: { arg: File }) => {
+      const form = new FormData();
+      form.append(AVATAR_FIELD, arg);
+      return api.put<AvatarResponse>(SWR_KEYS.users.avatar, form);
+    },
+    { populateCache: false, revalidate: false, onSuccess: applyAvatarResponse }
+  );
+
+  const { trigger: removeAvatar, isMutating: isRemovingAvatar } = useSWRMutation(
+    SWR_KEYS.users.avatar,
+    () => api.delete<AvatarResponse>(SWR_KEYS.users.avatar),
+    { populateCache: false, revalidate: false, onSuccess: applyAvatarResponse }
+  );
+
   return {
     profile: data?.user ?? null,
     isLoading,
     isMutating: isUpdatingProfile || isUpdatingPreferences,
+    isUpdatingAvatar: isUploadingAvatar || isRemovingAvatar,
     error,
     mutate,
     updateProfile,
     updatePreferences,
+    uploadAvatar,
+    removeAvatar,
   };
 }

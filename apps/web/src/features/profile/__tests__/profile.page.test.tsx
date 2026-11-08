@@ -27,6 +27,8 @@ vi.mock('../components/HouseholdCard', () => ({ HouseholdCard: () => <p>Hogar co
 
 vi.mock('../components/PasswordForm', () => ({ PasswordForm: () => null }));
 
+vi.mock('../components/ProfilePhotoSection', () => ({ ProfilePhotoSection: () => <p>Foto de Perfil</p> }));
+
 vi.mock('../components/ProfileSectionCard', () => ({ ProfileSectionCard: () => null }));
 
 vi.mock('../components/ProfileSettingsForm', () => ({ ProfileSettingsForm: () => null }));
@@ -44,6 +46,9 @@ vi.mock('../hooks/useProfile', () => ({
     mutate: mocks.mutate,
     updateProfile: vi.fn(),
     updatePreferences: vi.fn(),
+    uploadAvatar: vi.fn(),
+    removeAvatar: vi.fn(),
+    isUpdatingAvatar: false,
   }),
 }));
 

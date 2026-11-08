@@ -22,8 +22,7 @@ export interface NavEntry {
   path: string;
   /**
    * Clientes donde la pantalla real existe; en el resto el módulo se muestra como "Próximamente".
-   * No dice si hay ruta: Alacena es tab en mobile (`MOBILE_TAB_KEYS`) con un placeholder y sigue sin
-   * estar disponible.
+   * No dice si hay ruta: un módulo puede ser tab en mobile (`MOBILE_TAB_KEYS`) antes de tener pantalla real.
    */
   availableOn: readonly NavPlatform[];
 }
@@ -38,7 +37,7 @@ export const NAV_REGISTRY: Record<NavKey, NavEntry> = {
   gym: { label: 'Gimnasio', path: '/gym', availableOn: [] },
   expenses: { label: 'Gastos', path: '/expenses', availableOn: [] },
   'pc-control': { label: 'PC Control', path: '/pc-control', availableOn: [] },
-  pantry: { label: 'Alacena', path: '/pantry', availableOn: ['web'] },
+  pantry: { label: 'Alacena', path: '/pantry', availableOn: ['web', 'mobile'] },
   'split-expenses': {
     label: 'Dividir gastos',
     path: '/split-expenses',
@@ -63,7 +62,7 @@ export const MAIN_NAV_ORDER = [
 /** Sección de administración: cada cliente la muestra solo al rol ADMIN (el registro no filtra por rol). */
 export const ADMIN_NAV_ORDER = ['admin'] as const satisfies readonly NavKey[];
 
-/** Tabs de mobile antes de "Más". Alacena es tab aunque todavía no exista (#48). */
+/** Tabs de mobile antes de "Más". */
 export const MOBILE_TAB_KEYS = ['home', 'media', 'pantry'] as const satisfies readonly NavKey[];
 
 export const isNavAvailable = (key: NavKey, platform: NavPlatform): boolean =>

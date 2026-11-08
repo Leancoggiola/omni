@@ -1,8 +1,7 @@
 import { FC } from 'react';
 import { Group, Paper, Select, TextInput } from '@mantine/core';
 
-import type { PantryProductFilters } from '../types';
-import type { PantryCategory } from '@omni/shared/pantry';
+import type { PantryCategory, PantryProductFilters } from '@omni/shared/pantry';
 
 import { PANTRY_CATEGORIES, PANTRY_CATEGORY_LABELS } from '@omni/shared/pantry';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react';

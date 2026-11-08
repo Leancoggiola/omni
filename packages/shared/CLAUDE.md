@@ -15,7 +15,7 @@ src/
   gym/          planes y ejercicios: schemas, tipos, GYM_PLAN_STATUSES
   expenses/     gastos personales y recordatorios: categorías, recurrencias, schemas, tipos
   split-expenses/ amigos y juntadas: schemas, tipos, `computeBalances`/`computeSettlements`/`summarizeGatheringPayments`/`summarizeUserBalance`/`summarizeSplitBalance`
-  pantry/       alacena y lista de compras: categorías, unidades, schemas, `isLowStock`/`isExpiringSoon`
+  pantry/       alacena y lista de compras: categorías, unidades, schemas, `isLowStock`/`isExpiringSoon`, labels y `formatPantryQuantity`, filtros del inventario (`filterPantryProducts`), schema del form de producto (`productFormSchema`), armado de la lista (`splitShoppingList`, `buildGeneratePreview`) e `isPantryKey`
   household/    hogar compartido (máx. 2 personas): constantes del código de invitación, `householdInviteCodeSchema`/`normalizeInviteCode` y tipos de hogar, invitación y vista previa
   holidays/     tipos de efemérides (Wikipedia), MAX_HOLIDAY_ITEMS y el carrusel (`HOLIDAY_CAROUSEL_DURATION_MS`, `HOLIDAY_STALE_DAY_RETRY_MS`, `nextCarouselIndex`, `clampCarouselIndex`, `isStaleHolidayDay`, `emptyTodayHolidays`)
   common/       paginación, cotas de entrada (limits), fechas en APP_TIMEZONE, `roundMoney`, `formatMoney`/`MONEY_FORMAT` (es-AR) y `getTimeGreeting`
