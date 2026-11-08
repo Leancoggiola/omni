@@ -12,11 +12,13 @@ import type { UserPreferences, UserProfile } from '@omni/shared/users';
 import type { PropsWithChildren } from 'react';
 
 jest.mock('@/shared/api', () => ({
-  api: { patch: jest.fn() },
+  api: { patch: jest.fn(), put: jest.fn(), delete: jest.fn() },
   API_KEYS: jest.requireActual('@/shared/api/keys').API_KEYS,
 }));
 
 const mockPatch = jest.mocked(api.patch);
+const mockPut = jest.mocked(api.put);
+const mockDelete = jest.mocked(api.delete);
 
 const PREFERENCES: UserPreferences = {
   id: 'p1',
@@ -150,5 +152,49 @@ describe('useProfile · updateProfile', () => {
 
     expect(mockPatch).toHaveBeenCalledWith(API_KEYS.users.profile, { phone: '456' });
     expect(result.current.profile.profile?.phone).toBe('456');
+  });
+});
+
+describe('useProfile · foto de perfil', () => {
+  const URL = 'https://cdn.test/a.webp';
+
+  it('uploadAvatar hace PUT con el FormData y actualiza perfil y sesión sin revalidar', async () => {
+    mockPut.mockResolvedValue({ user: { ...PROFILE, avatarUrl: URL } });
+    const { result, failingFetcher } = setup();
+
+    await act(async () => {
+      await result.current.profile.uploadAvatar({ uri: 'file:///a.png', mimeType: 'image/png', fileName: 'a.png' });
+    });
+
+    expect(mockPut).toHaveBeenCalledWith(API_KEYS.users.avatar, expect.any(FormData));
+    expect(result.current.profile.profile?.avatarUrl).toBe(URL);
+    await waitFor(() => expect(result.current.session.data?.user.avatarUrl).toBe(URL));
+    expect(failingFetcher).not.toHaveBeenCalled();
+  });
+
+  it('removeAvatar hace DELETE y deja avatarUrl en null', async () => {
+    mockPut.mockResolvedValue({ user: { ...PROFILE, avatarUrl: URL } });
+    mockDelete.mockResolvedValue({ user: PROFILE });
+    const { result } = setup();
+
+    await act(async () => {
+      await result.current.profile.uploadAvatar({ uri: 'file:///a.png' });
+      await result.current.profile.removeAvatar();
+    });
+
+    expect(mockDelete).toHaveBeenCalledWith(API_KEYS.users.avatar);
+    expect(result.current.profile.profile?.avatarUrl).toBeNull();
+    await waitFor(() => expect(result.current.session.data?.user.avatarUrl).toBeNull());
+  });
+
+  it('si el PUT falla rechaza y no toca el perfil', async () => {
+    mockPut.mockRejectedValue(new Error('413'));
+    const { result } = setup();
+
+    await act(async () => {
+      await expect(result.current.profile.uploadAvatar({ uri: 'file:///a.png' })).rejects.toThrow('413');
+    });
+
+    expect(result.current.profile.profile?.avatarUrl).toBeNull();
   });
 });
