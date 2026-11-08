@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { TextInput } from 'react-native';
 
 import { ApiError } from '@omni/shared/api';
 
@@ -25,6 +26,8 @@ jest.mock(
 );
 jest.mock('./components/AuthBackground', () => ({ AuthBackground: () => null }));
 
+const focusSpy = jest.spyOn(TextInput.prototype, 'focus');
+
 const renderLogin = async () => {
   render(<LoginScreen />);
   await screen.findByRole('button', { name: 'Ingresar' });
@@ -38,6 +41,7 @@ beforeEach(() => {
   mockGetRememberedUser.mockReset().mockResolvedValue(null);
   mockSetRememberedUser.mockReset().mockResolvedValue(undefined);
   mockClearRememberedUser.mockReset().mockResolvedValue(undefined);
+  focusSpy.mockClear();
 });
 
 describe('LoginScreen', () => {
@@ -257,6 +261,7 @@ describe('LoginScreen', () => {
       expect(mockClearRememberedUser).toHaveBeenCalledTimes(1);
       expect(screen.getByLabelText('Usuario')).toBeTruthy();
       expect(screen.queryByText('Ingresar con otro usuario')).toBeNull();
+      expect(focusSpy).toHaveBeenCalledTimes(1);
     });
 
     it('mientras carga deshabilita la contraseña y el enlace', async () => {
@@ -282,6 +287,7 @@ describe('LoginScreen', () => {
       expect(screen.getByLabelText('Contraseña')).toHaveProp('value', '');
       expect(screen.queryByText('Ingresar con otro usuario')).toBeNull();
       expect(screen.getByRole('header', { name: 'Ingresá a tu cuenta' })).toBeTruthy();
+      expect(focusSpy).toHaveBeenCalledTimes(1);
     });
   });
 });
