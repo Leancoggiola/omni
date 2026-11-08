@@ -1,17 +1,12 @@
 import { z } from 'zod';
 
 import { APP_TIMEZONE } from '@omni/shared/common';
-import type { CurrentWeather, WeatherCondition } from '@omni/shared/weather';
+import type { CurrentWeather, WeatherCondition, WeatherCoordinates } from '@omni/shared/weather';
 
 import { HttpError } from '../common/http';
 import { config } from '../config';
 
 const REQUEST_TIMEOUT_MS = 5_000;
-
-export interface WeatherCoordinates {
-  latitude: number;
-  longitude: number;
-}
 
 export type WeatherReading = Pick<CurrentWeather, 'temperature' | 'condition' | 'isDay' | 'min' | 'max'>;
 

@@ -1,8 +1,10 @@
 import { Router } from 'express';
 
 import { currentWeatherQuerySchema } from '@omni/shared/weather';
+import type { WeatherCoordinates } from '@omni/shared/weather';
 
 import { authenticateJwt } from '../auth/middleware/auth.middleware';
+import { validatedQuery } from '../common/http';
 import { createRateLimiter, validate } from '../common/utils';
 import * as weatherService from './weather.service';
 
@@ -19,8 +21,8 @@ const router = Router();
 
 router.use(authenticateJwt);
 
-router.get('/current', weatherLimiter, validate(currentWeatherQuerySchema, 'query'), async (_req, res) => {
-  res.json(await weatherService.getCurrentWeather());
+router.get('/current', weatherLimiter, validate(currentWeatherQuerySchema, 'query'), async (req, res) => {
+  res.json(await weatherService.getCurrentWeather(validatedQuery<WeatherCoordinates>(req)));
 });
 
 export default router;

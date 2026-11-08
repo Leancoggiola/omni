@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { WEATHER_CONDITIONS, WEATHER_CONDITION_LABELS, currentWeatherQuerySchema, currentWeatherSchema } from '..';
+import {
+  WEATHER_CONDITIONS,
+  WEATHER_CONDITION_LABELS,
+  currentWeatherQuerySchema,
+  currentWeatherSchema,
+  roundWeatherCoordinates,
+} from '..';
 
 const VALID = {
   city: 'Buenos Aires',
@@ -16,6 +22,10 @@ const VALID = {
 describe('currentWeatherSchema', () => {
   it('acepta el contrato completo', () => {
     expect(currentWeatherSchema.parse(VALID)).toEqual(VALID);
+  });
+
+  it('acepta una ciudad desconocida', () => {
+    expect(currentWeatherSchema.safeParse({ ...VALID, city: null }).success).toBe(true);
   });
 
   it('acepta temperaturas bajo cero', () => {
@@ -36,12 +46,41 @@ describe('currentWeatherSchema', () => {
 });
 
 describe('currentWeatherQuerySchema', () => {
-  it('acepta un query vacío', () => {
-    expect(currentWeatherQuerySchema.safeParse({}).success).toBe(true);
+  it('convierte las coordenadas a números', () => {
+    expect(currentWeatherQuerySchema.parse({ latitude: '-34.61', longitude: '-58.38' })).toEqual({
+      latitude: -34.61,
+      longitude: -58.38,
+    });
   });
 
-  it('rechaza coordenadas', () => {
-    expect(currentWeatherQuerySchema.safeParse({ lat: '-34.6', lon: '-58.3' }).success).toBe(false);
+  it.each([
+    ['falta la longitud', { latitude: '-34.61' }],
+    ['la coordenada está vacía', { latitude: '', longitude: '-58.38' }],
+    ['tiene más de dos decimales', { latitude: '-34.6037', longitude: '-58.38' }],
+    ['la latitud se pasa de 90', { latitude: '90.01', longitude: '-58.38' }],
+    ['la longitud se pasa de 180', { latitude: '-34.61', longitude: '180.5' }],
+    ['no es un número', { latitude: 'abc', longitude: '-58.38' }],
+    ['usa notación exponencial', { latitude: '1e1', longitude: '-58.38' }],
+    ['manda un parámetro de más', { latitude: '-34.61', longitude: '-58.38', city: 'Rosario' }],
+  ])('rechaza cuando %s', (_case, query) => {
+    expect(currentWeatherQuerySchema.safeParse(query).success).toBe(false);
+  });
+});
+
+describe('roundWeatherCoordinates', () => {
+  it('deja dos decimales', () => {
+    expect(roundWeatherCoordinates({ latitude: -34.603722, longitude: -58.381592 })).toEqual({
+      latitude: -34.6,
+      longitude: -58.38,
+    });
+  });
+
+  it('produce valores que el query acepta', () => {
+    const { latitude, longitude } = roundWeatherCoordinates({ latitude: 1.005, longitude: -179.999 });
+
+    expect(
+      currentWeatherQuerySchema.safeParse({ latitude: String(latitude), longitude: String(longitude) }).success
+    ).toBe(true);
   });
 });
 

@@ -57,7 +57,7 @@ router.post('/list', validate(addMediaItemSchema), async (req, res) => { ... });
 - `POST /auth/logout-all` (`authenticateJwt`) borra todos los refresh tokens del usuario y las cookies; los access tokens ya emitidos valen hasta vencer.
 - Logout no usa `authenticateJwt`: `authenticateLogout` (estrategia `logout`, nunca rechaza) extrae el refresh token del body o, si no, de la cookie. El handler no lee `req.cookies` directo: las rutas que mutan y usan cookies van detrás de `passport.authenticate` con `session: false`, que CodeQL reconoce. Es idempotente y siempre llama a `clearCookies`.
 - Refresh tokens: en la base va el sha256 (`hashRefreshToken`), nunca bcrypt. Toda escritura de `RefreshToken` va en una transacción que empieza con `lockUserSessions(tx, userId)`. Ver "Auth dual" en `docs/architecture.md`.
-- El logger HTTP (`createHttpLogger`) redacta los headers con credenciales: no montar `pino-http` directo.
+- El logger HTTP (`createHttpLogger`) redacta los headers con credenciales y quita las coordenadas del clima: no montar `pino-http` directo.
 - Admin: `authenticateJwt` + `requireAdmin`.
 - Tipos: `AuthTokensResponse`, `refreshTokenBodySchema` en `@omni/shared/auth`.
 
@@ -88,7 +88,7 @@ Usar `createRateLimiter` de `common/utils`, no `express-rate-limit` directo: per
 | Integración | `__tests__/integration/*.integration.test.ts`  | No           | Sí  |
 | Unitarios   | `__tests__/*.test.ts` (schemas, utils, reglas) | No           | No  |
 
-Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet: `tmdb.service`, `open-meteo.service` y el storage de fotos (`createFakeAvatarStorage()` + `setAvatarStorageOverride`). Patrón completo: `docs/api/route-testing.md`.
+Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet: `tmdb.service`, `open-meteo.service`, `nominatim.service` y el storage de fotos (`createFakeAvatarStorage()` + `setAvatarStorageOverride`). Patrón completo: `docs/api/route-testing.md`.
 
 ```bash
 docker compose up -d db-test
