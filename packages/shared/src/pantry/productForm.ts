@@ -1,9 +1,10 @@
 import { z } from 'zod';
 
-import type { CreatePantryProductPayload, PantryCategory, PantryProduct, PantryUnit } from '@omni/shared/pantry';
-
-import { AMOUNT_MAX_10_2 } from '@omni/shared/common';
-import { PANTRY_CATEGORIES, PANTRY_UNITS } from '@omni/shared/pantry';
+import { AMOUNT_MAX_10_2 } from '../common/limits';
+import { PANTRY_CATEGORIES, PANTRY_UNITS } from './constants';
+import type { PantryCategory, PantryUnit } from './constants';
+import type { CreatePantryProductPayload } from './schemas';
+import type { PantryProduct } from './types';
 
 export interface ProductFormValues {
   name: string;

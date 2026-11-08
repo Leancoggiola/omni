@@ -19,21 +19,23 @@ import { schemaResolver, useForm } from '@mantine/form';
 import { DISPLAY_DATE_FORMAT } from '@/shared/dates';
 import { getErrorMessage } from '@/shared/ui';
 
-import {
-  INITIAL_PRODUCT_FORM_VALUES,
-  productFormSchema,
-  toProductFormValues,
-  toProductPayload,
-} from '../utils/productForm';
 import { CategoryTile } from './CategoryTile';
 import { PantryItemAuthor } from './PantryItemAuthor';
 import { ProductAlertBadges } from './ProductAlertBadges';
 import { ProductQuantityStepper } from './ProductQuantityStepper';
 
-import type { ProductFormValues } from '../utils/productForm';
-import type { CreatePantryProductPayload, PantryProduct } from '@omni/shared/pantry';
+import type { CreatePantryProductPayload, PantryProduct, ProductFormValues } from '@omni/shared/pantry';
 
-import { PANTRY_CATEGORIES, PANTRY_CATEGORY_LABELS, PANTRY_UNIT_LABELS, PANTRY_UNITS } from '@omni/shared/pantry';
+import {
+  INITIAL_PRODUCT_FORM_VALUES,
+  PANTRY_CATEGORIES,
+  PANTRY_CATEGORY_LABELS,
+  PANTRY_UNIT_LABELS,
+  PANTRY_UNITS,
+  productFormSchema,
+  toProductFormValues,
+  toProductPayload,
+} from '@omni/shared/pantry';
 
 const CATEGORY_OPTIONS = PANTRY_CATEGORIES.map(value => ({ value, label: PANTRY_CATEGORY_LABELS[value] }));
 

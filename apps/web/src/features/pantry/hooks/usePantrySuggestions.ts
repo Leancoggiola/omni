@@ -3,7 +3,7 @@ import useSWR from 'swr';
 
 import { buildQueryString, SWR_KEYS } from '@/shared/api';
 
-import type { PantryProductSuggestion } from '../types';
+import type { PantryProductSuggestion } from '@omni/shared/pantry';
 
 const SUGGEST_DEBOUNCE_MS = 250;
 

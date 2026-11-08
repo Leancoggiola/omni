@@ -1,6 +1,5 @@
-import type { PantryProduct, PantryShoppingListItem } from '@omni/shared/pantry';
-
-import { computeQuantityToBuy } from '@omni/shared/pantry';
+import { computeQuantityToBuy } from './presentation';
+import type { PantryProduct, PantryShoppingListItem } from './types';
 
 export interface GeneratePreviewRow {
   product: PantryProduct;

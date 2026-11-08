@@ -1,17 +1,51 @@
 import { describe, expect, it } from 'vitest';
-
-import { SWR_KEYS } from '@/shared/api';
-
+import { API_PATHS } from '../../api/paths';
 import {
+  buildGeneratePreview,
   DEFAULT_PANTRY_FILTERS,
   filterPantryProducts,
   formatExpiryShort,
   hasActivePantryFilters,
-} from '../utils/pantryFilters';
-import { isPantryKey } from '../utils/pantryKeys';
-import { INITIAL_PRODUCT_FORM_VALUES, productFormSchema, toProductPayload } from '../utils/productForm';
-import { buildGeneratePreview, splitShoppingList } from '../utils/shoppingList';
-import { listItem, product } from './fixtures';
+  INITIAL_PRODUCT_FORM_VALUES,
+  isPantryKey,
+  productFormSchema,
+  splitShoppingList,
+  toProductFormValues,
+  toProductPayload,
+} from '..';
+import type { PantryProduct, PantryShoppingListItem } from '..';
+
+const product = (overrides: Partial<PantryProduct> = {}): PantryProduct => ({
+  id: 'p1',
+  createdById: 'u1',
+  updatedById: 'u1',
+  name: 'Leche entera',
+  category: 'DAIRY',
+  unit: 'PACKAGES',
+  quantity: 1,
+  minQuantity: 2,
+  expiresAt: null,
+  isLowStock: true,
+  isExpiringSoon: false,
+  createdAt: '2026-11-01T00:00:00.000Z',
+  updatedAt: '2026-11-01T00:00:00.000Z',
+  ...overrides,
+});
+
+const listItem = (overrides: Partial<PantryShoppingListItem> = {}): PantryShoppingListItem => ({
+  id: 'i1',
+  createdById: 'u1',
+  updatedById: 'u1',
+  name: 'Café molido',
+  source: 'MANUAL',
+  quantityToBuy: 1,
+  unit: 'PACKAGES',
+  checked: false,
+  pantryProductId: null,
+  isLowStock: false,
+  isExpiringSoon: false,
+  ...overrides,
+});
 
 const milk = product();
 const apples = product({ id: 'p2', name: 'Manzanas', category: 'FRUIT', isLowStock: false, isExpiringSoon: true });
@@ -50,8 +84,7 @@ describe('shoppingList', () => {
 
 describe('productForm', () => {
   it('exige nombre, categoría y cantidad', () => {
-    const result = productFormSchema.safeParse(INITIAL_PRODUCT_FORM_VALUES);
-    expect(result.success).toBe(false);
+    expect(productFormSchema.safeParse(INITIAL_PRODUCT_FORM_VALUES).success).toBe(false);
   });
 
   it('arma el payload con mínimo y fecha nulos cuando se vacían', () => {
@@ -59,14 +92,22 @@ describe('productForm', () => {
       { name: 'Té', category: 'GRAINS', unit: 'UNITS', quantity: 3, minQuantity: null, expiresAt: null }
     );
   });
+
+  it('parte del producto guardado y recorta la fecha', () => {
+    expect(toProductFormValues(product({ expiresAt: '2026-11-20T00:00:00.000Z' }))).toMatchObject({
+      name: 'Leche entera',
+      minQuantity: 2,
+      expiresAt: '2026-11-20',
+    });
+  });
 });
 
 describe('isPantryKey', () => {
   it('reconoce las keys de la alacena y nada más', () => {
-    expect(isPantryKey(SWR_KEYS.pantry.summary)).toBe(true);
-    expect(isPantryKey(`${SWR_KEYS.pantry.products}?limit=100`)).toBe(true);
-    expect(isPantryKey(SWR_KEYS.pantry.shoppingList)).toBe(true);
-    expect(isPantryKey(SWR_KEYS.media.list)).toBe(false);
+    expect(isPantryKey(API_PATHS.pantry.summary)).toBe(true);
+    expect(isPantryKey(`${API_PATHS.pantry.products}?limit=100`)).toBe(true);
+    expect(isPantryKey(API_PATHS.pantry.shoppingList)).toBe(true);
+    expect(isPantryKey(API_PATHS.media.list)).toBe(false);
     expect(isPantryKey(42)).toBe(false);
   });
 });
