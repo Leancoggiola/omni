@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 let mockFocused = true;
 jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
 jest.mock('@/shared/api', () => jest.requireActual('@/shared/api/keys'));
+jest.mock('@/shared/navigation', () => jest.requireActual('@/shared/navigation/useRevalidateOnFocus'));
 
 const LIST: MediaItem[] = [
   {
@@ -86,5 +87,33 @@ describe('useMyMediaList', () => {
     });
 
     expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('al montar pide la lista una sola vez', async () => {
+    const fetcher = jest.fn().mockResolvedValue(LIST);
+    const { result } = renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
+
+    await waitFor(() => expect(result.current.data).toEqual(LIST));
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('al volver a la pestaña muestra enseguida lo que agregó la otra persona, y no pide al salir', async () => {
+    const other = { ...LIST[0]!, id: '2', createdById: 'u2' };
+    const fetcher = jest
+      .fn()
+      .mockResolvedValueOnce(LIST)
+      .mockResolvedValue([...LIST, other]);
+    const { result, rerender } = renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
+    await waitFor(() => expect(result.current.data).toEqual(LIST));
+
+    mockFocused = false;
+    rerender({});
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    mockFocused = true;
+    rerender({});
+
+    await waitFor(() => expect(result.current.data).toHaveLength(2));
+    expect(fetcher).toHaveBeenCalledTimes(2);
   });
 });

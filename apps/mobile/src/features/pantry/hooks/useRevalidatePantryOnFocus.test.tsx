@@ -8,6 +8,7 @@ import { useRevalidatePantryOnFocus } from './useRevalidatePantryOnFocus';
 import type { ReactNode } from 'react';
 
 jest.mock('@/shared/api', () => jest.requireActual('@/shared/api/keys'));
+jest.mock('@/shared/navigation', () => jest.requireActual('@/shared/navigation/useRevalidateOnFocus'));
 
 let mockFocused = true;
 jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
