@@ -20,8 +20,8 @@ import { DISPLAY_DATE_FORMAT } from '@/shared/dates';
 import { getErrorMessage } from '@/shared/ui';
 
 import { CategoryTile } from './CategoryTile';
-import { PantryItemAuthor } from './PantryItemAuthor';
 import { ProductAlertBadges } from './ProductAlertBadges';
+import { ProductAuthorRows } from './ProductAuthorRows';
 import { ProductQuantityStepper } from './ProductQuantityStepper';
 
 import type { CreatePantryProductPayload, PantryProduct, ProductFormValues } from '@omni/shared/pantry';
@@ -165,12 +165,7 @@ const ProductForm: FC<ProductFormProps> = ({ product, showAuthor, loading, onSub
         </SimpleGrid>
 
         {product && showAuthor && (
-          <Group justify="space-between" wrap="nowrap">
-            <Text size="sm" c="dimmed">
-              Agregado por
-            </Text>
-            <PantryItemAuthor createdById={product.createdById} />
-          </Group>
+          <ProductAuthorRows createdById={product.createdById} updatedById={product.updatedById} />
         )}
 
         <Group justify={product && onDelete ? 'space-between' : 'flex-end'} gap="sm" mt="sm">

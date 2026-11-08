@@ -1,3 +1,4 @@
+import { ITEM_ADDED_BY_LABEL } from '@omni/shared/household';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { Paragraph, XStack, YStack } from 'tamagui';
 
@@ -16,19 +17,28 @@ const AVATAR_TOKENS = {
 type AuthorTagProps = {
   author: ItemAuthor;
   showName?: boolean;
+  actionLabel?: string;
+  showActionLabel?: boolean;
 };
 
 /**
  * Quién agregó un ítem compartido: avatar chico con iniciales y, opcionalmente, el nombre ("Vos" si es la propia
  * sesión). La cuenta eliminada es un avatar neutro con "?". Mismo contrato que `AuthorTag` de web.
- * Con `showName={false}` queda solo el avatar (el nombre sigue en el `accessibilityLabel`).
+ * Con `showName={false}` queda solo el avatar (el nombre sigue en el `accessibilityLabel`). `actionLabel` nombra la
+ * acción ("Agregado por", "Editado por") en el `accessibilityLabel`; con `showActionLabel` también se ve delante del
+ * nombre.
  */
-export function AuthorTag({ author, showName = true }: AuthorTagProps) {
+export function AuthorTag({
+  author,
+  showName = true,
+  actionLabel = ITEM_ADDED_BY_LABEL,
+  showActionLabel = false,
+}: AuthorTagProps) {
   const label = author.kind === 'self' ? 'Vos' : author.name;
   const tokens = AVATAR_TOKENS[author.kind];
 
   return (
-    <XStack alignItems="center" gap={SPACING['2xs']} accessible accessibilityLabel={`Agregado por ${label}`}>
+    <XStack alignItems="center" gap={SPACING['2xs']} accessible accessibilityLabel={`${actionLabel} ${label}`}>
       <YStack
         width={AVATAR_SIZE}
         height={AVATAR_SIZE}
@@ -43,7 +53,7 @@ export function AuthorTag({ author, showName = true }: AuthorTagProps) {
       </YStack>
       {showName ? (
         <Paragraph color="$dimmed" fontSize={FONT_SIZE.xs} numberOfLines={1} flexShrink={1}>
-          {label}
+          {showActionLabel ? `${actionLabel} ${label}` : label}
         </Paragraph>
       ) : null}
     </XStack>

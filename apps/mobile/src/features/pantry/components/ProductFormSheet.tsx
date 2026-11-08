@@ -16,7 +16,7 @@ import { Banner, Button, FormSheet, getErrorMessage, SegmentedControl, Select, T
 import { expiryToDisplay, maskExpiryInput, parseExpiryInput } from '../utils/expiryDate';
 import { parseNumberInput } from '../utils/numberInput';
 import { CategoryTile } from './CategoryTile';
-import { PantryItemAuthor } from './PantryItemAuthor';
+import { ProductAuthorRows } from './ProductAuthorRows';
 import { ProductAlertBadges } from './ProductAlertBadges';
 import { ProductQuantityStepper } from './ProductQuantityStepper';
 
@@ -228,12 +228,7 @@ function ProductForm({
       />
 
       {product && showAuthor ? (
-        <XStack alignItems="center" justifyContent="space-between">
-          <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
-            Agregado por
-          </Paragraph>
-          <PantryItemAuthor createdById={product.createdById} />
-        </XStack>
+        <ProductAuthorRows createdById={product.createdById} updatedById={product.updatedById} />
       ) : null}
 
       <YStack gap={SPACING.sm}>
