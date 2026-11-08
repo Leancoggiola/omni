@@ -132,6 +132,7 @@ export async function createGathering(userId: string, options: CreateGatheringOp
 export interface CreateGatheringExpenseOptions {
   amount?: number;
   description?: string | null;
+  sharedWith?: string[];
 }
 
 export async function createGatheringExpense(
@@ -146,6 +147,7 @@ export async function createGatheringExpense(
       participantId,
       amount: options.amount ?? 1000,
       description: options.description ?? null,
+      shares: { create: (options.sharedWith ?? []).map(id => ({ participantId: id })) },
     },
   });
 }

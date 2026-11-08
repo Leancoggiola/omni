@@ -60,6 +60,12 @@ export const addGatheringExpenseSchema = z.object({
   participantId: idSchema,
   amount: z.number().positive().max(AMOUNT_MAX_12_2),
   description: z.string().trim().max(GATHERING_EXPENSE_DESCRIPTION_MAX).nullable().optional(),
+  sharedWith: z
+    .array(idSchema)
+    .min(1, 'Elegí al menos una persona')
+    .max(GATHERING_PARTICIPANTS_MAX)
+    .refine(ids => new Set(ids).size === ids.length, 'No se puede repetir a una persona')
+    .optional(),
 });
 
 export type AddGatheringExpensePayload = z.infer<typeof addGatheringExpenseSchema>;

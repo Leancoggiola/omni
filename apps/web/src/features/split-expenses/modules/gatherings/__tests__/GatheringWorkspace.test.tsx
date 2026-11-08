@@ -42,12 +42,20 @@ const detail: GatheringDetail = {
   settledAt: null,
   participantCount: 3,
   totalAmount: 90,
-  fairShare: 30,
   myBalance: 30,
   participants: [
-    { id: 'p0', displayName: 'Leandro', friendId: null, alias: null, totalPaid: 90, balance: 60, isSelf: true },
-    { id: 'p1', displayName: 'Ana', friendId: null, alias: null, totalPaid: 0, balance: -30, isSelf: false },
-    { id: 'p2', displayName: 'Beto', friendId: null, alias: null, totalPaid: 0, balance: -30, isSelf: false },
+    {
+      id: 'p0',
+      displayName: 'Leandro',
+      friendId: null,
+      alias: null,
+      totalPaid: 90,
+      owed: 30,
+      balance: 60,
+      isSelf: true,
+    },
+    { id: 'p1', displayName: 'Ana', friendId: null, alias: null, totalPaid: 0, owed: 30, balance: -30, isSelf: false },
+    { id: 'p2', displayName: 'Beto', friendId: null, alias: null, totalPaid: 0, owed: 30, balance: -30, isSelf: false },
   ],
   expenses: [
     {
@@ -56,6 +64,7 @@ const detail: GatheringDetail = {
       participantName: 'Leandro',
       amount: 90,
       description: 'Carne',
+      sharedWith: [],
       createdAt: '2026-10-10T12:40:00',
     },
   ],
