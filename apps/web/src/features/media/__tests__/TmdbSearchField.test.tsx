@@ -64,6 +64,15 @@ describe('TmdbSearchField', () => {
     expect(screen.queryByRole('option', { name: /Dune/ })).not.toBeInTheDocument();
   });
 
+  it('renderiza el error fuera del listbox, que solo debe contener opciones', () => {
+    mocks.search.error = new Error('boom');
+    renderField();
+    fireEvent.focus(screen.getByRole('textbox', { name: /Título/ }));
+
+    expect(screen.getByText('No se pudo buscar en TMDB')).toBeInTheDocument();
+    expect(screen.queryByRole('listbox', { hidden: true })).not.toBeInTheDocument();
+  });
+
   it('con menos de 2 caracteres pide más texto aunque haya un error previo', () => {
     mocks.search.error = new Error('boom');
     renderField('D');

@@ -43,7 +43,7 @@ test.describe('media', () => {
     await expect(page.getByRole('option', { name: /Inception/i }).first()).toBeVisible();
   });
 
-  test('muestra "No hay resultados" sin botón de agregar al filtrar por un tipo sin items', async ({
+  test('muestra "No hay resultados" y no la lista vacía al filtrar por un tipo sin items', async ({
     page,
     freshUser,
   }) => {
