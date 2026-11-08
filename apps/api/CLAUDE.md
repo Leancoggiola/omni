@@ -18,7 +18,7 @@ apps/api/src/
   config.ts · app.ts · main.ts · router.ts
 ```
 
-Features: `auth`, `media`, `users`, `admin`, `gym`, `pantry`, `expenses`, `split-expenses`, `holidays`, `household`. Registrar en `src/router.ts` con `router.use('/<feature>', featureRoutes)`.
+Features: `auth`, `media`, `users`, `admin`, `gym`, `pantry`, `expenses`, `split-expenses`, `holidays`, `household`, `weather`. Registrar en `src/router.ts` con `router.use('/<feature>', featureRoutes)`.
 
 ```ts
 import { prisma } from '../common/db';
@@ -88,7 +88,7 @@ Usar `createRateLimiter` de `common/utils`, no `express-rate-limit` directo: per
 | Integración | `__tests__/integration/*.integration.test.ts`  | No           | Sí  |
 | Unitarios   | `__tests__/*.test.ts` (schemas, utils, reglas) | No           | No  |
 
-Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet: `tmdb.service` y el storage de fotos (`createFakeAvatarStorage()` + `setAvatarStorageOverride`). Patrón completo: `docs/api/route-testing.md`.
+Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet: `tmdb.service`, `open-meteo.service` y el storage de fotos (`createFakeAvatarStorage()` + `setAvatarStorageOverride`). Patrón completo: `docs/api/route-testing.md`.
 
 ```bash
 docker compose up -d db-test

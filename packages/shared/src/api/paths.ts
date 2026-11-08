@@ -58,6 +58,9 @@ export const API_PATHS = {
   holidays: {
     today: '/api/holidays/today',
   },
+  weather: {
+    current: '/api/weather/current',
+  },
 } as const;
 
 /**

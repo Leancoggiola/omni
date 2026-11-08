@@ -50,7 +50,7 @@ src/
     index.ts              ← Barril: re-exporta db + utils
   health/                 ← /api/health y /api/health/ready (antes del guard)
   auth/                   ← Routes + service (+ middleware/, strategies/)
-  media/ · users/ · admin/ · pantry/ · gym/ · expenses/ · split-expenses/ · holidays/
+  media/ · users/ · admin/ · pantry/ · gym/ · expenses/ · split-expenses/ · holidays/ · weather/
                           ← Mismo patrón routes + service
   generated/
     prisma/               ← Cliente Prisma generado (no editar)
@@ -166,14 +166,14 @@ app/<ruta>.tsx              solo la ruta: importa @/features/<name>
 
 ## Paralelo Web ↔ API
 
-| Concepto               | API                                                                                                   | Web                                                                                  |
-| ---------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Utilidades compartidas | `common/db/`, `common/utils/`                                                                         | `shared/api/`                                                                        |
-| Módulos de producto    | `auth/`, `admin/`, `media/`, `users/`, `pantry/`, `gym/`, `expenses/`, `split-expenses/`, `holidays/` | `features/auth/`, `features/media/`, `features/profile/`, `features/split-expenses/` |
-| Setup global           | `config.ts`, `main.ts`                                                                                | `core/`, `layouts/`, `main.tsx`                                                      |
-| Servicios              | `*.service.ts`                                                                                        | hooks en `features/*/hooks/` o `features/*/modules/*/hooks/`                         |
-| Validación             | `common/utils/validate.ts` (Zod middleware)                                                           | Schemas de `@omni/shared`                                                            |
-| Auth                   | Cookie **o** Bearer JWT                                                                               | Cookies `httpOnly` + `credentials: 'include'`                                        |
+| Concepto               | API                                                                                                               | Web                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Utilidades compartidas | `common/db/`, `common/utils/`                                                                                     | `shared/api/`                                                                        |
+| Módulos de producto    | `auth/`, `admin/`, `media/`, `users/`, `pantry/`, `gym/`, `expenses/`, `split-expenses/`, `holidays/`, `weather/` | `features/auth/`, `features/media/`, `features/profile/`, `features/split-expenses/` |
+| Setup global           | `config.ts`, `main.ts`                                                                                            | `core/`, `layouts/`, `main.tsx`                                                      |
+| Servicios              | `*.service.ts`                                                                                                    | hooks en `features/*/hooks/` o `features/*/modules/*/hooks/`                         |
+| Validación             | `common/utils/validate.ts` (Zod middleware)                                                                       | Schemas de `@omni/shared`                                                            |
+| Auth                   | Cookie **o** Bearer JWT                                                                                           | Cookies `httpOnly` + `credentials: 'include'`                                        |
 
 ### Auth dual (web + mobile)
 
@@ -226,6 +226,7 @@ shared/src/
   split-expenses/  ← amigos, juntadas, balances y liquidaciones
   pantry/          ← alacena, lista de compras, alertas
   holidays/        ← tipos de efemérides
+  weather/         ← contrato del clima
   common/          ← paginación, cotas de entrada, fechas en la zona de la app, roundMoney
   theme/           ← tokens de color, medidas, contrastRatio
   navigation/      ← NAV_REGISTRY (navbar web, tabs y "Más" mobile)
