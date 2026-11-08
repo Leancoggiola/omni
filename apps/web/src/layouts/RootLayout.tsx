@@ -11,7 +11,7 @@ import { Navbar } from './components/Navbar';
 import type { FC } from 'react';
 
 /**
- * Shell de la app. El navbar pasa a flotante desde el breakpoint `md` (`62em`): el mismo valor está en `breakpoint` del
+ * Shell de la app. El navbar pasa a panel pegado al borde (alto completo, redondeado a la derecha) desde el breakpoint `md` (`62em`): el mismo valor está en `breakpoint` del
  * navbar, en `useMediaQuery` y en `appshell_navbar` de `theme/components.module.scss`; si cambia, cambian los tres.
  */
 export const RootLayout: FC = () => {
@@ -25,13 +25,13 @@ export const RootLayout: FC = () => {
       padding={isDesktop ? '2xl' : 'md'}
       header={{ height: 60, collapsed: !!isDesktop }}
       navbar={{
-        width: '20rem',
+        width: '19rem',
         breakpoint: 'md',
         collapsed: { mobile: !opened },
       }}
       layout="alt"
       withBorder={false}
-      styles={{ root: { '--app-shell-navbar-width': '20rem' } }}
+      styles={{ root: { '--app-shell-navbar-width': '19rem' } }}
     >
       <AppBackground />
       <Header opened={opened} onToggle={toggle} />

@@ -18,12 +18,13 @@
 
   @media (min-width: 62em) {
     border: 1px solid var(--mantine-color-border-glass);
-    border-radius: var(--mantine-radius-xl);
+    border-inline-start: none;
+    border-radius: 0 var(--mantine-radius-xl) var(--mantine-radius-xl) 0;
     box-shadow: var(--mantine-shadow-card);
-    top: var(--mantine-spacing-md);
-    inset-inline-start: var(--mantine-spacing-md);
-    height: calc(100dvh - 2 * var(--mantine-spacing-md));
-    width: calc(var(--app-shell-navbar-width) - var(--mantine-spacing-md));
+    top: 0;
+    inset-inline-start: 0;
+    height: 100dvh;
+    width: var(--app-shell-navbar-width);
   }
 }
 
@@ -91,21 +92,30 @@
 }
 
 .navlink_root {
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-  border-radius: var(--mantine-radius-full);
+  min-height: 3rem;
+  padding: 0 var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-lg);
 
   &[data-active] {
-    color: var(--mantine-color-brand-on-filled);
-    background-color: var(--mantine-color-brand-filled);
+    color: var(--mantine-color-brand-light-color);
+    background-color: var(--mantine-color-surfaces-primary-light);
   }
   &:hover:not([data-active]) {
     background-color: var(--mantine-color-surfaces-hover);
+  }
+  &[data-disabled] {
+    opacity: 1;
+    color: var(--mantine-color-dimmed);
   }
 }
 
 .navlink_label {
   font-size: var(--mantine-font-size-md);
-  font-weight: 600;
+  font-weight: 500;
+
+  [data-active] & {
+    font-weight: 700;
+  }
 }
 
 .tabs_list {

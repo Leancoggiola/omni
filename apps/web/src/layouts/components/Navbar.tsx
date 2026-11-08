@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ActionIcon,
   AppShell,
+  Badge,
   Burger,
   Divider,
   Group,
@@ -68,8 +69,16 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
 
   /** Sin destino no hay `href`: `role="link"` + `aria-disabled` es el patrón ARIA de link deshabilitado. */
   const renderNavItem = (item: NavItemConfig) => {
-    const renderIcon = (active: boolean) => (
-      <ThemeIcon variant={active ? 'white' : 'light'} color="brand" size="lg" radius="full">
+    const renderIcon = (active: boolean, dimmed = false) => (
+      <ThemeIcon
+        variant="filled"
+        color="brand"
+        size="2.25rem"
+        radius="md"
+        bg={active ? 'var(--mantine-color-surfaces-card)' : undefined}
+        c={active ? 'var(--mantine-color-text-link-default)' : undefined}
+        style={dimmed ? { opacity: 0.5 } : undefined}
+      >
         {item.icon}
       </ThemeIcon>
     );
@@ -79,7 +88,12 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
         <NavLink
           key={item.label}
           label={item.label}
-          leftSection={renderIcon(false)}
+          leftSection={renderIcon(false, true)}
+          rightSection={
+            <Badge variant="light" color="gray" size="sm" tt="none">
+              Pronto
+            </Badge>
+          }
           disabled
           role="link"
           aria-disabled
@@ -96,6 +110,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
         to={item.path}
         label={item.label}
         leftSection={renderIcon(active)}
+        rightSection={null}
         active={active}
         aria-current={active ? 'page' : undefined}
         onClick={onClose}
@@ -104,7 +119,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
   };
 
   return (
-    <AppShell.Navbar px="md" py="xl">
+    <AppShell.Navbar px="sm" py="lg">
       <AppShell.Section my="sm">
         <Group>
           <LogoAvatar size="lg" />
@@ -123,7 +138,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
           {MAIN_NAV_ITEMS.map(renderNavItem)}
           {user?.role === 'ADMIN' && (
             <>
-              <Text size="xs" tt="uppercase" c="dimmed" fw={700} mt="sm" mb="2xs" px="sm">
+              <Text fz="0.75rem" lh="1rem" lts="0.0375rem" tt="uppercase" c="dimmed" fw={700} mt="sm" mb="2xs" px="xs">
                 Admin
               </Text>
               {ADMIN_NAV_ITEMS.map(renderNavItem)}
@@ -131,10 +146,9 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
           )}
         </Stack>
       </AppShell.Section>
-      <Divider color="var(--mantine-color-border-hairline)" />
 
       <AppShell.Section mt="md">
-        <Paper p="sm" shadow="none" radius="lg" bg="var(--mantine-color-surfaces-hover)">
+        <Paper p="sm" shadow="none" radius="lg" withBorder bg="var(--mantine-color-surfaces-card)">
           <Group gap="sm" wrap="nowrap">
             <UserAvatar name={user?.name ?? ''} src={user?.avatarUrl} />
             <Stack gap="none">
