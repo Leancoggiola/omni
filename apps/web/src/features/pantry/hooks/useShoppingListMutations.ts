@@ -3,14 +3,14 @@ import { useSWRConfig } from 'swr';
 
 import { api, SWR_KEYS } from '@/shared/api';
 
-import { isPantryKey } from '../utils/pantryKeys';
-
 import type {
   AddShoppingListItemPayload,
   CompleteShoppingListItemPayload,
   PantryProduct,
   PantryShoppingListItem,
 } from '@omni/shared/pantry';
+
+import { isPantryKey } from '@omni/shared/pantry';
 
 /**
  * Escrituras de la lista de compras. Comprar suma al stock y generar crea ítems, así que todas revalidan las keys de

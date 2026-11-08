@@ -25,6 +25,15 @@ describe('Badge', () => {
     render(<Badge color="dimmed">Próximamente</Badge>);
     expect(screen.getByText('Próximamente')).toHaveProp('color', '$dimmed');
   });
+
+  it('outline warning: texto ámbar sobre fondo transparente (el ámbar es de un solo tono)', () => {
+    render(
+      <Badge color="warning" variant="outline">
+        Por vencer
+      </Badge>
+    );
+    expect(screen.getByText('Por vencer')).toHaveProp('color', '$warning');
+  });
 });
 
 describe('Banner', () => {

@@ -15,15 +15,14 @@ import {
 import { usePantryMutations } from '../hooks/usePantryMutations';
 import { usePantryProducts } from '../hooks/usePantryProducts';
 import { usePantrySummary } from '../hooks/usePantrySummary';
-import { DEFAULT_PANTRY_FILTERS, filterPantryProducts, hasActivePantryFilters } from '../utils/pantryFilters';
 import { PantrySummaryCards } from './PantrySummaryCards';
 import { ProductFormModal } from './ProductFormModal';
 import { ProductsTable } from './ProductsTable';
 import { ProductsToolbar } from './ProductsToolbar';
 
-import type { PantryProductFilters } from '../types';
-import type { CreatePantryProductPayload, PantryProduct } from '@omni/shared/pantry';
+import type { CreatePantryProductPayload, PantryProduct, PantryProductFilters } from '@omni/shared/pantry';
 
+import { DEFAULT_PANTRY_FILTERS, filterPantryProducts, hasActivePantryFilters } from '@omni/shared/pantry';
 import { MagnifyingGlassIcon, PackageIcon, PlusIcon } from '@phosphor-icons/react';
 
 interface InventoryViewProps {
