@@ -9,7 +9,8 @@ type LogoutAllCardProps = {
 /**
  * Cierra la sesión en todos los dispositivos, este incluido, con `confirm()` antes: los demás dejan de poder refrescar
  * y piden login en cuanto vence su access token. `onLogoutAll` revoca las sesiones en la API y cierra la local (al
- * resolver, la pantalla se desmonta); si falla, avisa y la sesión queda abierta.
+ * resolver, la pantalla se desmonta); si rechaza, avisa y la sesión queda abierta. Si las sesiones ya se cerraron y solo
+ * falló el borrado local, quien pasa `onLogoutAll` avisa y resuelve: acá cuenta como éxito.
  */
 export function LogoutAllCard({ onLogoutAll }: LogoutAllCardProps) {
   const [loading, setLoading] = useState(false);
