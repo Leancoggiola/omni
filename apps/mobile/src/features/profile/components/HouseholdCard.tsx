@@ -282,7 +282,7 @@ function LinkedBody({ household, selfUsername, pushDismissed, busy, onDismissPus
           .sort((a, b) => Number(b.username === selfUsername) - Number(a.username === selfUsername))
           .map(member => (
             <XStack key={member.userId} gap={SPACING.sm} alignItems="center">
-              <UserAvatar name={member.name} />
+              <UserAvatar name={member.name} uri={member.avatarUrl} />
               <YStack flex={1}>
                 <Paragraph fontWeight="700" fontSize={FONT_SIZE.lg}>
                   {member.username === selfUsername ? `${member.name} (vos)` : member.name}
