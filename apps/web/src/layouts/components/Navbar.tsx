@@ -69,7 +69,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
 
   /** Sin destino no hay `href`: `role="link"` + `aria-disabled` es el patrón ARIA de link deshabilitado. */
   const renderNavItem = (item: NavItemConfig) => {
-    const renderIcon = (active: boolean, dimmed = false) => (
+    const renderIcon = (active: boolean) => (
       <ThemeIcon
         variant="filled"
         color="brand"
@@ -77,7 +77,6 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
         radius="md"
         bg={active ? 'var(--mantine-color-surfaces-card)' : undefined}
         c={active ? 'var(--mantine-color-text-link-default)' : undefined}
-        style={dimmed ? { opacity: 0.5 } : undefined}
       >
         {item.icon}
       </ThemeIcon>
@@ -88,7 +87,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
         <NavLink
           key={item.label}
           label={item.label}
-          leftSection={renderIcon(false, true)}
+          leftSection={renderIcon(false)}
           rightSection={
             <Badge variant="light" color="gray" size="sm" tt="none">
               Pronto

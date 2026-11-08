@@ -10,9 +10,13 @@ import { Navbar } from './components/Navbar';
 
 import type { FC } from 'react';
 
+/** Ancho del navbar en desktop: lo usan `navbar.width` y `--app-shell-navbar-width`. */
+const NAVBAR_WIDTH = '19rem';
+
 /**
- * Shell de la app. El navbar pasa a panel pegado al borde (alto completo, redondeado a la derecha) desde el breakpoint `md` (`62em`): el mismo valor está en `breakpoint` del
- * navbar, en `useMediaQuery` y en `appshell_navbar` de `theme/components.module.scss`; si cambia, cambian los tres.
+ * Shell de la app. El navbar pasa a panel pegado al borde (alto completo, redondeado a la derecha) desde el
+ * breakpoint `md` (`62em`): el mismo valor está en `breakpoint` del navbar, en `useMediaQuery` y en
+ * `appshell_navbar` de `theme/components.module.scss`; si cambia, cambian los tres.
  */
 export const RootLayout: FC = () => {
   const [opened, { toggle, close }] = useDisclosure();
@@ -25,13 +29,13 @@ export const RootLayout: FC = () => {
       padding={isDesktop ? '2xl' : 'md'}
       header={{ height: 60, collapsed: !!isDesktop }}
       navbar={{
-        width: '19rem',
+        width: NAVBAR_WIDTH,
         breakpoint: 'md',
         collapsed: { mobile: !opened },
       }}
       layout="alt"
       withBorder={false}
-      styles={{ root: { '--app-shell-navbar-width': '19rem' } }}
+      styles={{ root: { '--app-shell-navbar-width': NAVBAR_WIDTH } }}
     >
       <AppBackground />
       <Header opened={opened} onToggle={toggle} />
