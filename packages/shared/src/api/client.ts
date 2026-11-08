@@ -37,7 +37,7 @@ function sameAuthHeaders(a: AuthHeaders | null, b: AuthHeaders | null): boolean 
 
 /**
  * Núcleo HTTP de web y mobile. Cada request lleva JSON (`Content-Type` fuera de GET), `credentials` y los headers de
- * `getAuthHeaders`; una respuesta no OK lanza `ApiError` (`toApiError`) y un 204 devuelve `undefined`.
+ * `getAuthHeaders`; un `FormData` va tal cual y sin `Content-Type`, para que el cliente HTTP ponga el boundary; una respuesta no OK lanza `ApiError` (`toApiError`) y un 204 devuelve `undefined`.
  *
  * Ante un 401 (salvo en login, logout y refresh) recupera la sesión y reintenta una sola vez:
  * - sin `getAuthHeaders` (web, cookies) siempre refresca;
@@ -82,8 +82,9 @@ export function createApiClient({
 
   async function request<T>(path: string, method: HttpMethod, body?: unknown, retried = false): Promise<T> {
     const authHeaders = getAuthHeaders ? await getAuthHeaders() : null;
+    const isForm = body instanceof FormData;
     const headers: Record<string, string> = {
-      ...(method !== 'GET' && { 'Content-Type': 'application/json' }),
+      ...(method !== 'GET' && !isForm && { 'Content-Type': 'application/json' }),
       ...authHeaders,
     };
 
@@ -91,7 +92,7 @@ export function createApiClient({
       method,
       headers,
       credentials,
-      body: body != null ? JSON.stringify(body) : undefined,
+      body: body == null ? undefined : isForm ? body : JSON.stringify(body),
     });
 
     if (res.status === 401 && !retried && !NO_REFRESH_PATHS.includes(path)) {

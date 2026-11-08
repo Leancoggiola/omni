@@ -61,6 +61,18 @@ describe('createApiClient', () => {
       expect(initOf(fetchMock)).toMatchObject({ method: 'GET', headers: {}, body: undefined });
     });
 
+    it('un FormData va tal cual y sin Content-Type', async () => {
+      const fetchMock: FetchMock = vi.fn().mockResolvedValue(jsonResponse({ ok: true }));
+      const client = createApiClient({ fetch: fetchMock, refresh: vi.fn() });
+      const form = new FormData();
+      form.append('avatar', new Blob(['x']), 'a.png');
+
+      await client.put('/x', form);
+
+      expect(initOf(fetchMock).body).toBe(form);
+      expect(headersOf(fetchMock)).toEqual({});
+    });
+
     it('suma los headers de auth a cada request', async () => {
       const fetchMock: FetchMock = vi.fn().mockResolvedValue(jsonResponse({}));
       const client = createApiClient({
