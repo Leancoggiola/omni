@@ -10,7 +10,7 @@ import type {
   UpdatePantryProductPayload,
   UpdateShoppingListItemPayload,
 } from '@omni/shared/pantry';
-import { isExpiringSoon, isLowStock } from '@omni/shared/pantry';
+import { computeQuantityToBuy, isExpiringSoon, isLowStock } from '@omni/shared/pantry';
 import { parseIsoDateString, startOfTodayInAppTz } from '@omni/shared/common';
 import type { PantryProduct as PrismaPantryProduct, Prisma } from '../generated/prisma/client';
 import { paginationSkipTake } from '@omni/shared/common';
@@ -38,11 +38,6 @@ function mapProduct(row: PrismaPantryProduct, today = startOfTodayInAppTz()): Pa
     createdAt: toIsoDateTimeString(row.createdAt),
     updatedAt: toIsoDateTimeString(row.updatedAt),
   };
-}
-
-function computeQuantityToBuy(quantity: number, minQuantity: number): number {
-  const diff = minQuantity - quantity;
-  return Math.max(Math.ceil(diff), 1);
 }
 
 async function getHouseholdProduct(householdId: string, productId: string) {

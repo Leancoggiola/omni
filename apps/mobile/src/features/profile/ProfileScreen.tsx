@@ -46,11 +46,15 @@ export function ProfileScreen() {
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/more'));
 
+  /**
+   * Envuelve una acción de foto: al terminar bien refresca el hogar (donde también se ve el avatar). Ese refresco no
+   * hace fallar la acción, porque la foto ya se guardó.
+   */
   const changeAvatar =
     <A extends unknown[]>(action: (...args: A) => Promise<unknown>) =>
     async (...args: A) => {
       await action(...args);
-      void refreshHousehold();
+      void Promise.resolve(refreshHousehold()).catch(() => undefined);
     };
 
   const savePreferences = async (payload: UpdatePreferencesPayload) => {

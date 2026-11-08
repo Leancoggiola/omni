@@ -19,7 +19,7 @@ export const validateAvatarAsset = ({
 };
 
 /**
- * `FormData` de el PUT del avatar: React Native lee el archivo desde su `uri` cuando se agrega como
+ * `FormData` del PUT del avatar: React Native lee el archivo desde su `uri` cuando se agrega como
  * `{ uri, name, type }`, de ahí el cast (no es un `Blob` real).
  */
 export const buildAvatarForm = ({ uri, mimeType, fileName }: AvatarAsset): FormData => {
