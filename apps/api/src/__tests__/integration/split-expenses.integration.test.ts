@@ -171,7 +171,7 @@ describe('split-expenses routes (integration)', () => {
       expect(byName['Vacía']).toMatchObject({ totalAmount: 0, participantCount: 1 });
     });
 
-    it('GET /gatherings/:id rounds the totals and the fair share', async () => {
+    it('GET /gatherings/:id rounds the totals and what each one spent', async () => {
       const asado = await createGathering(user.id, { name: 'Asado', participants: ['Ana', 'Beto'] });
       await createGatheringExpense(asado.id, asado.participants[0]!.id, { amount: 0.1 });
       await createGatheringExpense(asado.id, asado.participants[0]!.id, { amount: 0.2 });
@@ -179,8 +179,9 @@ describe('split-expenses routes (integration)', () => {
       const res = await request(app).get(`/api/split-expenses/gatherings/${asado.id}`).set('Authorization', auth);
 
       expect(res.status).toBe(200);
-      expect(res.body).toMatchObject({ totalAmount: 0.3, fairShare: 0.15 });
-      expect(res.body.participants.find((p: { displayName: string }) => p.displayName === 'Ana').totalPaid).toBe(0.3);
+      expect(res.body.totalAmount).toBe(0.3);
+      const ana = res.body.participants.find((p: { displayName: string }) => p.displayName === 'Ana');
+      expect(ana).toMatchObject({ totalPaid: 0.3, owed: 0.15, balance: 0.15 });
     });
 
     it('GET /gatherings/:id returns the detail', async () => {
@@ -293,6 +294,157 @@ describe('split-expenses routes (integration)', () => {
 
       expect(res.status).toBe(409);
       expect(res.body.message).toBe('La juntada está saldada');
+    });
+
+    describe('sharedWith', () => {
+      const expensesPath = (id: string) => `/api/split-expenses/gatherings/${id}/expenses`;
+      const byName = (participants: Array<{ displayName: string }>) =>
+        Object.fromEntries(participants.map(p => [p.displayName, p]));
+
+      it('divide el gasto solo entre los elegidos y lo persiste', async () => {
+        const gathering = await createGathering(user.id, { participants: ['Ana', 'Bruno', 'Caro'] });
+        const [ana, bruno] = gathering.participants;
+
+        const res = await request(app)
+          .post(expensesPath(gathering.id))
+          .set('Authorization', auth)
+          .send({ participantId: ana!.id, amount: 90, sharedWith: [ana!.id, bruno!.id] });
+
+        expect(res.status).toBe(201);
+        expect([...res.body.expenses[0].sharedWith].sort()).toEqual([ana!.id, bruno!.id].sort());
+        const people = byName(res.body.participants);
+        expect(people.Ana).toMatchObject({ totalPaid: 90, owed: 45, balance: 45 });
+        expect(people.Bruno).toMatchObject({ totalPaid: 0, owed: 45, balance: -45 });
+        expect(people.Caro).toMatchObject({ totalPaid: 0, owed: 0, balance: 0 });
+        expect(await prisma.gatheringExpenseShare.count({ where: { expenseId: res.body.expenses[0].id } })).toBe(2);
+      });
+
+      it('sin sharedWith divide entre todos y no guarda filas', async () => {
+        const gathering = await createGathering(user.id, { participants: ['Ana', 'Bruno'] });
+
+        const res = await request(app)
+          .post(expensesPath(gathering.id))
+          .set('Authorization', auth)
+          .send({ participantId: gathering.participants[0]!.id, amount: 100 });
+
+        expect(res.status).toBe(201);
+        expect(res.body.expenses[0].sharedWith).toEqual([]);
+        expect(await prisma.gatheringExpenseShare.count({ where: { expenseId: res.body.expenses[0].id } })).toBe(0);
+      });
+
+      it('con todos los participantes normaliza a lista vacía', async () => {
+        const gathering = await createGathering(user.id, { participants: ['Ana', 'Bruno'] });
+        const ids = gathering.participants.map(p => p.id);
+
+        const res = await request(app)
+          .post(expensesPath(gathering.id))
+          .set('Authorization', auth)
+          .send({ participantId: ids[0], amount: 100, sharedWith: ids });
+
+        expect(res.status).toBe(201);
+        expect(res.body.expenses[0].sharedWith).toEqual([]);
+        expect(await prisma.gatheringExpenseShare.count({ where: { expenseId: res.body.expenses[0].id } })).toBe(0);
+      });
+
+      it('acepta que el que pagó no esté entre los que comparten', async () => {
+        const gathering = await createGathering(user.id, { participants: ['Ana', 'Bruno', 'Caro'] });
+        const [ana, bruno, caro] = gathering.participants;
+
+        const res = await request(app)
+          .post(expensesPath(gathering.id))
+          .set('Authorization', auth)
+          .send({ participantId: ana!.id, amount: 50, sharedWith: [bruno!.id, caro!.id] });
+
+        expect(res.status).toBe(201);
+        expect(byName(res.body.participants).Ana).toMatchObject({ totalPaid: 50, owed: 0, balance: 50 });
+      });
+
+      it('rechaza con 404 a un participante de otra juntada y no crea el gasto', async () => {
+        const gathering = await createGathering(user.id, { participants: ['Ana', 'Bruno'] });
+        const other = await createGathering(user.id, { participants: ['Intruso'] });
+
+        const res = await request(app)
+          .post(expensesPath(gathering.id))
+          .set('Authorization', auth)
+          .send({
+            participantId: gathering.participants[0]!.id,
+            amount: 100,
+            sharedWith: [gathering.participants[0]!.id, other.participants[0]!.id],
+          });
+
+        expect(res.status).toBe(404);
+        expect(res.body.message).toBe('Participante no encontrado en la juntada');
+        expect(await prisma.gatheringExpense.count({ where: { gatheringId: gathering.id } })).toBe(0);
+      });
+
+      it('rechaza con 400 los duplicados', async () => {
+        const gathering = await createGathering(user.id, { participants: ['Ana', 'Bruno'] });
+        const anaId = gathering.participants[0]!.id;
+
+        const res = await request(app)
+          .post(expensesPath(gathering.id))
+          .set('Authorization', auth)
+          .send({ participantId: anaId, amount: 100, sharedWith: [anaId, anaId] });
+
+        expect(res.status).toBe(400);
+      });
+
+      it('rechaza con 400 la lista vacía', async () => {
+        const gathering = await createGathering(user.id, { participants: ['Ana', 'Bruno'] });
+
+        const res = await request(app)
+          .post(expensesPath(gathering.id))
+          .set('Authorization', auth)
+          .send({ participantId: gathering.participants[0]!.id, amount: 100, sharedWith: [] });
+
+        expect(res.status).toBe(400);
+      });
+
+      it('borrar el gasto borra sus shares', async () => {
+        const gathering = await createGathering(user.id, { participants: ['Ana', 'Bruno', 'Caro'] });
+        const [ana, bruno] = gathering.participants;
+        const expense = await createGatheringExpense(gathering.id, ana!.id, {
+          amount: 90,
+          sharedWith: [ana!.id, bruno!.id],
+        });
+
+        const res = await request(app)
+          .delete(`${expensesPath(gathering.id)}/${expense.id}`)
+          .set('Authorization', auth);
+
+        expect(res.status).toBe(204);
+        expect(await prisma.gatheringExpenseShare.count({ where: { expenseId: expense.id } })).toBe(0);
+      });
+
+      it('los gastos parciales cuentan en el listado, el balance propio y el saldo de amigos', async () => {
+        const friend = await createFriend(user.id, { name: 'Ana' });
+        const gathering = await prisma.gathering.create({
+          data: {
+            userId: user.id,
+            name: 'Asado',
+            date: new Date('2026-01-15T00:00:00.000Z'),
+            participants: {
+              create: [
+                { displayName: 'Test User', isSelf: true },
+                { displayName: 'Ana', friendId: friend.id },
+                { displayName: 'Bruno' },
+              ],
+            },
+          },
+          include: { participants: true },
+        });
+        const self = gathering.participants.find(p => p.isSelf)!;
+        const ana = gathering.participants.find(p => p.displayName === 'Ana')!;
+        await createGatheringExpense(gathering.id, self.id, { amount: 100, sharedWith: [self.id, ana.id] });
+
+        const list = await request(app).get('/api/split-expenses/gatherings').set('Authorization', auth);
+        const balance = await request(app).get('/api/split-expenses/balance').set('Authorization', auth);
+        const friends = await request(app).get('/api/split-expenses/friends').set('Authorization', auth);
+
+        expect(list.body.items[0]).toMatchObject({ totalAmount: 100, myBalance: 50 });
+        expect(balance.body).toMatchObject({ owedToYou: 50, youOwe: 0, net: 50, gatheringCount: 1 });
+        expect(friends.body[0]).toMatchObject({ name: 'Ana', balance: -50 });
+      });
     });
 
     it('DELETE /gatherings/:id/expenses/:expenseId returns 204 and removes the row', async () => {
@@ -416,11 +568,12 @@ describe('split-expenses routes (integration)', () => {
       const res = await request(app).get(`/api/split-expenses/gatherings/${gathering.id}`).set('Authorization', auth);
 
       expect(res.status).toBe(200);
-      expect(res.body).toMatchObject({ totalAmount: 12000, fairShare: 4000, myBalance: 5000 });
+      expect(res.body).toMatchObject({ totalAmount: 12000, myBalance: 5000 });
+      expect(res.body).not.toHaveProperty('fairShare');
       const byName = Object.fromEntries(res.body.participants.map((p: { displayName: string }) => [p.displayName, p]));
-      expect(byName['Test User']).toMatchObject({ isSelf: true, totalPaid: 9000, balance: 5000 });
-      expect(byName.Ana).toMatchObject({ isSelf: false, totalPaid: 3000, balance: -1000 });
-      expect(byName.Bruno).toMatchObject({ isSelf: false, totalPaid: 0, balance: -4000 });
+      expect(byName['Test User']).toMatchObject({ isSelf: true, totalPaid: 9000, owed: 4000, balance: 5000 });
+      expect(byName.Ana).toMatchObject({ isSelf: false, totalPaid: 3000, owed: 4000, balance: -1000 });
+      expect(byName.Bruno).toMatchObject({ isSelf: false, totalPaid: 0, owed: 4000, balance: -4000 });
     });
 
     it('GET /gatherings/:id devuelve myBalance negativo cuando el usuario debe', async () => {
@@ -432,7 +585,7 @@ describe('split-expenses routes (integration)', () => {
       expect(res.body.myBalance).toBe(-500);
     });
 
-    it('GET /gatherings/:id redondea balance y myBalance a centavos', async () => {
+    it('GET /gatherings/:id reparte el resto en centavos y los saldos suman 0', async () => {
       const gathering = await createGathering(user.id, {
         selfName: 'Test User',
         participants: ['Ana', 'Bruno'],
@@ -441,8 +594,14 @@ describe('split-expenses routes (integration)', () => {
 
       const res = await request(app).get(`/api/split-expenses/gatherings/${gathering.id}`).set('Authorization', auth);
 
-      expect(res.body.fairShare).toBe(33.33);
-      expect(res.body.myBalance).toBe(66.67);
+      const owed = res.body.participants.map((p: { owed: number }) => p.owed).sort();
+      expect(owed).toEqual([33.33, 33.33, 33.34]);
+      const totalCents = res.body.participants.reduce(
+        (sum: number, p: { balance: number }) => sum + Math.round(p.balance * 100),
+        0
+      );
+      expect(totalCents).toBe(0);
+      expect([66.66, 66.67]).toContain(res.body.myBalance);
     });
 
     it('GET /gatherings/:id de una juntada vieja sin participante propio devuelve myBalance null', async () => {

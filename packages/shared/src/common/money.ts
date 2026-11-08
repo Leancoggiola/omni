@@ -1,4 +1,4 @@
-const MONEY_SCALE = 100;
+export const MONEY_SCALE = 100;
 
 export const MONEY_FORMAT = {
   prefix: '$',

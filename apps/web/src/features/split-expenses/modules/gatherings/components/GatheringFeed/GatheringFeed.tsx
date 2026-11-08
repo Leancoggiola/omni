@@ -49,7 +49,7 @@ export const GatheringFeed: FC<GatheringFeedProps> = ({
           </Title>
           <Text size="xs" c="dimmed">
             {formatGatheringWeekday(gathering.date)} · {gathering.participantCount} personas ·{' '}
-            <MoneyAmount value={gathering.totalAmount} /> · <MoneyAmount value={gathering.fairShare} /> c/u
+            <MoneyAmount value={gathering.totalAmount} />
           </Text>
         </div>
         <Avatar.Group>

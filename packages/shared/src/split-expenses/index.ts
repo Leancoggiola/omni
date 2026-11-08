@@ -38,6 +38,6 @@ export type {
   ListGatheringsParams,
 } from './schemas';
 export { computeBalances, computeSettlements } from './settlements';
-export type { SettlementParticipantInput, ParticipantBalance } from './settlements';
+export type { SettlementParticipantInput, SettlementExpenseInput, ParticipantBalance } from './settlements';
 export { summarizeGatheringPayments, summarizeUserBalance, summarizeSplitBalance } from './gathering-summary';
 export type { GatheringSettlementSummary } from './gathering-summary';

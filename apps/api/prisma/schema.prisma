@@ -280,29 +280,41 @@ model Gathering {
 }
 
 model GatheringParticipant {
-  id          String             @id @default(cuid())
-  gatheringId String
-  gathering   Gathering          @relation(fields: [gatheringId], references: [id], onDelete: Cascade)
-  friendId    String?
-  friend      SplitFriend?       @relation(fields: [friendId], references: [id], onDelete: SetNull)
-  displayName String
-  isSelf      Boolean            @default(false)
-  expenses    GatheringExpense[]
+  id            String                  @id @default(cuid())
+  gatheringId   String
+  gathering     Gathering               @relation(fields: [gatheringId], references: [id], onDelete: Cascade)
+  friendId      String?
+  friend        SplitFriend?            @relation(fields: [friendId], references: [id], onDelete: SetNull)
+  displayName   String
+  isSelf        Boolean                 @default(false)
+  expenses      GatheringExpense[]
+  expenseShares GatheringExpenseShare[]
 
   @@unique([gatheringId, displayName])
 }
 
 model GatheringExpense {
-  id            String               @id @default(cuid())
+  id            String                  @id @default(cuid())
   gatheringId   String
-  gathering     Gathering            @relation(fields: [gatheringId], references: [id], onDelete: Cascade)
+  gathering     Gathering               @relation(fields: [gatheringId], references: [id], onDelete: Cascade)
   participantId String
-  participant   GatheringParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  amount        Decimal              @db.Decimal(12, 2)
+  participant   GatheringParticipant    @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  amount        Decimal                 @db.Decimal(12, 2)
   description   String?
-  createdAt     DateTime             @default(now())
+  createdAt     DateTime                @default(now())
+  shares        GatheringExpenseShare[]
 
   @@index([gatheringId])
+}
+
+model GatheringExpenseShare {
+  expenseId     String
+  expense       GatheringExpense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   GatheringParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@id([expenseId, participantId])
+  @@index([participantId])
 }
 
 enum ExpenseCategory {

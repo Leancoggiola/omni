@@ -91,13 +91,7 @@ export const SettlePanel: FC<SettlePanelProps> = ({ gathering, loading, onToggle
           </span>
           <Title order={4}>Todo saldado</Title>
           <Text size="sm" c="dimmed">
-            {gathering.settlements.length === 0 ? (
-              <>
-                Cada uno puso <MoneyAmount value={gathering.fairShare} />. No queda nada pendiente.
-              </>
-            ) : (
-              'La juntada se marcó como saldada.'
-            )}
+            {gathering.settlements.length === 0 ? 'No queda nada pendiente.' : 'La juntada se marcó como saldada.'}
           </Text>
           <Button
             variant="outline"
