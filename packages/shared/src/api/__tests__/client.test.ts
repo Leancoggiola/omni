@@ -33,6 +33,17 @@ const headersOf = (fetchMock: FetchMock, call = 0) => initOf(fetchMock, call).he
 
 describe('createApiClient', () => {
   describe('request', () => {
+    it('un FormData va tal cual y sin Content-Type', async () => {
+      const fetchMock: FetchMock = vi.fn().mockResolvedValue(jsonResponse({ ok: true }));
+      const client = createApiClient({ fetch: fetchMock, refresh: vi.fn() });
+      const form = new FormData();
+
+      await client.put('/api/users/avatar', form);
+
+      expect(initOf(fetchMock).body).toBe(form);
+      expect(headersOf(fetchMock)['Content-Type']).toBeUndefined();
+    });
+
     it('manda JSON con credentials y la URL de toUrl, y devuelve el body', async () => {
       const fetchMock: FetchMock = vi.fn().mockResolvedValue(jsonResponse({ ok: true }));
       const client = createApiClient({
@@ -59,6 +70,18 @@ describe('createApiClient', () => {
       await expect(client.fetcher('/api/list')).resolves.toEqual([1]);
 
       expect(initOf(fetchMock)).toMatchObject({ method: 'GET', headers: {}, body: undefined });
+    });
+
+    it('un FormData va tal cual y sin Content-Type', async () => {
+      const fetchMock: FetchMock = vi.fn().mockResolvedValue(jsonResponse({ ok: true }));
+      const client = createApiClient({ fetch: fetchMock, refresh: vi.fn() });
+      const form = new FormData();
+      form.append('avatar', new Blob(['x']), 'a.png');
+
+      await client.put('/x', form);
+
+      expect(initOf(fetchMock).body).toBe(form);
+      expect(headersOf(fetchMock)).toEqual({});
     });
 
     it('suma los headers de auth a cada request', async () => {
@@ -119,6 +142,21 @@ describe('createApiClient', () => {
 
       expect(refresh).toHaveBeenCalledTimes(1);
       expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('reintenta un FormData con el mismo cuerpo y sin Content-Type', async () => {
+      const fetchMock: FetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponse({ message: 'No' }, 401))
+        .mockResolvedValueOnce(jsonResponse({ ok: true }));
+      const client = createApiClient({ fetch: fetchMock, refresh: vi.fn().mockResolvedValue(true) });
+      const form = new FormData();
+
+      await client.put('/api/users/avatar', form);
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(initOf(fetchMock, 1).body).toBe(form);
+      expect(headersOf(fetchMock, 1)['Content-Type']).toBeUndefined();
     });
 
     it('si el reintento vuelve a dar 401 lanza ese 401 sin refrescar de nuevo', async () => {
