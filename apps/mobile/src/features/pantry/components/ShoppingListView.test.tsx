@@ -98,6 +98,7 @@ describe('ShoppingListView', () => {
     renderView({ items: [LINKED], error: new Error('500') });
 
     expect(screen.queryByText('No se pudo cargar tu lista de compras')).toBeNull();
+    expect(screen.getByText('No se pudo actualizar la lista. Tirá para reintentar.')).toBeTruthy();
     expect(screen.getByText('Leche entera')).toBeTruthy();
   });
 

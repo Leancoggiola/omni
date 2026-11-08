@@ -21,5 +21,5 @@ export function parseExpiryInput(display: string): string | null | undefined {
   const [day, month, year] = [Number(match[1]), Number(match[2]), Number(match[3])];
   const date = new Date(Date.UTC(year, month - 1, day));
   const isRealDate = date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
-  return isRealDate && year >= 2000 ? `${match[3]}-${match[2]}-${match[1]}` : undefined;
+  return isRealDate ? `${match[3]}-${match[2]}-${match[1]}` : undefined;
 }

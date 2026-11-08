@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { SWRConfig } from 'swr';
 
+import { API_KEYS } from '@/shared/api';
+
 import { PANTRY_LIST_REFRESH_MS } from '@omni/shared/pantry';
 
 import { listItem, product } from '../fixtures';
@@ -54,8 +56,8 @@ describe('usePantryProducts', () => {
     const { result } = renderHook(() => usePantryProducts(), { wrapper: wrapperWith(mockFetcher) });
 
     await waitFor(() => expect(result.current.products).toHaveLength(3));
-    expect(mockFetcher).toHaveBeenNthCalledWith(1, '/api/pantry/products?limit=100');
-    expect(mockFetcher).toHaveBeenNthCalledWith(2, '/api/pantry/products?limit=100&page=2');
+    expect(mockFetcher).toHaveBeenNthCalledWith(1, `${API_KEYS.pantry.products}?limit=100`);
+    expect(mockFetcher).toHaveBeenNthCalledWith(2, `${API_KEYS.pantry.products}?limit=100&page=2`);
   });
 
   it('expone el error del fetch', async () => {
@@ -99,8 +101,8 @@ describe('usePantrySummary y useShoppingList', () => {
 
     await waitFor(() => expect(summary.result.current.summary).toEqual({ totalProducts: 3 }));
     await waitFor(() => expect(list.result.current.items).toHaveLength(1));
-    expect(fetcher).toHaveBeenCalledWith('/api/pantry/summary');
-    expect(fetcher).toHaveBeenCalledWith('/api/pantry/shopping-list');
+    expect(fetcher).toHaveBeenCalledWith(API_KEYS.pantry.summary);
+    expect(fetcher).toHaveBeenCalledWith(API_KEYS.pantry.shoppingList);
   });
 });
 
@@ -120,7 +122,7 @@ describe('usePantrySuggestions', () => {
     });
 
     await waitFor(() => expect(result.current.suggestions).toHaveLength(1));
-    expect(fetcher).toHaveBeenCalledWith('/api/pantry/products/suggest?limit=8&q=lec');
+    expect(fetcher).toHaveBeenCalledWith(`${API_KEYS.pantry.productsSuggest}?limit=8&q=lec`);
   });
 });
 
@@ -155,7 +157,7 @@ describe('mutaciones', () => {
       });
     });
 
-    expect(mockApi.post).toHaveBeenCalledWith('/api/pantry/products', expect.objectContaining({ name: 'Leche' }));
+    expect(mockApi.post).toHaveBeenCalledWith(API_KEYS.pantry.products, expect.objectContaining({ name: 'Leche' }));
     await waitFor(() => expect(fetcher.mock.calls.length).toBeGreaterThanOrEqual(4));
   });
 
@@ -169,8 +171,8 @@ describe('mutaciones', () => {
       await hook.result.current.deleteProduct('p1');
     });
 
-    expect(mockApi.patch).toHaveBeenCalledWith('/api/pantry/products/p1', { quantity: 3 });
-    expect(mockApi.delete).toHaveBeenCalledWith('/api/pantry/products/p1');
+    expect(mockApi.patch).toHaveBeenCalledWith(API_KEYS.pantry.product('p1'), { quantity: 3 });
+    expect(mockApi.delete).toHaveBeenCalledWith(API_KEYS.pantry.product('p1'));
   });
 
   it('la lista de compras: generar, agregar, comprar, editar, destildar, quitar y limpiar', async () => {
@@ -189,12 +191,14 @@ describe('mutaciones', () => {
       await hook.result.current.clearChecked();
     });
 
-    expect(mockApi.post).toHaveBeenCalledWith('/api/pantry/shopping-list/generate');
-    expect(mockApi.post).toHaveBeenCalledWith('/api/pantry/shopping-list/items', expect.anything());
-    expect(mockApi.patch).toHaveBeenCalledWith('/api/pantry/shopping-list/items/i1/complete', { quantityPurchased: 2 });
-    expect(mockApi.patch).toHaveBeenCalledWith('/api/pantry/shopping-list/items/i1', { quantityToBuy: 4 });
-    expect(mockApi.patch).toHaveBeenCalledWith('/api/pantry/shopping-list/items/i1/uncheck', {});
-    expect(mockApi.delete).toHaveBeenCalledWith('/api/pantry/shopping-list/items/i1');
-    expect(mockApi.delete).toHaveBeenCalledWith('/api/pantry/shopping-list/checked');
+    expect(mockApi.post).toHaveBeenCalledWith(API_KEYS.pantry.shoppingListGenerate);
+    expect(mockApi.post).toHaveBeenCalledWith(API_KEYS.pantry.shoppingListItems, expect.anything());
+    expect(mockApi.patch).toHaveBeenCalledWith(API_KEYS.pantry.shoppingListItemComplete('i1'), {
+      quantityPurchased: 2,
+    });
+    expect(mockApi.patch).toHaveBeenCalledWith(API_KEYS.pantry.shoppingListItem('i1'), { quantityToBuy: 4 });
+    expect(mockApi.patch).toHaveBeenCalledWith(API_KEYS.pantry.shoppingListItemUncheck('i1'), {});
+    expect(mockApi.delete).toHaveBeenCalledWith(API_KEYS.pantry.shoppingListItem('i1'));
+    expect(mockApi.delete).toHaveBeenCalledWith(API_KEYS.pantry.shoppingListChecked);
   });
 });

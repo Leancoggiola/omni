@@ -16,6 +16,7 @@ import {
   FAB_SIZE,
   getErrorMessage,
   LoadingState,
+  Banner,
   notifyError,
   notifySuccess,
   usePullToRefresh,
@@ -113,6 +114,15 @@ export function ShoppingListView({ header }: ShoppingListViewProps) {
   const handleClearChecked = () =>
     runItemAction('checked', clearChecked, 'No se pudieron limpiar los comprados', 'Comprados limpiados');
 
+  const handleGenerate = () => {
+    if (products) {
+      setGenerateOpen(true);
+      return;
+    }
+    notifyError('No se pudo cargar tu alacena. Probá de nuevo en un momento.');
+    void retryProducts();
+  };
+
   const renderBody = () => {
     if (error && !items)
       return <ErrorState message="No se pudo cargar tu lista de compras" onRetry={() => void retryList()} />;
@@ -122,8 +132,9 @@ export function ShoppingListView({ header }: ShoppingListViewProps) {
 
     return (
       <YStack gap={SPACING.md}>
+        {error ? <Banner color="destructive">No se pudo actualizar la lista. Tirá para reintentar.</Banner> : null}
         {summary && summary.lowStockCount > 0 ? (
-          <GenerateBanner lowStockCount={summary.lowStockCount} onGenerate={() => setGenerateOpen(true)} />
+          <GenerateBanner lowStockCount={summary.lowStockCount} onGenerate={handleGenerate} />
         ) : null}
 
         <YStack gap={SPACING.sm}>
