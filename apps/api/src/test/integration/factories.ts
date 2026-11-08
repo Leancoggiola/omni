@@ -100,6 +100,7 @@ export interface CreateGatheringOptions {
   date?: Date;
   isSettled?: boolean;
   participants?: string[];
+  selfName?: string;
 }
 
 export async function createGathering(userId: string, options: CreateGatheringOptions = {}) {
@@ -112,9 +113,17 @@ export async function createGathering(userId: string, options: CreateGatheringOp
       date: options.date ?? new Date('2026-01-15T00:00:00.000Z'),
       isSettled: options.isSettled ?? false,
       settledAt: options.isSettled ? new Date('2026-01-20T00:00:00.000Z') : null,
-      participants: options.participants
-        ? { create: options.participants.map(displayName => ({ id: nextId('participant'), displayName })) }
-        : undefined,
+      participants:
+        options.participants || options.selfName
+          ? {
+              create: [
+                ...(options.selfName
+                  ? [{ id: nextId('participant'), displayName: options.selfName, isSelf: true }]
+                  : []),
+                ...(options.participants ?? []).map(displayName => ({ id: nextId('participant'), displayName })),
+              ],
+            }
+          : undefined,
     },
     include: { participants: true },
   });

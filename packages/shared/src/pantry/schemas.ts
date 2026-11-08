@@ -74,3 +74,11 @@ export const completeShoppingListItemSchema = z.object({
 });
 
 export type CompleteShoppingListItemPayload = z.infer<typeof completeShoppingListItemSchema>;
+
+export const updateShoppingListItemSchema = z
+  .object({
+    quantityToBuy: z.number().positive().max(AMOUNT_MAX_10_2),
+  })
+  .strict();
+
+export type UpdateShoppingListItemPayload = z.infer<typeof updateShoppingListItemSchema>;

@@ -8,6 +8,7 @@ Nueva feature: `/new-feature`. Contratos: `packages/shared/CLAUDE.md`.
 apps/api/src/
   common/http/        HttpError, validatedQuery y la augmentación de Express.User
   common/db/          prisma singleton, lockUserSessions (advisory lock de sesiones), lockHouseholds (advisory lock por hogar)
+  common/storage/     AvatarStorage (interfaz + adaptador de Supabase Storage), getAvatarStorage y setAvatarStorageOverride (solo test)
   common/utils/       validate, logger, http-logger (pino-http con redact), error-handler, rate-limit, client-ip, origin-guard, no-store,
                       cookies (set/clear de la sesión), password (hashPassword), not-found (404 JSON bajo /api)
   health/             /api/health (liveness) y /api/health/ready (SELECT 1); públicos, antes del guard
@@ -62,11 +63,15 @@ router.post('/list', validate(addMediaItemSchema), async (req, res) => { ... });
 
 ## Hogar
 
-`media` y `pantry` se scopean por hogar, no por usuario: los services reciben `userId` y resuelven el hogar con `getHouseholdId(userId)` de `household.service`. Las altas guardan `householdId` y `createdById`. Toda cuenta nueva se crea con su `HouseholdMember` y su `Household` anidados (`users.service.create`, seed, `createUser` de los tests). Cualquier cambio de integrantes (invitar, unirse, desvincular, borrar la cuenta) corre en una transacción que empieza con `lockHouseholds`. Toda escritura de `media`/`pantry` entra por `withHousehold`, que resuelve el hogar, lo bloquea y lo revalida (409 si una unión lo movió) para no escribir en uno que una unión está por borrar; las lecturas usan `getHouseholdId`, que solo resuelve el hogar, sin lock. Detalle y postura de RLS en `docs/api/household.md`.
+`media` y `pantry` se scopean por hogar, no por usuario: los services reciben `userId` y resuelven el hogar con `getHouseholdId(userId)` de `household.service`. Las altas guardan `householdId` y `createdById`; `pantry` además guarda `updatedById` en altas y cambios. Toda cuenta nueva se crea con su `HouseholdMember` y su `Household` anidados (`users.service.create`, seed, `createUser` de los tests). Cualquier cambio de integrantes (invitar, unirse, desvincular, borrar la cuenta) corre en una transacción que empieza con `lockHouseholds`. Toda escritura de `media`/`pantry` entra por `withHousehold`, que resuelve el hogar, lo bloquea y lo revalida (409 si una unión lo movió) para no escribir en uno que una unión está por borrar; las lecturas usan `getHouseholdId`, que solo resuelve el hogar, sin lock. Detalle y postura de RLS en `docs/api/household.md`.
 
 ## Errores
 
 Las rutas no llevan `try/catch`: Express 5 propaga los rechazos de los handlers async al handler global (`common/utils/error-handler.ts`). Los errores de dominio se lanzan con `throw new HttpError(status, message)` de `common/http`, nunca con un literal. En rutas autenticadas, `req.user!` tiene `userId`, `username` y `role`; el query ya validado se lee con `validatedQuery<T>(req)`.
+
+## Foto de perfil
+
+`PUT`/`DELETE /users/avatar` (`users/avatar.service.ts`): multipart con `multer` (`memoryStorage`, tope `AVATAR_MAX_BYTES`), formato por magic bytes (`detectAvatarImage`, nunca el `Content-Type` ni el nombre) y almacenamiento en Supabase Storage con la service key (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`, juntas o ninguna; sin ellas 503). Siempre a través de `getAvatarStorage()`, no con `createClient` en un service. Al reemplazar o borrar (también al borrar la cuenta) se elimina el objeto anterior con `discardAvatarObject`, que nunca falla. Setup del bucket y contrato: `docs/api/avatar-storage.md`.
 
 ## Consultas
 
@@ -83,7 +88,7 @@ Usar `createRateLimiter` de `common/utils`, no `express-rate-limit` directo: per
 | Integración | `__tests__/integration/*.integration.test.ts`  | No           | Sí  |
 | Unitarios   | `__tests__/*.test.ts` (schemas, utils, reglas) | No           | No  |
 
-Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet (`tmdb.service`). Patrón completo: `docs/api/route-testing.md`.
+Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet: `tmdb.service` y el storage de fotos (`createFakeAvatarStorage()` + `setAvatarStorageOverride`). Patrón completo: `docs/api/route-testing.md`.
 
 ```bash
 docker compose up -d db-test

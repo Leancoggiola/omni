@@ -30,7 +30,7 @@ export function UserCard() {
       accessibilityRole="button"
       accessibilityLabel={`${user?.name ?? 'Tu cuenta'}. Ver perfil`}
     >
-      <UserAvatar name={user?.name ?? ''} size={48} />
+      <UserAvatar name={user?.name ?? ''} size={48} uri={user?.avatarUrl} />
       <YStack flex={1} gap={SPACING['3xs']}>
         <Paragraph fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl} fontWeight="600" numberOfLines={1}>
           {user?.name ?? '—'}

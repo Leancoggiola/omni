@@ -1,58 +1,79 @@
-import { useState } from 'react';
-import { FileButton, Group, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Button, FileButton, Group, Stack, Text } from '@mantine/core';
 
-import { UserAvatar } from '@/shared/ui';
+import { getErrorMessage, notifyError, notifySuccess, UserAvatar } from '@/shared/ui';
 
 import { ProfileSectionCard } from './ProfileSectionCard';
 
 import type { FC } from 'react';
 
-import { CameraIcon } from '@phosphor-icons/react';
+import { AVATAR_ALLOWED_MIME, AVATAR_MAX_BYTES, isAvatarMime } from '@omni/shared/users';
+import { CameraIcon, TrashIcon } from '@phosphor-icons/react';
 
-const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
-const ACCEPTED_AVATAR_TYPES = 'image/jpeg,image/png,image/gif';
+const ACCEPTED_AVATAR_TYPES = AVATAR_ALLOWED_MIME.join(',');
+const MAX_AVATAR_MB = AVATAR_MAX_BYTES / (1024 * 1024);
 
 interface ProfilePhotoSectionProps {
   name: string;
   avatarUrl: string | null;
+  isBusy: boolean;
+  onUpload: (file: File) => Promise<unknown>;
+  onRemove: () => Promise<unknown>;
 }
 
 /**
- * Cambio de foto de perfil. Oculta (no se renderiza en `ProfilePage`) hasta que exista el endpoint de avatar (#39):
- * hoy solo muestra una vista previa local que no se guarda.
+ * Cambio y borrado de la foto de perfil. Valida tipo y peso con las mismas constantes que la API (`@omni/shared/users`)
+ * antes de subir; el resultado, bueno o malo, se avisa con `notifySuccess` / `notifyError`.
  */
-export const ProfilePhotoSection: FC<ProfilePhotoSectionProps> = ({ name, avatarUrl }) => {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+export const ProfilePhotoSection: FC<ProfilePhotoSectionProps> = ({ name, avatarUrl, isBusy, onUpload, onRemove }) => {
+  const run = async (action: () => Promise<unknown>, success: string) => {
+    try {
+      await action();
+      notifySuccess(success);
+    } catch (err) {
+      notifyError(getErrorMessage(err, 'No se pudo actualizar la foto de perfil'));
+    }
+  };
 
   const handleFileChange = (file: File | null) => {
     if (!file) return;
-
-    if (!file.type.match(/^image\/(jpeg|png|gif)$/)) return;
-    if (file.size > MAX_AVATAR_SIZE_BYTES) return;
-
-    setPreviewUrl(prev => {
-      if (prev) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(file);
-    });
+    if (!isAvatarMime(file.type)) return notifyError('Formato no admitido: usá JPG, PNG o WebP');
+    if (file.size > AVATAR_MAX_BYTES) return notifyError(`La foto no puede pesar más de ${MAX_AVATAR_MB} MB`);
+    void run(() => onUpload(file), 'Foto de perfil actualizada');
   };
 
   return (
     <ProfileSectionCard title="Foto de Perfil" subtitle="Actualizá tu foto de perfil">
       <Group wrap="nowrap" align="center" gap="lg">
-        <UserAvatar name={name} src={previewUrl ?? avatarUrl} size="5rem" />
-        <Stack gap="2xs">
-          <FileButton accept={ACCEPTED_AVATAR_TYPES} onChange={handleFileChange}>
-            {props => (
-              <UnstyledButton {...props} c="var(--mantine-color-text-primary)" fz="sm" fw={500}>
-                <Group gap="xs" wrap="nowrap">
-                  <CameraIcon size="1rem" aria-hidden />
+        <UserAvatar name={name} src={avatarUrl} size="5rem" />
+        <Stack gap="xs" align="flex-start">
+          <Group gap="xs">
+            <FileButton accept={ACCEPTED_AVATAR_TYPES} onChange={handleFileChange} disabled={isBusy}>
+              {props => (
+                <Button
+                  {...props}
+                  variant="default"
+                  size="xs"
+                  loading={isBusy}
+                  leftSection={<CameraIcon size="1rem" aria-hidden />}
+                >
                   Cambiar foto
-                </Group>
-              </UnstyledButton>
+                </Button>
+              )}
+            </FileButton>
+            {avatarUrl && (
+              <Button
+                variant="subtle"
+                size="xs"
+                disabled={isBusy}
+                leftSection={<TrashIcon size="1rem" aria-hidden />}
+                onClick={() => void run(onRemove, 'Foto de perfil eliminada')}
+              >
+                Quitar foto
+              </Button>
             )}
-          </FileButton>
+          </Group>
           <Text c="dimmed" size="xs">
-            JPG, PNG o GIF (máx. 5MB)
+            JPG, PNG o WebP (máx. {MAX_AVATAR_MB} MB)
           </Text>
         </Stack>
       </Group>

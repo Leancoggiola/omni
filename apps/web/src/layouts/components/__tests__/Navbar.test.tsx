@@ -43,6 +43,7 @@ describe('Navbar', () => {
   it('renderiza los ítems habilitados como links con href', () => {
     renderNavbar();
     expect(screen.getByRole('link', { name: 'Perfil' })).toHaveAttribute('href', '/profile');
+    expect(screen.getByRole('link', { name: 'Alacena' })).toHaveAttribute('href', '/pantry');
   });
 
   it('marca el ítem de la ruta actual con aria-current', () => {
@@ -51,7 +52,7 @@ describe('Navbar', () => {
     expect(screen.getByRole('link', { name: 'Inicio' })).not.toHaveAttribute('aria-current');
   });
 
-  it.each(['Gimnasio', 'Gastos', 'PC Control', 'Alacena'])('deja %s deshabilitado y sin destino', label => {
+  it.each(['Gimnasio', 'Gastos', 'PC Control'])('deja %s deshabilitado y sin destino', label => {
     renderNavbar();
     const item = screen.getByRole('link', { name: `${label} Pronto` });
     expect(item).toHaveAttribute('aria-disabled', 'true');

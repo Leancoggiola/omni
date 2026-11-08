@@ -219,7 +219,7 @@ Tipos, schemas y lógica pura compartidos entre API, Web y Mobile. Se importan p
 ```
 shared/src/
   auth/            ← ROLES/Role, schemas de login y alta de usuario, toSessionUser, tipos de sesión
-  users/           ← perfil, contraseña, preferencias
+  users/           ← perfil, contraseña, preferencias, foto de perfil (constantes y respuesta)
   media/           ← MediaItem, tipos y estados, schemas, tipos de TMDB
   gym/             ← planes y ejercicios
   expenses/        ← gastos personales y recordatorios

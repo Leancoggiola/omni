@@ -11,6 +11,7 @@ import {
   createShoppingListItem,
   createUser,
   householdIdOf,
+  linkUsers,
   toJwtUser,
 } from '../../test/integration/factories';
 import { findRecordedCall, getRecordedCalls } from '../../test/integration/queryRecorder';
@@ -483,6 +484,149 @@ describe('pantry routes (integration)', () => {
 
       expect(res.status).toBe(404);
       expect(await prisma.pantryShoppingListItem.findUnique({ where: { id: item.id } })).not.toBeNull();
+    });
+  });
+
+  describe('edit and uncheck shopping list items', () => {
+    it('PATCH /shopping-list/items/:itemId changes the quantity and records who edited it', async () => {
+      const partner = await createUser({ username: 'pantry-partner' });
+      await linkUsers(user.id, partner.id);
+      const item = await createShoppingListItem(user.id, { name: 'Leche', quantityToBuy: 1 });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}`)
+        .set('Authorization', authHeader(toJwtUser(partner)))
+        .send({ quantityToBuy: 4 });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ id: item.id, quantityToBuy: 4, createdById: user.id, updatedById: partner.id });
+    });
+
+    it('PATCH /shopping-list/items/:itemId returns 400 for an invalid quantity', async () => {
+      const item = await createShoppingListItem(user.id);
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}`)
+        .set('Authorization', auth)
+        .send({ quantityToBuy: 0 });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('PATCH /shopping-list/items/:itemId returns 409 for a checked item', async () => {
+      const item = await createShoppingListItem(user.id, { checked: true });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}`)
+        .set('Authorization', auth)
+        .send({ quantityToBuy: 2 });
+
+      expect(res.status).toBe(409);
+      expect(res.body.message).toBe('El ítem ya fue comprado: destildalo para editarlo');
+    });
+
+    it('PATCH /shopping-list/items/:itemId returns 404 for an item of another household', async () => {
+      const other = await createUser({ username: 'pantry-other' });
+      const item = await createShoppingListItem(other.id);
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}`)
+        .set('Authorization', auth)
+        .send({ quantityToBuy: 2 });
+
+      expect(res.status).toBe(404);
+      expect(res.body.message).toBe('Ítem no encontrado');
+    });
+
+    it('PATCH /shopping-list/items/:itemId/uncheck unchecks the item and records who did it', async () => {
+      const partner = await createUser({ username: 'pantry-partner' });
+      await linkUsers(user.id, partner.id);
+      const item = await createShoppingListItem(user.id, { name: 'Yerba', checked: true });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}/uncheck`)
+        .set('Authorization', authHeader(toJwtUser(partner)));
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ id: item.id, checked: false, updatedById: partner.id });
+      const stored = await prisma.pantryShoppingListItem.findUnique({ where: { id: item.id } });
+      expect(stored?.checked).toBe(false);
+    });
+
+    it('PATCH /shopping-list/items/:itemId/uncheck returns 409 for a pending item', async () => {
+      const item = await createShoppingListItem(user.id, { checked: false });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}/uncheck`)
+        .set('Authorization', auth);
+
+      expect(res.status).toBe(409);
+      expect(res.body.message).toBe('El ítem no estaba marcado');
+    });
+
+    it('PATCH /shopping-list/items/:itemId/uncheck returns 409 when the product already has a pending AUTO item', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Arroz', quantity: 1, minQuantity: 2 });
+      const bought = await createShoppingListItem(user.id, {
+        name: 'Arroz',
+        source: 'AUTO',
+        pantryProductId: product.id,
+        checked: true,
+      });
+      await createShoppingListItem(user.id, { name: 'Arroz', source: 'AUTO', pantryProductId: product.id });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${bought.id}/uncheck`)
+        .set('Authorization', auth);
+
+      expect(res.status).toBe(409);
+      expect(res.body.message).toBe('Ya hay un ítem pendiente para este producto');
+      const stored = await prisma.pantryShoppingListItem.findUnique({ where: { id: bought.id } });
+      expect(stored?.checked).toBe(true);
+    });
+
+    it('PATCH /shopping-list/items/:itemId/uncheck returns 404 for an item of another household', async () => {
+      const other = await createUser({ username: 'pantry-other' });
+      const item = await createShoppingListItem(other.id, { checked: true });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}/uncheck`)
+        .set('Authorization', auth);
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('updatedById', () => {
+    it('is set on create and replaced by whoever edits the product', async () => {
+      const partner = await createUser({ username: 'pantry-partner' });
+      await linkUsers(user.id, partner.id);
+
+      const created = await request(app)
+        .post('/api/pantry/products')
+        .set('Authorization', auth)
+        .send({ name: 'Harina', category: 'GRAINS', unit: 'PACKAGES', quantity: 1 });
+      const edited = await request(app)
+        .patch(`/api/pantry/products/${created.body.id}`)
+        .set('Authorization', authHeader(toJwtUser(partner)))
+        .send({ quantity: 2 });
+
+      expect(created.body).toMatchObject({ createdById: user.id, updatedById: user.id });
+      expect(edited.body).toMatchObject({ createdById: user.id, updatedById: partner.id });
+    });
+
+    it('is set to who checks an item off the list', async () => {
+      const partner = await createUser({ username: 'pantry-partner' });
+      await linkUsers(user.id, partner.id);
+      const product = await createPantryProduct(user.id, { name: 'Arroz', quantity: 1 });
+      const item = await createShoppingListItem(user.id, { name: 'Arroz', pantryProductId: product.id });
+
+      const res = await request(app)
+        .patch(`/api/pantry/shopping-list/items/${item.id}/complete`)
+        .set('Authorization', authHeader(toJwtUser(partner)))
+        .send({});
+
+      expect(res.body.item.updatedById).toBe(partner.id);
+      expect(res.body.product.updatedById).toBe(partner.id);
     });
   });
 });
