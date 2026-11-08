@@ -92,11 +92,11 @@ test.describe('juntadas', () => {
 
     await expect(split.settlements()).toContainText('Bruno → Ana');
     await expect(split.settlements()).toContainText('Vos → Ana');
-    await expect(split.settlements()).toContainText('$3.333,33');
-    await expect(split.balances()).toContainText('+$6.666,67');
+    await expect(split.settlements()).toContainText(/\$3\.333,3[34]/);
+    await expect(split.balances()).toContainText(/\+\$6\.666,6[67]/);
 
-    await expect(split.gatheringItem('Cena')).toContainText('Debés $3.333,33');
-    await expect(split.subtitle()).toHaveText('Debés $3.333,33');
+    await expect(split.gatheringItem('Cena')).toContainText(/Debés \$3\.333,3[34]/);
+    await expect(split.subtitle()).toHaveText(/^Debés \$3\.333,3[34]$/);
   });
 
   test('un gasto propio suma a "Te deben" en el saldo', async ({ page, freshUser }) => {

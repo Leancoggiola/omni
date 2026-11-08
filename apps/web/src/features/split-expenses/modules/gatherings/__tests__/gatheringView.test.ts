@@ -19,6 +19,7 @@ const participant = (id: string, displayName: string, isSelf = false): Gathering
   friendId: null,
   alias: null,
   totalPaid: 0,
+  owed: 0,
   balance: 0,
   isSelf,
 });
@@ -29,6 +30,7 @@ const expense = (id: string, createdAt: string): GatheringExpense => ({
   participantName: 'Ana',
   amount: 10,
   description: null,
+  sharedWith: [],
   createdAt,
 });
 

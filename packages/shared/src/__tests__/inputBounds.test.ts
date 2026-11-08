@@ -115,6 +115,27 @@ describe('cotas de entrada', () => {
   });
 });
 
+describe('sharedWith de un gasto', () => {
+  const expense = { participantId: 'p1', amount: 10 };
+
+  it('es opcional y acepta una lista de ids', () => {
+    expect(addGatheringExpenseSchema.safeParse(expense).success).toBe(true);
+    expect(addGatheringExpenseSchema.safeParse({ ...expense, sharedWith: ['p1', 'p2'] }).success).toBe(true);
+  });
+
+  it('rechaza la lista vacía, los duplicados y los ids inválidos', () => {
+    expect(addGatheringExpenseSchema.safeParse({ ...expense, sharedWith: [] }).success).toBe(false);
+    expect(addGatheringExpenseSchema.safeParse({ ...expense, sharedWith: ['p1', 'p1'] }).success).toBe(false);
+    expect(addGatheringExpenseSchema.safeParse({ ...expense, sharedWith: ['a'.repeat(65)] }).success).toBe(false);
+  });
+
+  it('acota la lista al máximo de participantes', () => {
+    const ids = (count: number) => Array.from({ length: count }, (_, index) => `p${index}`);
+    expect(addGatheringExpenseSchema.safeParse({ ...expense, sharedWith: ids(50) }).success).toBe(true);
+    expect(addGatheringExpenseSchema.safeParse({ ...expense, sharedWith: ids(51) }).success).toBe(false);
+  });
+});
+
 describe('enteros de Postgres', () => {
   it('acota tmdbId al máximo de un INT4', () => {
     expect(addMediaItemSchema.safeParse({ tmdbId: 2_147_483_647, mediaType: 'movie' }).success).toBe(true);

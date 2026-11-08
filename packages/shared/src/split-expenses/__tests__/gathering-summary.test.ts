@@ -2,57 +2,65 @@ import { describe, expect, it } from 'vitest';
 
 import { summarizeGatheringPayments, summarizeSplitBalance, summarizeUserBalance } from '..';
 
+const person = (id: string) => ({ id, displayName: id });
+const paid = (participantId: string, amount: number, sharedWith: string[] = []) => ({
+  participantId,
+  amount,
+  sharedWith,
+});
+
 describe('summarizeUserBalance', () => {
   const participants = [
-    { id: 'marco', displayName: 'Marco', totalPaid: 600 },
-    { id: 'lean', displayName: 'Lean', totalPaid: 8000 },
+    { id: 'marco', displayName: 'Marco' },
+    { id: 'lean', displayName: 'Lean' },
   ];
+  const expenses = [paid('marco', 600), paid('lean', 8000)];
 
   it('es positivo cuando el participante propio pagó de más', () => {
-    expect(summarizeUserBalance(participants, 'lean')).toBe(3700);
+    expect(summarizeUserBalance(participants, expenses, 'lean')).toBe(3700);
   });
 
   it('es negativo cuando el participante propio pagó de menos', () => {
-    expect(summarizeUserBalance(participants, 'marco')).toBe(-3700);
+    expect(summarizeUserBalance(participants, expenses, 'marco')).toBe(-3700);
   });
 
   it('coincide con la liquidación de summarizeGatheringPayments', () => {
-    const [settlement] = summarizeGatheringPayments(participants).settlements;
+    const [settlement] = summarizeGatheringPayments(participants, expenses).settlements;
 
-    expect(summarizeUserBalance(participants, settlement!.fromParticipantId)).toBe(-settlement!.amount);
-    expect(summarizeUserBalance(participants, settlement!.toParticipantId)).toBe(settlement!.amount);
+    expect(summarizeUserBalance(participants, expenses, settlement!.fromParticipantId)).toBe(-settlement!.amount);
+    expect(summarizeUserBalance(participants, expenses, settlement!.toParticipantId)).toBe(settlement!.amount);
   });
 
   it('es 0 cuando todos pagaron lo mismo', () => {
-    const even = [
-      { id: 'a', displayName: 'A', totalPaid: 100 },
-      { id: 'b', displayName: 'B', totalPaid: 100 },
-    ];
-
-    expect(summarizeUserBalance(even, 'a')).toBe(0);
+    expect(summarizeUserBalance([person('a'), person('b')], [paid('a', 100), paid('b', 100)], 'a')).toBe(0);
   });
 
-  it('redondea la parte y el saldo a centavos', () => {
-    const uneven = [
-      { id: 'a', displayName: 'A', totalPaid: 100 },
-      { id: 'b', displayName: 'B', totalPaid: 0 },
-      { id: 'c', displayName: 'C', totalPaid: 0 },
-    ];
+  it('solo descuenta los gastos que el participante propio comparte', () => {
+    const group = [person('a'), person('b'), person('c')];
 
-    expect(summarizeUserBalance(uneven, 'a')).toBe(66.67);
-    expect(summarizeUserBalance(uneven, 'b')).toBe(-33.33);
+    expect(summarizeUserBalance(group, [paid('b', 60, ['b', 'c'])], 'a')).toBe(0);
+    expect(summarizeUserBalance(group, [paid('b', 60, ['b', 'c'])], 'c')).toBe(-30);
+  });
+
+  it('reparte el resto en centavos sin perderlo', () => {
+    const uneven = [person('a'), person('b'), person('c')];
+    const expense = [paid('a', 100)];
+
+    expect(summarizeUserBalance(uneven, expense, 'a')).toBe(66.66);
+    expect(summarizeUserBalance(uneven, expense, 'b')).toBe(-33.33);
+    expect(summarizeUserBalance(uneven, expense, 'c')).toBe(-33.33);
   });
 
   it('es null sin participante propio', () => {
-    expect(summarizeUserBalance(participants, null)).toBeNull();
+    expect(summarizeUserBalance(participants, expenses, null)).toBeNull();
   });
 
   it('es null si el participante propio no está entre los participantes', () => {
-    expect(summarizeUserBalance(participants, 'otro')).toBeNull();
+    expect(summarizeUserBalance(participants, expenses, 'otro')).toBeNull();
   });
 
   it('es null sin participantes', () => {
-    expect(summarizeUserBalance([], 'lean')).toBeNull();
+    expect(summarizeUserBalance([], [], 'lean')).toBeNull();
   });
 });
 
@@ -99,14 +107,20 @@ describe('summarizeSplitBalance', () => {
 
 describe('summarizeGatheringPayments', () => {
   it('suma lo pagado, reparte en partes iguales y liquida al deudor con el acreedor', () => {
-    const summary = summarizeGatheringPayments([
-      { id: 'marco', displayName: 'Marco', totalPaid: 600 },
-      { id: 'lean', displayName: 'Lean', totalPaid: 8000 },
-    ]);
+    const summary = summarizeGatheringPayments(
+      [
+        { id: 'marco', displayName: 'Marco' },
+        { id: 'lean', displayName: 'Lean' },
+      ],
+      [paid('marco', 600), paid('lean', 8000)]
+    );
 
     expect(summary).toEqual({
       totalAmount: 8600,
-      fairShare: 4300,
+      balances: [
+        { id: 'marco', displayName: 'Marco', totalPaid: 600, owed: 4300, balance: -3700 },
+        { id: 'lean', displayName: 'Lean', totalPaid: 8000, owed: 4300, balance: 3700 },
+      ],
       settlements: [
         { fromParticipantId: 'marco', fromName: 'Marco', toParticipantId: 'lean', toName: 'Lean', amount: 3700 },
       ],
@@ -114,26 +128,27 @@ describe('summarizeGatheringPayments', () => {
   });
 
   it('sin participantes devuelve todo en cero', () => {
-    expect(summarizeGatheringPayments([])).toEqual({ totalAmount: 0, fairShare: 0, settlements: [] });
+    expect(summarizeGatheringPayments([], [])).toEqual({ totalAmount: 0, balances: [], settlements: [] });
   });
 
   it('si todos pagaron lo mismo no hay liquidaciones', () => {
-    const summary = summarizeGatheringPayments([
-      { id: 'a', displayName: 'A', totalPaid: 100 },
-      { id: 'b', displayName: 'B', totalPaid: 100 },
-    ]);
+    const summary = summarizeGatheringPayments([person('a'), person('b')], [paid('a', 100), paid('b', 100)]);
 
-    expect(summary).toEqual({ totalAmount: 200, fairShare: 100, settlements: [] });
+    expect(summary.totalAmount).toBe(200);
+    expect(summary.settlements).toEqual([]);
   });
 
-  it('redondea la parte a centavos', () => {
-    const summary = summarizeGatheringPayments([
-      { id: 'a', displayName: 'A', totalPaid: 100 },
-      { id: 'b', displayName: 'B', totalPaid: 0 },
-      { id: 'c', displayName: 'C', totalPaid: 0 },
-    ]);
+  it('el total no acumula error de float', () => {
+    const summary = summarizeGatheringPayments([person('a')], [paid('a', 0.1), paid('a', 0.2)]);
 
-    expect(summary.totalAmount).toBe(100);
-    expect(summary.fairShare).toBe(33.33);
+    expect(summary.totalAmount).toBe(0.3);
+  });
+
+  it('un gasto parcial no genera deuda para quien no lo comparte', () => {
+    const summary = summarizeGatheringPayments([person('a'), person('b'), person('c')], [paid('a', 90, ['a', 'b'])]);
+
+    expect(summary.settlements).toEqual([
+      { fromParticipantId: 'b', fromName: 'b', toParticipantId: 'a', toName: 'a', amount: 45 },
+    ]);
   });
 });
