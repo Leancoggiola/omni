@@ -37,12 +37,12 @@ import type { PantryShoppingListItem } from '@omni/shared/pantry';
 import type { ReactElement } from 'react';
 
 type ShoppingListViewProps = {
-  /** Encabezado y pestañas de la pantalla: van arriba para que se muevan con la lista. */
   header: ReactElement;
 };
 
 /**
- * Pestaña de la lista de compras: banner de bajo stock, "Por comprar" y "Comprados". Marcar un ítem vinculado a un
+ * Pestaña de la lista de compras (`header`, el encabezado y las pestañas de la pantalla, va arriba para que se
+ * mueva con la lista): banner de bajo stock, "Por comprar" y "Comprados". Marcar un ítem vinculado a un
  * producto lo compra al instante; uno libre pide cantidad y categoría en una hoja. El error de carga se muestra con
  * reintento, nunca como lista vacía.
  */
@@ -57,14 +57,14 @@ export function ShoppingListView({ header }: ShoppingListViewProps) {
   const busyRef = useRef(false);
 
   const { items, isLoading, error, mutate: retryList } = useShoppingList();
-  const { summary } = usePantrySummary();
-  const { products } = usePantryProducts();
+  const { summary, mutate: retrySummary } = usePantrySummary();
+  const { products, mutate: retryProducts } = usePantryProducts();
   const { household } = useHousehold();
   const { generate, addItem, completeItem, updateItem, uncheckItem, removeItem, clearChecked } =
     useShoppingListMutations();
   const notice = useSheetNotice();
   const showAuthor = (household?.members.length ?? 0) > 1;
-  const refreshControl = usePullToRefresh(() => retryList());
+  const refreshControl = usePullToRefresh(() => Promise.all([retryList(), retrySummary(), retryProducts()]));
 
   const runItemAction = useCallback(
     async (id: string, action: () => Promise<unknown>, fallback: string, success?: string) => {
@@ -114,7 +114,8 @@ export function ShoppingListView({ header }: ShoppingListViewProps) {
     runItemAction('checked', clearChecked, 'No se pudieron limpiar los comprados', 'Comprados limpiados');
 
   const renderBody = () => {
-    if (error) return <ErrorState message="No se pudo cargar tu lista de compras" onRetry={() => void retryList()} />;
+    if (error && !items)
+      return <ErrorState message="No se pudo cargar tu lista de compras" onRetry={() => void retryList()} />;
     if (isLoading || !items) return <LoadingState variant="skeleton" rows={4} />;
 
     const { pending, done } = splitShoppingList(items);

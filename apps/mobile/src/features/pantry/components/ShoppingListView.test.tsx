@@ -86,13 +86,19 @@ describe('ShoppingListView', () => {
     expect(screen.getByText('Fideos')).toBeTruthy();
   });
 
-  it('el error se muestra siempre y Reintentar revalida', () => {
-    const { retry } = renderView({ items: [LINKED], error: new Error('500') });
+  it('el error sin datos se muestra y Reintentar revalida', () => {
+    const { retry } = renderView({ items: undefined, error: new Error('500') });
 
     expect(screen.getByText('No se pudo cargar tu lista de compras')).toBeTruthy();
-    expect(screen.queryByText('Leche entera')).toBeNull();
     fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
     expect(retry).toHaveBeenCalled();
+  });
+
+  it('un error de revalidación con ítems en caché conserva la lista', () => {
+    renderView({ items: [LINKED], error: new Error('500') });
+
+    expect(screen.queryByText('No se pudo cargar tu lista de compras')).toBeNull();
+    expect(screen.getByText('Leche entera')).toBeTruthy();
   });
 
   it('mientras carga muestra skeleton y no el vacío', () => {

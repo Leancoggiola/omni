@@ -59,20 +59,20 @@ describe('InventoryView', () => {
     expect(screen.getByText('Por vencer')).toBeTruthy();
   });
 
-  it('el error se muestra siempre (con productos en cache) y Reintentar revalida las dos cargas', () => {
-    const { retryProducts, retrySummary } = renderView({ products: [MILK], error: new Error('500') });
+  it('el error sin datos se muestra y Reintentar revalida las dos cargas', () => {
+    const { retryProducts, retrySummary } = renderView({ products: undefined, error: new Error('500') });
 
     expect(screen.getByText('No se pudo cargar tu alacena')).toBeTruthy();
-    expect(screen.queryByText('Leche entera')).toBeNull();
     fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
     expect(retryProducts).toHaveBeenCalled();
     expect(retrySummary).toHaveBeenCalled();
   });
 
-  it('un error del resumen también se muestra', () => {
-    renderView({ products: [MILK] }, new Error('500'));
+  it('un error de revalidación con productos en caché conserva la lista', () => {
+    renderView({ products: [MILK], error: new Error('500') }, new Error('500'));
 
-    expect(screen.getByText('No se pudo cargar tu alacena')).toBeTruthy();
+    expect(screen.queryByText('No se pudo cargar tu alacena')).toBeNull();
+    expect(screen.getByText('Leche entera')).toBeTruthy();
   });
 
   it('mientras carga muestra skeleton y no el vacío', () => {

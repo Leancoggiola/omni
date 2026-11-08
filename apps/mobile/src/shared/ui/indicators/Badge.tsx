@@ -9,10 +9,6 @@ type BadgeSize = 'sm' | 'md';
 
 type BadgeProps = {
   children: string;
-  /**
-   * `accent` es el terracota del tipo de media; `dimmed`, el gris de "Próximamente"; `warning`, el ámbar de "Por vencer"
-   * (de un solo tono: va en `outline`, no hay un wash legible).
-   */
   color: BadgeColor;
   variant?: BadgeVariant;
   size?: BadgeSize;
@@ -54,7 +50,11 @@ const SIZES = {
   md: { height: 22, fontSize: 11, paddingX: 11 },
 } as const;
 
-/** Equivalente de `Badge` de Mantine: pill en mayúsculas, 700. */
+/**
+ * Equivalente de `Badge` de Mantine: pill en mayúsculas, 700. `color`: `accent` es el terracota del tipo de media;
+ * `dimmed`, el gris de "Próximamente"; `warning`, el ámbar de "Por vencer" (de un solo tono: va en `outline`, no hay
+ * un wash legible).
+ */
 export function Badge({ children, color, variant = 'light', size = 'sm', alignSelf = 'flex-start' }: BadgeProps) {
   const t = BADGE_TOKENS[color];
   const metrics = SIZES[size];

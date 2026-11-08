@@ -46,12 +46,9 @@ type FormState = {
 type ProductFormSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Sin producto es el alta; con producto, el detalle editable. */
   product?: PantryProduct;
   showAuthor?: boolean;
-  /** Tira si falla: la hoja muestra el error y queda abierta. */
   onSubmit: (payload: CreatePantryProductPayload) => Promise<void>;
-  /** Pide la baja: quien la maneja cierra la hoja y confirma afuera, porque `confirm()` quedaría detrás del Modal. */
   onDelete?: (product: PantryProduct) => void;
   onClosed?: () => void;
 };
@@ -95,7 +92,8 @@ function ProductForm({
 
   const patch = (partial: Partial<FormState>) => setState(current => ({ ...current, ...partial }));
   const dirty = (Object.keys(initial) as (keyof FormState)[]).some(key => state[key] !== initial[key]);
-  const minQuantity = state.minQuantity === '' ? null : Number(parseNumberInput(state.minQuantity));
+  const parsedMin = parseNumberInput(state.minQuantity);
+  const minQuantity = typeof parsedMin === 'number' && !Number.isNaN(parsedMin) ? parsedMin : null;
   const quantity = parseNumberInput(state.quantity);
 
   const handleSubmit = async () => {
@@ -259,7 +257,12 @@ function ProductForm({
   );
 }
 
-/** Hoja de alta y de detalle/edición de un producto de la alacena (= `ProductFormModal` de web). */
+/**
+ * Hoja de alta y de detalle/edición de un producto de la alacena (= `ProductFormModal` de web). Sin `product` es el
+ * alta; con producto, el detalle editable. `onSubmit` tira si falla: la hoja muestra el error y queda abierta.
+ * `onDelete` pide la baja: quien la maneja cierra la hoja y confirma afuera, porque `confirm()` quedaría detrás del
+ * Modal.
+ */
 export function ProductFormSheet({ open, onOpenChange, product, onClosed, ...rest }: ProductFormSheetProps) {
   const [submitting, setSubmitting] = useState(false);
 

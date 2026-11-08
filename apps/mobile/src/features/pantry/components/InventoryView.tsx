@@ -34,7 +34,6 @@ import type { CreatePantryProductPayload, PantryProduct, PantryProductFilters } 
 import type { ReactElement } from 'react';
 
 type InventoryViewProps = {
-  /** Encabezado y pestañas de la pantalla: van arriba de la lista para que se muevan con ella. */
   header: ReactElement;
 };
 
@@ -43,7 +42,8 @@ function Separator() {
 }
 
 /**
- * Pestaña de inventario: contadores, búsqueda y categoría, lista de productos y las hojas de alta, detalle y baja. El
+ * Pestaña de inventario (`header`, el encabezado y las pestañas de la pantalla, va arriba de la lista para que se
+ * mueva con ella): contadores, búsqueda y categoría, lista de productos y las hojas de alta, detalle y baja. El
  * error de cualquiera de las dos cargas se muestra con reintento; nunca como alacena vacía.
  */
 export function InventoryView({ header }: InventoryViewProps) {
@@ -122,7 +122,7 @@ export function InventoryView({ header }: InventoryViewProps) {
     [openEdit]
   );
 
-  const failed = Boolean(error || summaryError);
+  const failed = (!products && Boolean(error)) || (!summary && Boolean(summaryError));
   const filtered = products ? filterPantryProducts(products, filters) : [];
   const trimmedQuery = filters.query.trim();
 
