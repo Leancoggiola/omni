@@ -74,7 +74,11 @@ function findSelfParticipantId(participants: Array<{ id: string; isSelf: boolean
   return participants.find(participant => participant.isSelf)?.id ?? null;
 }
 
-/** Juntadas activas (no saldadas) del usuario con sus participantes y sus gastos, listos para calcular saldos. */
+/**
+ * Juntadas activas (no saldadas) del usuario con sus participantes y sus gastos, listos para calcular saldos. Trae las
+ * filas en vez de agregar en SQL porque cada gasto se reparte en centavos con asignación del resto: un `SUM` no alcanza.
+ * El costo queda acotado a las juntadas sin saldar.
+ */
 async function loadActiveGatherings(userId: string) {
   const gatherings = await prisma.gathering.findMany({
     where: { userId, isSettled: false },
@@ -369,8 +373,9 @@ export async function deleteGathering(userId: string, gatheringId: string) {
 }
 
 /**
- * Ids a guardar como shares de un gasto. Sin `sharedWith`, o con todos los participantes, la lista queda vacía (se
- * divide entre todos). Responde 404 si alguno no pertenece a la juntada.
+ * Ids a guardar como shares de un gasto. Sin `sharedWith`, o con todos los participantes, la lista queda vacía: el
+ * gasto se divide entre todos los participantes actuales, así que incluye también a quien se sume después a la
+ * juntada. Responde 404 si alguno no pertenece a la juntada.
  */
 function resolveExpenseShares(participants: Array<{ id: string }>, sharedWith: string[] | undefined): string[] {
   if (sharedWith === undefined) return [];

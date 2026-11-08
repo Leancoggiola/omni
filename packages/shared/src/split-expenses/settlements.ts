@@ -39,7 +39,8 @@ function splitCents(amountCents: number, participantIds: string[]): Map<string, 
 
 /** Quiénes comparten un gasto: los de `sharedWith` que siguen en la juntada o, si no queda ninguno, todos. */
 function resolveSharers(sharedWith: string[], participantIds: string[]): string[] {
-  const known = sharedWith.filter(id => participantIds.includes(id));
+  const current = new Set(participantIds);
+  const known = sharedWith.filter(id => current.has(id));
   return known.length > 0 ? known : participantIds;
 }
 

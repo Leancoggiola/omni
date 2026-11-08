@@ -95,6 +95,12 @@ test.describe('juntadas', () => {
     await expect(split.settlements()).toContainText(/\$3\.333,3[34]/);
     await expect(split.balances()).toContainText(/\+\$6\.666,6[67]/);
 
+    const toCents = (amount: string) => Number(amount.replace(/\D/g, ''));
+    const transfers = (await split.settlements().innerText()).match(/\$[\d.]+,\d{2}/g) ?? [];
+    const creditorBalance = (await split.balances().innerText()).match(/\+\$[\d.]+,\d{2}/)?.[0] ?? '';
+    expect(transfers).toHaveLength(2);
+    expect(transfers.reduce((sum, amount) => sum + toCents(amount), 0)).toBe(toCents(creditorBalance));
+
     await expect(split.gatheringItem('Cena')).toContainText(/Debés \$3\.333,3[34]/);
     await expect(split.subtitle()).toHaveText(/^Debés \$3\.333,3[34]$/);
   });
