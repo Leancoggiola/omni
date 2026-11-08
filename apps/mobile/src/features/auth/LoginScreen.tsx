@@ -131,9 +131,7 @@ export function LoginScreen() {
   };
 
   const forgetUser = () => {
-    void clearRememberedUser();
-    focusUsername.current = true;
-    setRemembered(null);
+    forgetInvalidUser();
     setUsername('');
     setPassword('');
     setFieldErrors({});
