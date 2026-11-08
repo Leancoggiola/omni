@@ -38,7 +38,7 @@ export const NAV_REGISTRY: Record<NavKey, NavEntry> = {
   gym: { label: 'Gimnasio', path: '/gym', availableOn: [] },
   expenses: { label: 'Gastos', path: '/expenses', availableOn: [] },
   'pc-control': { label: 'PC Control', path: '/pc-control', availableOn: [] },
-  pantry: { label: 'Alacena', path: '/pantry', availableOn: [] },
+  pantry: { label: 'Alacena', path: '/pantry', availableOn: ['web'] },
   'split-expenses': {
     label: 'Dividir gastos',
     path: '/split-expenses',
