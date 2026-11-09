@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { KeyboardAvoidingView, ScrollView } from 'react-native';
 import { YStack } from 'tamagui';
 
-import { useAuth } from '@/core/auth';
+import { LocalSessionClearError, useAuth } from '@/core/auth';
 import { useHousehold } from '@/core/household';
 import { useColorSchemeControl } from '@/core/theme';
 import {
@@ -71,6 +71,17 @@ export function ProfileScreen() {
     }
   };
 
+  const handleLogoutAll = async () => {
+    try {
+      await logoutAll();
+    } catch (error) {
+      if (!(error instanceof LocalSessionClearError)) throw error;
+      notifyWarning(
+        'Se cerraron las sesiones en todos los dispositivos, pero no se pudieron borrar los datos de este celular.'
+      );
+    }
+  };
+
   const renderBody = () => {
     const errorState = error ? (
       <ErrorState message="No se pudo cargar tu perfil" onRetry={() => void refresh()} />
@@ -105,7 +116,7 @@ export function ProfileScreen() {
           />
           <HouseholdCard />
           <PasswordCard onSubmit={changePassword} onFieldFocus={scrollIntoView} />
-          <LogoutAllCard onLogoutAll={logoutAll} />
+          <LogoutAllCard onLogoutAll={handleLogoutAll} />
           <DeleteAccountCard onDelete={handleDelete} />
         </ScrollView>
       </KeyboardAvoidingView>
