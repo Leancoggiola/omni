@@ -24,9 +24,10 @@
 
 ### Product
 
-| Doc                                                      | Contenido                               |
-| -------------------------------------------------------- | --------------------------------------- |
-| [project-management.md](./product/project-management.md) | Tablero Omni Roadmap, issues, branch/PR |
+| Doc                                                                              | Contenido                                                      |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [project-management.md](./product/project-management.md)                         | Tablero Omni Roadmap, issues, branch/PR                        |
+| [spike-codigo-de-barras-alacena.md](./product/spike-codigo-de-barras-alacena.md) | Spike de código de barras: cobertura, proveedor y arquitectura |
 
 ### Web
 
