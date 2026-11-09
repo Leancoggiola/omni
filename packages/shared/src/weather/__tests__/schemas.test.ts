@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   WEATHER_CONDITIONS,
   WEATHER_CONDITION_LABELS,
-  currentWeatherQuerySchema,
+  currentWeatherBodySchema,
   currentWeatherSchema,
   roundWeatherCoordinates,
 } from '..';
@@ -45,25 +45,22 @@ describe('currentWeatherSchema', () => {
   });
 });
 
-describe('currentWeatherQuerySchema', () => {
-  it('convierte las coordenadas a números', () => {
-    expect(currentWeatherQuerySchema.parse({ latitude: '-34.61', longitude: '-58.38' })).toEqual({
-      latitude: -34.61,
-      longitude: -58.38,
-    });
+describe('currentWeatherBodySchema', () => {
+  it('acepta coordenadas con dos decimales', () => {
+    const body = { latitude: -34.61, longitude: -58.38 };
+
+    expect(currentWeatherBodySchema.parse(body)).toEqual(body);
   });
 
   it.each([
-    ['falta la longitud', { latitude: '-34.61' }],
-    ['la coordenada está vacía', { latitude: '', longitude: '-58.38' }],
-    ['tiene más de dos decimales', { latitude: '-34.6037', longitude: '-58.38' }],
-    ['la latitud se pasa de 90', { latitude: '90.01', longitude: '-58.38' }],
-    ['la longitud se pasa de 180', { latitude: '-34.61', longitude: '180.5' }],
-    ['no es un número', { latitude: 'abc', longitude: '-58.38' }],
-    ['usa notación exponencial', { latitude: '1e1', longitude: '-58.38' }],
-    ['manda un parámetro de más', { latitude: '-34.61', longitude: '-58.38', city: 'Rosario' }],
-  ])('rechaza cuando %s', (_case, query) => {
-    expect(currentWeatherQuerySchema.safeParse(query).success).toBe(false);
+    ['falta la longitud', { latitude: -34.61 }],
+    ['tiene más de dos decimales', { latitude: -34.6037, longitude: -58.38 }],
+    ['la latitud se pasa de 90', { latitude: 90.01, longitude: -58.38 }],
+    ['la longitud se pasa de 180', { latitude: -34.61, longitude: 180.5 }],
+    ['llega como texto', { latitude: '-34.61', longitude: '-58.38' }],
+    ['manda un campo de más', { latitude: -34.61, longitude: -58.38, city: 'Rosario' }],
+  ])('rechaza cuando %s', (_case, body) => {
+    expect(currentWeatherBodySchema.safeParse(body).success).toBe(false);
   });
 });
 
@@ -75,12 +72,13 @@ describe('roundWeatherCoordinates', () => {
     });
   });
 
-  it('produce valores que el query acepta', () => {
-    const { latitude, longitude } = roundWeatherCoordinates({ latitude: 1.005, longitude: -179.999 });
-
-    expect(
-      currentWeatherQuerySchema.safeParse({ latitude: String(latitude), longitude: String(longitude) }).success
-    ).toBe(true);
+  it.each([
+    [1.005, -179.999],
+    [-34.6137, -58.3816],
+    [0.07, 4.35],
+    [-90, 180],
+  ])('produce valores que el body acepta con %d, %d', (latitude, longitude) => {
+    expect(currentWeatherBodySchema.safeParse(roundWeatherCoordinates({ latitude, longitude })).success).toBe(true);
   });
 });
 

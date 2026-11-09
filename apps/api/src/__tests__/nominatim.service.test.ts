@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { fetchCityName } from '../weather/nominatim.service';
+import { logger } from '../common/utils';
+import { fetchCityName, resetNominatimSlot } from '../weather/nominatim.service';
 
 const fetchMock = vi.fn<typeof fetch>();
 const COORDINATES = { latitude: -34.61, longitude: -58.38 };
@@ -8,6 +9,7 @@ const COORDINATES = { latitude: -34.61, longitude: -58.38 };
 describe('fetchCityName', () => {
   beforeEach(() => {
     fetchMock.mockReset();
+    resetNominatimSlot();
     vi.stubGlobal('fetch', fetchMock);
   });
 
@@ -27,6 +29,7 @@ describe('fetchCityName', () => {
     expect(url.searchParams.get('lon')).toBe('-58.38');
     expect(url.searchParams.get('accept-language')).toBe('es');
     expect(init?.headers).toMatchObject({ 'User-Agent': expect.stringContaining('Omni') });
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
   });
 
   it.each([
@@ -50,9 +53,37 @@ describe('fetchCityName', () => {
     await expect(fetchCityName(COORDINATES)).resolves.toBeNull();
   });
 
-  it('devuelve null si no se puede contactar al servicio', async () => {
-    fetchMock.mockRejectedValue(new TypeError('fetch failed'));
+  it('devuelve null si no se puede contactar al servicio, sin loguear coordenadas', async () => {
+    const warn = vi.spyOn(logger, 'warn');
+    fetchMock.mockRejectedValue(new TypeError('fetch failed -34.61'));
 
     await expect(fetchCityName(COORDINATES)).resolves.toBeNull();
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('-34.61');
+  });
+
+  describe('turno global', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      fetchMock.mockImplementation(async () => Response.json({ address: { city: 'Buenos Aires' } }));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('no hace más de una consulta por segundo, aunque cambie la posición', async () => {
+      await fetchCityName(COORDINATES);
+
+      await expect(fetchCityName({ latitude: -32.95, longitude: -60.64 })).resolves.toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('vuelve a consultar pasado el segundo', async () => {
+      await fetchCityName(COORDINATES);
+      vi.advanceTimersByTime(1_000);
+
+      await expect(fetchCityName(COORDINATES)).resolves.toBe('Buenos Aires');
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
   });
 });

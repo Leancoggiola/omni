@@ -18,7 +18,7 @@ src/
   pantry/       alacena y lista de compras: categorías, unidades, schemas, `isLowStock`/`isExpiringSoon`, labels y `formatPantryQuantity`, filtros del inventario (`filterPantryProducts`), schema del form de producto (`productFormSchema`), armado de la lista (`splitShoppingList`, `buildGeneratePreview`) e `isPantryKey`
   household/    hogar compartido (máx. 2 personas): constantes del código de invitación, `householdInviteCodeSchema`/`normalizeInviteCode` y tipos de hogar, invitación y vista previa
   holidays/     tipos de efemérides (Wikipedia), MAX_HOLIDAY_ITEMS y el carrusel (`HOLIDAY_CAROUSEL_DURATION_MS`, `HOLIDAY_STALE_DAY_RETRY_MS`, `nextCarouselIndex`, `clampCarouselIndex`, `isStaleHolidayDay`, `emptyTodayHolidays`)
-  weather/      contrato del clima: `WEATHER_CONDITIONS`/`WEATHER_CONDITION_LABELS`, `currentWeatherSchema` (`CurrentWeather`), `currentWeatherQuerySchema` (`WeatherCoordinates`) y `roundWeatherCoordinates`
+  weather/      contrato del clima: `WEATHER_CONDITIONS`/`WEATHER_CONDITION_LABELS`, `currentWeatherSchema` (`CurrentWeather`), `currentWeatherBodySchema` (`WeatherCoordinates`) y `roundWeatherCoordinates`
   common/       paginación, cotas de entrada (limits), fechas en APP_TIMEZONE, `roundMoney`, `formatMoney`/`MONEY_FORMAT` (es-AR) y `getTimeGreeting`
   theme/        BRAND, SEMANTIC, GRAY, success/destructive, `contrastRatio` y `resolveColorScheme` (override > perfil > sistema) (web + mobile)
   navigation/   NAV_REGISTRY: labels, rutas y disponibilidad de módulos (navbar web, tabs y "Más" mobile)

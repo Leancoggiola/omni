@@ -1,3 +1,4 @@
+import { appDateKey } from '@omni/shared/common';
 import type { CurrentWeather, WeatherCoordinates } from '@omni/shared/weather';
 
 import { logger } from '../common/utils';
@@ -5,20 +6,28 @@ import { fetchCityName } from './nominatim.service';
 import { fetchWeather } from './open-meteo.service';
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
+const RETRY_AFTER_FAILURE_MS = 60 * 1000;
 const MAX_STALE_AGE_MS = 3 * 60 * 60 * 1000;
 const MAX_CACHED_LOCATIONS = 200;
 
-const cache = new Map<string, CurrentWeather>();
+interface CacheEntry {
+  weather: CurrentWeather;
+  refreshAt: number;
+}
+
+const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<CurrentWeather>>();
 
-function ageMs(weather: CurrentWeather): number {
-  return Date.now() - Date.parse(weather.updatedAt);
+/** Un dato sirve como respaldo si tiene menos de 3 horas y es de hoy: el mín/máx de ayer ya no describe el día. */
+function canServeAsStale(weather: CurrentWeather): boolean {
+  const updatedAt = new Date(weather.updatedAt);
+  return Date.now() - updatedAt.getTime() <= MAX_STALE_AGE_MS && appDateKey(updatedAt) === appDateKey();
 }
 
 /** Guarda el dato como el más reciente y descarta el más viejo si se llenó el caché. */
 function remember(key: string, weather: CurrentWeather): void {
   cache.delete(key);
-  cache.set(key, weather);
+  cache.set(key, { weather, refreshAt: Date.now() + CACHE_TTL_MS });
   if (cache.size > MAX_CACHED_LOCATIONS) {
     const oldest = cache.keys().next().value;
     if (oldest !== undefined) cache.delete(oldest);
@@ -26,24 +35,25 @@ function remember(key: string, weather: CurrentWeather): void {
 }
 
 /**
- * Consulta al proveedor y guarda el resultado. El nombre de la ciudad se reutiliza del dato anterior para no volver a
- * pedírselo a Nominatim. Si el clima falla, degrada al último dato guardado marcado como `stale` mientras tenga menos
- * de 3 horas; más viejo ya no sirve como clima "ahora" y el error llega al cliente.
+ * Consulta al proveedor y guarda el resultado. La ciudad se pide después del clima para no gastar una consulta a
+ * Nominatim si Open-Meteo falla, y se reutiliza del dato anterior. Si el clima falla y el último dato todavía sirve,
+ * lo devuelve marcado como `stale` y no reintenta durante un minuto, para que cada request no espere el timeout
+ * mientras dure la caída.
  */
 async function refreshWeather(key: string, coordinates: WeatherCoordinates): Promise<CurrentWeather> {
-  const previous = cache.get(key);
+  const previous = cache.get(key)?.weather;
   try {
-    const [reading, city] = await Promise.all([
-      fetchWeather(coordinates),
-      previous?.city ?? fetchCityName(coordinates),
-    ]);
+    const reading = await fetchWeather(coordinates);
+    const city = previous?.city ?? (await fetchCityName(coordinates));
     const weather = { ...reading, city, updatedAt: new Date().toISOString(), stale: false };
     remember(key, weather);
     return weather;
   } catch (err) {
-    if (previous && ageMs(previous) <= MAX_STALE_AGE_MS) {
+    if (previous && canServeAsStale(previous)) {
       logger.warn({ err }, 'Open-Meteo falló: se devuelve el último clima guardado');
-      return { ...previous, stale: true };
+      const weather = { ...previous, stale: true };
+      cache.set(key, { weather, refreshAt: Date.now() + RETRY_AFTER_FAILURE_MS });
+      return weather;
     }
     throw err;
   }
@@ -59,7 +69,7 @@ export async function getCurrentWeather(coordinates: WeatherCoordinates): Promis
   const key = `${coordinates.latitude},${coordinates.longitude}`;
 
   const cached = cache.get(key);
-  if (cached && ageMs(cached) < CACHE_TTL_MS) return cached;
+  if (cached && Date.now() < cached.refreshAt) return cached.weather;
 
   const pending = inFlight.get(key);
   if (pending) return pending;

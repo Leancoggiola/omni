@@ -57,7 +57,7 @@ router.post('/list', validate(addMediaItemSchema), async (req, res) => { ... });
 - `POST /auth/logout-all` (`authenticateJwt`) borra todos los refresh tokens del usuario y las cookies; los access tokens ya emitidos valen hasta vencer.
 - Logout no usa `authenticateJwt`: `authenticateLogout` (estrategia `logout`, nunca rechaza) extrae el refresh token del body o, si no, de la cookie. El handler no lee `req.cookies` directo: las rutas que mutan y usan cookies van detrás de `passport.authenticate` con `session: false`, que CodeQL reconoce. Es idempotente y siempre llama a `clearCookies`.
 - Refresh tokens: en la base va el sha256 (`hashRefreshToken`), nunca bcrypt. Toda escritura de `RefreshToken` va en una transacción que empieza con `lockUserSessions(tx, userId)`. Ver "Auth dual" en `docs/architecture.md`.
-- El logger HTTP (`createHttpLogger`) redacta los headers con credenciales y quita las coordenadas del clima: no montar `pino-http` directo.
+- El logger HTTP (`createHttpLogger`) redacta los headers con credenciales: no montar `pino-http` directo.
 - Admin: `authenticateJwt` + `requireAdmin`.
 - Tipos: `AuthTokensResponse`, `refreshTokenBodySchema` en `@omni/shared/auth`.
 

@@ -2,23 +2,22 @@ import { z } from 'zod';
 
 import { WEATHER_CONDITIONS } from './constants';
 
-const COORDINATE_PATTERN = /^-?\d{1,3}(\.\d{1,2})?$/;
-
-/** Coordenada en texto con hasta dos decimales, dentro de `±limit`: más precisión ubicaría a la persona. */
-function coordinateSchema(limit: number) {
-  return z
-    .string()
-    .regex(COORDINATE_PATTERN, 'Coordenada inválida')
-    .transform(Number)
-    .pipe(z.number().min(-limit).max(limit));
+/** Compara contra el valor redondeado porque multiplicar por 100 arrastra error de punto flotante. */
+function hasAtMostTwoDecimals(value: number): boolean {
+  return Number(value.toFixed(2)) === value;
 }
 
-export const currentWeatherQuerySchema = z.strictObject({
+/** Coordenada dentro de `±limit` y con hasta dos decimales: más precisión ubicaría a la persona. */
+function coordinateSchema(limit: number) {
+  return z.number().min(-limit).max(limit).refine(hasAtMostTwoDecimals, 'Coordenada con más de dos decimales');
+}
+
+export const currentWeatherBodySchema = z.strictObject({
   latitude: coordinateSchema(90),
   longitude: coordinateSchema(180),
 });
 
-export type WeatherCoordinates = z.infer<typeof currentWeatherQuerySchema>;
+export type WeatherCoordinates = z.infer<typeof currentWeatherBodySchema>;
 
 export const currentWeatherSchema = z.object({
   city: z.string().min(1).nullable(),

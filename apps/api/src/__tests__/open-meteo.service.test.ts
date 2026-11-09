@@ -59,6 +59,7 @@ describe('fetchWeather', () => {
     expect(url.searchParams.get('longitude')).toBe('-58.38');
     expect(url.searchParams.get('timezone')).toBe('America/Argentina/Buenos_Aires');
     expect(url.searchParams.get('forecast_days')).toBe('1');
+    expect(fetchMock.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal);
   });
 
   it('redondea las temperaturas y mapea la condición', async () => {

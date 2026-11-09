@@ -48,33 +48,4 @@ describe('createHttpLogger', () => {
       expect(output).not.toContain(secret);
     }
   });
-
-  it('no deja las coordenadas del clima en los logs', async () => {
-    const { logger, lines } = captureLogs();
-    const app = express();
-    app.use(createHttpLogger(logger));
-    app.get('/api/weather/current', (_req, res) => {
-      res.json({ ok: true });
-    });
-
-    await request(app).get('/api/weather/current?latitude=-34.61&longitude=-58.38');
-
-    const entry = lines.map(line => JSON.parse(line)).find(log => log.req && log.res);
-    expect(entry.req.url).toBe('/api/weather/current');
-    expect(lines.join('\n')).not.toContain('-34.61');
-  });
-
-  it('conserva el query del resto de las rutas', async () => {
-    const { logger, lines } = captureLogs();
-    const app = express();
-    app.use(createHttpLogger(logger));
-    app.get('/ping', (_req, res) => {
-      res.json({ ok: true });
-    });
-
-    await request(app).get('/ping?page=2');
-
-    const entry = lines.map(line => JSON.parse(line)).find(log => log.req && log.res);
-    expect(entry.req.url).toBe('/ping?page=2');
-  });
 });

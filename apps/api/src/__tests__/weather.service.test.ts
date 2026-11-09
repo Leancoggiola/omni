@@ -103,6 +103,23 @@ describe('weather.service', () => {
     expect(mockedOpenMeteo.fetchWeather).toHaveBeenCalledTimes(1);
   });
 
+  it('comparte la falla entre simultáneas y reintenta en la llamada siguiente', async () => {
+    mockedOpenMeteo.fetchWeather.mockRejectedValueOnce({ status: 502, message: 'caído' });
+
+    const results = await Promise.allSettled([getCurrentWeather(BUENOS_AIRES), getCurrentWeather(BUENOS_AIRES)]);
+
+    expect(results.map(result => result.status)).toEqual(['rejected', 'rejected']);
+    expect(mockedOpenMeteo.fetchWeather).toHaveBeenCalledTimes(1);
+    await expect(getCurrentWeather(BUENOS_AIRES)).resolves.toMatchObject({ stale: false });
+  });
+
+  it('no consulta la ciudad si el clima falla', async () => {
+    mockedOpenMeteo.fetchWeather.mockRejectedValue({ status: 502, message: 'caído' });
+
+    await expect(getCurrentWeather(BUENOS_AIRES)).rejects.toMatchObject({ status: 502 });
+    expect(mockedNominatim.fetchCityName).not.toHaveBeenCalled();
+  });
+
   it('degrada al último dato guardado si el proveedor falla', async () => {
     await getCurrentWeather(BUENOS_AIRES);
     vi.advanceTimersByTime(HOUR);
@@ -141,10 +158,36 @@ describe('weather.service', () => {
     vi.advanceTimersByTime(HOUR);
     mockedOpenMeteo.fetchWeather.mockRejectedValueOnce({ status: 502, message: 'caído' });
     await getCurrentWeather(BUENOS_AIRES);
+    vi.advanceTimersByTime(MINUTE);
 
     await expect(getCurrentWeather(BUENOS_AIRES)).resolves.toMatchObject({
-      updatedAt: new Date(START.getTime() + HOUR).toISOString(),
+      updatedAt: new Date(START.getTime() + HOUR + MINUTE).toISOString(),
       stale: false,
     });
+  });
+
+  it('no reintenta durante un minuto después de una falla', async () => {
+    await getCurrentWeather(BUENOS_AIRES);
+    vi.advanceTimersByTime(HOUR);
+    mockedOpenMeteo.fetchWeather.mockRejectedValue({ status: 502, message: 'caído' });
+    await getCurrentWeather(BUENOS_AIRES);
+    mockedOpenMeteo.fetchWeather.mockClear();
+
+    vi.advanceTimersByTime(MINUTE - 1);
+    await expect(getCurrentWeather(BUENOS_AIRES)).resolves.toMatchObject({ stale: true });
+    expect(mockedOpenMeteo.fetchWeather).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    await expect(getCurrentWeather(BUENOS_AIRES)).resolves.toMatchObject({ stale: true });
+    expect(mockedOpenMeteo.fetchWeather).toHaveBeenCalledTimes(1);
+  });
+
+  it('no degrada con el mín/máx de otro día en APP_TIMEZONE', async () => {
+    vi.setSystemTime(new Date('2026-11-09T02:30:00.000Z'));
+    await getCurrentWeather(BUENOS_AIRES);
+    vi.advanceTimersByTime(HOUR);
+    mockedOpenMeteo.fetchWeather.mockRejectedValue({ status: 502, message: 'caído' });
+
+    await expect(getCurrentWeather(BUENOS_AIRES)).rejects.toMatchObject({ status: 502 });
   });
 });
