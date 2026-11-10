@@ -37,7 +37,11 @@ vi.mock('../hooks/usePantrySummary', () => ({
 }));
 vi.mock('../hooks/usePantryProducts', () => ({ usePantryProducts: () => ({ products: [] }) }));
 vi.mock('../hooks/usePantrySuggestions', () => ({ usePantrySuggestions: () => ({ suggestions: [] }) }));
-vi.mock('@/core/household', () => ({ useHousehold: () => ({ household: null }), useItemAuthor: () => undefined }));
+vi.mock('@/core/household', () => ({
+  useHousehold: () => ({ household: null }),
+  useItemAuthor: () => undefined,
+  useItemEditor: () => undefined,
+}));
 
 describe('ShoppingListView', () => {
   beforeEach(() => {

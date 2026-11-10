@@ -16,8 +16,8 @@ import { Banner, Button, FormSheet, getErrorMessage, SegmentedControl, Select, T
 import { expiryToDisplay, maskExpiryInput, parseExpiryInput } from '../utils/expiryDate';
 import { parseNumberInput } from '../utils/numberInput';
 import { CategoryTile } from './CategoryTile';
-import { PantryItemAuthor } from './PantryItemAuthor';
 import { ProductAlertBadges } from './ProductAlertBadges';
+import { ProductAuthorRows } from './ProductAuthorRows';
 import { ProductQuantityStepper } from './ProductQuantityStepper';
 
 import type { CreatePantryProductPayload, PantryCategory, PantryProduct, PantryUnit } from '@omni/shared/pantry';
@@ -228,12 +228,7 @@ function ProductForm({
       />
 
       {product && showAuthor ? (
-        <XStack alignItems="center" justifyContent="space-between">
-          <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
-            Agregado por
-          </Paragraph>
-          <PantryItemAuthor createdById={product.createdById} />
-        </XStack>
+        <ProductAuthorRows createdById={product.createdById} updatedById={product.updatedById} />
       ) : null}
 
       <YStack gap={SPACING.sm}>

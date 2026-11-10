@@ -9,7 +9,11 @@ jest.mock(
   'react-native-safe-area-context',
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default
 );
-jest.mock('@/core/household', () => ({ useItemAuthor: () => ({ kind: 'member', name: 'Ana' }) }));
+jest.mock('@/core/household', () => ({
+  useItemAuthor: () => ({ kind: 'member', name: 'Ana' }),
+  useItemEditor: (createdById: string | null, updatedById: string | null) =>
+    updatedById !== createdById ? { kind: 'self', name: 'Yo' } : undefined,
+}));
 
 function renderSheet(props: Partial<React.ComponentProps<typeof ProductFormSheet>> = {}) {
   const onSubmit = jest.fn().mockResolvedValue(undefined);
@@ -84,6 +88,14 @@ describe('ProductFormSheet · edición', () => {
     expect(screen.queryByText('Agregado por')).toBeNull();
     fireEvent.press(screen.getByRole('button', { name: 'Eliminar' }));
     expect(onDelete).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1' }));
+  });
+
+  it('con hogar compartido suma "Editado por" si editó otra persona', () => {
+    renderSheet({ product: product({ updatedById: 'u2' }), showAuthor: true });
+
+    expect(screen.getByText('Agregado por')).toBeTruthy();
+    expect(screen.getByText('Editado por')).toBeTruthy();
+    expect(screen.getByLabelText('Editado por Vos')).toBeTruthy();
   });
 
   it('el stepper no baja de cero', () => {

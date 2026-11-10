@@ -285,6 +285,7 @@ test.describe('pantry', () => {
     freshUser,
     browser,
   }, testInfo) => {
+    test.setTimeout(60_000);
     await freshUser('hogar');
     const pantry = new PantryPage(page);
     await pantry.goto();
@@ -315,8 +316,36 @@ test.describe('pantry', () => {
     await pantry.openShopping();
     await expect(pantry.checkboxOf('Sal fina')).toBeVisible();
     await expect(page.getByRole('group', { name: 'Agregado por Ana Pareja' })).toBeVisible();
+    await expect(page.getByText('Se actualiza solo cada 20 s')).toBeVisible();
+
+    await partnerPantry.openShopping();
+    await expect(partnerPantry.checkboxOf('Sal fina')).toBeVisible();
+    await pantry.updateItemViaApi('Sal fina', { quantityToBuy: 3 });
+    await expect(partnerPage.getByText('Editado por Fresh hogar')).toBeVisible({ timeout: 25_000 });
+    await expect(partnerPage.getByText('Comprar 3 unidades')).toBeVisible();
 
     await context.close();
+  });
+
+  test('sin vincular no se muestra autoría ni el aviso de actualización', async ({ page, freshUser }) => {
+    await freshUser('solo');
+    const pantry = new PantryPage(page);
+    await pantry.goto();
+    await pantry.createViaApi({ name: 'Queso', category: 'DAIRY', unit: 'PACKAGES', quantity: 1 });
+    await pantry.createItemViaApi({ name: 'Sal fina', quantityToBuy: 1, unit: 'UNITS' });
+    const householdLoaded = page.waitForResponse(res => res.url().endsWith('/api/household'));
+    await page.reload();
+    await householdLoaded;
+
+    await pantry.editButtonOf('Queso').click();
+    await expect(pantry.dialog()).toBeVisible();
+    await expect(pantry.dialog().getByText('Agregado por')).toBeHidden();
+    await page.keyboard.press('Escape');
+
+    await pantry.openShopping();
+    await expect(pantry.checkboxOf('Sal fina')).toBeVisible();
+    await expect(page.getByRole('group', { name: /Agregado por/ })).toBeHidden();
+    await expect(page.getByText(/Se actualiza solo/)).toBeHidden();
   });
 
   test('en un celular se puede usar la alacena', async ({ page, freshUser }) => {

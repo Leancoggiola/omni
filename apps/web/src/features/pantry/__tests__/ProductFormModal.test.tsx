@@ -8,7 +8,7 @@ import { product } from './fixtures';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-vi.mock('@/core/household', () => ({ useItemAuthor: () => undefined }));
+vi.mock('@/core/household', () => ({ useItemAuthor: () => undefined, useItemEditor: () => undefined }));
 
 describe('ProductFormModal', () => {
   it('en la edición Guardar arranca deshabilitado y se habilita con un cambio (stepper)', async () => {
