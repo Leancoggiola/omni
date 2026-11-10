@@ -16,8 +16,8 @@ import { Banner, Button, FormSheet, getErrorMessage, SegmentedControl, Select, T
 import { expiryToDisplay, maskExpiryInput, parseExpiryInput } from '../utils/expiryDate';
 import { parseNumberInput } from '../utils/numberInput';
 import { CategoryTile } from './CategoryTile';
-import { ProductAuthorRows } from './ProductAuthorRows';
 import { ProductAlertBadges } from './ProductAlertBadges';
+import { ProductAuthorRows } from './ProductAuthorRows';
 import { ProductQuantityStepper } from './ProductQuantityStepper';
 
 import type { CreatePantryProductPayload, PantryCategory, PantryProduct, PantryUnit } from '@omni/shared/pantry';
