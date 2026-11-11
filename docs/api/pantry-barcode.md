@@ -9,7 +9,7 @@ Escanear un producto en el súper o al guardar las compras suma stock sin tipear
 | `PantryProduct`       | Suma `barcode` (nullable) con `@@unique([householdId, barcode])`: un código identifica a lo sumo un producto por hogar.                       |
 | `BarcodeCatalogEntry` | Caché de OFF por código (`barcode` es la clave), compartido entre hogares e instancias. `found: false` registra que el catálogo no lo conoce. |
 
-Migración `20261110120000_pantry_barcode`. `BarcodeCatalogEntry` no guarda nada de un usuario ni de un hogar y sigue la postura de RLS del resto de `public` (ver [household.md](./household.md)). No tiene índice por `expiresAt`: la lectura es por clave. Una fila vencida se pisa en la próxima consulta de ese código. Las de "no existe" además se barren cada vez que se guarda otra (a lo sumo 10 veces por minuto, sobre una tabla chica), para que el caché no crezca con códigos que nadie volvió a consultar; las de productos se conservan vencidas porque son el respaldo cuando OFF falla.
+Migración `20261110120000_pantry_barcode`. `BarcodeCatalogEntry` no guarda nada de un usuario ni de un hogar y sigue la postura de RLS del resto de `public` (ver [household.md](./household.md)). La lectura es por clave. Una fila vencida se pisa en la próxima consulta de ese código. Las de "no existe" además se barren cada vez que se guarda otra (a lo sumo 10 veces por minuto), con el índice `[found, expiresAt]` de la migración `20261111120000_barcode_catalog_expiry_index` para no recorrer la tabla, así el caché no crece con códigos que nadie volvió a consultar; las de productos se conservan vencidas porque son el respaldo cuando OFF falla. Si el barrido falla, la fila nueva igual se guarda.
 
 ## Códigos aceptados
 
@@ -73,7 +73,7 @@ El `outcome` del escaneo dice cómo se deshace:
 - **Categoría:** primero por `categories_tags`, en el orden de `CATEGORY_RULES` (un helado es congelado antes que lácteo; el dulce de leche no cuenta como lácteo). Si ninguna etiqueta alcanza, por palabras del nombre: gana la que aparece primero y no cuentan las que vienen después de una preposición ("Galletitas de agua" es snack, "Atún al agua" queda sin categoría).
 - **Tamaño:** `quantity` es texto libre de la comunidad; se normaliza a `500 g` / `1,5 L` y se omite ante un multipack (`6 x 250 ml`, `250 ml x 6`) o una unidad que no es de peso ni volumen.
 
-El cupo y el single-flight de consultas simultáneas al mismo código viven en memoria y valen por proceso. Con más de una instancia de la API el cupo real contra OFF se multiplica por la cantidad de instancias: habría que moverlo a un almacén compartido. El caché ya es compartido porque está en la base.
+El cupo y el single-flight de consultas simultáneas al mismo código viven en memoria y valen por proceso. Una consulta que falla (timeout, 5xx) igual gasta cupo, a propósito: pudo haber llegado a OFF y contar para su límite. Con más de una instancia de la API el cupo real contra OFF se multiplica por la cantidad de instancias: habría que moverlo a un almacén compartido. El caché ya es compartido porque está en la base.
 
 ## Hogar
 
