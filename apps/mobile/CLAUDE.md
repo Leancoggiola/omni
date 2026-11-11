@@ -19,7 +19,7 @@ apps/mobile/
     core/serverWake/      # ServerWakeNotice (aviso de cold start)
     shared/api/           # API_KEYS, client Bearer, tokenStorage
     shared/ui/            # primitivas de UI (ver abajo)
-    shared/navigation/    # FloatingTabBar, NAV_ICONS, NAV_HREFS, TAB_ROUTES y MORE_TAB (lo que depende de auth/router; shared/ui es presentacional)
+    shared/navigation/    # FloatingTabBar, NAV_ICONS, NAV_HREFS, TAB_ROUTES, MORE_TAB y useRevalidateOnFocus (lo que depende de auth/router; shared/ui es presentacional)
     features/<name>/      # screen + hooks (ver abajo)
     theme/                # tamagui.config, fonts, elevation, gradient
     assets.d.ts           # tipos de las imágenes estáticas (`*.png`) que resuelve Metro

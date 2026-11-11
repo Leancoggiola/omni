@@ -43,7 +43,7 @@ Endpoints de la lista de compras que cambian ítems (todos con `withHousehold`):
 - Card "Hogar compartido" en Perfil (`HouseholdCard`): solo, invitación pendiente y vinculado. El código recién generado vive en estado hasta cerrar el modal (web) o la hoja (mobile); el GET nunca lo devuelve.
 - Unirse o desvincularse invalida `household.current` y `media.list`. La alacena todavía no tiene cliente: cuando lo tenga, su key se suma a `refreshSharedData` de `useHouseholdActions`.
 - Errores del código (`getInviteErrorMessage` de `@omni/shared/household`): 404 un solo mensaje, 429 genérico, 409 con el texto de la API.
-- La lista de media es compartida: `useMyMediaList` (web y mobile) revalida al enfocar y se refresca cada `MEDIA_LIST_REFRESH_MS` (20 s) solo con la pantalla visible; en mobile, `SWRProvider` da `isVisible` según `AppState` y el hook pausa el refresco sin foco de pantalla.
+- La lista de media es compartida: `useMyMediaList` (web y mobile) revalida al enfocar y se refresca cada `MEDIA_LIST_REFRESH_MS` (20 s) solo con la pantalla visible; en mobile, `SWRProvider` da `isVisible` según `AppState`, el hook pausa el refresco sin foco de pantalla y `useRevalidateOnFocus` (`@/shared/navigation`) revalida al volver a la pestaña.
 - Autoría: `resolveItemAuthor` (shared). `createdById` nulo es "Cuenta eliminada"; un id que ya no es integrante no muestra nada.
 
 ## RLS (verificado en `omni-dev`, solo lectura)
