@@ -14,6 +14,8 @@ const PRODUCT_FIELDS = 'code,product_name,product_name_es,brands,quantity,catego
 const UNAVAILABLE_MESSAGE = 'No se pudo consultar el catálogo de productos';
 const TIMEOUT_MESSAGE = 'El catálogo de productos tardó demasiado en responder';
 const BUSY_MESSAGE = 'Hay muchas consultas al catálogo de productos, probá de nuevo en un minuto';
+const INVALID_BARCODE_MESSAGE = 'El código de barras no es válido';
+const BARCODE_DIGITS = /^(\d{8}|\d{13})$/;
 
 let recentRequests: { at: number; userId: string }[] = [];
 
@@ -48,6 +50,16 @@ function reserveRequest(userId: string): boolean {
   return true;
 }
 
+/**
+ * Segmento de la URL con el código: solo un EAN de 8 o 13 dígitos (400 si no), reconstruido desde su valor numérico
+ * con los ceros a la izquierda. El código llega de la ruta: aunque `validate()` ya lo restringió, rearmarlo desde un
+ * número garantiza acá mismo que a la URL solo llegan dígitos (es lo que CodeQL pide para `js/request-forgery`).
+ */
+function barcodePathSegment(barcode: string): string {
+  if (!BARCODE_DIGITS.test(barcode)) throw new HttpError(400, INVALID_BARCODE_MESSAGE);
+  return String(Number(barcode)).padStart(barcode.length, '0');
+}
+
 /** Traduce una falla de red o de lectura del body al error HTTP que expone la API. */
 function upstreamError(err: unknown): HttpError {
   if (err instanceof Error && err.name === 'TimeoutError') return new HttpError(504, TIMEOUT_MESSAGE);
@@ -63,11 +75,12 @@ function upstreamError(err: unknown): HttpError {
  * `User-Agent` que identifique a la aplicación.
  */
 export async function fetchProduct(barcode: string, userId: string): Promise<CatalogProduct | null> {
+  const segment = barcodePathSegment(barcode);
   if (!reserveRequest(userId)) throw new HttpError(503, BUSY_MESSAGE);
 
   let res: Response;
   try {
-    res = await fetch(`${config.openFoodFacts.baseUrl}/product/${barcode}.json?fields=${PRODUCT_FIELDS}`, {
+    res = await fetch(`${config.openFoodFacts.baseUrl}/product/${segment}.json?fields=${PRODUCT_FIELDS}`, {
       headers: { 'User-Agent': config.openFoodFacts.userAgent, Accept: 'application/json' },
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
