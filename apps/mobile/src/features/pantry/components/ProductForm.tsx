@@ -78,10 +78,10 @@ function initialState(product?: PantryProduct, prefill?: Partial<ProductFormValu
 /**
  * Formulario de alta y edición de un producto. Vive dentro de una hoja, así que se desmonta al cerrarla y vuelve a su
  * estado inicial. "Guardar" se habilita recién cuando hay cambios, salvo con un `prefill` que trae nombre (el alta que
- * llega de Open Food Facts ya tiene datos para guardar); en la edición la cantidad se ajusta con el stepper y las validaciones (las del schema
- * compartido con web) corren al enviar. `requirePositiveQuantity` pide más de cero, que es lo que exige el escaneo.
- * Con `onUnlinkBarcode` el detalle muestra el código vinculado y "Quitar código", que guarda al instante sin tocar el
- * resto del form.
+ * llega de Open Food Facts ya tiene datos para guardar); en la edición la cantidad se ajusta con el stepper y las
+ * validaciones (las del schema compartido con web) corren al enviar. `requirePositiveQuantity` pide más de cero, que es
+ * lo que exige el escaneo. Con `onUnlinkBarcode` el detalle muestra el código vinculado y "Quitar código", que guarda
+ * al instante sin tocar el resto del form.
  */
 export function ProductForm({
   product,

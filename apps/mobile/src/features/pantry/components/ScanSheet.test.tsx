@@ -439,6 +439,30 @@ describe('ScanSheet · código nuevo', () => {
     expect(screen.queryByTestId('camera')).toBeNull();
   });
 
+  it.each([
+    ['un error de red', new TypeError('Network request failed')],
+    ['un timeout', new ApiError('La API tardó demasiado', 0)],
+    ['un 504', new ApiError('El servidor no respondió', 504)],
+  ])('%s al guardar el alta no deja volver a guardar, porque pudo haber sumado', async (_, error) => {
+    mockBarcode.scan.mockRejectedValueOnce(NOT_LINKED).mockRejectedValueOnce(error);
+    mockBarcode.lookup.mockResolvedValue({ status: 'FOUND', barcode: COKE, suggestion: SUGGESTION });
+    renderSheet();
+
+    await read(COKE);
+    fireEvent.press(await screen.findByRole('button', { name: 'Agregar producto' }));
+
+    expect(
+      await screen.findByText('No sabemos si se guardó. Revisá el inventario antes de volver a escanearlo.')
+    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Agregar producto' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Reintentar' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Cargar a mano' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Cerrar' }).props.accessibilityState.disabled).toBe(false);
+    fireEvent.press(screen.getByRole('button', { name: 'Volver a escanear' }));
+    expect(screen.getByTestId('camera')).toBeTruthy();
+    expect(mockBarcode.scan).toHaveBeenCalledTimes(2);
+  });
+
   it('al volver del alta, el producto que quedó en cuadro no suma otra vez', async () => {
     jest.useFakeTimers({ now: 0 });
     mockBarcode.scan
@@ -524,10 +548,11 @@ describe('ScanSheet · errores', () => {
     expect(screen.getByText(`Código ${UNKNOWN}`)).toBeTruthy();
   });
 
-  it('un rechazo de la API al escanear se puede reintentar', async () => {
-    mockBarcode.scan
-      .mockRejectedValueOnce(new ApiError('Demasiadas solicitudes', 429))
-      .mockResolvedValueOnce({ outcome: 'INCREMENTED', product: MILK });
+  it.each([
+    ['un 429', new ApiError('Demasiadas solicitudes', 429)],
+    ['un 500 de la API, que revirtió el escaneo', new ApiError('Error interno del servidor', 500)],
+  ])('%s al escanear se puede reintentar', async (_, error) => {
+    mockBarcode.scan.mockRejectedValueOnce(error).mockResolvedValueOnce({ outcome: 'INCREMENTED', product: MILK });
     renderSheet();
 
     await read(COKE);

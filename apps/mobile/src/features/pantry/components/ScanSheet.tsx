@@ -42,6 +42,7 @@ const FRAME_INSET = SPACING.xl;
 const INTERNAL_CODE_HINT =
   'Es un código interno del comercio (balanza, fiambrería): no identifica al producto. Cargalo a mano.';
 const UNKNOWN_RESULT_MESSAGE = 'No sabemos si se sumó. Revisá el inventario antes de volver a escanearlo.';
+const UNKNOWN_SAVE_MESSAGE = 'No sabemos si se guardó. Revisá el inventario antes de volver a escanearlo.';
 
 type FormSource = 'FOUND' | 'NOT_FOUND' | 'UNAVAILABLE' | 'MANUAL';
 
@@ -68,7 +69,8 @@ type ScanSheetProps = {
 /**
  * Indica si una falla del escaneo deja sin saber si la API lo registró: un error de red, un timeout (status 0) o un
  * 504 en un POST pueden llegar después de que la API sumó. Ahí no se ofrece reintentar ni cargar a mano, porque
- * sumarían otra vez.
+ * sumarían otra vez. Cualquier otro `ApiError`, 5xx incluido, lo respondió la API con el escaneo sin registrar: corre
+ * entero en una transacción, así que un error la revierte, y el cliente ya reintenta solo las respuestas del proxy.
  */
 function isUnknownResult(err: unknown): boolean {
   return !(err instanceof ApiError) || err.status === 0 || err.status === 504;
@@ -245,8 +247,9 @@ type ScanFlowProps = {
  * conoce, el alta llega precargada (con el link a la ficha, que pide la licencia); si no, con el código guardado para
  * la próxima. Los códigos internos de un comercio se avisan sin salir a la red ni perder el "Deshacer" pendiente, las
  * lecturas con dígito verificador inválido se ignoran y un error de la consulta ofrece reintentar o cargar a mano,
- * nunca se muestra como "no encontrado". Si el escaneo falla sin saber si la API lo registró, solo se ofrece volver a
- * la cámara. Con la hoja cerrándose la cámara deja de leer, y un resultado que llega tarde se avisa con un toast.
+ * nunca se muestra como "no encontrado". Si el escaneo falla sin saber si la API lo registró (también el que guarda
+ * el alta), solo se ofrece volver a la cámara. Con la hoja cerrándose la cámara deja de leer, y un resultado que llega
+ * tarde se avisa con un toast.
  */
 function ScanFlow({ open, busy, onBusyChange, onClosingNotice }: ScanFlowProps) {
   const { lookup, scan, undoScan } = usePantryBarcode();
@@ -379,14 +382,24 @@ function ScanFlow({ open, busy, onBusyChange, onClosingNotice }: ScanFlowProps) 
 
   const handleSubmit = async (payload: CreatePantryProductPayload) => {
     if (phase.kind !== 'form') return;
-    if (phase.barcode === null) {
+    const { barcode } = phase;
+    if (barcode === null) {
       const created = await createProduct(payload);
       report({ color: 'success', message: `Agregamos ${created.name}` });
+      backToCamera();
       return;
     }
     const { quantity, ...product } = payload;
-    const result = await scan({ barcode: phase.barcode, quantity, product });
-    report(scanNotice(result, quantity, phase.barcode));
+    let result: PantryScanResult;
+    try {
+      result = await scan({ barcode, quantity, product });
+    } catch (err) {
+      if (!isUnknownResult(err)) throw err;
+      setPhase({ kind: 'error', barcode, message: UNKNOWN_SAVE_MESSAGE, retryable: false });
+      return;
+    }
+    report(scanNotice(result, quantity, barcode));
+    backToCamera();
   };
 
   const manual = (barcode: string | null, source: FormSource) => {
@@ -428,10 +441,7 @@ function ScanFlow({ open, busy, onBusyChange, onClosingNotice }: ScanFlowProps) 
           onSubmit={handleSubmit}
           submitting={busy}
           onSubmittingChange={onBusyChange}
-          onDone={() => {
-            onBusyChange(false);
-            backToCamera();
-          }}
+          onDone={() => onBusyChange(false)}
         />
         {sourceUrl ? (
           <YStack gap={SPACING.xs}>
