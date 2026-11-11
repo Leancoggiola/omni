@@ -14,6 +14,10 @@ export interface ItemAuthor {
 
 export const DELETED_AUTHOR_LABEL = 'Cuenta eliminada';
 
+export const ITEM_ADDED_BY_LABEL = 'Agregado por';
+
+export const ITEM_EDITED_BY_LABEL = 'Editado por';
+
 export const INVALID_INVITE_MESSAGE = 'Este código no es válido o ya venció. Pedile a tu pareja uno nuevo.';
 
 export const RATE_LIMITED_INVITE_MESSAGE = 'Probaste muchas veces seguidas. Esperá unos minutos y volvé a intentar.';
@@ -36,6 +40,21 @@ export function resolveItemAuthor(
     name: member.name,
     avatarUrl: member.avatarUrl,
   };
+}
+
+/**
+ * Quién editó por última vez un ítem compartido, o `undefined` si no hay nada que agregar a "Agregado por": editó la
+ * misma persona que lo creó, la fila es anterior a `updatedById` (nulo, indistinguible de una cuenta eliminada: se
+ * prefiere no mostrar "Cuenta eliminada" en datos viejos) o quien editó ya no es integrante.
+ */
+export function resolveItemEditor(
+  members: readonly HouseholdMemberInfo[],
+  createdById: string | null,
+  updatedById: string | null,
+  selfUsername: string | undefined
+): ItemAuthor | undefined {
+  if (updatedById === null || updatedById === createdById) return undefined;
+  return resolveItemAuthor(members, updatedById, selfUsername);
 }
 
 /** Agrupa el código de 8 caracteres en dos mitades para leerlo y dictarlo (`K7M2 QX4P`). */

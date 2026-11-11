@@ -94,7 +94,7 @@ export const ShoppingItemRow = memo(function ShoppingItemRow({
             ) : null}
           </XStack>
         )}
-        {showAuthor ? <PantryItemAuthor createdById={item.createdById} /> : null}
+        {showAuthor ? <PantryItemAuthor createdById={item.createdById} updatedById={item.updatedById} /> : null}
       </YStack>
       {!item.checked && onEdit ? (
         <IconButton

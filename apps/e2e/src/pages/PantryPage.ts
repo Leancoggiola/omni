@@ -75,4 +75,13 @@ export class PantryPage {
     const res = await this.page.request.post('/api/pantry/shopping-list/items', { data });
     if (!res.ok()) throw new Error(`No se pudo precargar el ítem: ${await res.text()}`);
   }
+
+  async updateItemViaApi(name: string, data: Record<string, unknown>) {
+    const list = await this.page.request.get('/api/pantry/shopping-list');
+    const items: { id: string; name: string }[] = await list.json();
+    const item = items.find(candidate => candidate.name === name);
+    if (!item) throw new Error(`No está el ítem ${name} en la lista`);
+    const res = await this.page.request.patch(`/api/pantry/shopping-list/items/${item.id}`, { data });
+    if (!res.ok()) throw new Error(`No se pudo editar el ítem: ${await res.text()}`);
+  }
 }

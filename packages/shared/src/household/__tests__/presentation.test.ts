@@ -10,6 +10,7 @@ import {
   inviteHoursLeft,
   RATE_LIMITED_INVITE_MESSAGE,
   resolveItemAuthor,
+  resolveItemEditor,
 } from '../presentation';
 
 import type { HouseholdMemberInfo } from '../types';
@@ -48,6 +49,36 @@ describe('resolveItemAuthor', () => {
 
   it('un id que ya no es integrante no se muestra', () => {
     expect(resolveItemAuthor(members, 'u9', 'leo')).toBeUndefined();
+  });
+});
+
+describe('resolveItemEditor', () => {
+  it('devuelve a quien editó si no es quien lo creó', () => {
+    expect(resolveItemEditor(members, 'u1', 'u2', 'leo')).toEqual({
+      kind: 'member',
+      name: 'Lucía',
+      avatarUrl: 'https://cdn/lucia.png',
+    });
+  });
+
+  it('marca como propia la edición de la sesión', () => {
+    expect(resolveItemEditor(members, 'u2', 'u1', 'leo')).toMatchObject({ kind: 'self' });
+  });
+
+  it('no agrega nada si editó la misma persona que lo creó', () => {
+    expect(resolveItemEditor(members, 'u1', 'u1', 'leo')).toBeUndefined();
+  });
+
+  it('una fila sin updatedById no se muestra como cuenta eliminada', () => {
+    expect(resolveItemEditor(members, 'u1', null, 'leo')).toBeUndefined();
+  });
+
+  it('muestra a quien editó aunque quien lo creó ya no tenga cuenta', () => {
+    expect(resolveItemEditor(members, null, 'u2', 'leo')).toMatchObject({ kind: 'member', name: 'Lucía' });
+  });
+
+  it('un editor que ya no es integrante no se muestra', () => {
+    expect(resolveItemEditor(members, 'u1', 'u9', 'leo')).toBeUndefined();
   });
 });
 
