@@ -29,7 +29,8 @@ type HeaderProps = { colorScheme: ReturnType<typeof useColorSchemeControl>['colo
 
 /**
  * Cabecera de la variante "usuario recordado": avatar con la inicial, saludo y "Ingresando como …". Con `compact`
- * (teclado abierto) el avatar baja a 48 y queda en una línea con el saludo.
+ * (teclado abierto) el avatar baja a 48 y queda en una línea con el saludo. "Ingresando como …" va en una sola línea
+ * (se corta con elipsis si el usuario es largo).
  */
 function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { username: string }) {
   const greetingName = `${username.charAt(0).toUpperCase()}${username.slice(1)}`;
@@ -67,7 +68,7 @@ function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { us
         <DisplayTitle size={compact ? 'md' : 'lg'} textAlign={compact ? 'left' : 'center'}>
           {`¡Hola, ${greetingName}!`}
         </DisplayTitle>
-        <Paragraph color="$dimmed" fontSize={14} lineHeight={20}>
+        <Paragraph color="$dimmed" fontSize={14} lineHeight={20} numberOfLines={1}>
           {`Ingresando como ${username}`}
         </Paragraph>
       </YStack>
