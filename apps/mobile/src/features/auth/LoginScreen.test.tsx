@@ -41,6 +41,9 @@ const renderLogin = async () => {
 
 const submit = () => fireEvent.press(screen.getByRole('button', { name: 'Ingresar' }));
 
+let dimensionsSpy: jest.SpyInstance;
+let keyboardSpy: jest.SpyInstance;
+
 beforeEach(() => {
   mockLogin.mockReset();
   mockEnsureServerAwake.mockReset().mockResolvedValue(true);
@@ -48,11 +51,16 @@ beforeEach(() => {
   mockSetRememberedUser.mockReset().mockResolvedValue(undefined);
   mockClearRememberedUser.mockReset().mockResolvedValue(undefined);
   focusSpy.mockClear();
-  jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 390, height: 844, scale: 1, fontScale: 1 });
-  jest.spyOn(Keyboard, 'addListener').mockImplementation(((name: string, listener: KeyboardListener) => {
+  dimensionsSpy = jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 390, height: 844, scale: 1, fontScale: 1 });
+  keyboardSpy = jest.spyOn(Keyboard, 'addListener').mockImplementation(((name: string, listener: KeyboardListener) => {
     keyboardListeners[name] = listener;
     return { remove: jest.fn() };
   }) as unknown as typeof Keyboard.addListener);
+});
+
+afterEach(() => {
+  dimensionsSpy.mockRestore();
+  keyboardSpy.mockRestore();
 });
 
 describe('LoginScreen', () => {

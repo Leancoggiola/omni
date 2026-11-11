@@ -4,7 +4,7 @@ import { RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, type TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Paragraph, XStack, YStack, type TamaguiElement } from 'tamagui';
+import { Paragraph, YStack, type TamaguiElement } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { useColorSchemeControl } from '@/core/theme';
@@ -32,10 +32,14 @@ type HeaderProps = { colorScheme: ReturnType<typeof useColorSchemeControl>['colo
 function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { username: string }) {
   const greetingName = `${username.charAt(0).toUpperCase()}${username.slice(1)}`;
   const avatarSize = compact ? COMPACT_SIZE : AVATAR_SIZE;
-  const Layout = compact ? XStack : YStack;
 
   return (
-    <Layout alignItems="center" justifyContent="center" gap={compact ? SPACING.sm : SPACING.md}>
+    <YStack
+      flexDirection={compact ? 'row' : 'column'}
+      alignItems="center"
+      justifyContent="center"
+      gap={compact ? SPACING.sm : SPACING.md}
+    >
       <YStack
         width={avatarSize}
         height={avatarSize}
@@ -60,7 +64,7 @@ function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { us
           {`Ingresando como ${username}`}
         </Paragraph>
       </YStack>
-    </Layout>
+    </YStack>
   );
 }
 
@@ -70,10 +74,14 @@ function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { us
  */
 function DefaultHeader({ colorScheme, compact }: HeaderProps) {
   const logoSize = compact ? COMPACT_SIZE : LOGO_SIZE;
-  const Layout = compact ? XStack : YStack;
 
   return (
-    <Layout alignItems="center" justifyContent="center" gap={compact ? SPACING.sm : SPACING.lg}>
+    <YStack
+      flexDirection={compact ? 'row' : 'column'}
+      alignItems="center"
+      justifyContent="center"
+      gap={compact ? SPACING.sm : SPACING.lg}
+    >
       <YStack
         width={logoSize}
         height={logoSize}
@@ -90,7 +98,7 @@ function DefaultHeader({ colorScheme, compact }: HeaderProps) {
       <DisplayTitle size={compact ? 'md' : 'lg'} textAlign={compact ? 'left' : 'center'} flexShrink={1} accent="Omni">
         ¡Te damos la bienvenida a Omni!
       </DisplayTitle>
-    </Layout>
+    </YStack>
   );
 }
 

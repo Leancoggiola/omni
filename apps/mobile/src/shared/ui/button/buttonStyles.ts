@@ -9,7 +9,10 @@ export type ButtonColor = 'brand' | 'destructive' | 'dimmed';
 
 type SemanticColors = ReturnType<typeof useSemanticColors>;
 
-/** Alto, fuente y padding de Mantine (`--button-height-*`, `--button-padding-x-*`), con el md en 44 dp de toque; el xl (56) es el botón principal del login. */
+/**
+ * Alto, fuente y padding de Mantine (`--button-height-*`, `--button-padding-x-*`), con el md en 44 dp de toque;
+ * el xl (56) es el botón principal del login.
+ */
 export const BUTTON_SIZES = {
   sm: { height: SIZE.control.sm, fontSize: FONT_SIZE.sm, paddingX: 18, icon: 16 },
   md: { height: SIZE.control.md, fontSize: FONT_SIZE.md, paddingX: 22, icon: 18 },
