@@ -66,6 +66,19 @@ describe('TextField', () => {
     expect(input.props.accessibilityHint).toBeUndefined();
   });
 
+  it('mide 44 con fuente de 14 y, con size="lg", 52 con fuente de 16', () => {
+    render(
+      <>
+        <TextField label="Usuario" />
+        <TextField label="Contraseña" size="lg" />
+      </>
+    );
+    expect(screen.getByLabelText('Usuario')).toHaveProp('height', 44);
+    expect(screen.getByLabelText('Usuario')).toHaveProp('fontSize', 14);
+    expect(screen.getByLabelText('Contraseña')).toHaveProp('height', 52);
+    expect(screen.getByLabelText('Contraseña')).toHaveProp('fontSize', 16);
+  });
+
   it('deshabilitado no es editable', () => {
     render(<TextField label="Email" disabled value="admin@omni.app" />);
     const input = screen.getByLabelText('Email');
