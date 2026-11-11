@@ -40,8 +40,9 @@ describe('DISPLAY y OVERLINE', () => {
 });
 
 describe('SIZE', () => {
-  it('lleva el Button lg a 48 y las piezas fijas del v2', () => {
-    expect(SIZE.control).toEqual({ sm: 36, md: 44, lg: 48 });
+  it('lleva el Button lg a 48, el xl y el campo lg del login, y las piezas fijas del v2', () => {
+    expect(SIZE.control).toEqual({ sm: 36, md: 44, lg: 48, xl: 56 });
+    expect(SIZE.field).toEqual({ md: 44, lg: 52 });
     expect([SIZE.fab, SIZE.tabBar]).toEqual([56, 72]);
     expect(SIZE.avatar).toEqual({ xs: 24, sm: 32, md: 40, lg: 80 });
   });

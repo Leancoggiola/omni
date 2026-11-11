@@ -669,7 +669,8 @@ export const OVERLINE = { fontSize: 12, lineHeight: 16, fontWeight: 700, letterS
 
 /** Alturas de controles y piezas fijas, en px. */
 export const SIZE = {
-  control: { sm: 36, md: 44, lg: 48 },
+  control: { sm: 36, md: 44, lg: 48, xl: 56 },
+  field: { md: 44, lg: 52 },
   fab: 56,
   tabBar: 72,
   avatar: { xs: 24, sm: 32, md: 40, lg: 80 },

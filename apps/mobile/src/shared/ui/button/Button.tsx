@@ -31,7 +31,7 @@ export type ButtonProps = {
 
 /**
  * Equivalente de `Button` de Mantine: variantes filled · outline · light · subtle, colores brand ·
- * destructive, tamaños sm 36 / md 44 / lg 48 dp, pill (`RADIUS.full`) y peso 600.
+ * destructive, tamaños sm 36 / md 44 / lg 48 / xl 56 dp, pill (`RADIUS.full`) y peso 600.
  */
 export function Button({
   children,

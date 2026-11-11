@@ -18,22 +18,35 @@ import { AuthBackground } from './components/AuthBackground';
 
 const LOGO_SIZE = 88;
 const AVATAR_SIZE = 80;
+const COMPACT_SIZE = 48;
+const INITIAL_FONT_SIZE = 28;
+const COMPACT_INITIAL_FONT_SIZE = 20;
 const FORM_MAX_WIDTH = 420;
 
 type FieldErrors = Partial<Record<'username' | 'password', string>>;
 
-type HeaderProps = { colorScheme: ReturnType<typeof useColorSchemeControl>['colorScheme'] };
+type HeaderProps = { colorScheme: ReturnType<typeof useColorSchemeControl>['colorScheme']; compact: boolean };
 
-/** Cabecera de la variante "usuario recordado": avatar con la inicial, saludo y "Ingresando como …". */
-function RememberedHeader({ username, colorScheme }: HeaderProps & { username: string }) {
+/**
+ * Cabecera de la variante "usuario recordado": avatar con la inicial, saludo y "Ingresando como …". Con `compact`
+ * (teclado abierto) el avatar baja a 48 y queda en una línea con el saludo. "Ingresando como …" va en una sola línea
+ * (se corta con elipsis si el usuario es largo).
+ */
+function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { username: string }) {
   const greetingName = `${username.charAt(0).toUpperCase()}${username.slice(1)}`;
+  const avatarSize = compact ? COMPACT_SIZE : AVATAR_SIZE;
 
   return (
-    <>
+    <YStack
+      flexDirection={compact ? 'row' : 'column'}
+      alignItems="center"
+      justifyContent="center"
+      gap={compact ? SPACING.sm : SPACING.md}
+    >
       <YStack
-        width={AVATAR_SIZE}
-        height={AVATAR_SIZE}
-        borderRadius={AVATAR_SIZE / 2}
+        width={avatarSize}
+        height={avatarSize}
+        borderRadius={avatarSize / 2}
         alignItems="center"
         justifyContent="center"
         borderWidth={1}
@@ -42,29 +55,46 @@ function RememberedHeader({ username, colorScheme }: HeaderProps & { username: s
         accessible={false}
         {...themedElevation('card', colorScheme)}
       >
-        <Paragraph fontFamily="$display" fontSize={28} fontWeight="800" color="$primary">
+        <Paragraph
+          fontFamily="$display"
+          fontSize={compact ? COMPACT_INITIAL_FONT_SIZE : INITIAL_FONT_SIZE}
+          fontWeight="800"
+          color="$primary"
+        >
           {username.charAt(0).toUpperCase()}
         </Paragraph>
       </YStack>
-      <YStack alignItems="center" gap={SPACING['2xs']}>
-        <DisplayTitle textAlign="center">{`¡Hola, ${greetingName}!`}</DisplayTitle>
-        <Paragraph color="$dimmed" fontSize={14} lineHeight={20}>
+      <YStack alignItems={compact ? 'flex-start' : 'center'} flexShrink={1} gap={SPACING['2xs']}>
+        <DisplayTitle size={compact ? 'md' : 'lg'} textAlign={compact ? 'left' : 'center'}>
+          {`¡Hola, ${greetingName}!`}
+        </DisplayTitle>
+        <Paragraph color="$dimmed" fontSize={14} lineHeight={20} numberOfLines={1}>
           {`Ingresando como ${username}`}
         </Paragraph>
       </YStack>
-    </>
+    </YStack>
   );
 }
 
-/** Cabecera del formulario completo: logo de marca y bienvenida. */
-function DefaultHeader({ colorScheme }: HeaderProps) {
+/**
+ * Cabecera del formulario completo: logo de marca y bienvenida. Con `compact` (teclado abierto) el logo baja a 48
+ * y queda en una línea con el título en `md`, alineado a la izquierda.
+ */
+function DefaultHeader({ colorScheme, compact }: HeaderProps) {
+  const logoSize = compact ? COMPACT_SIZE : LOGO_SIZE;
+
   return (
-    <>
+    <YStack
+      flexDirection={compact ? 'row' : 'column'}
+      alignItems="center"
+      justifyContent="center"
+      gap={compact ? SPACING.sm : SPACING.lg}
+    >
       <YStack
-        width={LOGO_SIZE}
-        height={LOGO_SIZE}
-        padding={SPACING['2xs']}
-        borderRadius={RADIUS.xl}
+        width={logoSize}
+        height={logoSize}
+        padding={compact ? SPACING['3xs'] : SPACING['2xs']}
+        borderRadius={compact ? RADIUS.md : RADIUS.xl}
         borderWidth={1}
         borderColor="$borderSubtle"
         backgroundColor="$backgroundStrong"
@@ -73,30 +103,33 @@ function DefaultHeader({ colorScheme }: HeaderProps) {
       >
         <Image source={LOGO} style={{ width: '100%', height: '100%' }} resizeMode="contain" accessible={false} />
       </YStack>
-      <DisplayTitle textAlign="center" accent="Omni">
+      <DisplayTitle size={compact ? 'md' : 'lg'} textAlign={compact ? 'left' : 'center'} flexShrink={1} accent="Omni">
         ¡Te damos la bienvenida a Omni!
       </DisplayTitle>
-    </>
+    </YStack>
   );
 }
 
 /**
  * Login v2: logo y título arriba y el form en una hoja inferior de radio 32 que sube con el teclado
- * (`useKeyboardInset`); el form no pasa de 420 de ancho en pantallas grandes (web: `miw="25rem"`). Al montar sondea
- * el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y el aviso aparezca si
- * tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en curso, los campos (el ojo
- * de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la contraseña (el campo deshabilitado
- * lo pierde y cierra el teclado). Tras un login exitoso guarda solo el usuario (`setRememberedUser`); si hay uno
- * guardado, la hoja muestra la variante "usuario recordado" (avatar, saludo y un único campo de contraseña) y
+ * (`useKeyboardInset`); con el teclado abierto el hero se compacta (logo o avatar de 48 y título en una línea) y la
+ * hoja pierde su título y ajusta el espaciado, así "Ingresar" queda visible sobre el teclado. Los campos miden 52 con
+ * fuente de 16 y el botón principal, 56. El form no pasa de 420 de ancho en pantallas grandes (web: `miw="25rem"`). Al
+ * montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y el aviso
+ * aparezca si tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en curso, los campos
+ * (el ojo de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la contraseña (el campo
+ * deshabilitado lo pierde y cierra el teclado). Tras un login exitoso guarda solo el usuario (`setRememberedUser`); si
+ * hay uno guardado, la hoja muestra la variante "usuario recordado" (avatar, saludo y un único campo de contraseña) y
  * "Ingresar con otro usuario" lo olvida, vuelve al formulario completo y deja el foco en Usuario. Si el usuario
- * guardado no pasa la validación, también se vuelve al formulario completo para mostrar el error. Cerrar sesión no
- * lo borra.
+ * guardado no pasa la validación, también se vuelve al formulario completo para mostrar el error. Cerrar sesión no lo
+ * borra.
  */
 export function LoginScreen() {
   const { login } = useAuth();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorSchemeControl();
   const keyboardInset = useKeyboardInset();
+  const compact = keyboardInset > 0;
   const passwordRef = useRef<TamaguiElement>(null);
   const usernameRef = useRef<TamaguiElement>(null);
   const focusUsername = useRef(false);
@@ -188,15 +221,14 @@ export function LoginScreen() {
             flex={1}
             alignItems="center"
             justifyContent="center"
-            gap={SPACING.lg}
             paddingHorizontal={SPACING.xl}
-            paddingTop={insets.top + SPACING['3xl']}
-            paddingBottom={SPACING.xl}
+            paddingTop={insets.top + (compact ? SPACING.md : SPACING['3xl'])}
+            paddingBottom={compact ? SPACING.md : SPACING.xl}
           >
             {remembered === undefined ? null : remembered ? (
-              <RememberedHeader username={remembered} colorScheme={colorScheme} />
+              <RememberedHeader username={remembered} colorScheme={colorScheme} compact={compact} />
             ) : (
-              <DefaultHeader colorScheme={colorScheme} />
+              <DefaultHeader colorScheme={colorScheme} compact={compact} />
             )}
           </YStack>
 
@@ -206,13 +238,13 @@ export function LoginScreen() {
             borderTopRightRadius={RADIUS['2xl']}
             paddingHorizontal={SPACING.xl}
             paddingTop={SPACING.xl}
-            paddingBottom={keyboardInset > 0 ? SPACING.xl : insets.bottom + SPACING.xl}
+            paddingBottom={compact ? SPACING.lg : insets.bottom + SPACING.xl}
             {...themedElevation('sheet', colorScheme)}
           >
-            <YStack width="100%" maxWidth={FORM_MAX_WIDTH} alignSelf="center" gap={SPACING.lg}>
+            <YStack width="100%" maxWidth={FORM_MAX_WIDTH} alignSelf="center" gap={compact ? SPACING.md : SPACING.lg}>
               {remembered === undefined ? null : (
                 <>
-                  {remembered ? null : <DisplayTitle size="md">Ingresá a tu cuenta</DisplayTitle>}
+                  {remembered || compact ? null : <DisplayTitle size="md">Ingresá a tu cuenta</DisplayTitle>}
 
                   {error ? <Banner color="destructive">{error}</Banner> : null}
 
@@ -221,6 +253,7 @@ export function LoginScreen() {
                       <TextField
                         ref={usernameRef}
                         label="Usuario"
+                        size="lg"
                         value={username}
                         onChangeText={value => {
                           setUsername(value);
@@ -232,6 +265,7 @@ export function LoginScreen() {
                         autoCorrect={false}
                         autoComplete="username"
                         returnKeyType="next"
+                        enterKeyHint="next"
                         submitBehavior="submit"
                         onSubmitEditing={() => (passwordRef.current as TextInput | null)?.focus()}
                       />
@@ -241,6 +275,7 @@ export function LoginScreen() {
                       {...(remembered
                         ? { accessibilityLabel: 'Contraseña', placeholder: 'Contraseña' }
                         : { label: 'Contraseña' })}
+                      size="lg"
                       value={password}
                       onChangeText={value => {
                         setPassword(value);
@@ -250,10 +285,11 @@ export function LoginScreen() {
                       disabled={loading}
                       autoComplete="current-password"
                       returnKeyType="go"
+                      enterKeyHint="go"
                       submitBehavior="submit"
                       onSubmitEditing={() => void onSubmit()}
                     />
-                    <Button size="lg" fullWidth loading={loading} onPress={() => void onSubmit()}>
+                    <Button size="xl" fullWidth loading={loading} onPress={() => void onSubmit()}>
                       Ingresar
                     </Button>
                     {remembered ? (
