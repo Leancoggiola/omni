@@ -1,6 +1,6 @@
 # Código de barras en la alacena (#259)
 
-Escanear un producto en el súper o al guardar las compras suma stock sin tipear. La API resuelve el código contra la alacena del hogar y, si no está, contra [Open Food Facts](https://world.openfoodfacts.org) (OFF). El cliente mobile es [#260](https://github.com/Leancoggiola/omni/issues/260); la investigación previa (spike #258) está en el [PR #261](https://github.com/Leancoggiola/omni/pull/261).
+Escanear un producto en el súper o al guardar las compras suma stock sin tipear. La API resuelve el código contra la alacena del hogar y, si no está, contra [Open Food Facts](https://world.openfoodfacts.org) (OFF). El cliente mobile es [#260](https://github.com/Leancoggiola/omni/issues/260) (ver [Cliente mobile](#cliente-mobile-260)); la investigación previa (spike #258) está en el [PR #261](https://github.com/Leancoggiola/omni/pull/261).
 
 ## Modelo
 
@@ -74,6 +74,30 @@ El `outcome` del escaneo dice cómo se deshace:
 - **Tamaño:** `quantity` es texto libre de la comunidad; se normaliza a `500 g` / `1,5 L` y se omite ante un multipack (`6 x 250 ml`, `250 ml x 6`) o una unidad que no es de peso ni volumen.
 
 El cupo y el single-flight de consultas simultáneas al mismo código viven en memoria y valen por proceso. Una consulta que falla (timeout, 5xx) igual gasta cupo, a propósito: pudo haber llegado a OFF y contar para su límite. Con más de una instancia de la API el cupo real contra OFF se multiplica por la cantidad de instancias: habría que moverlo a un almacén compartido. El caché ya es compartido porque está en la base.
+
+## Cliente mobile (#260)
+
+"Escanear código" en el inventario abre `ScanSheet` (`apps/mobile/src/features/pantry/components`), una `FormSheet` con la cámara de `expo-camera`:
+
+| Estado                    | Qué ve la persona                                                                                                                                                                                                                                                                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Permiso sin pedir         | Para qué se usa la cámara y "Permitir cámara". Bloqueado sin poder volver a preguntar: "Abrir Ajustes" (el permiso se vuelve a leer al volver a la app). Siempre "Cargar a mano".                                                                                                                                                            |
+| Cámara                    | Marco, linterna y "Cargar a mano". Las lecturas con dígito verificador inválido se ignoran.                                                                                                                                                                                                                                                  |
+| Buscando                  | "Buscando …" arriba de la cámara, que sigue montada pero no lee.                                                                                                                                                                                                                                                                             |
+| Código interno            | `Banner` warning sin salir a la red; la cámara sigue abierta y el "Deshacer" pendiente no se pierde.                                                                                                                                                                                                                                         |
+| Ya en la alacena          | Suma 1 al instante, `Banner` "Sumamos 1 paquete a …" y "Deshacer"; la cámara sigue abierta.                                                                                                                                                                                                                                                  |
+| Encontrado en OFF         | Alta precargada (nombre, categoría si se dedujo, unidad, cantidad 1) que se puede guardar sin tocar nada, "Ver en Open Food Facts" y la atribución de la licencia.                                                                                                                                                                           |
+| No encontrado             | Alta con cantidad 1 y el código, que queda guardado para la próxima. "Agregar producto" se habilita al escribir.                                                                                                                                                                                                                             |
+| Error de la consulta      | `ErrorState` con "Reintentar", "Cargar a mano" (el código se conserva) y "Volver a escanear"; nunca como "no encontrado".                                                                                                                                                                                                                    |
+| Escaneo sin saber si sumó | Error de red, timeout o 504 en el `POST …/scan`, también el que guarda el alta: la API pudo haber sumado, así que solo "Volver a escanear" y el aviso de revisar el inventario. Reintentar, cargar a mano o volver a guardar sumarían otra vez. Cualquier otro error de la API (5xx incluido) revirtió la transacción y se puede reintentar. |
+
+El cliente normaliza el UPC-A con `normalizeBarcode` y escanea primero: un código vinculado suma con un solo request, y recién con el 404 consulta (y gasta cupo de OFF). Si la consulta responde `IN_PANTRY` (lo vincularon en el medio) vuelve a escanear una vez, y si ese escaneo da 404 (lo desvincularon otra vez) abre el alta.
+
+El mismo código que sigue a la vista no suma dos veces (`scanGate`: hay que sacarlo de cuadro unos 2 s). La cámara no se desmonta mientras se resuelve un código; después del alta sí, y al quedar lista (`onCameraReady`) corre la ventana, porque mientras estuvo apagada no hubo lecturas y el producto que quedó en cuadro se sumaría otra vez.
+
+"Deshacer" se ofrece una sola vez: si falla no se repite, porque una resta que llegó a la API con la respuesta perdida restaría dos veces. Si se deshace una vinculación y la resta sale pero falla soltar el código, el aviso lo dice y manda a quitarlo desde el detalle. El detalle del producto muestra el código vinculado con "Quitar código" (`PATCH` con `barcode: null`).
+
+Al cerrar la hoja la cámara deja de leer enseguida (no espera la animación de salida). Una consulta en curso no bloquea el cierre: si el escaneo termina con la hoja cerrada, el resultado sale en un toast.
 
 ## Hogar
 

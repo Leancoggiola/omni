@@ -1,7 +1,7 @@
 // tamagui-ignore
 import { DEFAULT_PANTRY_FILTERS, filterPantryProducts, hasActivePantryFilters } from '@omni/shared/pantry';
 import { SPACING } from '@omni/shared/theme';
-import { MagnifyingGlassIcon, PackageIcon, PlusIcon } from 'phosphor-react-native';
+import { BarcodeIcon, MagnifyingGlassIcon, PackageIcon, PlusIcon } from 'phosphor-react-native';
 import { useCallback, useRef, useState } from 'react';
 import { FlatList, type ListRenderItem } from 'react-native';
 import { YStack } from 'tamagui';
@@ -29,6 +29,7 @@ import { PantrySummaryCards } from './PantrySummaryCards';
 import { ProductFormSheet } from './ProductFormSheet';
 import { ProductRow } from './ProductRow';
 import { ProductsToolbar } from './ProductsToolbar';
+import { ScanSheet } from './ScanSheet';
 
 import type { CreatePantryProductPayload, PantryProduct, PantryProductFilters } from '@omni/shared/pantry';
 import type { ReactElement } from 'react';
@@ -43,12 +44,13 @@ function Separator() {
 
 /**
  * Pestaña de inventario (`header`, el encabezado y las pestañas de la pantalla, va arriba de la lista para que se
- * mueva con ella): contadores, búsqueda y categoría, lista de productos y las hojas de alta, detalle y baja. El
- * error de cualquiera de las dos cargas se muestra con reintento; nunca como alacena vacía.
+ * mueva con ella): contadores, "Escanear código", búsqueda y categoría, lista de productos y las hojas de alta,
+ * escaneo, detalle y baja. El error de cualquiera de las dos cargas se muestra con reintento; nunca como alacena vacía.
  */
 export function InventoryView({ header }: InventoryViewProps) {
   const [filters, setFilters] = useState<PantryProductFilters>(DEFAULT_PANTRY_FILTERS);
   const [addOpen, setAddOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
   const [editing, setEditing] = useState<PantryProduct | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const pendingDelete = useRef<PantryProduct | null>(null);
@@ -77,6 +79,13 @@ export function InventoryView({ header }: InventoryViewProps) {
       notice.queue('Producto actualizado');
     },
     [editing, updateProduct, notice]
+  );
+
+  const handleUnlinkBarcode = useCallback(
+    async (product: PantryProduct) => {
+      await updateProduct(product.id, { barcode: null });
+    },
+    [updateProduct]
   );
 
   const runDelete = useCallback(
@@ -135,9 +144,14 @@ export function InventoryView({ header }: InventoryViewProps) {
           icon={PackageIcon}
           title="Tu alacena está vacía"
           action={
-            <Button variant="light" leftSection={PlusIcon} alignSelf="center" onPress={() => setAddOpen(true)}>
-              Agregar producto
-            </Button>
+            <YStack gap={SPACING.sm} alignSelf="stretch">
+              <Button variant="light" leftSection={PlusIcon} fullWidth onPress={() => setAddOpen(true)}>
+                Agregar producto
+              </Button>
+              <Button variant="outline" leftSection={BarcodeIcon} fullWidth onPress={() => setScanOpen(true)}>
+                Escanear código
+              </Button>
+            </YStack>
           }
         />
       );
@@ -175,6 +189,11 @@ export function InventoryView({ header }: InventoryViewProps) {
                 onAlertChange={alert => setFilters({ ...filters, alert })}
               />
             ) : null}
+            {showControls ? (
+              <Button variant="light" leftSection={BarcodeIcon} fullWidth onPress={() => setScanOpen(true)}>
+                Escanear código
+              </Button>
+            ) : null}
             {showControls ? <ProductsToolbar filters={filters} onChange={setFilters} /> : null}
           </YStack>
         }
@@ -189,6 +208,7 @@ export function InventoryView({ header }: InventoryViewProps) {
       <Fab onPress={() => setAddOpen(true)} accessibilityLabel="Agregar producto" />
 
       <ProductFormSheet open={addOpen} onOpenChange={setAddOpen} onSubmit={handleCreate} onClosed={notice.flush} />
+      <ScanSheet open={scanOpen} onOpenChange={setScanOpen} />
       {editing ? (
         <ProductFormSheet
           key={editing.id}
@@ -198,6 +218,7 @@ export function InventoryView({ header }: InventoryViewProps) {
           showAuthor={showAuthor}
           onSubmit={handleUpdate}
           onDelete={handleDeleteRequest}
+          onUnlinkBarcode={handleUnlinkBarcode}
           onClosed={handleEditClosed}
         />
       ) : null}

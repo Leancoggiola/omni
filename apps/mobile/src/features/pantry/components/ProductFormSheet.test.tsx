@@ -104,3 +104,54 @@ describe('ProductFormSheet · edición', () => {
     expect(screen.getByRole('button', { name: 'Restar uno' }).props.accessibilityState.disabled).toBe(true);
   });
 });
+
+describe('ProductFormSheet · código de barras', () => {
+  const BARCODE = '7790895000997';
+
+  it('sin código vinculado no muestra la fila del código', () => {
+    renderSheet({ product: product(), onUnlinkBarcode: jest.fn() });
+
+    expect(screen.queryByText('Código de barras')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Quitar código' })).toBeNull();
+  });
+
+  it('Quitar código lo desvincula, avisa en la hoja y no envía el resto del form', async () => {
+    const onUnlinkBarcode = jest.fn().mockResolvedValue(undefined);
+    const { onSubmit, onOpenChange } = renderSheet({ product: product({ barcode: BARCODE }), onUnlinkBarcode });
+
+    expect(screen.getByText(BARCODE)).toBeTruthy();
+    fireEvent.press(screen.getByRole('button', { name: 'Quitar código' }));
+
+    expect(await screen.findByText('Quitamos el código de barras')).toBeTruthy();
+    expect(onUnlinkBarcode).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1' }));
+    expect(screen.queryByText(BARCODE)).toBeNull();
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('si quitar el código falla muestra el error y lo conserva', async () => {
+    const onUnlinkBarcode = jest.fn().mockRejectedValue(new Error('red'));
+    renderSheet({ product: product({ barcode: BARCODE }), onUnlinkBarcode });
+
+    fireEvent.press(screen.getByRole('button', { name: 'Quitar código' }));
+
+    expect(await screen.findByText('No se pudo quitar el código')).toBeTruthy();
+    expect(screen.getByText(BARCODE)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Quitar código' })).toBeTruthy();
+  });
+
+  it('mientras quita el código no se puede guardar', async () => {
+    let release: () => void = () => {};
+    const onUnlinkBarcode = jest.fn(() => new Promise<void>(resolve => (release = resolve)));
+    renderSheet({ product: product({ barcode: BARCODE }), onUnlinkBarcode });
+
+    fireEvent.press(screen.getByRole('button', { name: 'Sumar uno' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Quitar código' }));
+
+    expect(screen.getByRole('button', { name: 'Guardar cambios' }).props.accessibilityState.disabled).toBe(true);
+    release();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Guardar cambios' }).props.accessibilityState.disabled).toBe(false)
+    );
+  });
+});

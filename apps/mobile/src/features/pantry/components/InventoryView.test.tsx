@@ -33,6 +33,16 @@ jest.mock('@/core/household', () => ({
 jest.mock('../hooks/usePantryProducts', () => ({ usePantryProducts: () => mockProducts() }));
 jest.mock('../hooks/usePantrySummary', () => ({ usePantrySummary: () => mockSummary() }));
 jest.mock('../hooks/usePantryMutations', () => ({ usePantryMutations: () => mockMutations }));
+jest.mock('../hooks/usePantryBarcode', () => ({
+  usePantryBarcode: () => ({ lookup: jest.fn(), scan: jest.fn(), undoScan: jest.fn() }),
+}));
+jest.mock('expo-camera', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    CameraView: () => <View testID="camera" />,
+    useCameraPermissions: () => [{ granted: true, canAskAgain: true }, jest.fn(), jest.fn()],
+  };
+});
 
 const SUMMARY = { totalProducts: 2, expiringSoonCount: 1, lowStockCount: 1, shoppingListCount: 0 };
 const MILK = product();
@@ -163,5 +173,31 @@ describe('InventoryView', () => {
     expect(mockMutations.deleteProduct).toHaveBeenCalledWith('p1');
     expect(notifySuccess).toHaveBeenCalledWith('Producto eliminado');
     jest.useRealTimers();
+  });
+
+  it('Escanear código abre la hoja de escaneo con la cámara', () => {
+    renderView();
+
+    expect(screen.queryByTestId('camera')).toBeNull();
+    fireEvent.press(screen.getByRole('button', { name: 'Escanear código' }));
+    expect(screen.getByTestId('camera')).toBeTruthy();
+  });
+
+  it('la alacena vacía también ofrece escanear', () => {
+    renderView({ products: [] });
+
+    fireEvent.press(screen.getByRole('button', { name: 'Escanear código' }));
+    expect(screen.getByTestId('camera')).toBeTruthy();
+  });
+
+  it('Quitar código en el detalle desvincula solo el código', async () => {
+    mockMutations.updateProduct.mockResolvedValue(MILK);
+    renderView({ products: [product({ barcode: '7790895000997' })] });
+
+    fireEvent.press(screen.getByRole('button', { name: /^Leche entera/ }));
+    fireEvent.press(screen.getByRole('button', { name: 'Quitar código' }));
+
+    expect(await screen.findByText('Quitamos el código de barras')).toBeTruthy();
+    expect(mockMutations.updateProduct).toHaveBeenCalledWith('p1', { barcode: null });
   });
 });
