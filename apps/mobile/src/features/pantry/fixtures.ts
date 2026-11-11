@@ -10,6 +10,7 @@ export const product = (overrides: Partial<PantryProduct> = {}): PantryProduct =
   quantity: 1,
   minQuantity: 2,
   expiresAt: null,
+  barcode: null,
   isLowStock: true,
   isExpiringSoon: false,
   createdAt: '2026-11-01T00:00:00.000Z',

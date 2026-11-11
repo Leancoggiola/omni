@@ -215,6 +215,7 @@ export interface CreatePantryProductOptions {
   quantity?: number;
   minQuantity?: number | null;
   expiresAt?: Date | null;
+  barcode?: string | null;
 }
 
 export async function createPantryProduct(userId: string, options: CreatePantryProductOptions = {}) {
@@ -232,6 +233,7 @@ export async function createPantryProduct(userId: string, options: CreatePantryP
       quantity: options.quantity ?? 5,
       minQuantity: options.minQuantity ?? null,
       expiresAt: options.expiresAt ?? null,
+      barcode: options.barcode ?? null,
     },
   });
 }

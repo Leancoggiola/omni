@@ -49,6 +49,7 @@
 | [prisma.md](./api/prisma.md)                 | Migraciones Prisma                 |
 | [route-testing.md](./api/route-testing.md)   | Tests de integración de endpoints  |
 | [household.md](./api/household.md)           | Hogar compartido y postura de RLS  |
+| [pantry-barcode.md](./api/pantry-barcode.md) | Código de barras de la alacena     |
 | [avatar-storage.md](./api/avatar-storage.md) | Foto de perfil y bucket de Storage |
 
 ### Ops

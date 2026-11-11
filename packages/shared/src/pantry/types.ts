@@ -10,6 +10,7 @@ export interface PantryProduct {
   quantity: number;
   minQuantity: number | null;
   expiresAt: string | null;
+  barcode: string | null;
   isLowStock: boolean;
   isExpiringSoon: boolean;
   createdAt: string;

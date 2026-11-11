@@ -65,6 +65,8 @@ src/
 
 > **Clima:** el caché de `weather/` y el turno de una consulta por segundo a Nominatim viven en memoria y valen por proceso. Con más de una instancia de la API hay que moverlos a un almacén compartido para no superar la política de Nominatim.
 
+> **Código de barras:** el cupo de 10 consultas por minuto a Open Food Facts (`pantry/open-food-facts.service.ts`) también vive en memoria y vale por proceso; el caché de productos está en la base (`BarcodeCatalogEntry`) y sí es compartido. Ver [api/pantry-barcode.md](./api/pantry-barcode.md).
+
 ### Convenciones API
 
 | Carpeta/archivo  | Convención                                                     |

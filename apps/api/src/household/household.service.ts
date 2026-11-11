@@ -186,6 +186,19 @@ async function resolveInvite(client: Client, userId: string, code: string) {
 }
 
 /**
+ * Índice de los productos del hogar que recibe para detectar repetidos: un producto de quien se une está repetido si
+ * coincide el nombre o, si no, el código de barras (el mismo producto cargado con otro nombre). Devuelve el id del
+ * producto que lo reemplaza, o `undefined` si no está repetido. Lo usan la vista previa y la unión, para que una no
+ * prometa algo distinto de lo que hace la otra.
+ */
+function createProductMatcher(targetProducts: { id: string; nameNormalized: string; barcode: string | null }[]) {
+  const byName = new Map(targetProducts.map(p => [p.nameNormalized, p.id]));
+  const byBarcode = new Map(targetProducts.flatMap(p => (p.barcode ? [[p.barcode, p.id] as const] : [])));
+  return (product: { nameNormalized: string; barcode: string | null }) =>
+    byName.get(product.nameNormalized) ?? (product.barcode ? byBarcode.get(product.barcode) : undefined);
+}
+
+/**
  * Qué aporta quien acepta y qué se pisa. En los repetidos de alacena y de películas gana el registro del hogar que
  * recibe, así que los conflictos listan los registros de quien se une que se descartan.
  */
@@ -203,17 +216,18 @@ export async function previewInvite(userId: string, code: string): Promise<House
     }),
     prisma.pantryProduct.findMany({
       where: { householdId: ownHouseholdId },
-      select: { name: true, nameNormalized: true },
+      select: { name: true, nameNormalized: true, barcode: true },
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
     }),
     prisma.pantryProduct.findMany({
       where: { householdId: targetHouseholdId },
-      select: { nameNormalized: true },
+      select: { id: true, nameNormalized: true, barcode: true },
     }),
     prisma.pantryShoppingListItem.count({ where: { householdId: ownHouseholdId } }),
   ]);
 
   const targetMediaKeys = new Set(targetMedia.map(m => `${m.mediaType}:${m.tmdbId}`));
-  const targetNames = new Set(targetProducts.map(p => p.nameNormalized));
+  const matchTargetProduct = createProductMatcher(targetProducts);
 
   return {
     inviter: { name: invite.createdBy?.name ?? '' },
@@ -224,7 +238,7 @@ export async function previewInvite(userId: string, code: string): Promise<House
     },
     conflicts: {
       media: ownMedia.filter(m => targetMediaKeys.has(`${m.mediaType}:${m.tmdbId}`)),
-      pantry: ownProducts.filter(p => targetNames.has(p.nameNormalized)).map(p => ({ name: p.name })),
+      pantry: ownProducts.filter(p => matchTargetProduct(p) !== undefined).map(p => ({ name: p.name })),
     },
   };
 }
@@ -232,7 +246,8 @@ export async function previewInvite(userId: string, code: string): Promise<House
 /**
  * Une el hogar de quien acepta al que generó el código, dentro de una transacción con lock sobre ambos hogares.
  * Los repetidos se resuelven a favor del hogar que recibe; los ítems de lista de compras de quien se une que apuntaban a
- * un producto descartado pasan a apuntar al producto equivalente del hogar que recibe.
+ * un producto descartado pasan a apuntar al producto equivalente del hogar que recibe. Un producto de alacena está
+ * repetido si coincide el nombre o el código de barras: el código de uno descartado no se traslada al que queda.
  */
 export async function acceptInvite(userId: string, code: string): Promise<HouseholdInfo> {
   await prisma.$transaction(async tx => {
@@ -261,11 +276,11 @@ export async function acceptInvite(userId: string, code: string): Promise<Househ
       tx.mediaItem.findMany({ where: { householdId: targetHouseholdId }, select: { tmdbId: true, mediaType: true } }),
       tx.pantryProduct.findMany({
         where: { householdId: targetHouseholdId },
-        select: { id: true, nameNormalized: true },
+        select: { id: true, nameNormalized: true, barcode: true },
       }),
     ]);
     const targetMediaKeys = new Set(targetMedia.map(m => `${m.mediaType}:${m.tmdbId}`));
-    const targetProductByName = new Map(targetProducts.map(p => [p.nameNormalized, p.id]));
+    const matchTargetProduct = createProductMatcher(targetProducts);
 
     const ownMedia = await tx.mediaItem.findMany({
       where: { householdId: ownHouseholdId },
@@ -277,9 +292,12 @@ export async function acceptInvite(userId: string, code: string): Promise<Househ
 
     const ownProducts = await tx.pantryProduct.findMany({
       where: { householdId: ownHouseholdId },
-      select: { id: true, nameNormalized: true },
+      select: { id: true, nameNormalized: true, barcode: true },
     });
-    const duplicateProducts = ownProducts.filter(p => targetProductByName.has(p.nameNormalized));
+    const duplicateProducts = ownProducts.flatMap(p => {
+      const targetId = matchTargetProduct(p);
+      return targetId ? [{ id: p.id, targetId }] : [];
+    });
     await tx.pantryShoppingListItem.deleteMany({
       where: {
         pantryProductId: { in: duplicateProducts.map(p => p.id) },
@@ -289,7 +307,7 @@ export async function acceptInvite(userId: string, code: string): Promise<Househ
     });
     if (duplicateProducts.length > 0) {
       const sourceIds = duplicateProducts.map(p => p.id);
-      const targetIds = duplicateProducts.map(p => targetProductByName.get(p.nameNormalized)!);
+      const targetIds = duplicateProducts.map(p => p.targetId);
       await tx.$executeRaw`
         UPDATE "PantryShoppingListItem" AS i
         SET "pantryProductId" = m.target_id

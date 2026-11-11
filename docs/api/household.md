@@ -29,8 +29,8 @@ Endpoints de la lista de compras que cambian ítems (todos con `withHousehold`):
 
 - **Máximo 2 integrantes** y cambios de integrantes serializados con `lockHouseholds` (advisory lock por hogar, en orden de id). La base no impone el tope: un script, el seed o SQL manual que no pase por `lockHouseholds` puede violarlo.
 - **Invitación:** un código vivo por hogar (generar otro revoca el anterior). Vencido, usado, revocado o inexistente responden igual (404). `preview` y `accept` comparten un rate limit estricto (10 por 15 min); generar el código tiene el suyo, más laxo. Rotar `JWT_REFRESH_SECRET` invalida las invitaciones pendientes, porque la clave del HMAC deriva de él.
-- **Unión:** los repetidos (película por `tmdbId` + tipo, producto por nombre normalizado) quedan con el registro del hogar que recibe. Los ítems de compra que apuntaban a un producto descartado pasan al equivalente del hogar que recibe.
-- **Desvincular:** quien se va recibe un hogar nuevo con una copia del estado actual; quien se queda conserva todo. No requiere aprobación.
+- **Unión:** los repetidos (película por `tmdbId` + tipo, producto por nombre normalizado o, si no, por código de barras) quedan con el registro del hogar que recibe; el código de un producto descartado no se traslada al que queda. Los ítems de compra que apuntaban a un producto descartado pasan al equivalente del hogar que recibe.
+- **Desvincular:** quien se va recibe un hogar nuevo con una copia del estado actual, códigos de barras incluidos; quien se queda conserva todo. No requiere aprobación.
 - **Borrar la cuenta** equivale a desvincular sin copia; el hogar se elimina solo si era el último integrante.
 
 ## Endpoints
