@@ -52,6 +52,7 @@ async function refreshWeather(key: string, coordinates: WeatherCoordinates): Pro
     if (previous && canServeAsStale(previous)) {
       logger.warn({ err }, 'Open-Meteo falló: se devuelve el último clima guardado');
       const weather = { ...previous, stale: true };
+      cache.delete(key);
       cache.set(key, { weather, refreshAt: Date.now() + RETRY_AFTER_FAILURE_MS });
       return weather;
     }

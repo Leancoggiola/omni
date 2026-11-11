@@ -63,6 +63,8 @@ src/
   test/                   ← Helpers de integración (createIntegrationApp, factories, resetTestDb…) y setupEnv.ts
 ```
 
+> **Clima:** el caché de `weather/` y el turno de una consulta por segundo a Nominatim viven en memoria y valen por proceso. Con más de una instancia de la API hay que moverlos a un almacén compartido para no superar la política de Nominatim.
+
 ### Convenciones API
 
 | Carpeta/archivo  | Convención                                                     |
