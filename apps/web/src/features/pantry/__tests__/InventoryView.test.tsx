@@ -20,7 +20,11 @@ vi.mock('../hooks/usePantrySummary', () => ({ usePantrySummary: () => mocks.summ
 vi.mock('../hooks/usePantryMutations', () => ({
   usePantryMutations: () => ({ createProduct: vi.fn(), updateProduct: vi.fn(), deleteProduct: vi.fn() }),
 }));
-vi.mock('@/core/household', () => ({ useHousehold: () => ({ household: null }), useItemAuthor: () => undefined }));
+vi.mock('@/core/household', () => ({
+  useHousehold: () => ({ household: null }),
+  useItemAuthor: () => undefined,
+  useItemEditor: () => undefined,
+}));
 
 const summary: PantrySummary = { totalProducts: 2, expiringSoonCount: 0, lowStockCount: 1, shoppingListCount: 3 };
 

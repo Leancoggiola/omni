@@ -28,6 +28,7 @@ jest.mock('@/shared/ui', () => ({
 jest.mock('@/core/household', () => ({
   useHousehold: () => ({ household: { members: [{}, {}] } }),
   useItemAuthor: () => undefined,
+  useItemEditor: () => undefined,
 }));
 jest.mock('../hooks/usePantryProducts', () => ({ usePantryProducts: () => mockProducts() }));
 jest.mock('../hooks/usePantrySummary', () => ({ usePantrySummary: () => mockSummary() }));

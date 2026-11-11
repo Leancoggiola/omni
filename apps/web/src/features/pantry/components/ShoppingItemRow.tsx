@@ -57,10 +57,12 @@ export const ShoppingItemRow = memo(function ShoppingItemRow({
                 En alacena: {formatPantryQuantity(item.linkedProduct.quantity, item.linkedProduct.unit)}
               </Text>
             )}
-            {showAuthor && <PantryItemAuthor createdById={item.createdById} />}
+            {showAuthor && <PantryItemAuthor createdById={item.createdById} updatedById={item.updatedById} />}
           </Group>
         )}
-        {item.checked && showAuthor && <PantryItemAuthor createdById={item.createdById} />}
+        {item.checked && showAuthor && (
+          <PantryItemAuthor createdById={item.createdById} updatedById={item.updatedById} />
+        )}
       </div>
       {!item.checked && onEdit && (
         <ActionIcon variant="subtle" aria-label={`Editar ${item.name}`} onClick={() => onEdit(item)}>

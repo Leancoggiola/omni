@@ -37,6 +37,8 @@ jest.mock('@/shared/ui', () => ({
 jest.mock('@/core/household', () => ({
   useHousehold: () => ({ household: { members: [{}, {}] } }),
   useItemAuthor: (id: string | null) => (id ? { kind: 'member', name: 'Ana' } : undefined),
+  useItemEditor: (createdById: string | null, updatedById: string | null) =>
+    updatedById && updatedById !== createdById ? { kind: 'self', name: 'Yo' } : undefined,
 }));
 jest.mock('../hooks/useShoppingList', () => ({ useShoppingList: () => mockList() }));
 jest.mock('../hooks/usePantrySummary', () => ({ usePantrySummary: () => mockSummary() }));
@@ -84,6 +86,13 @@ describe('ShoppingListView', () => {
     expect(screen.getByText('En alacena: 1 paquete')).toBeTruthy();
     expect(screen.getAllByLabelText('Agregado por Ana').length).toBeGreaterThan(0);
     expect(screen.getByText('Fideos')).toBeTruthy();
+  });
+
+  it('un ítem editado por otra persona muestra "Editado por" además del autor', () => {
+    renderView({ items: [listItem({ updatedById: 'u2' })] });
+
+    expect(screen.getByLabelText('Agregado por Ana')).toBeTruthy();
+    expect(screen.getByText('Editado por Vos')).toBeTruthy();
   });
 
   it('el error sin datos se muestra y Reintentar revalida', () => {

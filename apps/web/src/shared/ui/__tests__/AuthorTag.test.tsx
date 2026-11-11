@@ -33,4 +33,25 @@ describe('AuthorTag', () => {
     expect(screen.getByLabelText('Agregado por Lucía')).toBeInTheDocument();
     expect(screen.queryByText('Lucía', { selector: 'p' })).not.toBeInTheDocument();
   });
+
+  it('nombra la acción en el aria-label sin mostrarla por defecto', () => {
+    renderWithProviders(
+      <AuthorTag author={{ kind: 'member', name: 'Lucía', avatarUrl: null }} actionLabel="Editado por" />
+    );
+
+    expect(screen.getByRole('group', { name: 'Editado por Lucía' })).toBeInTheDocument();
+    expect(screen.getByText('Lucía', { selector: 'p' })).toBeInTheDocument();
+  });
+
+  it('con showActionLabel muestra la acción delante del nombre', () => {
+    renderWithProviders(
+      <AuthorTag
+        author={{ kind: 'self', name: 'Leandro', avatarUrl: null }}
+        actionLabel="Editado por"
+        showActionLabel
+      />
+    );
+
+    expect(screen.getByText('Editado por Vos')).toBeInTheDocument();
+  });
 });

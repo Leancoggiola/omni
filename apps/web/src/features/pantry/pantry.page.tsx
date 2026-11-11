@@ -2,6 +2,8 @@ import { FC, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Stack } from '@mantine/core';
 
+import { useHousehold } from '@/core/household';
+
 import { InventoryView } from './components/InventoryView';
 import { PantryHeader } from './components/PantryHeader';
 import { ShoppingListView } from './components/ShoppingListView';
@@ -14,6 +16,7 @@ export const PantryPage: FC = () => {
   const [params, setParams] = useSearchParams();
   const [addOpened, setAddOpened] = useState(false);
   const { summary } = usePantrySummary();
+  const { household } = useHousehold();
   const tab: PantryTab = params.get('tab') === 'shopping' ? 'shopping' : 'inventory';
 
   const handleTabChange = (next: PantryTab) => {
@@ -26,6 +29,7 @@ export const PantryPage: FC = () => {
         tab={tab}
         onTabChange={handleTabChange}
         pendingCount={summary?.shoppingListCount}
+        linked={(household?.members.length ?? 0) > 1}
         onAddProduct={() => setAddOpened(true)}
       />
       {tab === 'inventory' ? (

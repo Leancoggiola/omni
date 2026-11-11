@@ -25,8 +25,8 @@ async function fetchAllProducts(firstPageKey: string): Promise<PaginatedResponse
 
 /**
  * Inventario completo del hogar en una sola key (`?limit=100`, todas las páginas) y filtros en el cliente. Es
- * compartido con la pareja: revalida al volver a primer plano y se refresca cada `PANTRY_LIST_REFRESH_MS` solo con
- * la pantalla enfocada.
+ * compartido con la pareja: revalida al volver a primer plano o a la pestaña (`useRevalidatePantryOnFocus`) y se
+ * refresca cada `PANTRY_LIST_REFRESH_MS` solo con la pantalla enfocada.
  */
 export function usePantryProducts() {
   const isFocused = useIsFocused();

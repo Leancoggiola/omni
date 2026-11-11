@@ -629,4 +629,131 @@ describe('pantry routes (integration)', () => {
       expect(res.body.product.updatedById).toBe(partner.id);
     });
   });
+
+  describe('alacena compartida entre dos personas vinculadas', () => {
+    let partner: Awaited<ReturnType<typeof createUser>>;
+    let partnerAuth: string;
+
+    beforeEach(async () => {
+      partner = await createUser({ username: 'pantry-partner' });
+      partnerAuth = authHeader(toJwtUser(partner));
+      await linkUsers(user.id, partner.id);
+    });
+
+    it('GET /products devuelve a ambos los mismos productos, con quién agregó cada uno', async () => {
+      await createPantryProduct(user.id, { name: 'Arroz' });
+      await createPantryProduct(partner.id, { name: 'Fideos' });
+
+      const mine = await request(app).get('/api/pantry/products').set('Authorization', auth);
+      const theirs = await request(app).get('/api/pantry/products').set('Authorization', partnerAuth);
+
+      expect(theirs.body.items).toEqual(mine.body.items);
+      const authors = Object.fromEntries(
+        mine.body.items.map((item: { name: string; createdById: string }) => [item.name, item.createdById])
+      );
+      expect(authors).toEqual({ Arroz: user.id, Fideos: partner.id });
+    });
+
+    it('GET /shopping-list devuelve a ambos los mismos ítems', async () => {
+      await createShoppingListItem(user.id, { name: 'Leche' });
+      await createShoppingListItem(partner.id, { name: 'Pan' });
+
+      const mine = await request(app).get('/api/pantry/shopping-list').set('Authorization', auth);
+      const theirs = await request(app).get('/api/pantry/shopping-list').set('Authorization', partnerAuth);
+
+      expect(mine.body).toHaveLength(2);
+      expect(theirs.body).toEqual(mine.body);
+    });
+
+    it('POST /products devuelve 409 si la otra persona ya lo agregó con otras mayúsculas', async () => {
+      await createPantryProduct(user.id, { name: 'Arroz' });
+
+      const res = await request(app)
+        .post('/api/pantry/products')
+        .set('Authorization', partnerAuth)
+        .send({ name: '  ARROZ ', category: 'GRAINS', unit: 'UNITS', quantity: 1 });
+
+      expect(res.status).toBe(409);
+      expect(await prisma.pantryProduct.count({ where: { householdId: await householdIdOf(user.id) } })).toBe(1);
+    });
+
+    it('PATCH /products/:productId con ediciones seguidas gana la última', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Harina', quantity: 1 });
+      const url = `/api/pantry/products/${product.id}`;
+
+      await request(app).patch(url).set('Authorization', auth).send({ quantity: 3 });
+      await request(app).patch(url).set('Authorization', partnerAuth).send({ quantity: 7 });
+
+      const res = await request(app).get(url).set('Authorization', auth);
+      expect(res.body).toMatchObject({ quantity: 7, createdById: user.id, updatedById: partner.id });
+    });
+
+    it('PATCH /shopping-list/items/:itemId con ediciones seguidas gana la última', async () => {
+      const item = await createShoppingListItem(partner.id, { name: 'Leche', quantityToBuy: 1 });
+      const url = `/api/pantry/shopping-list/items/${item.id}`;
+
+      await request(app).patch(url).set('Authorization', partnerAuth).send({ quantityToBuy: 2 });
+      await request(app).patch(url).set('Authorization', auth).send({ quantityToBuy: 5 });
+
+      const res = await request(app).get('/api/pantry/shopping-list').set('Authorization', partnerAuth);
+      expect(res.body[0]).toMatchObject({ quantityToBuy: 5, createdById: partner.id, updatedById: user.id });
+    });
+
+    it('DELETE /products/:productId permite a la otra persona borrar el producto', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Sal' });
+
+      const res = await request(app).delete(`/api/pantry/products/${product.id}`).set('Authorization', partnerAuth);
+
+      expect(res.status).toBe(204);
+      const seen = await request(app).get('/api/pantry/products').set('Authorization', auth);
+      expect(seen.body.items).toHaveLength(0);
+    });
+
+    it('GET /summary calcula el resumen y las alertas sobre el hogar', async () => {
+      const tomorrow = new Date(startOfTodayInAppTz().getTime() + 86_400_000);
+      await createPantryProduct(user.id, { name: 'Arroz', quantity: 1, minQuantity: 2 });
+      await createPantryProduct(partner.id, { name: 'Yogur', quantity: 5, minQuantity: 2, expiresAt: tomorrow });
+      await createPantryProduct(partner.id, { name: 'Fideos', quantity: 1, minQuantity: 3 });
+      await createShoppingListItem(user.id, { checked: false });
+      await createShoppingListItem(partner.id, { checked: false });
+
+      const mine = await request(app).get('/api/pantry/summary').set('Authorization', auth);
+      const theirs = await request(app).get('/api/pantry/summary').set('Authorization', partnerAuth);
+
+      expect(mine.body).toMatchObject({
+        totalProducts: 3,
+        lowStockCount: 2,
+        expiringSoonCount: 1,
+        shoppingListCount: 2,
+      });
+      expect(theirs.body).toEqual(mine.body);
+    });
+
+    it('POST /shopping-list/generate suma los productos de bajo stock de las dos personas', async () => {
+      await createPantryProduct(user.id, { name: 'Arroz', quantity: 1, minQuantity: 2 });
+      await createPantryProduct(partner.id, { name: 'Fideos', quantity: 1, minQuantity: 2 });
+
+      await request(app).post('/api/pantry/shopping-list/generate').set('Authorization', partnerAuth).send({});
+
+      const res = await request(app).get('/api/pantry/shopping-list').set('Authorization', auth);
+      expect(res.body.map((item: { name: string }) => item.name).sort()).toEqual(['Arroz', 'Fideos']);
+    });
+
+    it('una tercera persona sin vincular no ve ni toca la alacena del hogar', async () => {
+      const product = await createPantryProduct(user.id, { name: 'Arroz', quantity: 1, minQuantity: 2 });
+      const stranger = await createUser({ username: 'pantry-stranger' });
+      const strangerAuth = authHeader(toJwtUser(stranger));
+
+      const list = await request(app).get('/api/pantry/products').set('Authorization', strangerAuth);
+      const summary = await request(app).get('/api/pantry/summary').set('Authorization', strangerAuth);
+      const patch = await request(app)
+        .patch(`/api/pantry/products/${product.id}`)
+        .set('Authorization', strangerAuth)
+        .send({ quantity: 9 });
+
+      expect(list.body.items).toHaveLength(0);
+      expect(summary.body).toMatchObject({ totalProducts: 0, lowStockCount: 0 });
+      expect(patch.status).toBe(404);
+    });
+  });
 });

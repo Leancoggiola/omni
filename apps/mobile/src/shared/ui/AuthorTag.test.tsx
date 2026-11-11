@@ -32,4 +32,23 @@ describe('AuthorTag', () => {
     expect(screen.getByLabelText('Agregado por Lucía Fernández')).toBeTruthy();
     expect(screen.queryByText('Lucía Fernández')).toBeNull();
   });
+
+  it('nombra la acción en el label accesible sin mostrarla por defecto', () => {
+    render(<AuthorTag author={{ kind: 'member', name: 'Lucía', avatarUrl: null }} actionLabel="Editado por" />);
+
+    expect(screen.getByLabelText('Editado por Lucía')).toBeTruthy();
+    expect(screen.getByText('Lucía')).toBeTruthy();
+  });
+
+  it('con showActionLabel muestra la acción delante del nombre', () => {
+    render(
+      <AuthorTag
+        author={{ kind: 'self', name: 'Leandro', avatarUrl: null }}
+        actionLabel="Editado por"
+        showActionLabel
+      />
+    );
+
+    expect(screen.getByText('Editado por Vos')).toBeTruthy();
+  });
 });
