@@ -35,7 +35,8 @@ export type TextFieldProps = Omit<InputProps, 'size' | 'disabled'> & {
 
 /**
  * Equivalente de `TextInput` de Mantine: label 14/600 (con `*` si es requerido), ícono izquierdo, alto 44 (52 y fuente
- * de 16 con `size="lg"`) y, debajo del campo, la descripción y el error. Placeholder, cursor y selección vienen de `defaultProps` del config.
+ * de 16 con `size="lg"`) y, debajo del campo, la descripción y el error. Placeholder, cursor y selección vienen de
+ * `defaultProps` del config.
  */
 export function TextField({
   label,
