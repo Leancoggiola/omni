@@ -190,4 +190,13 @@ export const config = {
     baseUrl: process.env.WIKIPEDIA_BASE_URL ?? 'https://es.wikipedia.org/api/rest_v1',
     userAgent: process.env.WIKIPEDIA_USER_AGENT ?? 'Omni/1.0 (https://github.com/Leancoggiola/omni)',
   },
+
+  openMeteo: {
+    baseUrl: process.env.OPEN_METEO_BASE_URL ?? 'https://api.open-meteo.com/v1',
+  },
+
+  nominatim: {
+    baseUrl: process.env.NOMINATIM_BASE_URL ?? 'https://nominatim.openstreetmap.org',
+    userAgent: process.env.NOMINATIM_USER_AGENT ?? 'Omni/1.0 (https://github.com/Leancoggiola/omni)',
+  },
 } as const;
