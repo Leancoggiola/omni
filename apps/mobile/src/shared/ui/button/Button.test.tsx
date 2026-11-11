@@ -55,6 +55,12 @@ describe('Button', () => {
     expect(screen.getByText('Ingresar')).toHaveProp('fontSize', 16);
   });
 
+  it('el xl mide 56 dp con fuente de 16', () => {
+    render(<Button size="xl">Ingresar</Button>);
+    expect(screen.getByRole('button', { name: 'Ingresar' })).toHaveProp('height', 56);
+    expect(screen.getByText('Ingresar')).toHaveProp('fontSize', 16);
+  });
+
   it('usa accessibilityLabel si se pasa', () => {
     render(<Button accessibilityLabel="Agregar a la lista">Agregar</Button>);
     expect(screen.getByRole('button', { name: 'Agregar a la lista' })).toBeTruthy();

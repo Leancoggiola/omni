@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { TextInput } from 'react-native';
+import { Dimensions, Keyboard, TextInput } from 'react-native';
 
 import { ApiError } from '@omni/shared/api';
 
@@ -28,6 +28,12 @@ jest.mock('./components/AuthBackground', () => ({ AuthBackground: () => null }))
 
 const focusSpy = jest.spyOn(TextInput.prototype, 'focus');
 
+type KeyboardListener = (event: { endCoordinates: { screenY: number } }) => void;
+const keyboardListeners: Record<string, KeyboardListener> = {};
+
+const openKeyboard = () => act(() => keyboardListeners.keyboardDidShow({ endCoordinates: { screenY: 556 } }));
+const closeKeyboard = () => act(() => keyboardListeners.keyboardDidHide({ endCoordinates: { screenY: 844 } }));
+
 const renderLogin = async () => {
   render(<LoginScreen />);
   await screen.findByRole('button', { name: 'Ingresar' });
@@ -42,6 +48,11 @@ beforeEach(() => {
   mockSetRememberedUser.mockReset().mockResolvedValue(undefined);
   mockClearRememberedUser.mockReset().mockResolvedValue(undefined);
   focusSpy.mockClear();
+  jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 390, height: 844, scale: 1, fontScale: 1 });
+  jest.spyOn(Keyboard, 'addListener').mockImplementation(((name: string, listener: KeyboardListener) => {
+    keyboardListeners[name] = listener;
+    return { remove: jest.fn() };
+  }) as unknown as typeof Keyboard.addListener);
 });
 
 describe('LoginScreen', () => {
@@ -169,6 +180,77 @@ describe('LoginScreen', () => {
     await renderLogin();
     expect(screen.getByLabelText('Usuario')).toHaveProp('returnKeyType', 'next');
     expect(screen.getByLabelText('Contraseña')).toHaveProp('returnKeyType', 'go');
+  });
+
+  it('los campos piden "siguiente" / "ir" al teclado y el autofill de usuario y contraseña', async () => {
+    await renderLogin();
+    expect(screen.getByLabelText('Usuario')).toHaveProp('enterKeyHint', 'next');
+    expect(screen.getByLabelText('Usuario')).toHaveProp('autoComplete', 'username');
+    expect(screen.getByLabelText('Contraseña')).toHaveProp('enterKeyHint', 'go');
+    expect(screen.getByLabelText('Contraseña')).toHaveProp('autoComplete', 'current-password');
+  });
+
+  it('los campos miden 52 con fuente de 16 y el botón principal, 56', async () => {
+    await renderLogin();
+    for (const label of ['Usuario', 'Contraseña']) {
+      expect(screen.getByLabelText(label)).toHaveProp('height', 52);
+      expect(screen.getByLabelText(label)).toHaveProp('fontSize', 16);
+    }
+    expect(screen.getByRole('button', { name: 'Ingresar' })).toHaveProp('height', 56);
+    expect(screen.getByText('Ingresar')).toHaveProp('fontSize', 16);
+  });
+
+  describe('con el teclado abierto', () => {
+    it('compacta el hero en una línea, saca el título de la hoja y deja "Ingresar" a la vista', async () => {
+      await renderLogin();
+      const title = () => screen.getByRole('header', { name: '¡Te damos la bienvenida a Omni!' });
+      expect(title()).toHaveProp('fontSize', 32);
+      expect(title()).toHaveProp('textAlign', 'center');
+
+      openKeyboard();
+      expect(title()).toHaveProp('fontSize', 24);
+      expect(title()).toHaveProp('textAlign', 'left');
+      expect(screen.queryByText('Ingresá a tu cuenta')).toBeNull();
+      expect(screen.getByLabelText('Usuario')).toBeTruthy();
+      expect(screen.getByLabelText('Contraseña')).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Ingresar', disabled: false })).toBeTruthy();
+    });
+
+    it('al cerrarse vuelve el hero completo y el título de la hoja', async () => {
+      await renderLogin();
+      openKeyboard();
+      closeKeyboard();
+
+      expect(screen.getByRole('header', { name: '¡Te damos la bienvenida a Omni!' })).toHaveProp('fontSize', 32);
+      expect(screen.getByRole('header', { name: 'Ingresá a tu cuenta' })).toBeTruthy();
+    });
+
+    it('mantiene el error del servidor y la validación por campo en la hoja', async () => {
+      mockLogin.mockRejectedValue(new ApiError('Credenciales inválidas', 401));
+      await renderLogin();
+      openKeyboard();
+      fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
+      await act(async () => submit());
+      expect(screen.getByRole('alert', { name: 'Credenciales inválidas' })).toBeTruthy();
+
+      fireEvent.changeText(screen.getByLabelText('Contraseña'), '');
+      submit();
+      expect(screen.getByText('La contraseña es requerida')).toBeTruthy();
+    });
+
+    it('con usuario recordado compacta el saludo y conserva la contraseña y el enlace', async () => {
+      mockGetRememberedUser.mockResolvedValue('admin01');
+      render(<LoginScreen />);
+      await screen.findByText('Ingresando como admin01');
+      openKeyboard();
+
+      expect(screen.getByRole('header', { name: '¡Hola, Admin01!' })).toHaveProp('fontSize', 24);
+      expect(screen.getByText('Ingresando como admin01')).toBeTruthy();
+      expect(screen.getByLabelText('Contraseña')).toHaveProp('height', 52);
+      expect(screen.getByRole('button', { name: 'Ingresar' })).toBeTruthy();
+      expect(screen.getByText('Ingresar con otro usuario')).toBeTruthy();
+    });
   });
 
   it('Enter en la contraseña envía el formulario', async () => {

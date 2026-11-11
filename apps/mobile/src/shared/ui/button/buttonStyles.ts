@@ -3,17 +3,18 @@ import { FONT_SIZE, SIZE } from '@omni/shared/theme';
 import type { useSemanticColors } from '@/core/theme';
 
 export type ButtonVariant = 'filled' | 'outline' | 'light' | 'subtle' | 'glass';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 /** `dimmed` es el `color="gray"` de Mantine: solo lo usa `IconButton` (cerrar, mostrar contraseña). */
 export type ButtonColor = 'brand' | 'destructive' | 'dimmed';
 
 type SemanticColors = ReturnType<typeof useSemanticColors>;
 
-/** Alto, fuente y padding de Mantine (`--button-height-*`, `--button-padding-x-*`), con el md en 44 dp de toque. */
+/** Alto, fuente y padding de Mantine (`--button-height-*`, `--button-padding-x-*`), con el md en 44 dp de toque; el xl (56) es el botón principal del login. */
 export const BUTTON_SIZES = {
   sm: { height: SIZE.control.sm, fontSize: FONT_SIZE.sm, paddingX: 18, icon: 16 },
   md: { height: SIZE.control.md, fontSize: FONT_SIZE.md, paddingX: 22, icon: 18 },
   lg: { height: SIZE.control.lg, fontSize: FONT_SIZE.lg, paddingX: 26, icon: 20 },
+  xl: { height: SIZE.control.xl, fontSize: FONT_SIZE.lg, paddingX: 32, icon: 20 },
 } as const satisfies Record<ButtonSize, { height: number; fontSize: number; paddingX: number; icon: number }>;
 
 /** Área de toque mínima recomendada: el `sm` (36 dp) completa el resto con `hitSlop`. */

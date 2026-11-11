@@ -117,7 +117,7 @@ Las variantes `*-disabled` y los `surfaces-*-light` de dark son un shade de la e
 
 La escala se renombró para coincidir con la del Design System (antes `md` era 8, `lg` 12 y `xl` 16). Los usos existentes bajaron un escalón de nombre (`lg` → `md`, `xl` → `lg`, `md` → `sm`) para conservar los píxeles; el único cambio visual es `sm` 6 → 8 y `xs` 2 → 4. El `defaultRadius` de Mantine es ahora `md` (12) y el de Paper/Card, `sm` (8). La clave `2xl` se declara en `mantine.d.ts`.
 
-**`SIZE`:** `control` sm 36 / md 44 / lg 48 (Button lg era 50), `fab` 56, `tabBar` 72 y `avatar` xs 24 / sm 32 / md 40 / lg 80.
+**`SIZE`:** `control` sm 36 / md 44 / lg 48 (Button lg era 50) / xl 56 ("Ingresar" del login mobile), `field` md 44 / lg 52 (campos del login mobile, con fuente de 16), `fab` 56, `tabBar` 72 y `avatar` xs 24 / sm 32 / md 40 / lg 80.
 
 **`SHADOW_THEMED`** (desenfoque 32, desplazamiento 8 o 12, valor por esquema): `card` (cards glass, burbujas, navbar), `float` (tab bar, FAB, toasts) y `sheet` (hojas fijas, hacia arriba). Web las registra en `THEME.shadows` (claro) y `cssVariablesResolver` pisa `--mantine-shadow-*` en oscuro; en mobile se esparcen con `themedElevation(level, scheme)`. **`OPACITY`:** `glass` 0,82 y `disabledIcon` 0,5.
 
