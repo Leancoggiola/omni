@@ -85,11 +85,12 @@ describe('lookupBarcode', () => {
     });
   });
 
-  it('responde "no existe" aunque falle el barrido de los vencidos', async () => {
+  it('responde "no existe" y lo guarda aunque falle el barrido de los vencidos', async () => {
     mockedFetchProduct.mockResolvedValue(null);
     db.barcodeCatalogEntry.deleteMany.mockRejectedValue(new Error('connection lost'));
 
     await expect(lookupBarcode('ana', BARCODE)).resolves.toEqual({ status: 'NOT_FOUND', barcode: BARCODE });
+    expect(db.barcodeCatalogEntry.upsert).toHaveBeenCalledTimes(1);
   });
 
   it('no barre el caché al guardar un producto que existe', async () => {

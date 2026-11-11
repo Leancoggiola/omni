@@ -45,9 +45,9 @@ function fromEntry(entry: BarcodeCatalogEntry): CatalogProduct | null {
 /**
  * Guarda en el caché compartido lo que respondió el catálogo: 30 días si el código existe y 7 si no, para que un
  * producto recién cargado en Open Food Facts aparezca sin esperar un mes. Antes de guardar un "no existe" barre los
- * que ya vencieron, así el caché no crece con códigos que nadie volvió a consultar. El caché es una optimización: si
- * la escritura falla (por ejemplo, dos consultas simultáneas al mismo código en instancias distintas) solo se
- * registra.
+ * que ya vencieron (con el índice `[found, expiresAt]`), así el caché no crece con códigos que nadie volvió a consultar.
+ * El caché es una optimización: si el barrido o la escritura fallan (por ejemplo, dos consultas simultáneas al mismo
+ * código en instancias distintas) solo se registra, y un barrido que falla no impide guardar.
  */
 async function saveCatalogEntry(barcode: string, product: CatalogProduct | null): Promise<void> {
   const fetchedAt = new Date();
@@ -60,10 +60,14 @@ async function saveCatalogEntry(barcode: string, product: CatalogProduct | null)
     fetchedAt,
     expiresAt: new Date(fetchedAt.getTime() + (product ? FOUND_TTL_MS : NOT_FOUND_TTL_MS)),
   };
-  try {
-    if (!product) {
+  if (!product) {
+    try {
       await prisma.barcodeCatalogEntry.deleteMany({ where: { found: false, expiresAt: { lt: fetchedAt } } });
+    } catch (err) {
+      logger.warn({ err }, 'No se pudieron barrer los códigos vencidos del caché del catálogo');
     }
+  }
+  try {
     await prisma.barcodeCatalogEntry.upsert({ where: { barcode }, create: { barcode, ...data }, update: data });
   } catch (err) {
     logger.warn({ err }, 'No se pudo guardar el código de barras en el caché del catálogo');
