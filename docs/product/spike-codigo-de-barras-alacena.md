@@ -221,6 +221,17 @@ El canvas indicado para este spike (`WFjcPzKkX5L65Ew6QEZkNj`) resultó ser **Omn
 
 Restricción técnica que condiciona el diseño: `FormSheet` vive en un `Modal` de RN que **tapa los toasts**, así que la confirmación y **Deshacer** tienen que ir dentro de la hoja (`Banner`), no en `notify*`. Nada de hex ni verdes de Mantine: solo alias semánticos de `packages/shared/src/theme/tokens.ts`.
 
+## Implementación (#259, #260)
+
+La API y el contrato están en el [PR #263](https://github.com/Leancoggiola/omni/pull/263) y el cliente mobile en el [PR #264](https://github.com/Leancoggiola/omni/pull/264). El contrato final está en `docs/api/pantry-barcode.md`. Estos son los cambios respecto de este spike:
+
+- **Escanear primero:** el cliente hace `POST …/products/scan` sin `product` y consulta solo con el 404. Así un código vinculado suma con un solo request y la consulta no gasta cupo de OFF.
+- **Cupo hacia OFF:** 10 por minuto en total y hasta 8 por persona. Una falla del proveedor nunca se guarda como "no encontrado" y una fila vencida se sigue sirviendo si OFF no responde.
+- **Deshacer:** `POST …/products/:id/stock` con `delta` para las sumas, y `DELETE` para un alta. Se ofrece una sola vez.
+- **Estado nuevo, "Escaneo sin saber si sumó":** ante un error de red, timeout o 504 en el escaneo no se ofrece reintentar ni cargar a mano.
+- **Permisos de Android:** `RECORD_AUDIO` queda bloqueado en `app.json`, porque `expo-image-picker` lo agrega como plugin legacy.
+- **Sin probar todavía:** la lectura real con la cámara. En el emulador se probaron el permiso, la cámara y los flujos contra la API real, pero la escena virtual no permitió decodificar un código. Falta probarlo en un Android físico.
+
 ## Fuera de alcance
 
 - Web (no tiene cámara como caso de uso), lectura de vencimientos por OCR y aportar productos a OFF.
