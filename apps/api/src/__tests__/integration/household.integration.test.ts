@@ -261,6 +261,45 @@ describe('household routes (integration)', () => {
       expect(shopping.body.find((i: { name: string }) => i.name === 'Leche').pantryProductId).toBe(anaMilk.id);
     });
 
+    it('el mismo código de barras con otro nombre también cuenta como repetido', async () => {
+      const anaCoke = await createPantryProduct(ana.id, { name: 'Coca', quantity: 3, barcode: '7790895000997' });
+      await createPantryProduct(ana.id, { name: 'Galletitas', quantity: 1, barcode: '7622210449283' });
+      const betoCoke = await createPantryProduct(beto.id, {
+        name: 'Coca Cola Original 2,25 L',
+        quantity: 9,
+        barcode: '7790895000997',
+      });
+      await createPantryProduct(beto.id, { name: 'Galletitas', quantity: 6, barcode: '5449000000996' });
+      await createPantryProduct(beto.id, { name: 'Fideos', quantity: 4, barcode: '96385074' });
+      await createShoppingListItem(beto.id, { name: 'Coca', pantryProductId: betoCoke.id, source: 'MANUAL' });
+      const created = await invite(ana);
+
+      const preview = await request(app)
+        .post('/api/household/invite/preview')
+        .set('Authorization', as(beto))
+        .send({ code: created.code });
+      const res = await accept(beto, created.code);
+
+      expect(preview.status).toBe(200);
+      expect(preview.body.conflicts.pantry).toEqual([{ name: 'Coca Cola Original 2,25 L' }, { name: 'Galletitas' }]);
+      expect(res.status).toBe(200);
+      const pantry = await request(app).get('/api/pantry/products?limit=50').set('Authorization', as(beto));
+      const products = Object.fromEntries(
+        pantry.body.items.map((p: { name: string; quantity: number; barcode: string | null }) => [
+          p.name,
+          { quantity: p.quantity, barcode: p.barcode },
+        ])
+      );
+      expect(products).toEqual({
+        Coca: { quantity: 3, barcode: '7790895000997' },
+        Galletitas: { quantity: 1, barcode: '7622210449283' },
+        Fideos: { quantity: 4, barcode: '96385074' },
+      });
+      const shopping = await request(app).get('/api/pantry/shopping-list').set('Authorization', as(ana));
+      expect(shopping.body).toHaveLength(1);
+      expect(shopping.body[0].pantryProductId).toBe(anaCoke.id);
+    });
+
     it('lo que agrega uno lo ve el otro, con su autoría', async () => {
       await linkUsers(ana.id, beto.id);
 
@@ -315,6 +354,25 @@ describe('household routes (integration)', () => {
       const anaPantry = await request(app).get('/api/pantry/products?limit=50').set('Authorization', as(ana));
       expect(anaPantry.body.items).toHaveLength(2);
       expect((await request(app).get('/api/media/list').set('Authorization', as(ana))).body).toHaveLength(1);
+    });
+
+    it('la copia de quien se va conserva los códigos de barras', async () => {
+      await linkUsers(ana.id, beto.id);
+      const coke = await createPantryProduct(ana.id, { name: 'Coca', quantity: 3, barcode: '7790895000997' });
+      await createPantryProduct(beto.id, { name: 'Arroz', quantity: 2 });
+
+      const res = await request(app).post('/api/household/leave').set('Authorization', as(beto));
+
+      expect(res.status).toBe(200);
+      const betoPantry = await request(app).get('/api/pantry/products?limit=50').set('Authorization', as(beto));
+      const copy = betoPantry.body.items.find((p: { name: string }) => p.name === 'Coca');
+      expect(copy).toMatchObject({ quantity: 3, barcode: '7790895000997' });
+      expect(copy.id).not.toBe(coke.id);
+      const anaPantry = await request(app).get('/api/pantry/products?limit=50').set('Authorization', as(ana));
+      expect(anaPantry.body.items.find((p: { name: string }) => p.name === 'Coca')).toMatchObject({
+        id: coke.id,
+        barcode: '7790895000997',
+      });
     });
 
     it('después de desvincular, los cambios de uno no afectan al otro', async () => {

@@ -37,6 +37,7 @@ export const updatePantryProductSchema = z
     quantity: z.number().nonnegative().max(AMOUNT_MAX_10_2).optional(),
     minQuantity: z.number().nonnegative().max(AMOUNT_MAX_10_2).nullable().optional(),
     expiresAt: isoDateStringSchema.nullable().optional(),
+    barcode: z.null().optional(),
   })
   .strict();
 

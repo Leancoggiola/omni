@@ -65,6 +65,10 @@ router.post('/list', validate(addMediaItemSchema), async (req, res) => { ... });
 
 `media` y `pantry` se scopean por hogar, no por usuario: los services reciben `userId` y resuelven el hogar con `getHouseholdId(userId)` de `household.service`. Las altas guardan `householdId` y `createdById`; `pantry` además guarda `updatedById` en altas y cambios. Toda cuenta nueva se crea con su `HouseholdMember` y su `Household` anidados (`users.service.create`, seed, `createUser` de los tests). Cualquier cambio de integrantes (invitar, unirse, desvincular, borrar la cuenta) corre en una transacción que empieza con `lockHouseholds`. Toda escritura de `media`/`pantry` entra por `withHousehold`, que resuelve el hogar, lo bloquea y lo revalida (409 si una unión lo movió) para no escribir en uno que una unión está por borrar; las lecturas usan `getHouseholdId`, que solo resuelve el hogar, sin lock. Detalle y postura de RLS en `docs/api/household.md`.
 
+## Código de barras
+
+`pantry/barcode.service.ts` resuelve y registra escaneos; `open-food-facts.service.ts` es la única salida a Open Food Facts (cupo propio de 10/min, 8 por persona, `User-Agent` de `config.openFoodFacts`) y `open-food-facts.parser.ts` traduce la respuesta sin red ni base. El caché vive en `BarcodeCatalogEntry` y una falla del proveedor nunca se guarda como "no encontrado". Vincular un código solo pasa por `POST /pantry/products/scan`; `PATCH` solo lo desvincula. Contrato y reglas: `docs/api/pantry-barcode.md`.
+
 ## Errores
 
 Las rutas no llevan `try/catch`: Express 5 propaga los rechazos de los handlers async al handler global (`common/utils/error-handler.ts`). Los errores de dominio se lanzan con `throw new HttpError(status, message)` de `common/http`, nunca con un literal. En rutas autenticadas, `req.user!` tiene `userId`, `username` y `role`; el query ya validado se lee con `validatedQuery<T>(req)`.
@@ -88,7 +92,7 @@ Usar `createRateLimiter` de `common/utils`, no `express-rate-limit` directo: per
 | Integración | `__tests__/integration/*.integration.test.ts`  | No           | Sí  |
 | Unitarios   | `__tests__/*.test.ts` (schemas, utils, reglas) | No           | No  |
 
-Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet: `tmdb.service`, `open-meteo.service`, `nominatim.service` y el storage de fotos (`createFakeAvatarStorage()` + `setAvatarStorageOverride`). Patrón completo: `docs/api/route-testing.md`.
+Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet: `tmdb.service`, `open-meteo.service`, `nominatim.service`, `open-food-facts.service` y el storage de fotos (`createFakeAvatarStorage()` + `setAvatarStorageOverride`). Patrón completo: `docs/api/route-testing.md`.
 
 ```bash
 docker compose up -d db-test

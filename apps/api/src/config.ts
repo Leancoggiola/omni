@@ -199,4 +199,9 @@ export const config = {
     baseUrl: process.env.NOMINATIM_BASE_URL ?? 'https://nominatim.openstreetmap.org',
     userAgent: process.env.NOMINATIM_USER_AGENT ?? 'Omni/1.0 (https://github.com/Leancoggiola/omni)',
   },
+
+  openFoodFacts: {
+    baseUrl: process.env.OPEN_FOOD_FACTS_BASE_URL ?? 'https://world.openfoodfacts.org/api/v2',
+    userAgent: process.env.OPEN_FOOD_FACTS_USER_AGENT ?? 'Omni/1.0 (https://github.com/Leancoggiola/omni)',
+  },
 } as const;

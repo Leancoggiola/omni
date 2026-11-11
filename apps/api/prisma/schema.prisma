@@ -220,12 +220,25 @@ model PantryProduct {
   quantity       Decimal                  @db.Decimal(10, 2)
   minQuantity    Decimal?                 @db.Decimal(10, 2)
   expiresAt      DateTime?                @db.Date
+  barcode        String?
   createdAt      DateTime                 @default(now())
   updatedAt      DateTime                 @updatedAt
   shoppingItems  PantryShoppingListItem[]
 
   @@unique([householdId, nameNormalized])
+  @@unique([householdId, barcode])
   @@index([householdId, category])
+}
+
+model BarcodeCatalogEntry {
+  barcode     String          @id
+  found       Boolean
+  name        String?
+  brand       String?
+  packageSize String?
+  category    PantryCategory?
+  fetchedAt   DateTime
+  expiresAt   DateTime
 }
 
 model PantryShoppingListItem {

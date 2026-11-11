@@ -1,5 +1,6 @@
 import type {
   AddShoppingListItemPayload,
+  AdjustPantryStockPayload,
   CompleteShoppingListItemPayload,
   CreatePantryProductPayload,
   ListPantryProductsParams,
@@ -11,16 +12,17 @@ import type {
   UpdateShoppingListItemPayload,
 } from '@omni/shared/pantry';
 import { computeQuantityToBuy, isExpiringSoon, isLowStock } from '@omni/shared/pantry';
-import { parseIsoDateString, startOfTodayInAppTz } from '@omni/shared/common';
+import { AMOUNT_MAX_10_2, parseIsoDateString, startOfTodayInAppTz } from '@omni/shared/common';
 import type { PantryProduct as PrismaPantryProduct, Prisma } from '../generated/prisma/client';
 import { paginationSkipTake } from '@omni/shared/common';
 
 import { prisma } from '../common/db';
+import type { PrismaTransactionClient } from '../common/db';
 import { decimalToNumber, normalizeName, toIsoDateString, toIsoDateTimeString } from '../common/utils/lifestyle';
 import { HttpError } from '../common/http';
 import { getHouseholdId, withHousehold } from '../household/household.service';
 
-function mapProduct(row: PrismaPantryProduct, today = startOfTodayInAppTz()): PantryProduct {
+export function mapProduct(row: PrismaPantryProduct, today = startOfTodayInAppTz()): PantryProduct {
   const quantity = decimalToNumber(row.quantity) ?? 0;
   const minQuantity = decimalToNumber(row.minQuantity);
   return {
@@ -33,6 +35,7 @@ function mapProduct(row: PrismaPantryProduct, today = startOfTodayInAppTz()): Pa
     quantity,
     minQuantity,
     expiresAt: row.expiresAt ? toIsoDateString(row.expiresAt) : null,
+    barcode: row.barcode,
     isLowStock: isLowStock(quantity, minQuantity),
     isExpiringSoon: isExpiringSoon(row.expiresAt, today),
     createdAt: toIsoDateTimeString(row.createdAt),
@@ -179,9 +182,43 @@ export async function updateProduct(userId: string, productId: string, dto: Upda
         ...(dto.expiresAt !== undefined && {
           expiresAt: dto.expiresAt ? parseIsoDateString(dto.expiresAt) : null,
         }),
+        ...(dto.barcode !== undefined && { barcode: null }),
       },
     });
     return mapProduct(product);
+  });
+}
+
+/**
+ * Suma `delta` al stock de un producto (resta si es negativo) y registra quién lo cambió. Lee, calcula y escribe en
+ * vez de usar `increment` para poder acotar el resultado: nunca baja de cero ni pasa el máximo de la columna, y queda
+ * con dos decimales. Es seguro porque quien llama ya tiene el hogar bloqueado con `withHousehold`. `extra` suma otros
+ * campos al mismo UPDATE.
+ */
+export async function applyStockDelta(
+  tx: PrismaTransactionClient,
+  userId: string,
+  product: PrismaPantryProduct,
+  delta: number,
+  extra: Prisma.PantryProductUncheckedUpdateInput = {}
+) {
+  const current = decimalToNumber(product.quantity) ?? 0;
+  const quantity = Math.min(AMOUNT_MAX_10_2, Math.max(0, Math.round((current + delta) * 100) / 100));
+  return tx.pantryProduct.update({
+    where: { id: product.id },
+    data: { ...extra, quantity, updatedById: userId },
+  });
+}
+
+/**
+ * Ajusta el stock de un producto en `delta` sin que el cliente tenga que conocer la cantidad actual: es lo que usa
+ * "Deshacer" después de un escaneo, y no pisa lo que la otra persona del hogar haya sumado entre medio.
+ */
+export async function adjustProductStock(userId: string, productId: string, dto: AdjustPantryStockPayload) {
+  return withHousehold(userId, async (tx, householdId) => {
+    const product = await tx.pantryProduct.findFirst({ where: { id: productId, householdId } });
+    if (!product) throw new HttpError(404, 'Producto no encontrado');
+    return mapProduct(await applyStockDelta(tx, userId, product, dto.delta));
   });
 }
 

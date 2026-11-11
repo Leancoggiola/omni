@@ -9,6 +9,27 @@ export {
 export type { PantryProduct, PantryShoppingListItem, PantrySummary } from './types';
 export { isLowStock, isExpiringSoon } from './alerts';
 export {
+  PANTRY_BARCODE_STATUSES,
+  PANTRY_SCAN_OUTCOMES,
+  adjustPantryStockSchema,
+  hasValidCheckDigit,
+  isInternalBarcode,
+  normalizeBarcode,
+  pantryBarcodeParamsSchema,
+  pantryBarcodeSchema,
+  scanPantryProductSchema,
+} from './barcode';
+export type {
+  AdjustPantryStockPayload,
+  PantryBarcodeLookup,
+  PantryBarcodeStatus,
+  PantryBarcodeSuggestion,
+  PantryScanOutcome,
+  PantryScanResult,
+  ParsedScanPantryProduct,
+  ScanPantryProductPayload,
+} from './barcode';
+export {
   addShoppingListItemSchema,
   completeShoppingListItemSchema,
   createPantryProductSchema,
