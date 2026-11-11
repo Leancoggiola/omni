@@ -10,6 +10,7 @@ pnpm --filter mobile check-types
 pnpm --filter mobile lint
 pnpm --filter mobile check-api-paths
 pnpm --filter mobile test      # jest-expo; en CI corre como test:coverage vía turbo
+pnpm --filter mobile check-structure
 pnpm --filter mobile prebuild
 ```
 
@@ -67,6 +68,10 @@ Lo que más pesa en Windows es **Microsoft Defender** escaneando cada archivo qu
 - **No usar `node-linker=hoisted`.** Aplana `node_modules` y esquiva las rutas largas, pero rompe web: el monorepo tiene dos versiones de React (React Native 0.81 exige 19.1.0 y Mantine/react-router piden ≥19.2), con hoisted la raíz queda con la de mobile y web termina con dos instancias de React (`Cannot read properties of null (reading 'useState')` en los tests). La solución es la de rutas largas del setup (`LongPathsEnabled` + CMake ≥3.31). Si alguna vez se cambia el linker, borrar **todos** los `node_modules` antes de reinstalar: pnpm no limpia las junctions del layout anterior.
 - **`metro.config.js` fuerza la build CommonJS de `swr`.** swr publica builds CJS y ESM con contextos separados; si el bundle mezcla las dos, los hooks de `swr/immutable` no ven el `fetcher` del `SWRConfig` y nunca piden datos (pantallas en loading infinito o vacías).
 - **`tamagui.config.ts` tiene `export default`.** El compilador de `@tamagui/babel-plugin` solo encuentra la config así; sin eso la descarta, reintenta en cada archivo y el bundle se cuelga.
+- **El compilador de Tamagui pide ~1,5 GB por worker de Metro.** `babel.config.js` lo cargan el dev (`expo start` desde `apps/mobile`), los tests de Jest y el build de release (Gradle corre `expo export:embed` con `apps/mobile` como raíz). Cada worker carga su propia copia de la config y de `tamagui` (~1,4 GB de pico contra ~1 GB sin el plugin, medido con Tamagui 2.7.7 en octubre de 2026), y Metro abre más workers cuantos más núcleos haya (8 con 16 núcleos). En el runner de CI (4 núcleos, 16 GB) entra con margen. En una máquina con muchos núcleos y poca RAM, como WSL con 16 núcleos y 6 GB, se llenan la RAM y el swap, los workers quedan bloqueados en I/O sin usar CPU y el bundle se frena al 99,9 %: parece colgado, pero es swap.
+  - Bundle de release en Linux (WSL): pasar `--max-workers 2` a `export:embed` (tarda ~45 s).
+  - Jest con poca RAM: `pnpm --filter mobile test --maxWorkers=2`.
+  - JS de producción en el dev client sin compilar un APK: `expo start --no-dev --minify` desde `apps/mobile`.
 - **Fuente Montserrat (igual que web).** `app/_layout.tsx` carga las caras 400/500/600/700 (`src/theme/fonts.ts`) y `tamagui.config.ts` mapea cada `fontWeight` a su cara: sin eso Android ignora las negritas. Se importan por peso (`@expo-google-fonts/montserrat/700Bold`): el barrel del paquete mete los 18 `.ttf` en el bundle.
 - **Íconos Phosphor (`phosphor-react-native`).** Mismos nombres que `@phosphor-icons/react` en web (`HouseIcon`, `FilmSlateIcon`, …). Depende de `react-native-svg`, que es nativo: al agregarlo o actualizarlo hay que rebuildear el dev client (`pnpm --filter mobile prebuild` + `expo run:android`).
 
@@ -81,3 +86,41 @@ Lo que más pesa en Windows es **Microsoft Defender** escaneando cada archivo qu
 | React Compiler | No activado (ver [#29](https://github.com/Leancoggiola/omni/issues/29)) | **Activo** (`experiments.reactCompiler` en `app.json`) |
 
 Nuevo feature: [new-feature.md](./new-feature.md). Web: [web/tooling.md](../web/tooling.md).
+
+## Correr la app en un emulador Android (macOS, Apple Silicon)
+
+Mismo flujo que en Windows, sin los pasos de rutas largas (no aplican) ni CMake aparte. Validado en una Mac M-series con 24 GB: build en frío de Gradle ~1m 40s–2m, emulador listo en ~20 s, primer bundle de Metro en segundos.
+
+### Setup (una sola vez por máquina)
+
+1. **Android Studio** + AVD **arm64** (por ejemplo Pixel con imagen Google APIs `arm64-v8a`).
+2. **JDK 17** (Zulu o Temurin): `brew install --cask zulu@17`. Mismo motivo que en Windows: Gradle 8.14 no soporta Java 25.
+3. Variables de entorno (por ejemplo en un `~/omni-android-env.sh` que se hace `source` antes de trabajar):
+   ```bash
+   export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+   export ANDROID_HOME=$HOME/Library/Android/sdk
+   export ANDROID_SDK_ROOT=$ANDROID_HOME
+   export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
+   ```
+4. `pnpm install`, `apps/api/.env` y `apps/mobile/.env` (`EXPO_PUBLIC_API_URL=http://10.0.2.2:3000`).
+5. **Cliente de Prisma**: `pnpm --filter api db:generate` (el cliente está gitignoreado; sin esto la API falla con `ERR_MODULE_NOT_FOUND` en `src/generated/prisma/client`).
+
+### Correr
+
+```bash
+pnpm dev:api                                                   # :3000 (la base de dev es Supabase remoto, no hace falta Docker)
+emulator -avd <nombre-del-avd> -no-snapshot-save               # esperar: adb wait-for-device
+pnpm --filter mobile prebuild                                  # solo si no existe apps/mobile/android
+(cd apps/mobile/android && ./gradlew app:installDebug -PreactNativeArchitectures=arm64-v8a --max-workers=2)
+pnpm --filter mobile start                                     # Metro
+adb reverse tcp:8081 tcp:8081
+adb shell am start -a android.intent.action.VIEW -d 'exp+omni://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081'
+```
+
+Notas:
+
+- `expo prebuild` agrega un script `"ios": "expo run:ios"` a `apps/mobile/package.json`: revertirlo (`git checkout apps/mobile/package.json`) antes de commitear.
+- Si el primer bundle da `SocketTimeoutException`, pedirlo con `curl` (`launchAsset` del manifest con header `expo-platform: android`), `adb shell am force-stop com.omni.app` y reabrir.
+- Con la API en un puerto distinto (varias sesiones en paralelo), `PORT` del entorno gana sobre el `.env` (dotenv no pisa variables ya definidas) y `EXPO_PUBLIC_API_URL` debe usar ese puerto.
+- Varias sesiones en paralelo: un AVD por sesión (`emulator-5554`, `emulator-5556`), puertos de API y Metro distintos y `adb -s <serial>`. Cerrar el Gradle propio por PID, no con `--stop` (mataría el de las otras).
+- `metro.config.js` desactiva Watchman solo cuando el proyecto vive bajo `.claude/worktrees/`: con Watchman, un worktree anidado (`.claude/worktrees/*`) hereda la raíz del checkout principal y el bundle falla con `Unable to resolve module whatwg-fetch`.

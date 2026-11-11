@@ -19,14 +19,19 @@ type IconButtonProps = {
   /** Obligatorio: es lo único que anuncia el lector de pantalla. */
   accessibilityLabel: string;
   onPress?: () => void;
-  /** `subtle` por defecto: es la que más usa web (`ActionIcon variant="subtle"`). */
   variant?: ButtonVariant;
   color?: ButtonColor;
   size?: ButtonSize;
   disabled?: boolean;
+  /** Estado de selección que anuncia el lector de pantalla (opciones de un grupo, como Lista/Grilla). */
+  selected?: boolean;
 };
 
-/** Equivalente de `ActionIcon` de Mantine: botón cuadrado de 36 / 44 / 50 dp con las variantes de `Button`. */
+/**
+ * Equivalente de `ActionIcon` de Mantine: botón circular de 36 / 44 / 48 dp con las variantes de `Button`. `subtle` es
+ * la variante por defecto (la que más usa web); `glass` es el volver del encabezado de Perfil
+ * y solo toma `color` para teñir el ícono de `destructive` (el tacho sobre el póster de la grilla).
+ */
 export function IconButton({
   icon: IconComponent,
   accessibilityLabel,
@@ -35,6 +40,7 @@ export function IconButton({
   color = 'brand',
   size = 'md',
   disabled = false,
+  selected,
 }: IconButtonProps) {
   const colors = useSemanticColors();
   const metrics = BUTTON_SIZES[size];
@@ -45,7 +51,7 @@ export function IconButton({
       theme={palette.theme}
       width={metrics.height}
       height={metrics.height}
-      borderRadius={RADIUS.lg}
+      borderRadius={RADIUS.full}
       borderWidth={1}
       borderColor={palette.borderColor}
       backgroundColor={palette.background}
@@ -57,7 +63,7 @@ export function IconButton({
       accessible
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ disabled }}
+      accessibilityState={selected === undefined ? { disabled } : { disabled, selected }}
     >
       <IconComponent size={metrics.icon + 2} color={palette.icon} />
     </XStack>

@@ -6,3 +6,9 @@
 import { SEMANTIC } from '@omni/shared/theme';
 
 export const useSemanticColors = () => SEMANTIC.light;
+
+export const useColorSchemeControl = () => ({
+  colorScheme: 'light' as const,
+  toggle: () => undefined,
+  clearOverride: () => undefined,
+});

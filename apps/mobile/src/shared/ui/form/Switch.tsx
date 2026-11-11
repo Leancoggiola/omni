@@ -1,4 +1,4 @@
-import { FONT_SIZE, SPACING } from '@omni/shared/theme';
+import { FONT_SIZE, LINE_HEIGHT, SPACING } from '@omni/shared/theme';
 import { Paragraph, Switch as TamaguiSwitch, XStack, YStack } from 'tamagui';
 
 type SwitchProps = {
@@ -54,7 +54,12 @@ export function Switch({
       {...a11y}
     >
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.md} color={disabled ? '$dimmed' : '$color'}>
+        <Paragraph
+          fontSize={FONT_SIZE.lg}
+          lineHeight={LINE_HEIGHT.xl}
+          fontWeight="600"
+          color={disabled ? '$dimmed' : '$color'}
+        >
           {label}
         </Paragraph>
         {description ? (

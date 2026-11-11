@@ -1,1 +1,0 @@
-export { AddMediaModal } from './AddMediaModal';

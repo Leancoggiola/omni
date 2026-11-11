@@ -1,0 +1,64 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  width: 40rem;
+  height: 40rem;
+  border-radius: 50%;
+  filter: blur(4rem);
+}
+
+.peach {
+  top: -12rem;
+  left: -10rem;
+  background: var(--mantine-color-surfaces-glow-peach);
+}
+
+.lilac {
+  right: -10rem;
+  bottom: -12rem;
+  background: var(--mantine-color-surfaces-glow-lilac);
+}
+
+.animated .blob {
+  will-change: transform;
+}
+
+.animated .peach {
+  animation: drift-a 16s ease-in-out infinite alternate;
+}
+
+.animated .lilac {
+  animation: drift-b 20s ease-in-out infinite alternate;
+}
+
+@media (max-width: 30em) {
+  .blob {
+    width: 24rem;
+    height: 24rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated .blob {
+    animation: none;
+  }
+}
+
+@keyframes drift-a {
+  to {
+    transform: translate(6rem, 5rem) scale(1.1);
+  }
+}
+
+@keyframes drift-b {
+  to {
+    transform: translate(-6rem, -4rem) scale(1.08);
+  }
+}

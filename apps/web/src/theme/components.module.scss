@@ -12,22 +12,53 @@
 }
 
 .appshell_navbar {
-  background-color: var(--mantine-color-default);
-  /* A warm wash needs far more opacity to read over the near-white light surface
-     than it does over the dark one, so each scheme sets its own mix. */
-  background-image:
-    radial-gradient(150% 60% at 0% 0%, var(--navbar-glow-top) 0%, transparent 62%),
-    radial-gradient(130% 55% at 0% 100%, var(--navbar-glow-bottom) 0%, transparent 68%);
+  background-color: var(--mantine-color-surfaces-glass);
+  -webkit-backdrop-filter: blur(1.5rem);
+  backdrop-filter: blur(1.5rem);
+
+  @media (min-width: 62em) {
+    border: 1px solid var(--mantine-color-border-glass);
+    border-inline-start: none;
+    border-radius: 0 var(--mantine-radius-xl) var(--mantine-radius-xl) 0;
+    box-shadow: var(--mantine-shadow-card);
+    top: 0;
+    inset-inline-start: 0;
+    height: 100dvh;
+    width: var(--app-shell-navbar-width);
+  }
 }
 
-:root[data-mantine-color-scheme='light'] .appshell_navbar {
-  --navbar-glow-top: color-mix(in srgb, var(--mantine-color-terracotta-4) 42%, transparent);
-  --navbar-glow-bottom: color-mix(in srgb, var(--mantine-color-brand-3) 60%, transparent);
+.glass_root {
+  background-color: var(--mantine-color-surfaces-glass);
+  border: 1px solid var(--mantine-color-border-glass);
+
+  &[data-with-border] {
+    border-color: var(--mantine-color-border-subtle);
+  }
 }
 
-:root[data-mantine-color-scheme='dark'] .appshell_navbar {
-  --navbar-glow-top: color-mix(in srgb, var(--mantine-color-terracotta-6) 24%, transparent);
-  --navbar-glow-bottom: color-mix(in srgb, var(--mantine-color-brand-6) 18%, transparent);
+.dropdown_solid {
+  background-color: var(--mantine-color-surfaces-card);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: 1px solid var(--mantine-color-border-subtle);
+  border-radius: var(--mantine-radius-lg);
+}
+
+.segmented_root {
+  background-color: var(--mantine-color-surfaces-track);
+  padding: var(--mantine-spacing-3xs);
+}
+
+.segmented_label {
+  &[data-active] {
+    color: var(--mantine-color-text-title);
+  }
+}
+
+.segmented_indicator {
+  background-color: var(--mantine-color-surfaces-card);
+  box-shadow: var(--mantine-shadow-card);
 }
 
 .combobox_option {
@@ -47,34 +78,67 @@
 
 .modal_content {
   padding: var(--mantine-spacing-none) !important;
+  background-color: var(--mantine-color-surfaces-card);
+  border: 1px solid var(--mantine-color-border-glass);
 }
 .modal_header {
   background: transparent;
 }
+.modal_title {
+  font-family: var(--omni-font-display);
+  font-size: var(--mantine-font-size-xl);
+  font-weight: 700;
+  color: var(--mantine-color-text-title);
+}
 
 .navlink_root {
-  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
-
+  min-height: 3rem;
+  padding: 0 var(--mantine-spacing-xs);
   border-radius: var(--mantine-radius-lg);
 
   &[data-active] {
-    color: var(--mantine-color-white);
-    background-image: linear-gradient(to right, var(--mantine-color-brand-5), var(--mantine-color-brand-7));
+    color: var(--mantine-color-brand-light-color);
+    background-color: var(--mantine-color-surfaces-primary-light);
   }
-  &:hover {
+  &:hover:not([data-active]) {
     background-color: var(--mantine-color-surfaces-hover);
   }
-  /* NavLink root styles */
+  &[data-disabled] {
+    opacity: 1;
+    color: var(--mantine-color-dimmed);
+
+    [data-position='left'] {
+      opacity: 0.5;
+    }
+  }
 }
 
 .navlink_label {
   font-size: var(--mantine-font-size-md);
-  font-weight: 600;
+  font-weight: 500;
+
+  [data-active] & {
+    font-weight: 700;
+  }
+}
+
+.tabs_list {
+  background-color: var(--mantine-color-surfaces-track);
+  border-radius: var(--mantine-radius-full);
+  padding: var(--mantine-spacing-3xs);
+  gap: var(--mantine-spacing-3xs);
+  width: fit-content;
+  max-width: 100%;
 }
 
 .tabs_tab {
+  color: var(--mantine-color-dimmed);
+  font-weight: 600;
+
   &[data-active] {
-    background: var(--mantine-color-default);
+    background: var(--mantine-color-surfaces-card);
+    color: var(--mantine-color-text-title);
+    box-shadow: var(--mantine-shadow-card);
     font-weight: 700;
   }
 }

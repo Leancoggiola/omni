@@ -9,7 +9,13 @@ import { config } from '../../config';
 import { prisma } from '../../common/db';
 import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
-import { TEST_PASSWORD, createPantryProduct, createUser, toJwtUser } from '../../test/integration/factories';
+import {
+  TEST_PASSWORD,
+  createPantryProduct,
+  createUser,
+  householdIdOf,
+  toJwtUser,
+} from '../../test/integration/factories';
 import { withSavepoint } from '../../test/integration/withSavepoint';
 
 vi.mock('../../media/tmdb.service');
@@ -44,7 +50,14 @@ describe('errores de entrada (integration)', () => {
   describe('errores de Prisma', () => {
     it('P2002: un alta que pierde la carrera contra otra igual responde 409', async () => {
       await prisma.mediaItem.create({
-        data: { userId: user.id, tmdbId: 550, mediaType: 'movie', title: 'Fight Club', status: 'to_watch' },
+        data: {
+          householdId: await householdIdOf(user.id),
+          createdById: user.id,
+          tmdbId: 550,
+          mediaType: 'movie',
+          title: 'Fight Club',
+          status: 'to_watch',
+        },
       });
       vi.spyOn(prisma.mediaItem, 'findUnique').mockResolvedValueOnce(null);
 
@@ -59,7 +72,14 @@ describe('errores de entrada (integration)', () => {
 
     it('P2025: un registro que desaparece entre la lectura y la escritura responde 404', async () => {
       const item = await prisma.mediaItem.create({
-        data: { userId: user.id, tmdbId: 551, mediaType: 'movie', title: 'Otra', status: 'to_watch' },
+        data: {
+          householdId: await householdIdOf(user.id),
+          createdById: user.id,
+          tmdbId: 551,
+          mediaType: 'movie',
+          title: 'Otra',
+          status: 'to_watch',
+        },
       });
       await prisma.mediaItem.delete({ where: { id: item.id } });
       vi.spyOn(prisma.mediaItem, 'findFirst').mockResolvedValueOnce(item);

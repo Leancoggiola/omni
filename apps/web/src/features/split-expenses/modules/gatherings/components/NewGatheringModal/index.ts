@@ -1,1 +1,0 @@
-export { NewGatheringModal } from './NewGatheringModal';

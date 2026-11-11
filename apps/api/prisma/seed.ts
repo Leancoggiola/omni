@@ -107,6 +107,7 @@ async function main() {
           email: 'admin@example.com',
           password: hashedPassword,
           role: 'ADMIN',
+          householdMember: { create: { household: { create: {} } } },
         },
       });
       console.log('✅ Admin user created.');
@@ -124,7 +125,12 @@ async function main() {
 
         if (!existing) {
           const newUser = await prisma.user.create({
-            data: { ...userData, password: hashedPassword, role: 'USER' },
+            data: {
+              ...userData,
+              password: hashedPassword,
+              role: 'USER',
+              householdMember: { create: { household: { create: {} } } },
+            },
           });
           createdUsers.push(newUser);
           console.log(`✅ Demo user '${userData.username}' created.`);
@@ -154,17 +160,19 @@ async function main() {
     console.log('✅ User preferences created/verified.');
 
     if (seedDemo) {
+      const { householdId } = await prisma.householdMember.findUniqueOrThrow({ where: { userId: adminUser.id } });
       for (const media of SAMPLE_MEDIA) {
         await prisma.mediaItem.upsert({
           where: {
-            userId_tmdbId_mediaType: {
-              userId: adminUser.id,
+            householdId_tmdbId_mediaType: {
+              householdId,
               tmdbId: media.tmdbId,
               mediaType: media.mediaType,
             },
           },
           create: {
-            userId: adminUser.id,
+            householdId,
+            createdById: adminUser.id,
             ...media,
           },
           update: {

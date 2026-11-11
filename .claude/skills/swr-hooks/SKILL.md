@@ -1,6 +1,6 @@
 ---
 name: swr-hooks
-description: Patrones SWR del proyecto para apps/web. Usar al crear, modificar o revisar hooks de datos en apps/web/src/features/*/modules/*/hooks/ o apps/web/src/core/auth/ (useSWR, useSWRImmutable, useSWRMutation, useSWRConfig, SWR_KEYS, buildQueryString, useAuth, useProfile, useMyMediaList, useMediaMutations).
+description: Patrones SWR del proyecto para apps/web. Usar al crear, modificar o revisar hooks de datos en apps/web/src/features/*/hooks/, apps/web/src/features/*/modules/*/hooks/ o apps/web/src/core/auth/ (useSWR, useSWRImmutable, useSWRMutation, useSWRConfig, SWR_KEYS, buildQueryString, useAuth, useProfile, useMyMediaList, useMediaMutations).
 ---
 
 # SWR hooks — omni
@@ -25,6 +25,8 @@ import { api, SWR_KEYS, buildQueryString } from '@/shared/api';
 
 ¿Read de una colección propia del usuario, filtrada en UI (biblioteca de media)?
 └── useSWRImmutable sobre la key sin params + filtro en el hook
+    └── Si la colección es compartida con otra persona (lista de media del hogar): useSWR con
+        revalidateOnFocus: true y refreshInterval (MEDIA_LIST_REFRESH_MS); SWR no refresca con la pestaña oculta
     └── Writes → useSWRConfig().mutate + optimisticData, revalidate: false
 
 ¿Read que cambia en el server (búsqueda, feeds compartidos)?
@@ -62,7 +64,10 @@ Un solo fetch sin query params y filtro en el hook: evita un request por tab/fil
 
 ```ts
 export function useMyMediaList(filters: MediaFilters = {}) {
-  const { data, isLoading, error } = useSWRImmutable<MediaItem[]>(SWR_KEYS.media.list);
+  const { data, isLoading, error } = useSWR<MediaItem[]>(SWR_KEYS.media.list, {
+    revalidateOnFocus: true,
+    refreshInterval: MEDIA_LIST_REFRESH_MS,
+  });
 
   const filtered = useMemo(() => {
     if (!data) return data;
@@ -141,7 +146,7 @@ mutate((key: unknown) => typeof key === 'string' && key.startsWith(SWR_KEYS.spli
 - En layout/shell usar `useAuth` para `name`, `email`, `avatarUrl`; nunca `useProfile`.
 - Tras `updateProfile`, sincronizar la cache de auth con `toSessionUser(profile)` vía `useSWRConfig().mutate(SWR_KEYS.auth.profile, …)`.
 - `updatePreferences` hace PATCH a `SWR_KEYS.users.preferences` y mergea en la cache del perfil. No existe `GET /api/users/preferences`: las preferencias vienen de `GET /api/users/profile`.
-- **Sesión y caché:** logout y login vacían **toda** la caché de SWR con `clearSession` de `AuthContext` (`globalMutate(() => true, undefined, { revalidate: false })`, igual que mobile). Los reads con `useSWRImmutable` (`media.list`, `users.profile`) no revalidan nunca, así que sin el vaciado el usuario siguiente de la pestaña vería los datos del anterior.
+- **Sesión y caché:** logout y login vacían **toda** la caché de SWR con `clearSession` de `AuthContext` (`globalMutate(() => true, undefined, { revalidate: false })`, igual que mobile). Los reads con `useSWRImmutable` (`users.profile`) no revalidan nunca, así que sin el vaciado el usuario siguiente de la pestaña vería los datos del anterior.
   - Login: tras la respuesta de la API, `await clearSession()`, `clearSessionColorScheme()` y `mutate({ user: res.user }, { revalidate: false })`. Se guarda solo `{ user }`: web no guarda los tokens del body (`accessToken`/`refreshToken`), que quedarían legibles desde JS. Un login fallido no toca la caché.
   - Logout: `try { POST } catch {} finally { clearSession() }`. Nunca rechaza y limpia la sesión local aunque el POST falle.
   - Eliminar la cuenta: `DELETE` y luego `clearSession()`, **sin** llamar a `/logout` (el DELETE ya borra las cookies y el logout daría 401). Si el DELETE falla no se limpia nada y se muestra el error.

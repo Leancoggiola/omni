@@ -1,0 +1,140 @@
+import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { SWRConfig } from 'swr';
+
+import { useMediaMutations } from './useMediaMutations';
+import { useMyMediaList } from './useMyMediaList';
+
+import type { MediaItem } from '@omni/shared/media';
+import type { ReactNode } from 'react';
+
+const mockApi = { post: jest.fn(), patch: jest.fn(), delete: jest.fn() };
+
+let mockFocused = true;
+jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
+jest.mock('@/shared/api', () => ({
+  ...jest.requireActual('@/shared/api/keys'),
+  api: {
+    post: (...args: unknown[]) => mockApi.post(...args),
+    patch: (...args: unknown[]) => mockApi.patch(...args),
+    delete: (...args: unknown[]) => mockApi.delete(...args),
+  },
+}));
+
+const item = (id: string, status: MediaItem['status']): MediaItem => ({
+  id,
+  createdById: 'u1',
+  tmdbId: Number(id),
+  mediaType: 'movie',
+  title: `Título ${id}`,
+  posterPath: null,
+  status,
+  createdAt: '',
+  updatedAt: '',
+});
+
+/** "Servidor": lo que devuelve el GET de la lista. Las mutaciones lo cambian al resolver. */
+let server: MediaItem[] = [];
+const fetcher = jest.fn(() => Promise.resolve(server.map(i => ({ ...i }))));
+
+function deferred() {
+  let resolve!: () => void;
+  let reject!: (err: Error) => void;
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
+function wrapper({ children }: { children: ReactNode }) {
+  return <SWRConfig value={{ provider: () => new Map(), fetcher, dedupingInterval: 0 }}>{children}</SWRConfig>;
+}
+
+async function renderList() {
+  const hook = renderHook(() => ({ list: useMyMediaList(), ...useMediaMutations() }), { wrapper });
+  await waitFor(() => expect(hook.result.current.list.data).toHaveLength(2));
+  return hook;
+}
+
+const statuses = (items: MediaItem[] | undefined) => items?.map(i => `${i.id}:${i.status}`);
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  server = [item('1', 'to_watch'), item('2', 'to_watch')];
+});
+
+describe('useMediaMutations', () => {
+  it('dos cambios de estado superpuestos no se pisan (optimista sobre la lista visible)', async () => {
+    const first = deferred();
+    const second = deferred();
+    mockApi.patch.mockImplementation((url: string, body: { status: MediaItem['status'] }) => {
+      const id = url.split('/').pop()!;
+      return (id === '1' ? first : second).promise.then(() => {
+        server = server.map(i => (i.id === id ? { ...i, status: body.status } : i));
+      });
+    });
+    const { result } = await renderList();
+
+    let a!: Promise<void>;
+    let b!: Promise<void>;
+    act(() => {
+      a = result.current.updateStatus('1', 'watching');
+    });
+    act(() => {
+      b = result.current.updateStatus('2', 'watched');
+    });
+    expect(statuses(result.current.list.data)).toEqual(['1:watching', '2:watched']);
+
+    await act(async () => {
+      first.resolve();
+      await a;
+    });
+    await act(async () => {
+      second.resolve();
+      await b;
+    });
+    await waitFor(() => expect(statuses(result.current.list.data)).toEqual(['1:watching', '2:watched']));
+  });
+
+  it('si el cambio de estado falla, vuelve al anterior y rechaza', async () => {
+    mockApi.patch.mockRejectedValue(new Error('Sin conexión'));
+    const { result } = await renderList();
+
+    await act(async () => {
+      await expect(result.current.updateStatus('1', 'watched')).rejects.toThrow('Sin conexión');
+    });
+    expect(statuses(result.current.list.data)).toEqual(['1:to_watch', '2:to_watch']);
+  });
+
+  it('borrar saca el ítem al instante y lo devuelve si falla', async () => {
+    const pending = deferred();
+    mockApi.delete.mockReturnValue(pending.promise);
+    const { result } = await renderList();
+
+    let removal!: Promise<void>;
+    act(() => {
+      removal = result.current.removeFromList('1');
+    });
+    expect(statuses(result.current.list.data)).toEqual(['2:to_watch']);
+
+    await act(async () => {
+      pending.reject(new Error('404'));
+      await removal.catch(() => undefined);
+    });
+    expect(statuses(result.current.list.data)).toEqual(['1:to_watch', '2:to_watch']);
+  });
+
+  it('agregar suma el ítem arriba', async () => {
+    const created = item('3', 'watching');
+    mockApi.post.mockImplementation(() => {
+      server = [created, ...server];
+      return Promise.resolve(created);
+    });
+    const { result } = await renderList();
+
+    await act(async () => {
+      await result.current.addToList(3, 'movie', 'watching');
+    });
+    expect(statuses(result.current.list.data)).toEqual(['3:watching', '1:to_watch', '2:to_watch']);
+  });
+});

@@ -17,14 +17,27 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/core/auth', () => ({ useAuth: () => mocks.auth }));
 
-vi.mock('../modules', () => ({
+vi.mock('../components/DeleteAccountButton', () => ({
   DeleteAccountButton: ({ onDelete }: { onDelete: () => Promise<void> }) => (
     <button onClick={() => void onDelete().catch(() => undefined)}>Eliminar cuenta</button>
   ),
-  PasswordForm: () => null,
-  ProfileSectionCard: () => null,
-  ProfileSettingsForm: () => null,
+}));
+
+vi.mock('../components/HouseholdCard', () => ({ HouseholdCard: () => <p>Hogar compartido</p> }));
+
+vi.mock('../components/PasswordForm', () => ({ PasswordForm: () => null }));
+
+vi.mock('../components/ProfilePhotoSection', () => ({ ProfilePhotoSection: () => <p>Foto de Perfil</p> }));
+
+vi.mock('../components/ProfileSectionCard', () => ({ ProfileSectionCard: () => null }));
+
+vi.mock('../components/ProfileSettingsForm', () => ({ ProfileSettingsForm: () => null }));
+
+vi.mock('../hooks/useAccountActions', () => ({
   useAccountActions: () => ({ changePassword: vi.fn(), deleteAccount: mocks.deleteAccount }),
+}));
+
+vi.mock('../hooks/useProfile', () => ({
   useProfile: () => ({
     profile: { name: 'Ana', avatarUrl: null, updatedAt: 'x' },
     isLoading: false,
@@ -33,6 +46,9 @@ vi.mock('../modules', () => ({
     mutate: mocks.mutate,
     updateProfile: vi.fn(),
     updatePreferences: vi.fn(),
+    uploadAvatar: vi.fn(),
+    removeAvatar: vi.fn(),
+    isUpdatingAvatar: false,
   }),
 }));
 
@@ -92,5 +108,15 @@ describe('ProfilePage: error de carga', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     expect(mocks.mutate).toHaveBeenCalledOnce();
+  });
+});
+
+describe('ProfilePage: hogar compartido', () => {
+  it('muestra la card del hogar entre las preferencias y la contraseña', () => {
+    mocks.profileState = {};
+    mocks.auth = createMockAuthValue({});
+    renderProfile();
+
+    expect(screen.getByText('Hogar compartido')).toBeInTheDocument();
   });
 });

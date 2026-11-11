@@ -114,6 +114,39 @@ export function resolveRateLimitGlobalMax(raw: string | undefined): number {
   return Number.isInteger(value) && value > 0 ? value : DEFAULT_RATE_LIMIT_GLOBAL_MAX;
 }
 
+/** Bucket de las fotos de perfil si `SUPABASE_AVATARS_BUCKET` no está definido. */
+export const DEFAULT_AVATARS_BUCKET = 'avatars';
+
+interface StorageEnv {
+  supabaseUrl: string | undefined;
+  serviceRoleKey: string | undefined;
+  avatarsBucket: string | undefined;
+}
+
+/**
+ * Storage de las fotos de perfil. La URL del proyecto y la service key van juntas o no va ninguna: con una sola el
+ * arranque falla, porque la subida quedaría rota recién en el primer request. Sin ninguna la API arranca igual (dev,
+ * tests, E2E) y `PUT /users/avatar` responde 503. La service key se saltea RLS: vive solo en el servidor y nunca se
+ * loguea ni viaja a los clientes.
+ */
+export function resolveStorageConfig(env: StorageEnv) {
+  const supabaseUrl = env.supabaseUrl?.trim().replace(/\/+$/, '') || undefined;
+  const serviceRoleKey = env.serviceRoleKey?.trim() || undefined;
+  const avatarsBucket = env.avatarsBucket?.trim() || DEFAULT_AVATARS_BUCKET;
+
+  if (Boolean(supabaseUrl) !== Boolean(serviceRoleKey)) {
+    throw new Error('SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY van juntas: definí las dos o ninguna');
+  }
+  if (supabaseUrl && !/^https?:\/\/[^\s/]+/.test(supabaseUrl)) {
+    throw new Error('SUPABASE_URL inválida: tiene que ser la URL del proyecto (https://<ref>.supabase.co)');
+  }
+  if (!/^[a-z0-9_-]+$/.test(avatarsBucket)) {
+    throw new Error('SUPABASE_AVATARS_BUCKET inválido: usá minúsculas, números, guiones o guiones bajos');
+  }
+
+  return { supabaseUrl, serviceRoleKey, avatarsBucket };
+}
+
 export const config = {
   port: parseInt(process.env.PORT ?? '3000', 10),
   databaseUrl: required('DATABASE_URL'),
@@ -146,9 +179,29 @@ export const config = {
     baseUrl: process.env.TMDB_BASE_URL ?? 'https://api.themoviedb.org/3',
   },
 
+  storage: resolveStorageConfig({
+    supabaseUrl: process.env.SUPABASE_URL,
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    avatarsBucket: process.env.SUPABASE_AVATARS_BUCKET,
+  }),
+
   /** La política de uso de Wikimedia exige identificar al cliente con un contacto en el `userAgent`. */
   wikipedia: {
     baseUrl: process.env.WIKIPEDIA_BASE_URL ?? 'https://es.wikipedia.org/api/rest_v1',
     userAgent: process.env.WIKIPEDIA_USER_AGENT ?? 'Omni/1.0 (https://github.com/Leancoggiola/omni)',
+  },
+
+  openMeteo: {
+    baseUrl: process.env.OPEN_METEO_BASE_URL ?? 'https://api.open-meteo.com/v1',
+  },
+
+  nominatim: {
+    baseUrl: process.env.NOMINATIM_BASE_URL ?? 'https://nominatim.openstreetmap.org',
+    userAgent: process.env.NOMINATIM_USER_AGENT ?? 'Omni/1.0 (https://github.com/Leancoggiola/omni)',
+  },
+
+  openFoodFacts: {
+    baseUrl: process.env.OPEN_FOOD_FACTS_BASE_URL ?? 'https://world.openfoodfacts.org/api/v2',
+    userAgent: process.env.OPEN_FOOD_FACTS_USER_AGENT ?? 'Omni/1.0 (https://github.com/Leancoggiola/omni)',
   },
 } as const;

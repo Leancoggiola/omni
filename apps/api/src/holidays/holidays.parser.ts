@@ -7,14 +7,17 @@
 const NAME_CHAR = '[\\wÁÉÍÓÚÑÜáéíóúñü]';
 
 /**
+ * Primera palabra de un nombre de país, con artículo opcional: "El Salvador", "Los Países Bajos". El artículo
+ * tiene dos letras, así que sin esto el mínimo de tres de la inicial dejaba pasar "El Salvador El Salvador".
+ */
+const NAME_START = `(?:(?:El|La|Los|Las)\\s+)?[A-ZÁÉÍÓÚÑÜ]${NAME_CHAR}{2,}`;
+
+/**
  * Un nombre repetido al inicio: "ChinaChina", "Argentina Argentina", "Imperio Romano Imperio romano".
  * Anclado y con mínimo 3 caracteres: sin eso, una doble letra ("Yennayer") se detecta como repetición.
  * El corte final va por lookahead y no por \b, porque en JS "ú" no cuenta como carácter de palabra.
  */
-const ADJACENT_REPEAT = new RegExp(
-  `^([A-ZÁÉÍÓÚÑÜ]${NAME_CHAR}{2,}(?:\\s+${NAME_CHAR}+){0,4})\\s?\\1(?!${NAME_CHAR})`,
-  'i'
-);
+const ADJACENT_REPEAT = new RegExp(`^(${NAME_START}(?:\\s+${NAME_CHAR}+){0,4})\\s?\\1(?!${NAME_CHAR})`, 'i');
 
 /** "Argentina Argentina: …", "ChinaChina China: …", "Andorra Andorra, España España y Gibraltar Gibraltar: …" */
 const COUNTRY_PREFIX_WITH_COLON = /^([^:]{2,120}):\s*/;
@@ -23,7 +26,7 @@ const COUNTRY_FLAG = /^(?:\uD83C[\uDDE6-\uDDFF]){2}\s*/;
 const ARGENTINA_FLAG = '🇦🇷';
 
 /** Variante sin dos puntos: "México México Día Nacional del Cine Mexicano". */
-const COUNTRY_PREFIX_BARE = new RegExp(`^([A-ZÁÉÍÓÚÑÜ]${NAME_CHAR}{2,}(?:\\s+${NAME_CHAR}+){0,3})\\s?\\1\\s+`);
+const COUNTRY_PREFIX_BARE = new RegExp(`^(${NAME_START}(?:\\s+${NAME_CHAR}+){0,3})\\s?\\1\\s+`);
 
 /** Sub-prefijos argentinos: "Misiones: …", "Armada Argentina: …", "Provincia de Mendoza: …". */
 const SUBREGION_PREFIX = /^([^:]{2,45}):\s*/;
@@ -50,6 +53,18 @@ const SUPRANATIONAL_NAMES = [
 
 /** El nombre, opcionalmente repetido como en los países, seguido o no de dos puntos (grupo 2). */
 const SUPRANATIONAL_PREFIX = new RegExp(`^(${SUPRANATIONAL_NAMES.join('|')})(?!${NAME_CHAR})(?:\\s?\\1)?(\\s*:)?\\s*`);
+
+/**
+ * Encabezado de agrupación del feed: "Disolución de Checoslovaquia:(Celebraciones relacionadas). Eslovaquia
+ * Eslovaquia: …". El país que importa viene después; el encabezado solo, sin nada detrás, es un título.
+ */
+const RELATED_HEADER = /^[^:]{2,80}:\s*\(Celebraciones relacionadas\)\.\s*(?=\S)/i;
+
+/**
+ * Entrada con un país sin bandera ni nombre repetido: el feed deja un ":" suelto y luego "Niue: …". No aplica
+ * si lo que sigue es un título ("Día …:").
+ */
+const LEADING_COLON_COUNTRY = /^:\s*([^:.]{2,60}):\s*\S/;
 
 /** Santoral y fiestas litúrgicas. */
 const RELIGIOUS =
@@ -142,7 +157,18 @@ function stripSubregions(text: string): string {
  * sus dos puntos: "(ciertas regiones): Día del Mediterráneo".
  */
 export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
-  const normalized = rawText.replace(/\s+/g, ' ').trim();
+  const flattened = rawText.replace(/\s+/g, ' ').trim();
+
+  const leadingCountry = flattened.match(LEADING_COLON_COUNTRY)?.[1];
+  if (
+    leadingCountry &&
+    !TITLE_START.test(leadingCountry) &&
+    stripSupranationalPrefix(`${leadingCountry}: x`) === null
+  ) {
+    return null;
+  }
+
+  const normalized = flattened.replace(RELATED_HEADER, '');
   if (!normalized) return null;
 
   const { rest, isArgentina, hadCountry } = stripCountryPrefix(normalized);

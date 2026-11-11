@@ -17,7 +17,10 @@ jest.mock(
   'react-native-safe-area-context',
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default
 );
-jest.mock('../hooks', () => ({ MIN_SEARCH_LENGTH: 2, useMediaSearch: (query: string) => mockSearch(query) }));
+jest.mock('../hooks/useMediaSearch', () => ({
+  MIN_SEARCH_LENGTH: 2,
+  useMediaSearch: (query: string) => mockSearch(query),
+}));
 
 const RESULTS: TmdbMediaResult[] = [
   { id: 438631, media_type: 'movie', title: 'Dune', poster_path: '/a.jpg' },

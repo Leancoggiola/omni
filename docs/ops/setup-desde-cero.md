@@ -50,7 +50,7 @@ gh secret set VERCEL_TOKEN --env Production --repo Leancoggiola/omni
 
 Después de renovar, correr un workflow y recién ahí revocar el token anterior. Hay un recordatorio programado una semana antes del vencimiento.
 
-`VERCEL_ORG_ID` y `VERCEL_PROJECT_ID` no son secretos reales: salen de `.vercel/project.json` después de `vercel link` (hacerlo en una carpeta temporal).
+`VERCEL_ORG_ID` y `VERCEL_PROJECT_ID` no son secretos reales: salen de `.vercel/project.json` después de `vercel link --project omni-web`, sin `--yes` (en una carpeta temporal). El proyecto es `omni-web` (dominio `omni-nest.vercel.app`) y el `VERCEL_TOKEN` va con scope al team completo: ver [deployment.md](./deployment.md#vercel-proyecto-omni-web-environment-production).
 
 ---
 

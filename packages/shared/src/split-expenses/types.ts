@@ -6,6 +6,10 @@ export interface SplitFriend {
   updatedAt: string;
 }
 
+export interface SplitFriendWithBalance extends SplitFriend {
+  balance: number;
+}
+
 export interface SplitFriendSuggest {
   id: string;
   name: string;
@@ -18,6 +22,9 @@ export interface GatheringParticipantSummary {
   friendId: string | null;
   alias: string | null;
   totalPaid: number;
+  owed: number;
+  balance: number;
+  isSelf: boolean;
 }
 
 export interface GatheringExpense {
@@ -26,6 +33,7 @@ export interface GatheringExpense {
   participantName: string;
   amount: number;
   description: string | null;
+  sharedWith: string[];
   createdAt: string;
 }
 
@@ -45,10 +53,10 @@ export interface GatheringDetail {
   settledAt: string | null;
   participantCount: number;
   totalAmount: number;
-  fairShare: number;
   participants: GatheringParticipantSummary[];
   expenses: GatheringExpense[];
   settlements: Settlement[];
+  myBalance: number | null;
 }
 
 export interface GatheringSummary {
@@ -58,4 +66,12 @@ export interface GatheringSummary {
   isSettled: boolean;
   participantCount: number;
   totalAmount: number;
+  myBalance: number | null;
+}
+
+export interface SplitBalanceSummary {
+  owedToYou: number;
+  youOwe: number;
+  net: number;
+  gatheringCount: number;
 }

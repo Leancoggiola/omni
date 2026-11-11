@@ -1,1 +1,0 @@
-export { MediaPoster } from './MediaPoster';

@@ -8,6 +8,8 @@ import {
   type VariantColorsResolver,
 } from '@mantine/core';
 
+import { DISPLAY_FONT_FAMILY, SHADOWS_DARK } from './tokens';
+
 import { onFill, semanticDark, semanticLight, WHITE } from '@omni/shared/theme';
 
 /** Core Mantine vars mapped from the full semantic token set. */
@@ -65,7 +67,7 @@ function onFilledVariables(theme: MantineTheme, scheme: 'light' | 'dark'): Recor
 }
 
 export const cssVariablesResolver: CSSVariablesResolver = theme => ({
-  variables: {},
+  variables: { '--omni-font-display': DISPLAY_FONT_FAMILY },
   light: {
     ...mantineCoreLight,
     ...semanticLight,
@@ -74,6 +76,7 @@ export const cssVariablesResolver: CSSVariablesResolver = theme => ({
   dark: {
     ...mantineCoreDark,
     ...semanticDark,
+    ...SHADOWS_DARK,
     ...onFilledVariables(theme, 'dark'),
   },
 });

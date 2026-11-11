@@ -1,50 +1,33 @@
 import { FC } from 'react';
-import { Button, Stack } from '@mantine/core';
 
-import { EmptyState, ErrorState, LoadingState } from '@/shared/ui';
-
-import { GatheringCard } from '../GatheringCard';
+import { splitGatheringsByStatus } from '../../utils/gatheringView';
+import { Overline } from '../Overline';
+import { GatheringListItem } from './GatheringListItem';
 
 import type { GatheringSummary } from '@omni/shared/split-expenses';
 
-import { PlusIcon, UsersThreeIcon } from '@phosphor-icons/react';
+import classes from './GatheringList.module.scss';
 
 interface GatheringListProps {
   items: GatheringSummary[];
-  isLoading: boolean;
-  error?: unknown;
-  onRetry: () => void | Promise<unknown>;
-  onNewGathering: () => void;
+  selectedId: string | null;
+  onSelect: (gatheringId: string) => void;
 }
 
-export const GatheringList: FC<GatheringListProps> = ({ items, isLoading, error, onRetry, onNewGathering }) => {
-  if (error) {
-    return <ErrorState message="No se pudieron cargar las juntadas" onRetry={onRetry} />;
-  }
-
-  if (isLoading && items.length === 0) {
-    return <LoadingState />;
-  }
-
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={<UsersThreeIcon />}
-        title="Todavía no tenés juntadas"
-        action={
-          <Button variant="light" leftSection={<PlusIcon size="1rem" />} onClick={onNewGathering}>
-            Nueva juntada
-          </Button>
-        }
-      />
-    );
-  }
+/** Panel izquierdo: juntadas Activas y Saldadas; la elegida lleva el borde de marca. */
+export const GatheringList: FC<GatheringListProps> = ({ items, selectedId, onSelect }) => {
+  const { active, settled } = splitGatheringsByStatus(items);
 
   return (
-    <Stack gap="md">
-      {items.map(item => (
-        <GatheringCard key={item.id} summary={item} />
+    <section className={classes.root} aria-label="Juntadas">
+      {active.length > 0 && <Overline>Activas</Overline>}
+      {active.map(item => (
+        <GatheringListItem key={item.id} gathering={item} selected={item.id === selectedId} onSelect={onSelect} />
       ))}
-    </Stack>
+      {settled.length > 0 && <Overline>Saldadas</Overline>}
+      {settled.map(item => (
+        <GatheringListItem key={item.id} gathering={item} selected={item.id === selectedId} onSelect={onSelect} />
+      ))}
+    </section>
   );
 };

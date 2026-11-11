@@ -4,7 +4,10 @@ import { useDisclosure } from '@mantine/hooks';
 
 import { EmptyState, ErrorState, LoadingState, PageHeader } from '@/shared/ui';
 
-import { CreateUserModal, useAdminUserMutations, useAdminUsers, UserRow } from './modules';
+import { CreateUserModal } from './components/CreateUserModal/CreateUserModal';
+import { UserRow } from './components/UserRow';
+import { useAdminUserMutations } from './hooks/useAdminUserMutations';
+import { useAdminUsers } from './hooks/useAdminUsers';
 
 import { GearIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
 
@@ -21,13 +24,13 @@ export const AdminPage: FC = () => {
 
   const renderUsers = () => {
     if (error) return <ErrorState message="No se pudieron cargar los usuarios" onRetry={() => mutate()} />;
-    if (isLoading) return <LoadingState />;
+    if (isLoading) return <LoadingState variant="skeleton" rows={4} />;
     if (users.length === 0) {
       return <EmptyState icon={<UsersIcon size="1.5rem" />} title="Todavía no hay usuarios" />;
     }
 
     return (
-      <Stack component="ul" gap="sm" p="none" m="none" style={{ listStyle: 'none' }}>
+      <Stack component="ul" gap="none" p="none" m="none" style={{ listStyle: 'none' }}>
         {users.map(user => (
           <UserRow key={user.id} user={user} onDelete={deleteUser} />
         ))}
@@ -36,7 +39,7 @@ export const AdminPage: FC = () => {
   };
 
   return (
-    <Stack gap="xl">
+    <Stack gap="xl" maw="65rem">
       <PageHeader
         icon={<GearIcon size="1.5rem" />}
         title="Administración"
@@ -47,7 +50,7 @@ export const AdminPage: FC = () => {
       <Paper>
         <Stack gap="md">
           <Group gap="sm" align="baseline">
-            <Title order={2} size="h4">
+            <Title order={2} size="h4" fw={600}>
               Usuarios registrados
             </Title>
             {!error && !isLoading && (

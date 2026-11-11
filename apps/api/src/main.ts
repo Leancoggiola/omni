@@ -17,6 +17,10 @@ async function bootstrap() {
     }
   }
 
+  if (config.isProduction && !config.storage.supabaseUrl) {
+    logger.warn('SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY sin definir: la subida de fotos de perfil responde 503');
+  }
+
   createApp().listen(config.port, '0.0.0.0', () => {
     logger.info(`API running on http://0.0.0.0:${config.port}`);
   });

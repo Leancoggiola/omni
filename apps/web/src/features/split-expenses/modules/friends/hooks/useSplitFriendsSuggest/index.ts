@@ -1,1 +1,0 @@
-export { useSplitFriendsSuggest } from './useSplitFriendsSuggest';

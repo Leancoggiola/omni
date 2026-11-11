@@ -69,24 +69,20 @@ describe('auth routes (integration)', () => {
   });
 
   describe('POST /refresh', () => {
-    it('un cliente con la cookie legacy refresca, la cookie legacy se borra y no se revoca ninguna sesión', async () => {
-      const user = await createUser({ username: 'refreshlegacy' });
-      const credentials = { username: 'refreshlegacy', password: TEST_PASSWORD };
+    it('un cliente web refresca con su cookie, la cookie rota y no se revoca ninguna sesión', async () => {
+      const user = await createUser({ username: 'refreshcookie' });
+      const credentials = { username: 'refreshcookie', password: TEST_PASSWORD };
       const web = await request(app).post('/api/auth/login').send(credentials);
       const other = await request(app).post('/api/auth/login').send(credentials);
-      const legacyCookie = `refresh_token=${web.body.refreshToken as string}`;
+      const webCookie = `refresh_token=${web.body.refreshToken as string}`;
 
-      const first = await request(app).post('/api/auth/refresh').set('Cookie', legacyCookie);
+      const first = await request(app).post('/api/auth/refresh').set('Cookie', webCookie);
 
       expect(first.status).toBe(200);
       const firstCookies = first.headers['set-cookie'] as unknown as string[];
-      const legacyCleared = firstCookies.find(
-        cookie => cookie.startsWith('refresh_token=;') && cookie.includes('Path=/api/auth/refresh;')
-      );
       const rotated = firstCookies.find(
         cookie => cookie.startsWith('refresh_token=') && cookie.includes('Path=/api/auth;')
       );
-      expect(legacyCleared).toBeDefined();
       expect(rotated).toBeDefined();
 
       const second = await request(app).post('/api/auth/refresh').set('Cookie', rotated!.split(';')[0]!);
@@ -122,7 +118,7 @@ describe('auth routes (integration)', () => {
         .send({ refreshToken: mobile.body.refreshToken as string });
       expect(stillValid.status).toBe(200);
       const clearing = res.headers['set-cookie'] as unknown as string[];
-      expect(clearing.filter(cookie => cookie.startsWith('refresh_token=;'))).toHaveLength(2);
+      expect(clearing.filter(cookie => cookie.startsWith('refresh_token=;'))).toHaveLength(1);
     });
 
     it('es idempotente: dos logouts simultáneos con el mismo refresh token responden 200', async () => {

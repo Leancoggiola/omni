@@ -1,1 +1,0 @@
-export { ProfileSectionCard } from './ProfileSectionCard';

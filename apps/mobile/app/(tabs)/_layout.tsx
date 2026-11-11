@@ -1,17 +1,17 @@
 import { type BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { FONT_SIZE, RADIUS } from '@omni/shared/theme';
+import { FONT_SIZE } from '@omni/shared/theme';
 import { MOBILE_TAB_KEYS, NAV_REGISTRY } from '@omni/shared/navigation';
 import { Tabs } from 'expo-router';
 import { type Icon } from 'phosphor-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Paragraph, YStack } from 'tamagui';
+import { StyleSheet, View } from 'react-native';
+import { Paragraph } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { getTabBarStyle, MeasuredTabBar, MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';
+import { FloatingTabBar, MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';
 
 import type { NavKey } from '@omni/shared/navigation';
 
-const PILL = { width: 56, height: 30 } as const;
+const PILL = { width: 56, height: 32 } as const;
 const ICON_SIZE = 22;
 const LABEL_MAX_FONT_SCALE = 1.3;
 
@@ -29,19 +29,19 @@ function TabLabel({ label, focused, color }: { label: string; focused: boolean; 
   );
 }
 
-/** El tab activo lleva el ícono relleno sobre una pill, como el ítem activo del navbar de web. */
+/**
+ * El tab activo lleva el ícono relleno sobre una pill, como el ítem activo del navbar de web. La pill es una `View`
+ * aparte que solo cambia de opacidad: si cambiaba el fondo de la misma vista, Android la dibujaba cuadrada después
+ * de cambiar de tab.
+ */
 function TabIcon({ icon: IconComponent, focused, color }: { icon: Icon; focused: boolean; color: string }) {
+  const colors = useSemanticColors();
+
   return (
-    <YStack
-      width={PILL.width}
-      height={PILL.height}
-      borderRadius={RADIUS.full}
-      backgroundColor={focused ? '$primarySurface' : 'transparent'}
-      alignItems="center"
-      justifyContent="center"
-    >
+    <View style={styles.pillSlot}>
+      <View style={[styles.pill, { backgroundColor: colors.primarySurface, opacity: focused ? 1 : 0 }]} />
       <IconComponent size={ICON_SIZE} color={color} weight={focused ? 'fill' : 'regular'} />
-    </YStack>
+    </View>
   );
 }
 
@@ -57,7 +57,7 @@ function tabOptions(label: string, icon: Icon) {
   };
 }
 
-const renderTabBar = (props: BottomTabBarProps) => <MeasuredTabBar {...props} />;
+const renderTabBar = (props: BottomTabBarProps) => <FloatingTabBar {...props} />;
 
 const tabLabel = (key: NavKey) => NAV_REGISTRY[key].shortLabel ?? NAV_REGISTRY[key].label;
 
@@ -69,20 +69,8 @@ const TAB_SCREENS = MOBILE_TAB_KEYS.map(key => ({
 const MORE_OPTIONS = tabOptions(MORE_TAB.label, MORE_TAB.icon);
 
 export default function TabsLayout() {
-  const colors = useSemanticColors();
-  const insets = useSafeAreaInsets();
-
   return (
-    <Tabs
-      tabBar={renderTabBar}
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.dimmed,
-        tabBarIconStyle: PILL,
-        tabBarStyle: getTabBarStyle(insets.bottom),
-      }}
-    >
+    <Tabs tabBar={renderTabBar} screenOptions={{ headerShown: false }}>
       {TAB_SCREENS.map(({ name, options }) => (
         <Tabs.Screen key={name} name={name} options={options} />
       ))}
@@ -90,3 +78,8 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  pillSlot: { width: PILL.width, height: PILL.height, alignItems: 'center', justifyContent: 'center' },
+  pill: { ...StyleSheet.absoluteFillObject, borderRadius: PILL.height / 2 },
+});

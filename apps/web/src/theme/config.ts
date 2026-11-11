@@ -4,7 +4,16 @@ import { ComponentsOverride } from './components';
 import { variantResolver } from './css-variables';
 import { GRADIENTS } from './gradients';
 import { COLOR_PALETTE } from './palettes';
-import { FONT_SIZES, HEADING_SIZES, LINE_HEIGHTS, RADIUS, SHADOWS, SPACING } from './tokens';
+import {
+  DISPLAY_FONT_FAMILY,
+  DISPLAY_STYLES,
+  FONT_SIZES,
+  HEADING_SIZES,
+  LINE_HEIGHTS,
+  RADIUS,
+  SHADOWS,
+  SPACING,
+} from './tokens';
 
 import { BLACK, WHITE } from '@omni/shared/theme';
 
@@ -24,9 +33,11 @@ export const THEME = createTheme({
   defaultGradient: GRADIENTS.brand,
   other: {
     gradients: GRADIENTS,
+    displayFontFamily: DISPLAY_FONT_FAMILY,
+    display: DISPLAY_STYLES,
   },
 
-  defaultRadius: 'lg',
+  defaultRadius: 'md',
   radius: RADIUS,
 
   spacing: SPACING,

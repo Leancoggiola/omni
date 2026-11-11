@@ -26,12 +26,12 @@ jest.mock('@/shared/ui', () => ({
   notifySuccess: jest.fn(),
   notifyError: jest.fn(),
 }));
-jest.mock('./hooks', () => ({
-  MIN_SEARCH_LENGTH: 2,
-  useMyMediaList: () => mockUseMyMediaList(),
-  useMediaMutations: () => mockMutations,
-  useMediaSearch: () => mockSearch(),
-}));
+const mockAuthor = jest.fn();
+
+jest.mock('@/core/household', () => ({ useItemAuthor: (id: string | null) => mockAuthor(id) }));
+jest.mock('./hooks/useMyMediaList', () => ({ useMyMediaList: () => mockUseMyMediaList() }));
+jest.mock('./hooks/useMediaMutations', () => ({ useMediaMutations: () => mockMutations }));
+jest.mock('./hooks/useMediaSearch', () => ({ MIN_SEARCH_LENGTH: 2, useMediaSearch: () => mockSearch() }));
 
 const mockActionSheet = jest.mocked(actionSheet);
 const mockConfirm = jest.mocked(confirm);
@@ -43,7 +43,7 @@ const item = (
   status: MediaItem['status']
 ): MediaItem => ({
   id,
-  userId: 'u1',
+  createdById: 'u1',
   tmdbId: Number(id),
   mediaType,
   title,
@@ -101,10 +101,10 @@ describe('MediaScreen · lista', () => {
     expect(mutate).toHaveBeenCalledTimes(1);
   });
 
-  it('mientras carga muestra el spinner y no el estado vacío', () => {
+  it('mientras carga muestra las filas skeleton ("Cargando") y no el estado vacío', () => {
     renderWith({ isLoading: true });
 
-    expect(screen.getByTestId('spinner')).toBeTruthy();
+    expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
     expect(screen.queryByText('Tu lista está vacía')).toBeNull();
   });
 
@@ -112,6 +112,73 @@ describe('MediaScreen · lista', () => {
     renderWith({ data: [] });
     expect(screen.getByText('Tu lista está vacía')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Agregar' })).toBeTruthy();
+  });
+});
+
+describe('MediaScreen · vista', () => {
+  it('abre en lista y el grupo Vista permite pasar a Grilla y volver', () => {
+    renderWith();
+
+    expect(screen.UNSAFE_getByProps({ accessibilityRole: 'radiogroup', accessibilityLabel: 'Vista' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Lista', selected: true })).toBeTruthy();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Grilla' }));
+    expect(screen.getByRole('button', { name: 'Grilla', selected: true })).toBeTruthy();
+    expect(screen.getByText('Dune: Part Two')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Eliminar Dune: Part Two' })).toBeTruthy();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Lista' }));
+    expect(screen.getByRole('button', { name: 'Lista', selected: true })).toBeTruthy();
+  });
+
+  it('en grilla los filtros y las acciones funcionan igual', async () => {
+    mockActionSheet.mockResolvedValue('watched');
+    mockMutations.updateStatus.mockResolvedValue(undefined);
+    renderWith();
+    fireEvent.press(screen.getByRole('button', { name: 'Grilla' }));
+
+    fireEvent.changeText(screen.getByLabelText('Buscar en tu lista'), 'bear');
+    expect(screen.queryByText('Breaking Bad')).toBeNull();
+    await act(async () =>
+      fireEvent.press(screen.getByRole('button', { name: 'Estado de The Bear: Viendo. Cambiar estado' }))
+    );
+    expect(mockMutations.updateStatus).toHaveBeenCalledWith('3', 'watched');
+
+    fireEvent.changeText(screen.getByLabelText('Buscar en tu lista'), 'zzz');
+    expect(screen.getByText('No hay resultados')).toBeTruthy();
+  });
+
+  it('en grilla, cargando muestra el skeleton', () => {
+    renderWith({ isLoading: true });
+    fireEvent.press(screen.getByRole('button', { name: 'Grilla' }));
+    expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
+  });
+
+  it('en grilla el error de SWR se renderiza y no hay tarjetas', () => {
+    renderWith({ data: ITEMS, error: new Error('500') });
+    fireEvent.press(screen.getByRole('button', { name: 'Grilla' }));
+
+    expect(screen.getByText('No se pudo cargar tu lista')).toBeTruthy();
+    expect(screen.queryByText('Breaking Bad')).toBeNull();
+  });
+});
+
+describe('MediaScreen · autoría', () => {
+  beforeEach(() => mockAuthor.mockReset());
+
+  it('cada fila muestra quién la agregó, con "Vos" para la propia sesión', () => {
+    mockAuthor.mockImplementation((id: string | null) =>
+      id === 'u1' ? { kind: 'self', name: 'Leandro', avatarUrl: null } : undefined
+    );
+    renderWith();
+
+    expect(screen.getAllByLabelText('Agregado por Vos').length).toBeGreaterThan(0);
+  });
+
+  it('sin autor resuelto no muestra nada', () => {
+    renderWith();
+
+    expect(screen.queryByLabelText(/Agregado por/)).toBeNull();
   });
 });
 

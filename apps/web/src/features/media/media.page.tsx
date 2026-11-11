@@ -3,19 +3,16 @@ import { Stack } from '@mantine/core';
 
 import { confirm, getErrorMessage, notifyError, notifySuccess } from '@/shared/ui';
 
-import {
-  AddMediaModal,
-  buildMediaTmdbKey,
-  MediaListToolbar,
-  MediaPageHeader,
-  MyMediaList,
-  useMediaMutations,
-  useMyMediaList,
-} from './modules';
+import { AddMediaModal } from './components/AddMediaModal/AddMediaModal';
+import { MediaListToolbar } from './components/MediaListToolbar';
+import { MediaPageHeader } from './components/MediaPageHeader';
+import { MyMediaList } from './components/MyMediaList';
+import { useMediaMutations } from './hooks/useMediaMutations';
+import { useMyMediaList } from './hooks/useMyMediaList';
 
-import type { MediaItem, MediaListFilters, MediaStatus, MediaType } from './modules';
+import type { MediaItem, MediaListFilters, MediaStatus, MediaType } from './types';
 
-import { hasActiveFilters } from '@omni/shared/media';
+import { buildMediaTmdbKey, hasActiveFilters } from '@omni/shared/media';
 
 export const MediaPage: FC = () => {
   const [searchText, setSearchText] = useState('');

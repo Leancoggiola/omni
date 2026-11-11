@@ -8,6 +8,8 @@ import pantryRoutes from './pantry/pantry.routes';
 import splitExpensesRoutes from './split-expenses/split-expenses.routes';
 import expensesRoutes from './expenses/expenses.routes';
 import holidaysRoutes from './holidays/holidays.routes';
+import householdRoutes from './household/household.routes';
+import weatherRoutes from './weather/weather.routes';
 
 const router = Router();
 
@@ -20,5 +22,7 @@ router.use('/pantry', pantryRoutes);
 router.use('/split-expenses', splitExpensesRoutes);
 router.use('/expenses', expensesRoutes);
 router.use('/holidays', holidaysRoutes);
+router.use('/household', householdRoutes);
+router.use('/weather', weatherRoutes);
 
 export default router;

@@ -12,7 +12,7 @@ import { Button, confirm, getErrorMessage, notifyError, Screen, ScreenHeader, Se
 import { NavRow } from './components/NavRow';
 import { ThemeRow } from './components/ThemeRow';
 import { UserCard } from './components/UserCard';
-import { MORE_NAV_KEYS } from './moreNavKeys';
+import { MORE_NAV_KEYS } from './utils/moreNavKeys';
 
 /** Launcher de "Más": cuenta, tema, módulos y administración (lo que en web es el navbar). */
 export function MoreScreen() {
@@ -43,10 +43,10 @@ export function MoreScreen() {
 
   return (
     <Screen>
-      <ScreenHeader icon={MORE_TAB.icon} title={MORE_TAB.label} subtitle="Tu cuenta y los módulos de Omni" />
+      <ScreenHeader title={MORE_TAB.label} subtitle="Tu cuenta y los módulos de Omni" size="xl" />
       <ScrollView contentContainerStyle={{ gap: SPACING.md, paddingBottom: SPACING.xl }}>
         <UserCard />
-        <SectionCard>
+        <SectionCard compact>
           <ThemeRow />
         </SectionCard>
         <SectionCard title="Módulos">
@@ -57,7 +57,7 @@ export function MoreScreen() {
           </YStack>
         </SectionCard>
         {user?.role === 'ADMIN' ? (
-          <SectionCard>
+          <SectionCard compact>
             {ADMIN_NAV_ORDER.map(key => (
               <NavRow key={key} navKey={key} />
             ))}

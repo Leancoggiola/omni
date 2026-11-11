@@ -3,6 +3,7 @@ import type { AddMediaItemPayload, FilterMediaParams, UpdateMediaItemPayload } f
 import { prisma } from '../common/db';
 import * as tmdbService from './tmdb.service';
 import { HttpError } from '../common/http';
+import { getHouseholdId, withHousehold } from '../household/household.service';
 
 export async function search(query: string, page: number, type: string) {
   switch (type) {
@@ -16,19 +17,13 @@ export async function search(query: string, page: number, type: string) {
 }
 
 export async function addToList(userId: string, dto: AddMediaItemPayload) {
-  const existing = await prisma.mediaItem.findUnique({
-    where: {
-      userId_tmdbId_mediaType: {
-        userId,
-        tmdbId: dto.tmdbId,
-        mediaType: dto.mediaType,
-      },
-    },
+  const key = (householdId: string) => ({
+    householdId_tmdbId_mediaType: { householdId, tmdbId: dto.tmdbId, mediaType: dto.mediaType },
   });
+  const duplicate = () => new HttpError(409, 'Este elemento ya está en tu lista');
 
-  if (existing) {
-    throw new HttpError(409, 'Este elemento ya está en tu lista');
-  }
+  const householdId = await getHouseholdId(userId);
+  if (await prisma.mediaItem.findUnique({ where: key(householdId) })) throw duplicate();
 
   let title: string;
   let posterPath: string | null;
@@ -43,24 +38,27 @@ export async function addToList(userId: string, dto: AddMediaItemPayload) {
     posterPath = detail.poster_path;
   }
 
-  const item = await prisma.mediaItem.create({
-    data: {
-      userId,
-      tmdbId: dto.tmdbId,
-      mediaType: dto.mediaType,
-      title,
-      posterPath,
-      status: dto.status || 'to_watch',
-    },
+  return withHousehold(userId, async (tx, lockedHouseholdId) => {
+    if (await tx.mediaItem.findUnique({ where: key(lockedHouseholdId) })) throw duplicate();
+    return tx.mediaItem.create({
+      data: {
+        householdId: lockedHouseholdId,
+        createdById: userId,
+        tmdbId: dto.tmdbId,
+        mediaType: dto.mediaType,
+        title,
+        posterPath,
+        status: dto.status || 'to_watch',
+      },
+    });
   });
-
-  return item;
 }
 
 export async function getList(userId: string, filters: FilterMediaParams) {
+  const householdId = await getHouseholdId(userId);
   return prisma.mediaItem.findMany({
     where: {
-      userId,
+      householdId,
       ...(filters.status && { status: filters.status }),
       ...(filters.mediaType && { mediaType: filters.mediaType }),
     },
@@ -69,30 +67,16 @@ export async function getList(userId: string, filters: FilterMediaParams) {
 }
 
 export async function updateStatus(userId: string, itemId: string, dto: UpdateMediaItemPayload) {
-  const item = await prisma.mediaItem.findFirst({
-    where: { id: itemId, userId },
+  return withHousehold(userId, async (tx, householdId) => {
+    const item = await tx.mediaItem.findFirst({ where: { id: itemId, householdId } });
+    if (!item) throw new HttpError(404, 'Elemento no encontrado');
+    return tx.mediaItem.update({ where: { id: itemId }, data: { status: dto.status } });
   });
-
-  if (!item) {
-    throw new HttpError(404, 'Elemento no encontrado');
-  }
-
-  const updated = await prisma.mediaItem.update({
-    where: { id: itemId },
-    data: { status: dto.status },
-  });
-
-  return updated;
 }
 
 export async function removeFromList(userId: string, itemId: string): Promise<void> {
-  const item = await prisma.mediaItem.findFirst({
-    where: { id: itemId, userId },
+  await withHousehold(userId, async (tx, householdId) => {
+    const { count } = await tx.mediaItem.deleteMany({ where: { id: itemId, householdId } });
+    if (count === 0) throw new HttpError(404, 'Elemento no encontrado');
   });
-
-  if (!item) {
-    throw new HttpError(404, 'Elemento no encontrado');
-  }
-
-  await prisma.mediaItem.delete({ where: { id: itemId } });
 }

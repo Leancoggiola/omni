@@ -25,6 +25,15 @@ describe('Badge', () => {
     render(<Badge color="dimmed">Próximamente</Badge>);
     expect(screen.getByText('Próximamente')).toHaveProp('color', '$dimmed');
   });
+
+  it('outline warning: texto ámbar sobre fondo transparente (el ámbar es de un solo tono)', () => {
+    render(
+      <Badge color="warning" variant="outline">
+        Por vencer
+      </Badge>
+    );
+    expect(screen.getByText('Por vencer')).toHaveProp('color', '$warning');
+  });
 });
 
 describe('Banner', () => {
@@ -46,5 +55,25 @@ describe('Banner', () => {
 
     expect(screen.getByRole('alert', { name: 'Modo de prueba' })).toBeTruthy();
     expect(screen.getByText('Modo de prueba')).toHaveProp('color', '$info');
+  });
+
+  it('floating: fondo de card y sombra float en vez del wash del color', () => {
+    render(
+      <Banner floating color="info">
+        Despertando el servidor
+      </Banner>
+    );
+
+    const banner = screen.getByRole('alert', { name: 'Despertando el servidor' });
+    expect(banner).toHaveProp('backgroundColor', '$backgroundStrong');
+    expect(banner).toHaveProp('shadowRadius', 32);
+  });
+
+  it('sin floating conserva el wash y no lleva sombra', () => {
+    render(<Banner color="info">Aviso</Banner>);
+
+    const banner = screen.getByRole('alert', { name: 'Aviso' });
+    expect(banner).toHaveProp('backgroundColor', '$infoSurface');
+    expect(banner.props.shadowRadius).toBeUndefined();
   });
 });

@@ -1,13 +1,17 @@
 import { FC, useState } from 'react';
 import { ActionIcon, Group, Stack, Text } from '@mantine/core';
 
-import { confirm, getErrorMessage, notifyError, notifySuccess } from '@/shared/ui';
+import { confirm, getErrorMessage, notifyError, notifySuccess, UserAvatar } from '@/shared/ui';
 
 import { FriendRowEditor } from './FriendRowEditor';
 
 import type { SplitFriend, UpdateSplitFriendPayload } from '@omni/shared/split-expenses';
 
+import classes from './FriendsModal.module.scss';
+
 import { PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
+
+const FRIEND_TONE = 'sage';
 
 interface FriendRowProps {
   friend: SplitFriend;
@@ -48,17 +52,18 @@ export const FriendRow: FC<FriendRowProps> = ({ friend, onUpdate, onDelete }) =>
   }
 
   return (
-    <Group justify="space-between" wrap="nowrap">
-      <Stack gap="none">
-        <Text size="sm" fw={600}>
-          {friend.name}
-        </Text>
-        {friend.alias && (
-          <Text size="xs" c="dimmed">
-            {friend.alias}
+    <Group justify="space-between" wrap="nowrap" py="xs" className={classes.row}>
+      <Group gap="sm" wrap="nowrap" miw={0}>
+        <UserAvatar name={friend.name} color={FRIEND_TONE} />
+        <Stack gap="none" miw={0}>
+          <Text size="sm" fw={600} truncate>
+            {friend.name}
           </Text>
-        )}
-      </Stack>
+          <Text size="xs" c="dimmed" truncate>
+            {friend.alias ?? 'Sin alias'}
+          </Text>
+        </Stack>
+      </Group>
       <Group gap="3xs" wrap="nowrap">
         <ActionIcon
           variant="subtle"

@@ -33,8 +33,43 @@ export async function createUser(options: CreateUserOptions = {}) {
       email: options.email ?? null,
       password: await hash(options.password ?? TEST_PASSWORD, TEST_BCRYPT_ROUNDS),
       role: options.role ?? 'USER',
+      householdMember: { create: { household: { create: {} } } },
     },
   });
+}
+
+export async function householdIdOf(userId: string): Promise<string> {
+  const member = await prisma.householdMember.findUniqueOrThrow({ where: { userId } });
+  return member.householdId;
+}
+
+export interface CreateMediaItemOptions {
+  tmdbId?: number;
+  mediaType?: 'movie' | 'tv';
+  title?: string;
+  status?: 'to_watch' | 'watching' | 'watched';
+}
+
+export async function createMediaItem(userId: string, options: CreateMediaItemOptions = {}) {
+  sequence += 1;
+  return prisma.mediaItem.create({
+    data: {
+      householdId: await householdIdOf(userId),
+      createdById: userId,
+      tmdbId: options.tmdbId ?? 1000 + sequence,
+      mediaType: options.mediaType ?? 'movie',
+      title: options.title ?? `Película ${sequence}`,
+      status: options.status ?? 'to_watch',
+    },
+  });
+}
+
+export async function linkUsers(hostId: string, guestId: string) {
+  const householdId = await householdIdOf(hostId);
+  const guestHouseholdId = await householdIdOf(guestId);
+  await prisma.householdMember.update({ where: { userId: guestId }, data: { householdId } });
+  await prisma.household.delete({ where: { id: guestHouseholdId } });
+  return householdId;
 }
 
 export function toJwtUser(user: { id: string; username: string; role: string }): TestJwtUser {
@@ -65,6 +100,7 @@ export interface CreateGatheringOptions {
   date?: Date;
   isSettled?: boolean;
   participants?: string[];
+  selfName?: string;
 }
 
 export async function createGathering(userId: string, options: CreateGatheringOptions = {}) {
@@ -77,9 +113,17 @@ export async function createGathering(userId: string, options: CreateGatheringOp
       date: options.date ?? new Date('2026-01-15T00:00:00.000Z'),
       isSettled: options.isSettled ?? false,
       settledAt: options.isSettled ? new Date('2026-01-20T00:00:00.000Z') : null,
-      participants: options.participants
-        ? { create: options.participants.map(displayName => ({ id: nextId('participant'), displayName })) }
-        : undefined,
+      participants:
+        options.participants || options.selfName
+          ? {
+              create: [
+                ...(options.selfName
+                  ? [{ id: nextId('participant'), displayName: options.selfName, isSelf: true }]
+                  : []),
+                ...(options.participants ?? []).map(displayName => ({ id: nextId('participant'), displayName })),
+              ],
+            }
+          : undefined,
     },
     include: { participants: true },
   });
@@ -88,6 +132,7 @@ export async function createGathering(userId: string, options: CreateGatheringOp
 export interface CreateGatheringExpenseOptions {
   amount?: number;
   description?: string | null;
+  sharedWith?: string[];
 }
 
 export async function createGatheringExpense(
@@ -102,6 +147,7 @@ export async function createGatheringExpense(
       participantId,
       amount: options.amount ?? 1000,
       description: options.description ?? null,
+      shares: { create: (options.sharedWith ?? []).map(id => ({ participantId: id })) },
     },
   });
 }
@@ -169,6 +215,7 @@ export interface CreatePantryProductOptions {
   quantity?: number;
   minQuantity?: number | null;
   expiresAt?: Date | null;
+  barcode?: string | null;
 }
 
 export async function createPantryProduct(userId: string, options: CreatePantryProductOptions = {}) {
@@ -177,7 +224,8 @@ export async function createPantryProduct(userId: string, options: CreatePantryP
   return prisma.pantryProduct.create({
     data: {
       id,
-      userId,
+      householdId: await householdIdOf(userId),
+      createdById: userId,
       name,
       nameNormalized: name.trim().toLowerCase(),
       category: options.category ?? 'GRAINS',
@@ -185,6 +233,7 @@ export async function createPantryProduct(userId: string, options: CreatePantryP
       quantity: options.quantity ?? 5,
       minQuantity: options.minQuantity ?? null,
       expiresAt: options.expiresAt ?? null,
+      barcode: options.barcode ?? null,
     },
   });
 }
@@ -203,7 +252,8 @@ export async function createShoppingListItem(userId: string, options: CreateShop
   return prisma.pantryShoppingListItem.create({
     data: {
       id,
-      userId,
+      householdId: await householdIdOf(userId),
+      createdById: userId,
       name: options.name ?? `Item ${id}`,
       pantryProductId: options.pantryProductId ?? null,
       source: options.source ?? 'MANUAL',

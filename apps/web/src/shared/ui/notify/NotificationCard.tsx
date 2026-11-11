@@ -24,7 +24,7 @@ interface NotificationCardProps {
 /** Custom notification content, wired via `renderNotification` (Mantine 9.6+). */
 export const NotificationCard: FC<NotificationCardProps> = ({ variant, title, message, onClose }) => (
   <div className={styles.root} data-variant={variant}>
-    <Group wrap="nowrap" align="center" gap="xs" className={styles.content}>
+    <Group wrap="nowrap" align="center" gap="sm">
       <div className={styles.icon}>{VARIANT_ICON[variant]}</div>
       <Stack gap="3xs" flex={1} miw={0}>
         {title && (
@@ -37,7 +37,14 @@ export const NotificationCard: FC<NotificationCardProps> = ({ variant, title, me
         </Text>
       </Stack>
       {onClose && (
-        <ActionIcon variant="subtle" color="gray" size="sm" onClick={onClose} aria-label="Cerrar notificación">
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          size="md"
+          radius="full"
+          onClick={onClose}
+          aria-label="Cerrar notificación"
+        >
           <XIcon size="1rem" />
         </ActionIcon>
       )}

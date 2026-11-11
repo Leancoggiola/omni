@@ -17,17 +17,17 @@ Closes #
 
 ## Checklist
 
-- [ ] Issue en Omni Roadmap en **En revisión**
+- [ ] Issue en Omni Roadmap (pasa a **En revisión** solo al abrir el PR con `Closes #N`)
 - [ ] Branch sigue `feat/#N-slug`, `fix/#N-slug` o `chore/#N-slug`
 - [ ] Si toca contrato: orden `shared` → `api` → clientes
 - [ ] Verificación local según área (ver `CLAUDE.md`):
 
 ```bash
 # web
-pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test
+pnpm --filter web check-types && pnpm --filter web lint && pnpm --filter web check-api-paths && pnpm --filter web test && pnpm --filter web check-structure
 
 # mobile
-pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile check-api-paths && pnpm --filter mobile test
+pnpm --filter mobile check-types && pnpm --filter mobile lint && pnpm --filter mobile check-api-paths && pnpm --filter mobile test && pnpm --filter mobile check-structure
 
 # api (si aplica) — los tests de integración necesitan la base efímera
 docker compose up -d db-test

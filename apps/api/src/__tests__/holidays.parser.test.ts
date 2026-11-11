@@ -113,6 +113,55 @@ describe('parseHolidayEntry', () => {
       expect(parseHolidayEntry('Yennayer: Año Nuevo Bereber')?.title).toBe('Yennayer: Año Nuevo Bereber');
     });
 
+    it('descarta países con artículo y el nombre repetido', () => {
+      expect(
+        parseHolidayEntry(
+          'El Salvador\u00a0El Salvador:\nDía del Trabajador de Turismo.Conmemoración establecida mediante el Decreto Legislativo.'
+        )
+      ).toBeNull();
+      expect(
+        parseHolidayEntry(
+          'El Salvador\u00a0El Salvador:\nDía del Psicólogo Salvadoreño.\nEstablecido como reconocimiento.'
+        )
+      ).toBeNull();
+      expect(parseHolidayEntry('Los Países Bajos Los Países Bajos: Día del Rey')).toBeNull();
+    });
+
+    it('descarta el país que cuelga de un encabezado de celebraciones relacionadas', () => {
+      expect(
+        parseHolidayEntry(
+          'Disolución de Checoslovaquia:(Celebraciones relacionadas).\nEslovaquia Eslovaquia:\nDía de la Fundación de la República Eslovaca.'
+        )
+      ).toBeNull();
+      expect(
+        parseHolidayEntry(
+          'Disolución de Checoslovaquia:(Celebraciones relacionadas).\nRepública Checa\u00a0República Checa:\nDía de la Restauración del Estado Independiente Checo.'
+        )
+      ).toBeNull();
+    });
+
+    it('conserva una entrada internacional bajo un encabezado de celebraciones relacionadas', () => {
+      expect(parseHolidayEntry('Día de la Tierra:(Celebraciones relacionadas).\nDía Mundial del Reciclaje.')).toEqual({
+        title: 'Día Mundial del Reciclaje',
+        isArgentina: false,
+      });
+    });
+
+    it('descarta un país sin bandera ni nombre repetido precedido de un dos puntos suelto', () => {
+      expect(parseHolidayEntry(':\nNiue: Día Nacional Takai.')).toBeNull();
+    });
+
+    it('no descarta un prefijo supranacional precedido de un dos puntos suelto', () => {
+      expect(parseHolidayEntry(': Unión Europea: Día de Europa')).not.toBeNull();
+    });
+
+    it('no descarta un título precedido de un dos puntos suelto', () => {
+      expect(parseHolidayEntry(': Día del Mediterráneo: Jornada marítima')).toEqual({
+        title: 'Día del Mediterráneo: Jornada marítima',
+        isArgentina: false,
+      });
+    });
+
     it('no toma una letra doble como repetición de país', () => {
       expect(parseHolidayEntry('Yennayer: Celebración del Año Nuevo Bereber')).not.toBeNull();
       expect(parseHolidayEntry('Carnaval: Desfile de comparsas')).not.toBeNull();

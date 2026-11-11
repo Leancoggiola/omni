@@ -1,10 +1,10 @@
 import { SPACING } from '@omni/shared/theme';
 import { useRouter } from 'expo-router';
-import { UserIcon } from 'phosphor-react-native';
 import { KeyboardAvoidingView, ScrollView } from 'react-native';
 import { YStack } from 'tamagui';
 
-import { useAuth } from '@/core/auth';
+import { LocalSessionClearError, useAuth } from '@/core/auth';
+import { useHousehold } from '@/core/household';
 import { useColorSchemeControl } from '@/core/theme';
 import {
   ErrorState,
@@ -17,11 +17,14 @@ import {
 } from '@/shared/ui';
 
 import { DeleteAccountCard } from './components/DeleteAccountCard';
+import { HouseholdCard } from './components/HouseholdCard';
 import { LogoutAllCard } from './components/LogoutAllCard';
 import { PasswordCard } from './components/PasswordCard';
 import { PersonalInfoCard } from './components/PersonalInfoCard';
 import { PreferencesCard } from './components/PreferencesCard';
-import { useAccountActions, useProfile } from './hooks';
+import { ProfilePhotoCard } from './components/ProfilePhotoCard';
+import { useAccountActions } from './hooks/useAccountActions';
+import { useProfile } from './hooks/useProfile';
 
 import type { UpdatePreferencesPayload } from '@omni/shared/users';
 
@@ -31,14 +34,28 @@ import type { UpdatePreferencesPayload } from '@omni/shared/users';
  */
 export function ProfileScreen() {
   const router = useRouter();
-  const { profile, error, refresh, updateProfile, updatePreferences } = useProfile();
+  const { profile, error, refresh, updateProfile, updatePreferences, uploadAvatar, removeAvatar } = useProfile();
   const { changePassword, deleteAccount } = useAccountActions();
   const { logout, logoutAll } = useAuth();
   const { clearOverride } = useColorSchemeControl();
   const { scrollRef, onScroll, scrollIntoView } = useScrollFocusedInputIntoView();
-  const refreshControl = usePullToRefresh(refresh);
+  const { mutate: refreshHousehold } = useHousehold();
+  const refreshControl = usePullToRefresh(async () => {
+    await Promise.all([refresh(), refreshHousehold()]);
+  });
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/more'));
+
+  /**
+   * Envuelve una acción de foto: al terminar bien refresca el hogar (donde también se ve el avatar). Ese refresco no
+   * hace fallar la acción, porque la foto ya se guardó.
+   */
+  const changeAvatar =
+    <A extends unknown[]>(action: (...args: A) => Promise<unknown>) =>
+    async (...args: A) => {
+      await action(...args);
+      void Promise.resolve(refreshHousehold()).catch(() => undefined);
+    };
 
   const savePreferences = async (payload: UpdatePreferencesPayload) => {
     await updatePreferences(payload);
@@ -51,6 +68,17 @@ export function ProfileScreen() {
       await logout();
     } catch {
       notifyWarning('Tu cuenta se eliminó, pero no se pudo cerrar la sesión. Cerrala desde "Más".');
+    }
+  };
+
+  const handleLogoutAll = async () => {
+    try {
+      await logoutAll();
+    } catch (error) {
+      if (!(error instanceof LocalSessionClearError)) throw error;
+      notifyWarning(
+        'Se cerraron las sesiones en todos los dispositivos, pero no se pudieron borrar los datos de este celular.'
+      );
     }
   };
 
@@ -73,6 +101,11 @@ export function ProfileScreen() {
           contentContainerStyle={{ gap: SPACING.md, paddingBottom: SPACING.xl }}
         >
           {errorState}
+          <ProfilePhotoCard
+            profile={profile}
+            onUpload={changeAvatar(uploadAvatar)}
+            onRemove={changeAvatar(removeAvatar)}
+          />
           <PersonalInfoCard profile={profile} onSave={updateProfile} onFieldFocus={scrollIntoView} />
           <PreferencesCard
             values={{
@@ -81,8 +114,9 @@ export function ProfileScreen() {
             }}
             onChange={savePreferences}
           />
+          <HouseholdCard />
           <PasswordCard onSubmit={changePassword} onFieldFocus={scrollIntoView} />
-          <LogoutAllCard onLogoutAll={logoutAll} />
+          <LogoutAllCard onLogoutAll={handleLogoutAll} />
           <DeleteAccountCard onDelete={handleDelete} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -92,10 +126,11 @@ export function ProfileScreen() {
   return (
     <Screen insetBottom>
       <ScreenHeader
-        icon={UserIcon}
         title="Mi Perfil"
-        subtitle="Gestiona tu información personal y preferencias"
+        subtitle="Gestioná tu información personal y preferencias"
+        size="lg"
         onBack={goBack}
+        backLabel="Volver a Más"
       />
       <YStack flex={1}>{renderBody()}</YStack>
     </Screen>

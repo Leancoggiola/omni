@@ -2,12 +2,15 @@ import type { PantryCategory, PantryShoppingSource, PantryUnit } from './constan
 
 export interface PantryProduct {
   id: string;
+  createdById: string | null;
+  updatedById: string | null;
   name: string;
   category: PantryCategory;
   unit: PantryUnit;
   quantity: number;
   minQuantity: number | null;
   expiresAt: string | null;
+  barcode: string | null;
   isLowStock: boolean;
   isExpiringSoon: boolean;
   createdAt: string;
@@ -23,6 +26,8 @@ export interface PantrySummary {
 
 export interface PantryShoppingListItem {
   id: string;
+  createdById: string | null;
+  updatedById: string | null;
   name: string;
   source: PantryShoppingSource;
   quantityToBuy: number;

@@ -8,6 +8,7 @@ export type {
   TmdbTvDetail,
 } from './types';
 export {
+  MEDIA_LIST_REFRESH_MS,
   MEDIA_TYPES,
   MEDIA_STATUSES,
   SEARCH_TYPES,
@@ -28,5 +29,6 @@ export {
   MEDIA_TYPE_OPTIONS,
   filterMediaItems,
   hasActiveFilters,
+  takeMediaByStatus,
 } from './filters';
 export type { MediaListFilters } from './filters';

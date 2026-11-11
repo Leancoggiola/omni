@@ -50,7 +50,7 @@ src/
     index.ts              ← Barril: re-exporta db + utils
   health/                 ← /api/health y /api/health/ready (antes del guard)
   auth/                   ← Routes + service (+ middleware/, strategies/)
-  media/ · users/ · admin/ · pantry/ · gym/ · expenses/ · split-expenses/ · holidays/
+  media/ · users/ · admin/ · pantry/ · gym/ · expenses/ · split-expenses/ · holidays/ · weather/
                           ← Mismo patrón routes + service
   generated/
     prisma/               ← Cliente Prisma generado (no editar)
@@ -62,6 +62,10 @@ src/
     integration/          ← *.integration.test.ts (Supertest + Postgres real)
   test/                   ← Helpers de integración (createIntegrationApp, factories, resetTestDb…) y setupEnv.ts
 ```
+
+> **Clima:** el caché de `weather/` y el turno de una consulta por segundo a Nominatim viven en memoria y valen por proceso. Con más de una instancia de la API hay que moverlos a un almacén compartido para no superar la política de Nominatim.
+
+> **Código de barras:** el cupo de 10 consultas por minuto a Open Food Facts (`pantry/open-food-facts.service.ts`) también vive en memoria y vale por proceso; el caché de productos está en la base (`BarcodeCatalogEntry`) y sí es compartido. Ver [api/pantry-barcode.md](./api/pantry-barcode.md).
 
 ### Convenciones API
 
@@ -83,17 +87,18 @@ src/
   app/
     router.tsx
     routes.ts
-    navigation/
-      nav-registry.tsx
   features/               ← Dominio de producto (1 navbar item = 1 feature)
     home/ · auth/ · media/ · profile/ · admin/ · split-expenses/
   shared/
     api/                  ← client, fetcher, SWR_KEYS
-    ui/                   ← componentes cross-feature (UserAvatar, …)
+    navigation/           ← nav-registry (NAV_ICONS, MAIN_NAV_ITEMS, ADMIN_NAV_ITEMS) y NavItemConfig
+    ui/                   ← componentes cross-feature, planos (UserAvatar.tsx, …)
   core/
     auth/
     guards/
     providers/
+    serverWake/           ← ServerWakeNotice (aviso de cold start)
+    theme/
   layouts/
     RootLayout.tsx
     AuthLayout.tsx
@@ -103,15 +108,55 @@ src/
   main.tsx
 ```
 
-Cada feature usa `modules/<nombre>/` (sub-dominios), carpetas por componente/hook y barrels `index.ts`. Ver [web/new-feature.md](./web/new-feature.md).
+### Estructura de features (web y mobile)
+
+Una sola convención para los dos clientes. Web:
+
+```
+features/<name>/
+  <page>.page.tsx           punto de entrada (en general <page> = <name>; auth → login.page.tsx)
+  <name>.routes.tsx
+  index.ts                  único barrel: exporta la ruta (lo que importa app/routes.ts)
+  types.ts                  opcional
+  components/
+    Componente.tsx
+    Compuesto/              carpeta solo si tiene auxiliares (subcomponentes, .module.scss), sin index.ts
+      Compuesto.tsx
+      CompuestoParte.tsx
+  hooks/useX.ts             un hook por archivo, sin carpeta ni index
+  utils/x.ts
+  __tests__/                uno por feature (o por módulo)
+  modules/<m>/              solo con ≥ 2 subdominios con UI propia; adentro, la misma forma, sin index
+```
+
+Mobile:
+
+```
+features/<name>/
+  <Name>Screen.tsx
+  index.ts                  único barrel: exporta el Screen (lo que importa app/)
+  types.ts                  opcional
+  components/ hooks/ utils/ igual que web
+  X.test.tsx                al lado de X (nunca en app/)
+app/<ruta>.tsx              solo la ruta: importa @/features/<name>
+```
+
+- **Carpetas de un solo archivo:** `components/`, `hooks/` y `utils/` se crean al agregar el primer archivo de esa categoría y se usan aunque tengan uno solo (son categorías, no una carpeta por archivo). Un componente tiene carpeta propia solo si tiene auxiliares, y se importa como `./components/X/X`.
+- **Barrels:** solo en las fronteras que se consumen desde afuera: `features/<name>/`, `core/<area>/`, `shared/<area>/`, `layouts/` y `__tests__/helpers/`. En esas fronteras se permite un barrel de una línea, porque es la API del alias. Nunca dentro de `components/`, `hooks/`, `utils/` o `modules/`.
+- **Hooks:** un hook exportado por archivo. Las constantes atadas a un hook van en su archivo. Los hooks nunca van en `utils/`.
+- **Sin `modules/_shared`:** lo que comparten los módulos va en `components/`, `hooks/` o `utils/` de la raíz del feature.
+- **Tests:** cada cliente mantiene su ubicación (web en `__tests__/`, mobile al lado del archivo).
+- **Scaffolding:** `pnpm new-feature <name> [--web] [--mobile] [--path /x] [--register-route]`. Checklists: [web/new-feature.md](./web/new-feature.md) y [mobile/new-feature.md](./mobile/new-feature.md).
+
+`pnpm --filter <web|mobile> check-structure` (`scripts/check-structure.mjs`) hace cumplir estas reglas en `/verify` y en CI: falla con un `index.ts` fuera de las fronteras, un `modules/_shared`, un `modules/` con un solo módulo, una carpeta de componente con un solo archivo, un `use*.ts` de una feature fuera de `hooks/` o un `hooks.ts` en mobile.
 
 ### Convenciones Web
 
 | Elemento     | Convención                                                                 |
 | ------------ | -------------------------------------------------------------------------- |
 | Feature      | `<name>.page.tsx`, `<name>.routes.tsx` (navbar: `@omni/shared/navigation`) |
-| Componentes  | `Component/Component.tsx` + `index.ts`                                     |
-| Hooks        | `useX/useX.ts` + `index.ts`                                                |
+| Componentes  | `components/X.tsx`; `components/X/X.tsx` solo con auxiliares, sin index    |
+| Hooks        | `hooks/useX.ts`, sin index                                                 |
 | Imports      | `@/shared/api`, `@/core/auth`, `@/features/media`                          |
 | Dependencias | Un feature **no** importa otro feature                                     |
 
@@ -125,14 +170,14 @@ Cada feature usa `modules/<nombre>/` (sub-dominios), carpetas por componente/hoo
 
 ## Paralelo Web ↔ API
 
-| Concepto               | API                                                                                                   | Web                                                                                  |
-| ---------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Utilidades compartidas | `common/db/`, `common/utils/`                                                                         | `shared/api/`                                                                        |
-| Módulos de producto    | `auth/`, `admin/`, `media/`, `users/`, `pantry/`, `gym/`, `expenses/`, `split-expenses/`, `holidays/` | `features/auth/`, `features/media/`, `features/profile/`, `features/split-expenses/` |
-| Setup global           | `config.ts`, `main.ts`                                                                                | `core/`, `layouts/`, `main.tsx`                                                      |
-| Servicios              | `*.service.ts`                                                                                        | hooks en `features/*/modules/*/hooks/`                                               |
-| Validación             | `common/utils/validate.ts` (Zod middleware)                                                           | Schemas de `@omni/shared`                                                            |
-| Auth                   | Cookie **o** Bearer JWT                                                                               | Cookies `httpOnly` + `credentials: 'include'`                                        |
+| Concepto               | API                                                                                                               | Web                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Utilidades compartidas | `common/db/`, `common/utils/`                                                                                     | `shared/api/`                                                                        |
+| Módulos de producto    | `auth/`, `admin/`, `media/`, `users/`, `pantry/`, `gym/`, `expenses/`, `split-expenses/`, `holidays/`, `weather/` | `features/auth/`, `features/media/`, `features/profile/`, `features/split-expenses/` |
+| Setup global           | `config.ts`, `main.ts`                                                                                            | `core/`, `layouts/`, `main.tsx`                                                      |
+| Servicios              | `*.service.ts`                                                                                                    | hooks en `features/*/hooks/` o `features/*/modules/*/hooks/`                         |
+| Validación             | `common/utils/validate.ts` (Zod middleware)                                                                       | Schemas de `@omni/shared`                                                            |
+| Auth                   | Cookie **o** Bearer JWT                                                                                           | Cookies `httpOnly` + `credentials: 'include'`                                        |
 
 ### Auth dual (web + mobile)
 
@@ -167,7 +212,7 @@ Web ignora los tokens del body. Mobile los guarda en SecureStore, en una sola cl
 
 ## Shared UI (Web)
 
-Componentes usados en 2+ features → `shared/ui/<Component>/`.
+Componentes usados en 2+ features → `shared/ui/<Component>.tsx` (plano; carpeta solo con auxiliares, como `notify/` con su `.module.scss`).
 
 ---
 
@@ -178,13 +223,14 @@ Tipos, schemas y lógica pura compartidos entre API, Web y Mobile. Se importan p
 ```
 shared/src/
   auth/            ← ROLES/Role, schemas de login y alta de usuario, toSessionUser, tipos de sesión
-  users/           ← perfil, contraseña, preferencias
+  users/           ← perfil, contraseña, preferencias, foto de perfil (constantes y respuesta)
   media/           ← MediaItem, tipos y estados, schemas, tipos de TMDB
   gym/             ← planes y ejercicios
   expenses/        ← gastos personales y recordatorios
   split-expenses/  ← amigos, juntadas, balances y liquidaciones
   pantry/          ← alacena, lista de compras, alertas
   holidays/        ← tipos de efemérides
+  weather/         ← contrato del clima
   common/          ← paginación, cotas de entrada, fechas en la zona de la app, roundMoney
   theme/           ← tokens de color, medidas, contrastRatio
   navigation/      ← NAV_REGISTRY (navbar web, tabs y "Más" mobile)

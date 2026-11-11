@@ -1,6 +1,8 @@
 import { MantineProvider } from '@mantine/core';
 import { SWRConfig } from 'swr';
 
+import { THEME } from '@/theme/config';
+
 import type { ReactElement, ReactNode } from 'react';
 
 import { render, type RenderOptions } from '@testing-library/react';
@@ -14,7 +16,11 @@ export function renderWithProviders(ui: ReactElement, options?: RenderOptions & 
 
   function Wrapper({ children }: { children: ReactNode }) {
     const content = withSwr ? <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig> : children;
-    return <MantineProvider deduplicateInlineStyles>{content}</MantineProvider>;
+    return (
+      <MantineProvider theme={THEME} deduplicateInlineStyles>
+        {content}
+      </MantineProvider>
+    );
   }
 
   return render(ui, { wrapper: Wrapper, ...renderOptions });

@@ -1,1 +1,0 @@
-export { ProfileSettingsForm } from './components';

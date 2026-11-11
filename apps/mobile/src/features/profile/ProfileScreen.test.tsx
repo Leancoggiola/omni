@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import { RefreshControl } from 'react-native';
 
 import { ApiError } from '@omni/shared/api';
+import { LocalSessionClearError } from '@/core/auth';
 import { confirm, notifyError, notifySuccess, notifyWarning } from '@/shared/ui';
 
 import { ProfileScreen } from './ProfileScreen';
@@ -22,9 +23,12 @@ const mockBack = jest.fn();
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => ({
   ...jest.requireActual('@/test/themeMock'),
-  useColorSchemeControl: () => ({ clearOverride: mockClearOverride }),
+  useColorSchemeControl: () => ({ colorScheme: 'light', clearOverride: mockClearOverride }),
 }));
-jest.mock('@/core/auth', () => ({ useAuth: () => ({ logout: mockLogout, logoutAll: mockLogoutAll }) }));
+jest.mock('@/core/auth', () => ({
+  LocalSessionClearError: jest.requireActual('@/core/auth/AuthContext').LocalSessionClearError,
+  useAuth: () => ({ logout: mockLogout, logoutAll: mockLogoutAll }),
+}));
 jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn() }) }));
 jest.mock(
   'react-native-safe-area-context',
@@ -37,8 +41,13 @@ jest.mock('@/shared/ui', () => ({
   notifyError: jest.fn(),
   notifyWarning: jest.fn(),
 }));
-jest.mock('./hooks', () => ({
-  useProfile: () => mockProfile(),
+const mockRefreshHousehold = jest.fn();
+
+jest.mock('@/core/household', () => ({ useHousehold: () => ({ mutate: mockRefreshHousehold }) }));
+jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn() }));
+jest.mock('./components/HouseholdCard', () => ({ HouseholdCard: () => null }));
+jest.mock('./hooks/useProfile', () => ({ useProfile: () => mockProfile() }));
+jest.mock('./hooks/useAccountActions', () => ({
   useAccountActions: () => ({ changePassword: mockChangePassword, deleteAccount: mockDeleteAccount }),
 }));
 
@@ -73,6 +82,19 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+describe('ProfileScreen · textos en voseo', () => {
+  it('usa voseo en los subtítulos y muestra la tarjeta de foto de perfil', () => {
+    renderProfile();
+
+    expect(screen.getByText('Gestioná tu información personal y preferencias')).toBeTruthy();
+    expect(screen.getByText('Actualizá tus datos personales')).toBeTruthy();
+    expect(screen.getByText('Personalizá tu experiencia')).toBeTruthy();
+    expect(screen.getByText('Actualizá la contraseña de tu cuenta')).toBeTruthy();
+    expect(screen.getByText('Foto de perfil')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Cambiar foto' })).toBeTruthy();
+  });
+});
+
 describe('ProfileScreen · carga y error', () => {
   it('tirar para actualizar vuelve a pedir el perfil', async () => {
     mockRefresh.mockResolvedValue(undefined);
@@ -81,6 +103,7 @@ describe('ProfileScreen · carga y error', () => {
     await act(async () => screen.UNSAFE_getByType(RefreshControl).props.onRefresh());
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRefreshHousehold).toHaveBeenCalledTimes(1);
   });
 
   it('muestra el spinner mientras carga, sin formulario', () => {
@@ -88,7 +111,7 @@ describe('ProfileScreen · carga y error', () => {
 
     expect(screen.getByTestId('spinner')).toBeTruthy();
     expect(screen.queryByText('Información personal')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Volver' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Volver a Más' })).toBeTruthy();
   });
 
   it('un error de SWR sin datos se muestra como ErrorState con Reintentar, no como pantalla vacía', () => {
@@ -101,7 +124,7 @@ describe('ProfileScreen · carga y error', () => {
 
   it('el botón de volver regresa a la pantalla anterior', () => {
     renderProfile();
-    fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Volver a Más' }));
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
@@ -148,6 +171,39 @@ describe('ProfileScreen · información personal', () => {
     rerender(<ProfileScreen />);
 
     expect(screen.getByLabelText('Teléfono', { exact: false }).props.value).toBe('456');
+  });
+
+  it('muestra la fecha de nacimiento del perfil en dd/mm/aaaa', () => {
+    renderProfile({ profile: { ...PROFILE, birthDate: '1990-05-15T00:00:00.000Z' } });
+
+    expect(screen.getByLabelText('Fecha de nacimiento', { exact: false }).props.value).toBe('15/05/1990');
+  });
+
+  it('la fecha de nacimiento se enmascara y habilita Guardar solo si es válida', () => {
+    renderProfile();
+    const field = () => screen.getByLabelText('Fecha de nacimiento', { exact: false });
+
+    fireEvent.changeText(field(), '15051990');
+    expect(field().props.value).toBe('15/05/1990');
+    expect(screen.getByRole('button', { name: 'Guardar cambios', disabled: false })).toBeTruthy();
+
+    fireEvent.changeText(field(), '31/02/1990');
+    expect(screen.getByText('Ingresá una fecha válida (dd/mm/aaaa)')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Guardar cambios', disabled: true })).toBeTruthy();
+  });
+
+  it('guarda la fecha de nacimiento como medianoche UTC y puede borrarla', async () => {
+    mockUpdateProfile.mockResolvedValue({});
+    renderProfile({ profile: { ...PROFILE, birthDate: '1990-05-15T00:00:00.000Z' } });
+    const field = () => screen.getByLabelText('Fecha de nacimiento', { exact: false });
+
+    fireEvent.changeText(field(), '16/05/1990');
+    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Guardar cambios' })));
+    expect(mockUpdateProfile).toHaveBeenLastCalledWith({ birthDate: '1990-05-16T00:00:00.000Z' });
+
+    fireEvent.changeText(field(), '');
+    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Guardar cambios' })));
+    expect(mockUpdateProfile).toHaveBeenLastCalledWith({ birthDate: null });
   });
 
   it('guarda solo el teléfono (sin birthDate) y avisa con un toast', async () => {
@@ -296,7 +352,12 @@ describe('ProfileScreen · eliminar cuenta', () => {
     renderProfile();
     await act(async () => press());
 
-    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ title: 'Eliminar cuenta' }));
+    expect(confirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Eliminar cuenta',
+        description: expect.stringContaining('¿Seguro que querés eliminar'),
+      })
+    );
     expect(mockDeleteAccount).not.toHaveBeenCalled();
     expect(mockLogout).not.toHaveBeenCalled();
   });
@@ -364,6 +425,16 @@ describe('ProfileScreen · cerrar sesión en todos los dispositivos', () => {
     await act(async () => press());
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo');
+  });
+
+  it('si la API cerró las sesiones y falla el borrado local avisa sin reportarlo como error', async () => {
+    jest.mocked(confirm).mockResolvedValue(true);
+    mockLogoutAll.mockRejectedValue(new LocalSessionClearError(new Error('SecureStore')));
+    renderProfile();
+    await act(async () => press());
+
+    expect(notifyError).not.toHaveBeenCalled();
+    expect(notifyWarning).toHaveBeenCalledWith(expect.stringContaining('Se cerraron las sesiones'));
   });
 
   it('dos toques seguidos piden una sola confirmación', async () => {

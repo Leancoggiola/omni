@@ -12,6 +12,7 @@ export const API_PATHS = {
     preferences: '/api/users/preferences',
     password: '/api/users/password',
     account: '/api/users/account',
+    avatar: '/api/users/avatar',
   },
   admin: {
     users: '/api/admin/users',
@@ -32,9 +33,36 @@ export const API_PATHS = {
     gatheringExpenses: (gatheringId: string) => `/api/split-expenses/gatherings/${gatheringId}/expenses`,
     gatheringExpense: (gatheringId: string, expenseId: string) =>
       `/api/split-expenses/gatherings/${gatheringId}/expenses/${expenseId}`,
+    balance: '/api/split-expenses/balance',
+  },
+  household: {
+    current: '/api/household',
+    invite: '/api/household/invite',
+    invitePreview: '/api/household/invite/preview',
+    inviteAccept: '/api/household/invite/accept',
+    leave: '/api/household/leave',
+  },
+  pantry: {
+    summary: '/api/pantry/summary',
+    products: '/api/pantry/products',
+    productsSuggest: '/api/pantry/products/suggest',
+    productsScan: '/api/pantry/products/scan',
+    product: (id: string) => `/api/pantry/products/${id}`,
+    productStock: (id: string) => `/api/pantry/products/${id}/stock`,
+    barcode: (barcode: string) => `/api/pantry/barcodes/${barcode}`,
+    shoppingList: '/api/pantry/shopping-list',
+    shoppingListGenerate: '/api/pantry/shopping-list/generate',
+    shoppingListItems: '/api/pantry/shopping-list/items',
+    shoppingListItem: (id: string) => `/api/pantry/shopping-list/items/${id}`,
+    shoppingListItemComplete: (id: string) => `/api/pantry/shopping-list/items/${id}/complete`,
+    shoppingListItemUncheck: (id: string) => `/api/pantry/shopping-list/items/${id}/uncheck`,
+    shoppingListChecked: '/api/pantry/shopping-list/checked',
   },
   holidays: {
     today: '/api/holidays/today',
+  },
+  weather: {
+    current: '/api/weather/current',
   },
 } as const;
 

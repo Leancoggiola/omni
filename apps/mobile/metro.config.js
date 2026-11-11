@@ -13,4 +13,6 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   return context.resolveRequest(isSwr ? { ...context, isESMImport: false } : context, moduleName, platform);
 };
 
+config.resolver.useWatchman = !/[\\/]\.claude[\\/]worktrees[\\/]/.test(__dirname);
+
 module.exports = config;
