@@ -50,6 +50,29 @@ describe('fetchProduct', () => {
     expect(init?.signal).toBeInstanceOf(AbortSignal);
   });
 
+  it.each(['0012345678905', '00000000', '96385074'])('conserva los ceros y los dígitos de %s en la URL', async code => {
+    fetchMock.mockResolvedValue(Response.json(found()));
+
+    await fetchProduct(code, 'ana');
+
+    expect(new URL(String(fetchMock.mock.calls[0]?.[0])).pathname).toMatch(new RegExp(`/product/${code}\\.json$`));
+  });
+
+  it.each(['../../admin', '7790895000997?x=1', '012345678905', '', '7790895000997 '])(
+    'rechaza %j con 400 sin salir a la red ni gastar cupo',
+    async code => {
+      await expect(fetchProduct(code, 'ana')).rejects.toMatchObject({
+        status: 400,
+        message: 'El código de barras no es válido',
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      fetchMock.mockImplementation(async () => Response.json(found()));
+      for (let i = 0; i < 8; i += 1) await fetchProduct(BARCODE, 'ana');
+      expect(fetchMock).toHaveBeenCalledTimes(8);
+    }
+  );
+
   it('devuelve el producto con el nombre en castellano', async () => {
     fetchMock.mockResolvedValue(Response.json(found()));
 
