@@ -19,6 +19,8 @@ import { AuthBackground } from './components/AuthBackground';
 const LOGO_SIZE = 88;
 const AVATAR_SIZE = 80;
 const COMPACT_SIZE = 48;
+const INITIAL_FONT_SIZE = 28;
+const COMPACT_INITIAL_FONT_SIZE = 20;
 const FORM_MAX_WIDTH = 420;
 
 type FieldErrors = Partial<Record<'username' | 'password', string>>;
@@ -52,7 +54,12 @@ function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { us
         accessible={false}
         {...themedElevation('card', colorScheme)}
       >
-        <Paragraph fontFamily="$display" fontSize={compact ? 20 : 28} fontWeight="800" color="$primary">
+        <Paragraph
+          fontFamily="$display"
+          fontSize={compact ? COMPACT_INITIAL_FONT_SIZE : INITIAL_FONT_SIZE}
+          fontWeight="800"
+          color="$primary"
+        >
           {username.charAt(0).toUpperCase()}
         </Paragraph>
       </YStack>
