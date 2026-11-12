@@ -80,6 +80,11 @@ async function readCapability(): Promise<Capability | null> {
  *   último desbloqueo y se pierde al mandar la app a background (`sensitiveEpoch` cambia para avisar a los gates
  *   montados). Cualquier desbloqueo, activación o login con contraseña lo renueva.
  *
+ * Decisión de seguridad: el bloqueo depende de que haya biometría enrolada. Si desaparece (por ejemplo se borra la
+ * última huella, algo que el sistema solo permite tras autenticar al dueño del teléfono), `locked` pasa a `false` y la
+ * app abre sin desbloqueo, en vez de mostrar un botón biométrico que ya no puede funcionar. Nadie queda afuera y la
+ * sesión sigue siendo la que guardó el login con contraseña.
+ *
  * Los prompts son de a uno: pedir otro con la misma política de PIN mientras hay uno abierto devuelve el mismo
  * resultado; si la política difiere, espera a que termine el abierto y recién ahí abre el suyo, así un prompt solo
  * biométrico nunca se resuelve con el PIN del teléfono.

@@ -141,6 +141,17 @@ describe('BiometricsProvider · bloqueo de arranque', () => {
     expect(result.current).toMatchObject({ enabled: false, locked: false });
   });
 
+  it('si con la app bloqueada desaparece la biometría enrolada, el bloqueo se levanta (decisión documentada)', async () => {
+    store.set(PREFERENCE_KEY, '1');
+    const { result } = await renderBiometrics();
+    expect(result.current.locked).toBe(true);
+
+    isEnrolledAsync.mockResolvedValue(false);
+    await goTo('active');
+
+    await waitFor(() => expect(result.current).toMatchObject({ available: false, enabled: false, locked: false }));
+  });
+
   it('unlock con éxito libera el bloqueo, pide solo biometría (sin PIN) y renueva el desbloqueo sensible', async () => {
     store.set(PREFERENCE_KEY, '1');
     const { result } = await renderBiometrics();
