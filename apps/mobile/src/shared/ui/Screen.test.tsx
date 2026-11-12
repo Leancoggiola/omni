@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
+import { Fab } from './button/Fab';
 import { Screen } from './Screen';
 
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
@@ -45,5 +46,22 @@ describe('Screen', () => {
     );
 
     expect(screen.UNSAFE_getByProps({ importantForAccessibility: 'no-hide-descendants' })).toBeTruthy();
+  });
+
+  it('ubica el Fab sobre la tab bar en una tab y sobre la barra del sistema (más 16) en una ruta de stack', () => {
+    const { rerender } = render(
+      <Screen>
+        <Fab onPress={jest.fn()} accessibilityLabel="Agregar" />
+      </Screen>
+    );
+    expect(screen.getByRole('button', { name: 'Agregar' })).toHaveProp('bottom', 72 + 24 + 16);
+
+    rerender(
+      <Screen insetBottom>
+        <Fab onPress={jest.fn()} label="Crear usuario" />
+      </Screen>
+    );
+    expect(screen.getByRole('button', { name: 'Crear usuario' })).toHaveProp('bottom', 20 + 16);
+    expect(screen.getByText('Crear usuario')).toBeTruthy();
   });
 });
