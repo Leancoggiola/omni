@@ -22,3 +22,15 @@ export function saveLastWeather(username: string, weather: CurrentWeather): void
     ignoreError();
   }
 }
+
+/**
+ * Borra el respaldo de la persona al cerrar o perder la sesión: guarda la ciudad, un dato derivado de su ubicación,
+ * y no debe quedar en un navegador compartido.
+ */
+export function clearLastWeather(username: string): void {
+  try {
+    localStorage.removeItem(storageKey(username));
+  } catch {
+    ignoreError();
+  }
+}

@@ -27,3 +27,15 @@ export async function saveLastWeather(username: string, weather: CurrentWeather)
     ignoreError();
   }
 }
+
+/**
+ * Borra el respaldo de la persona al cerrar o perder la sesión: guarda la ciudad, un dato derivado de su ubicación,
+ * y no debe quedar en el dispositivo. Un fallo de SecureStore se ignora: no puede trabar el cierre de sesión.
+ */
+export async function clearLastWeather(username: string): Promise<void> {
+  try {
+    await SecureStore.deleteItemAsync(storageKey(username));
+  } catch {
+    ignoreError();
+  }
+}

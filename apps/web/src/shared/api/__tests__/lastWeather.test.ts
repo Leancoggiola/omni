@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { readLastWeather, saveLastWeather } from '../utils/lastWeather';
+import { clearLastWeather, readLastWeather, saveLastWeather } from '../lastWeather';
 
 import type { CurrentWeather } from '@omni/shared/weather';
 
@@ -40,6 +40,22 @@ describe('lastWeather', () => {
     saveLastWeather('maria', WEATHER);
     vi.setSystemTime(new Date('2026-11-08T19:30:00.000Z'));
     expect(readLastWeather('maria')).toBeNull();
+  });
+
+  it('clearLastWeather borra solo el de esa persona', () => {
+    saveLastWeather('maria', WEATHER);
+    saveLastWeather('juan', WEATHER);
+    clearLastWeather('maria');
+    expect(readLastWeather('maria')).toBeNull();
+    expect(readLastWeather('juan')).not.toBeNull();
+  });
+
+  it('si el storage falla al borrar no lanza', () => {
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('bloqueado');
+    });
+    expect(() => clearLastWeather('maria')).not.toThrow();
+    vi.restoreAllMocks();
   });
 
   it('si el storage falla devuelve null y no lanza', () => {

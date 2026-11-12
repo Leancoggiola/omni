@@ -20,12 +20,10 @@ jest.mock('@/core/auth', () => ({ useAuth: () => ({ user: { username: 'maria' } 
 jest.mock('@/shared/api', () => ({
   api: { post: (...args: unknown[]) => mockPost(...args) },
   API_KEYS: { weather: { current: '/api/weather/current' } },
-}));
-jest.mock('./useDeviceLocation', () => ({ useDeviceLocation: () => mockUseDeviceLocation() }));
-jest.mock('../utils/lastWeather', () => ({
   readLastWeather: (...args: unknown[]) => mockReadLastWeather(...args),
   saveLastWeather: (...args: unknown[]) => mockSaveLastWeather(...args),
 }));
+jest.mock('./useDeviceLocation', () => ({ useDeviceLocation: () => mockUseDeviceLocation() }));
 
 const WEATHER: CurrentWeather = {
   city: 'Rosario',

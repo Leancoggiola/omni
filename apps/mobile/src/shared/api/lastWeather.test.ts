@@ -1,4 +1,4 @@
-import { readLastWeather, saveLastWeather } from './lastWeather';
+import { clearLastWeather, readLastWeather, saveLastWeather } from './lastWeather';
 
 import type { CurrentWeather } from '@omni/shared/weather';
 
@@ -42,6 +42,19 @@ describe('lastWeather', () => {
     await saveLastWeather('maria', WEATHER);
     jest.setSystemTime(new Date('2026-11-08T19:30:00.000Z'));
     expect(await readLastWeather('maria')).toBeNull();
+  });
+
+  it('clearLastWeather borra solo el de esa persona', async () => {
+    await saveLastWeather('maria', WEATHER);
+    await saveLastWeather('juan', WEATHER);
+    await clearLastWeather('maria');
+    expect(await readLastWeather('maria')).toBeNull();
+    expect(await readLastWeather('juan')).not.toBeNull();
+  });
+
+  it('si SecureStore falla al borrar no lanza', async () => {
+    secure.deleteItemAsync.mockRejectedValueOnce(new Error('boom'));
+    await expect(clearLastWeather('maria')).resolves.toBeUndefined();
   });
 
   it('si SecureStore falla no lanza', async () => {

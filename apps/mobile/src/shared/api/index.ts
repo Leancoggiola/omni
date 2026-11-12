@@ -3,4 +3,5 @@ export { api, fetcher, ApiError, clearOnAuthFailure, logoutSession, setOnAuthFai
 export { clearTokens, getAccessToken, setTokens } from './tokenStorage';
 export { getBiometricEnabled, setBiometricEnabled } from './biometricPreference';
 export { clearRememberedUser, getRememberedUser, setRememberedUser } from './rememberedUser';
+export { clearLastWeather, readLastWeather, saveLastWeather } from './lastWeather';
 export { ensureServerAwake, subscribeServerWake } from './serverWake';

@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 
 import { useAuth } from '@/core/auth';
-import { api, API_KEYS } from '@/shared/api';
+import { api, API_KEYS, readLastWeather, saveLastWeather } from '@/shared/api';
+
 import { WEATHER_REFRESH_MS } from '@omni/shared/weather';
 
-import { readLastWeather, saveLastWeather } from '../utils/lastWeather';
 import { useDeviceLocation } from './useDeviceLocation';
 
 import type { CurrentWeather } from '@omni/shared/weather';
