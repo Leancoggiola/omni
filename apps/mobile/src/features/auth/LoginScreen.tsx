@@ -152,8 +152,15 @@ function OrDivider() {
  * principal (filled, de 56), un separador "o" y debajo el formulario con contraseña, cuyo "Ingresar" pasa a outline.
  * La biometría solo libera la sesión que ya está en SecureStore; la alternativa (cancelar, fallar o no querer usarla)
  * es la contraseña, que sí autentica contra el servidor y también libera el bloqueo. Sin sesión guardada (después de
- * cerrar sesión) no hay nada que liberar y el botón no aparece. Con el bloqueo puesto, "Ingresar con otro usuario"
- * cierra antes la sesión guardada (si no, saltearía la biometría) y desactiva la biometría de este dispositivo.
+ * cerrar sesión) no hay nada que liberar y el botón no aparece. Cancelar el prompt no avisa nada (el botón y la
+ * contraseña siguen ahí); una falla (huella no reconocida, bloqueo por intentos) avisa y manda a la contraseña; si
+ * funciona, `AuthGate` redirige solo al ver `locked` en false.
+ *
+ * "Ingresar con otro usuario" siempre desactiva la biometría de este dispositivo (la preferencia es por dispositivo y
+ * la persona siguiente no debe heredarla; si quiere, la vuelve a activar desde Perfil). Con el bloqueo puesto, además,
+ * cierra antes la sesión guardada: si no, salir de esta pantalla sin biometría abriría la app con la sesión de la
+ * persona anterior. Un fallo al borrar los datos locales, o al desactivar la biometría, no frena el cambio de usuario
+ * (la sesión ya salió de la UI): se avisa.
  */
 export function LoginScreen() {
   const { login, logout, isAuthenticated } = useAuth();
@@ -197,11 +204,6 @@ export function LoginScreen() {
     setRemembered(null);
   };
 
-  /**
-   * Con el bloqueo puesto la sesión guardada sigue viva: se cierra antes de olvidar al usuario, porque si no, salir de
-   * esta pantalla sin biometría abriría la app con la sesión de la persona anterior. Un fallo al borrar los datos
-   * locales no frena el cambio de usuario (la sesión ya salió de la UI): se avisa.
-   */
   const forgetUser = async () => {
     if (showBiometric) {
       setLoading(true);
@@ -267,10 +269,6 @@ export function LoginScreen() {
     }
   };
 
-  /**
-   * Cancelar no avisa nada: el botón y la contraseña siguen ahí. Una falla (huella no reconocida, bloqueo por
-   * intentos) avisa y manda a la contraseña. Si funciona, `AuthGate` redirige solo al ver `locked` en false.
-   */
   const onBiometric = async () => {
     if (submitting.current) return;
     submitting.current = true;

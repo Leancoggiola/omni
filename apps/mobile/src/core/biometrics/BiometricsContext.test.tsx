@@ -109,6 +109,15 @@ describe('BiometricsProvider · disponibilidad', () => {
     expect(result.current).toMatchObject({ available: true, enabled: true, locked: true });
   });
 
+  it('si la lectura falla en el arranque la reintenta una vez antes de rendirse', async () => {
+    store.set(PREFERENCE_KEY, '1');
+    hasHardwareAsync.mockRejectedValueOnce(new Error('boom'));
+    const { result } = await renderBiometrics();
+
+    expect(hasHardwareAsync).toHaveBeenCalledTimes(2);
+    expect(result.current).toMatchObject({ available: true, enabled: true, locked: true });
+  });
+
   it('desuscribe el listener de AppState al desmontar', async () => {
     const { unmount } = await renderBiometrics();
     unmount();
@@ -364,6 +373,22 @@ describe('BiometricsProvider · módulos sensibles', () => {
   it('al arrancar no hay desbloqueo vigente', async () => {
     const { result } = await renderBiometrics();
 
+    expect(result.current.isSensitiveUnlocked()).toBe(false);
+  });
+
+  it('si la app pasa por background mientras el prompt está abierto, el éxito no renueva el desbloqueo', async () => {
+    let finish!: () => void;
+    authenticateAsync.mockReturnValue(new Promise(resolve => (finish = () => resolve({ success: true }))));
+    const { result } = await renderBiometrics();
+
+    let pendingResult!: Promise<string>;
+    act(() => {
+      pendingResult = result.current.authenticateSensitive();
+    });
+    await goTo('background');
+    await act(async () => finish());
+
+    expect(await pendingResult).toBe('success');
     expect(result.current.isSensitiveUnlocked()).toBe(false);
   });
 

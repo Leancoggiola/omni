@@ -80,6 +80,10 @@ async function readCapability(): Promise<Capability | null> {
  *   último desbloqueo y se pierde al mandar la app a background (`sensitiveEpoch` cambia para avisar a los gates
  *   montados). Cualquier desbloqueo, activación o login con contraseña lo renueva.
  *
+ * Decisión de seguridad (arranque): si la lectura del sistema falla, se reintenta una vez; si vuelve a fallar cuenta
+ * como "sin biometría" y la app abre sin bloqueo, porque un error de la librería no debe dejar a nadie afuera. Al volver
+ * a primer plano un fallo, en cambio, conserva la capacidad anterior.
+ *
  * Decisión de seguridad: el bloqueo depende de que haya biometría enrolada. Si desaparece (por ejemplo se borra la
  * última huella, algo que el sistema solo permite tras autenticar al dueño del teléfono), `locked` pasa a `false` y la
  * app abre sin desbloqueo, en vez de mostrar un botón biométrico que ya no puede funcionar. Nadie queda afuera y la
@@ -87,7 +91,14 @@ async function readCapability(): Promise<Capability | null> {
  *
  * Los prompts son de a uno: pedir otro con la misma política de PIN mientras hay uno abierto devuelve el mismo
  * resultado; si la política difiere, espera a que termine el abierto y recién ahí abre el suyo, así un prompt solo
- * biométrico nunca se resuelve con el PIN del teléfono.
+ * biométrico nunca se resuelve con el PIN del teléfono. `disableDeviceFallback` deja solo la biometría (la alternativa
+ * en el login es el campo de contraseña de la cuenta); en los módulos sensibles se permite el PIN o patrón del
+ * teléfono, que ahí hace de alternativa.
+ *
+ * Si la app pasa por background mientras hay un prompt abierto, un éxito posterior no renueva el desbloqueo sensible
+ * (el prompt empezó en una época anterior): hay que volver a pedirlo. `enable` pide una verificación biométrica antes de
+ * guardar la preferencia, así no queda activada una biometría que no funciona, y como la persona acaba de verificarse
+ * no se bloquea la app en esta sesión.
  */
 export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
   const [ready, setReady] = useState(false);
@@ -96,12 +107,14 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
   const [lockedAtStart, setLockedAtStart] = useState(false);
   const [sensitiveEpoch, setSensitiveEpoch] = useState(0);
   const unlockedAt = useRef<number | null>(null);
+  const epochRef = useRef(0);
   const pending = useRef<{ promise: Promise<BiometricResult>; allowDeviceFallback: boolean } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [next, saved] = await Promise.all([readCapability(), getBiometricEnabled()]);
+      const [first, saved] = await Promise.all([readCapability(), getBiometricEnabled()]);
+      const next = first ?? (await readCapability());
       if (cancelled) return;
       const initial = next ?? NO_CAPABILITY;
       setCapability(initial);
@@ -113,6 +126,7 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'background') {
         unlockedAt.current = null;
+        epochRef.current += 1;
         setSensitiveEpoch(epoch => epoch + 1);
       } else if (state === 'active') {
         void readCapability().then(next => {
@@ -132,10 +146,6 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
   const locked = lockedAtStart && enabled;
   const noun = biometricNoun(kind);
 
-  /**
-   * `disableDeviceFallback` deja solo la biometría (la alternativa en el login es el campo de contraseña de la
-   * cuenta); en los módulos sensibles se permite el PIN o patrón del teléfono, que ahí hace de alternativa.
-   */
   const prompt = useCallback(async (promptMessage: string, allowDeviceFallback: boolean): Promise<BiometricResult> => {
     while (pending.current) {
       const current = pending.current;
@@ -162,24 +172,30 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
     setLockedAtStart(false);
   }, []);
 
+  const renewSensitive = useCallback((epochAtStart: number) => {
+    if (epochRef.current === epochAtStart) unlockedAt.current = Date.now();
+  }, []);
+
   const unlock = useCallback(async () => {
+    const epochAtStart = epochRef.current;
     const result = await prompt('Ingresá a Omni', false);
-    if (result === 'success') markUnlocked();
+    if (result === 'success') {
+      renewSensitive(epochAtStart);
+      setLockedAtStart(false);
+    }
     return result;
-  }, [prompt, markUnlocked]);
+  }, [prompt, renewSensitive]);
 
   const authenticateSensitive = useCallback(async () => {
+    const epochAtStart = epochRef.current;
     const result = await prompt('Desbloqueá este módulo', true);
-    if (result === 'success') unlockedAt.current = Date.now();
+    if (result === 'success') renewSensitive(epochAtStart);
     return result;
-  }, [prompt]);
+  }, [prompt, renewSensitive]);
 
-  /**
-   * Pide una verificación biométrica antes de guardar la preferencia, así no queda activada una biometría que no
-   * funciona. Como la persona acaba de verificarse, no se bloquea la app en esta sesión.
-   */
   const enable = useCallback(async () => {
     if (!available) return 'failed';
+    const epochAtStart = epochRef.current;
     const result = await prompt(`Activá el ingreso con ${noun}`, false);
     if (result !== 'success') return result;
     try {
@@ -188,9 +204,9 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
       return 'failed';
     }
     setPreference(true);
-    unlockedAt.current = Date.now();
+    renewSensitive(epochAtStart);
     return 'success';
-  }, [available, noun, prompt]);
+  }, [available, noun, prompt, renewSensitive]);
 
   const disable = useCallback(async () => {
     await setBiometricEnabled(false);

@@ -1,10 +1,3 @@
-/**
- * Doble de `expo-local-authentication` para tests de biometría (sin hardware real). Se carga con
- * `jest.mock('expo-local-authentication', () => jest.requireActual('@/test/localAuthenticationMock'))`. Cada mock
- * arranca como un teléfono con huella enrolada que acepta la autenticación; `resetLocalAuthentication` lo restablece
- * y cada test pisa lo que necesita (`hasHardwareAsync`, `isEnrolledAsync`, `supportedAuthenticationTypesAsync`,
- * `authenticateAsync`).
- */
 export enum AuthenticationType {
   FINGERPRINT = 1,
   FACIAL_RECOGNITION = 2,
@@ -19,6 +12,12 @@ export const authenticateAsync = jest.fn<
   [Record<string, unknown>?]
 >();
 
+/**
+ * Deja el doble de `expo-local-authentication` como un teléfono con huella enrolada que acepta la autenticación (sin
+ * hardware real). Se carga con `jest.mock('expo-local-authentication', () =>
+ * jest.requireActual('@/test/localAuthenticationMock'))` y cada test pisa lo que necesita (`hasHardwareAsync`,
+ * `isEnrolledAsync`, `supportedAuthenticationTypesAsync`, `authenticateAsync`).
+ */
 export function resetLocalAuthentication() {
   hasHardwareAsync.mockReset().mockResolvedValue(true);
   isEnrolledAsync.mockReset().mockResolvedValue(true);
