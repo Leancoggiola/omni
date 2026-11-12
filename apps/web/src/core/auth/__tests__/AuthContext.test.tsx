@@ -2,14 +2,26 @@ import { SWRConfig, useSWRConfig } from 'swr';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 
 import { getSessionColorScheme, setSessionColorScheme } from '@/core/theme/sessionColorScheme';
-import { api, ApiError, SWR_KEYS } from '@/shared/api';
+import { api, ApiError, readLastWeather, saveLastWeather, SWR_KEYS } from '@/shared/api';
 
 import { AuthProvider, useAuth } from '../AuthContext';
 
+import type { CurrentWeather } from '@omni/shared/weather';
 import type { ReactNode } from 'react';
 
 import { SWR_RETRY_OPTIONS } from '@omni/shared/api';
 import { act, renderHook, waitFor } from '@testing-library/react';
+
+const WEATHER: CurrentWeather = {
+  city: 'Rosario',
+  temperature: 20,
+  condition: 'clear',
+  isDay: true,
+  min: 12,
+  max: 24,
+  updatedAt: new Date().toISOString(),
+  stale: false,
+};
 
 const failure = vi.hoisted(() => ({ callback: null as (() => void) | null }));
 
@@ -127,6 +139,31 @@ describe('AuthProvider: sesión local y caché de SWR', () => {
 
     expect(result.current.swr.cache.get(MEDIA_KEY)?.data).toBeUndefined();
     await waitFor(() => expect(result.current.auth.user).toBeNull());
+  });
+
+  it('logout borra el respaldo del clima de la persona y no el de otra', async () => {
+    profileFetcher.mockResolvedValue({ user: { id: 'u1', username: 'maria', theme: 'light' } });
+    saveLastWeather('maria', WEATHER);
+    saveLastWeather('juan', WEATHER);
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.auth.user).not.toBeNull());
+
+    await act(() => result.current.auth.logout());
+
+    expect(readLastWeather('maria')).toBeNull();
+    expect(readLastWeather('juan')).not.toBeNull();
+  });
+
+  it('un fallo de auth también borra el respaldo del clima', async () => {
+    profileFetcher.mockResolvedValue({ user: { id: 'u1', username: 'maria', theme: 'light' } });
+    saveLastWeather('maria', WEATHER);
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.auth.user).not.toBeNull());
+    await waitFor(() => expect(failure.callback).not.toBeNull());
+
+    await act(async () => failure.callback?.());
+
+    await waitFor(() => expect(readLastWeather('maria')).toBeNull());
   });
 
   it('login vacía la caché del usuario anterior y guarda solo { user }, sin los tokens del body', async () => {

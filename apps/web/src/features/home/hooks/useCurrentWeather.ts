@@ -2,9 +2,8 @@ import { useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 
 import { useAuth } from '@/core/auth';
-import { api, SWR_KEYS } from '@/shared/api';
+import { api, readLastWeather, saveLastWeather, SWR_KEYS } from '@/shared/api';
 
-import { readLastWeather, saveLastWeather } from '../utils/lastWeather';
 import { useDeviceLocation } from './useDeviceLocation';
 
 import type { CurrentWeather } from '@omni/shared/weather';

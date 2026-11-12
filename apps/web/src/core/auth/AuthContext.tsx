@@ -1,9 +1,9 @@
-import { createContext, FC, PropsWithChildren, useCallback, useContext, useEffect, useMemo } from 'react';
+import { createContext, FC, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { useSWRConfig } from 'swr';
 import useSWRImmutable from 'swr/immutable';
 
 import { clearSessionColorScheme } from '@/core/theme/sessionColorScheme';
-import { api, clearOnAuthFailure, setOnAuthFailure, SWR_KEYS } from '@/shared/api';
+import { api, clearLastWeather, clearOnAuthFailure, setOnAuthFailure, SWR_KEYS } from '@/shared/api';
 
 import type { AuthTokensResponse, ProfileResponse, SessionUser } from '@omni/shared/auth';
 
@@ -35,13 +35,24 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const { mutate: globalMutate } = useSWRConfig();
 
   const user = data?.user ?? null;
+  const username = user?.username ?? null;
+  const usernameRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    usernameRef.current = username;
+  }, [username]);
 
   /**
    * Vacía toda la caché de SWR, la de sesión incluida: `useSWRImmutable` no revalida, así que lo que quede
-   * se le mostraría al próximo usuario de la pestaña.
+   * se le mostraría al próximo usuario de la pestaña. Después borra el respaldo del clima de la persona (guarda
+   * su ciudad en `localStorage`): va al final porque SWR descarta las respuestas en vuelo al vaciar la caché, y así
+   * un clima que llega durante el cierre no lo vuelve a guardar. Se lee del ref porque este callback también corre
+   * al vencer la sesión.
    */
   const clearSession = useCallback(async () => {
+    const current = usernameRef.current;
     await globalMutate(() => true, undefined, { revalidate: false });
+    if (current) clearLastWeather(current);
   }, [globalMutate]);
 
   /**
