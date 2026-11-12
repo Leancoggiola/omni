@@ -14,7 +14,7 @@ export const usernameSchema = z
   .transform(val => val.toLowerCase());
 
 export const loginSchema = z.object({
-  username: usernameSchema,
+  username: z.string().trim().pipe(usernameSchema),
   password: z.string().min(1, { error: 'La contraseña es requerida' }),
 });
 export type LoginPayload = z.infer<typeof loginSchema>;
