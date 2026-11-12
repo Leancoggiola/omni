@@ -18,7 +18,8 @@ export class MediaPage {
   readonly searchEmptyText = () => this.page.getByText('No se encontraron resultados');
   readonly noResultsText = () => this.page.getByText('No hay resultados');
   readonly emptyListText = () => this.page.getByText('Tu lista está vacía');
-  readonly posterOf = (title: string) => this.page.getByRole('button', { name: title, exact: true });
+  readonly posterOf = (title: string) =>
+    this.page.getByRole('button', { name: `Ampliar póster de ${title}`, exact: true });
 
   async goto() {
     await this.page.goto('/media');
