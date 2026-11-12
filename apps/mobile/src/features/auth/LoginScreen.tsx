@@ -4,12 +4,22 @@ import { RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, type TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Paragraph, YStack, type TamaguiElement } from 'tamagui';
+import { Paragraph, XStack, YStack, type TamaguiElement } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
+import { biometricIcon, useBiometrics } from '@/core/biometrics';
 import { useColorSchemeControl } from '@/core/theme';
 import { clearRememberedUser, ensureServerAwake, getRememberedUser, setRememberedUser } from '@/shared/api';
-import { Banner, Button, DisplayTitle, getErrorMessage, PasswordField, TextField, useKeyboardInset } from '@/shared/ui';
+import {
+  Banner,
+  Button,
+  DisplayTitle,
+  getErrorMessage,
+  notifyWarning,
+  PasswordField,
+  TextField,
+  useKeyboardInset,
+} from '@/shared/ui';
 import { themedElevation } from '@/theme/elevation';
 
 import LOGO from '../../../assets/images/splash-icon.png';
@@ -110,6 +120,19 @@ function DefaultHeader({ colorScheme, compact }: HeaderProps) {
   );
 }
 
+/** Separador "o" entre el ingreso biométrico y el formulario con contraseña. */
+function OrDivider() {
+  return (
+    <XStack alignItems="center" gap={SPACING.sm}>
+      <YStack flex={1} height={1} backgroundColor="$borderSubtle" />
+      <Paragraph color="$dimmed" fontSize={14} lineHeight={20}>
+        o
+      </Paragraph>
+      <YStack flex={1} height={1} backgroundColor="$borderSubtle" />
+    </XStack>
+  );
+}
+
 /**
  * Login v2: logo y título arriba y el form en una hoja inferior de radio 32 que sube con el teclado
  * (`useKeyboardInset`); con el teclado abierto el hero se compacta (logo o avatar de 48 y título en una línea) y la
@@ -123,9 +146,18 @@ function DefaultHeader({ colorScheme, compact }: HeaderProps) {
  * "Ingresar con otro usuario" lo olvida, vuelve al formulario completo y deja el foco en Usuario. Si el usuario
  * guardado no pasa la validación, también se vuelve al formulario completo para mostrar el error. Cerrar sesión no lo
  * borra.
+ *
+ * Biometría (#173): con la biometría activada la app abre bloqueada (`useBiometrics().locked`); si además hay una
+ * sesión guardada, `AuthGate` deja acá a la persona y la hoja suma "Ingresar con huella / rostro" como acción
+ * principal (filled, de 56), un separador "o" y debajo el formulario con contraseña, cuyo "Ingresar" pasa a outline.
+ * La biometría solo libera la sesión que ya está en SecureStore; la alternativa (cancelar, fallar o no querer usarla)
+ * es la contraseña, que sí autentica contra el servidor y también libera el bloqueo. Sin sesión guardada (después de
+ * cerrar sesión) no hay nada que liberar y el botón no aparece. Con el bloqueo puesto, "Ingresar con otro usuario"
+ * cierra antes la sesión guardada (si no, saltearía la biometría) y desactiva la biometría de este dispositivo.
  */
 export function LoginScreen() {
-  const { login } = useAuth();
+  const { login, logout, isAuthenticated } = useAuth();
+  const { locked, kind, noun, unlock, markUnlocked, disable: disableBiometrics } = useBiometrics();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorSchemeControl();
   const keyboardInset = useKeyboardInset();
@@ -137,9 +169,11 @@ export function LoginScreen() {
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [remembered, setRemembered] = useState<string | null | undefined>(undefined);
   const submitting = useRef(false);
+  const showBiometric = isAuthenticated && locked;
 
   useEffect(() => {
     void ensureServerAwake();
@@ -163,7 +197,23 @@ export function LoginScreen() {
     setRemembered(null);
   };
 
-  const forgetUser = () => {
+  /**
+   * Con el bloqueo puesto la sesión guardada sigue viva: se cierra antes de olvidar al usuario, porque si no, salir de
+   * esta pantalla sin biometría abriría la app con la sesión de la persona anterior. Un fallo al borrar los datos
+   * locales no frena el cambio de usuario (la sesión ya salió de la UI): se avisa.
+   */
+  const forgetUser = async () => {
+    if (showBiometric) {
+      setLoading(true);
+      try {
+        await logout();
+      } catch {
+        notifyWarning('No se pudieron borrar los datos de la sesión anterior de este celular.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    void disableBiometrics().catch(() => undefined);
     forgetInvalidUser();
     setUsername('');
     setPassword('');
@@ -179,8 +229,8 @@ export function LoginScreen() {
   }, [remembered]);
 
   useEffect(() => {
-    if (error && !loading) (passwordRef.current as TextInput | null)?.focus();
-  }, [error, loading]);
+    if (error && !loading && !unlocking) (passwordRef.current as TextInput | null)?.focus();
+  }, [error, loading, unlocking]);
 
   const onSubmit = async () => {
     if (submitting.current) return;
@@ -204,11 +254,30 @@ export function LoginScreen() {
     try {
       await login(parsed.data.username, parsed.data.password);
       await setRememberedUser(parsed.data.username);
+      markUnlocked();
     } catch (err) {
       setError(getErrorMessage(err, 'Error al iniciar sesión'));
     } finally {
       submitting.current = false;
       setLoading(false);
+    }
+  };
+
+  /**
+   * Cancelar no avisa nada: el botón y la contraseña siguen ahí. Una falla (huella no reconocida, bloqueo por
+   * intentos) avisa y manda a la contraseña. Si funciona, `AuthGate` redirige solo al ver `locked` en false.
+   */
+  const onBiometric = async () => {
+    if (submitting.current) return;
+    submitting.current = true;
+    setUnlocking(true);
+    setError(null);
+    try {
+      const result = await unlock();
+      if (result === 'failed') setError(`No se pudo verificar tu ${noun}. Ingresá con tu contraseña.`);
+    } finally {
+      submitting.current = false;
+      setUnlocking(false);
     }
   };
 
@@ -248,6 +317,22 @@ export function LoginScreen() {
 
                   {error ? <Banner color="destructive">{error}</Banner> : null}
 
+                  {showBiometric ? (
+                    <>
+                      <Button
+                        size="xl"
+                        fullWidth
+                        leftSection={biometricIcon(kind)}
+                        loading={unlocking}
+                        disabled={loading}
+                        onPress={() => void onBiometric()}
+                      >
+                        {`Ingresar con ${noun}`}
+                      </Button>
+                      <OrDivider />
+                    </>
+                  ) : null}
+
                   <YStack gap={SPACING.md}>
                     {remembered ? null : (
                       <TextField
@@ -260,7 +345,7 @@ export function LoginScreen() {
                           setFieldErrors(prev => ({ ...prev, username: undefined }));
                         }}
                         error={fieldErrors.username}
-                        disabled={loading}
+                        disabled={loading || unlocking}
                         autoCapitalize="none"
                         autoCorrect={false}
                         autoComplete="username"
@@ -282,18 +367,31 @@ export function LoginScreen() {
                         setFieldErrors(prev => ({ ...prev, password: undefined }));
                       }}
                       error={fieldErrors.password}
-                      disabled={loading}
+                      disabled={loading || unlocking}
                       autoComplete="current-password"
                       returnKeyType="go"
                       enterKeyHint="go"
                       submitBehavior="submit"
                       onSubmitEditing={() => void onSubmit()}
                     />
-                    <Button size="xl" fullWidth loading={loading} onPress={() => void onSubmit()}>
+                    <Button
+                      size="xl"
+                      fullWidth
+                      variant={showBiometric ? 'outline' : 'filled'}
+                      loading={loading}
+                      disabled={unlocking}
+                      onPress={() => void onSubmit()}
+                    >
                       Ingresar
                     </Button>
                     {remembered ? (
-                      <Button variant="subtle" size="sm" alignSelf="center" disabled={loading} onPress={forgetUser}>
+                      <Button
+                        variant="subtle"
+                        size="sm"
+                        alignSelf="center"
+                        disabled={loading || unlocking}
+                        onPress={() => void forgetUser()}
+                      >
                         Ingresar con otro usuario
                       </Button>
                     ) : null}
