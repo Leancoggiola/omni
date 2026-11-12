@@ -68,6 +68,25 @@ describe('useDeviceLocation', () => {
     await waitFor(() => expect(result.current.location.status).toBe('unavailable'));
   });
 
+  it('si el GPS no responde en 10 s queda unavailable y deja volver a pedir el permiso', async () => {
+    jest.useFakeTimers();
+    try {
+      mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(true));
+      mocked.getCurrentPositionAsync.mockReturnValue(new Promise(() => {}));
+      const { result } = renderHook(() => useDeviceLocation());
+      await act(async () => {});
+      expect(result.current.location).toEqual({ status: 'locating' });
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(10_000);
+      });
+
+      expect(result.current.location).toEqual({ status: 'unavailable', canAskAgain: true });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('request vuelve a pedir el permiso', async () => {
     mocked.requestForegroundPermissionsAsync.mockResolvedValueOnce(permission(false));
     const { result } = renderHook(() => useDeviceLocation());

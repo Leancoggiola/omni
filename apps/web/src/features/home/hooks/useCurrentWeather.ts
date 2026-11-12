@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 
 import { useAuth } from '@/core/auth';
@@ -25,7 +25,7 @@ export function useCurrentWeather() {
   const { user } = useAuth();
   const username = user?.username ?? null;
   const { location, request: requestLocation } = useDeviceLocation();
-  const [savedWeather] = useState<CurrentWeather | null>(() => (username ? readLastWeather(username) : null));
+  const savedWeather = useMemo(() => (username ? readLastWeather(username) : null), [username]);
 
   const key: WeatherKey | null =
     location.status === 'granted'

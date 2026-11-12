@@ -13,23 +13,21 @@ import {
   formatWeatherHeadline,
   formatWeatherRange,
   formatWeatherUpdatedAt,
+  WEATHER_ATTRIBUTION,
   WEATHER_CONDITION_LABELS,
 } from '@omni/shared/weather';
 import { MapPinIcon } from '@phosphor-icons/react';
 
-const OPEN_METEO_URL = 'https://open-meteo.com/';
-const OPENSTREETMAP_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright';
-
 /** Atribución que exigen Open-Meteo (CC-BY 4.0) y OpenStreetMap (ODbL): "Datos: Open-Meteo · © OpenStreetMap". */
 const WeatherAttribution: FC = () => (
   <Text size="xs" c="dimmed">
-    Datos:{' '}
-    <Anchor href={OPEN_METEO_URL} target="_blank" rel="noopener noreferrer" inherit>
-      Open-Meteo
+    {WEATHER_ATTRIBUTION.intro}{' '}
+    <Anchor href={WEATHER_ATTRIBUTION.openMeteo.url} target="_blank" rel="noopener noreferrer" inherit>
+      {WEATHER_ATTRIBUTION.openMeteo.label}
     </Anchor>
-    {' · © '}
-    <Anchor href={OPENSTREETMAP_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer" inherit>
-      OpenStreetMap
+    {` ${WEATHER_ATTRIBUTION.separator} `}
+    <Anchor href={WEATHER_ATTRIBUTION.openStreetMap.url} target="_blank" rel="noopener noreferrer" inherit>
+      {WEATHER_ATTRIBUTION.openStreetMap.label}
     </Anchor>
   </Text>
 );

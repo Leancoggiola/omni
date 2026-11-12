@@ -9,8 +9,16 @@ export const WEATHER_REFRESH_MS = 15 * 60 * 1000;
 /** Hasta cuánto un dato guardado (en la API o en el cliente) sirve como respaldo si el proveedor falla. */
 export const WEATHER_STALE_MAX_AGE_MS = 3 * 60 * 60 * 1000;
 
-/** Open-Meteo pide CC-BY 4.0 y Nominatim la atribución de OpenStreetMap (ODbL): la UI tiene que mostrar las dos. */
-export const WEATHER_ATTRIBUTION = 'Datos: Open-Meteo · © OpenStreetMap';
+/**
+ * Open-Meteo pide CC-BY 4.0 y Nominatim la atribución de OpenStreetMap (ODbL): la UI tiene que mostrar las dos, como
+ * `Datos: Open-Meteo · © OpenStreetMap`, con cada fuente enlazada. Los clientes arman la línea con estas piezas.
+ */
+export const WEATHER_ATTRIBUTION = {
+  intro: 'Datos:',
+  separator: '· ©',
+  openMeteo: { label: 'Open-Meteo', url: 'https://open-meteo.com/' },
+  openStreetMap: { label: 'OpenStreetMap', url: 'https://www.openstreetmap.org/copyright' },
+} as const;
 
 /** Temperatura entera con el símbolo de grado: `22°`. */
 export function formatTemperature(value: number): string {

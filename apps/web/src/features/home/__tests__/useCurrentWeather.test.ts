@@ -13,9 +13,10 @@ const useDeviceLocation = vi.fn();
 const post = vi.fn();
 const readLastWeather = vi.fn();
 const saveLastWeather = vi.fn();
+const auth: { user: { username: string } | null } = { user: { username: 'maria' } };
 
 vi.mock('swr', () => ({ default: (...args: unknown[]) => useSWR(...args) }));
-vi.mock('@/core/auth', () => ({ useAuth: () => ({ user: { username: 'maria' } }) }));
+vi.mock('@/core/auth', () => ({ useAuth: () => ({ user: auth.user }) }));
 vi.mock('@/shared/api', () => ({
   api: { post: (...args: unknown[]) => post(...args) },
   SWR_KEYS: { weather: { current: '/api/weather/current' } },
@@ -55,6 +56,7 @@ describe('useCurrentWeather', () => {
     post.mockReset();
     readLastWeather.mockReset().mockReturnValue(null);
     saveLastWeather.mockReset();
+    auth.user = { username: 'maria' };
     useDeviceLocation.mockReset().mockReturnValue(granted);
     useSWR.mockReturnValue(swrState({}));
   });
@@ -95,6 +97,21 @@ describe('useCurrentWeather', () => {
     readLastWeather.mockReturnValue(saved);
     useSWR.mockReturnValue(swrState({ error: new Error('x') }));
     const { result } = renderHook(() => useCurrentWeather());
+    expect(result.current.state).toBe('ready');
+    expect(result.current.weather).toEqual(saved);
+  });
+
+  it('si el usuario llega después del montaje, igual usa el respaldo guardado', () => {
+    const saved = { ...WEATHER, stale: true };
+    auth.user = null;
+    readLastWeather.mockImplementation((username: string) => (username === 'maria' ? saved : null));
+    useSWR.mockReturnValue(swrState({ error: new Error('x') }));
+    const { result, rerender } = renderHook(() => useCurrentWeather());
+    expect(result.current.state).toBe('error');
+
+    auth.user = { username: 'maria' };
+    rerender();
+
     expect(result.current.state).toBe('ready');
     expect(result.current.weather).toEqual(saved);
   });

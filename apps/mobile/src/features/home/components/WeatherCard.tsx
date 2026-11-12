@@ -4,6 +4,7 @@ import {
   formatWeatherHeadline,
   formatWeatherRange,
   formatWeatherUpdatedAt,
+  WEATHER_ATTRIBUTION,
   WEATHER_CONDITION_LABELS,
 } from '@omni/shared/weather';
 import { MapPinIcon } from 'phosphor-react-native';
@@ -19,8 +20,6 @@ import { getWeatherIcon } from '../utils/weatherIcons';
 import type { CurrentWeather } from '@omni/shared/weather';
 
 const CHIP_SIZE = 44;
-const OPEN_METEO_URL = 'https://open-meteo.com/';
-const OPENSTREETMAP_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright';
 
 /** Enlace de la atribución: texto chico en `dimmed` y subrayado, con área de toque ampliada. */
 function AttributionLink({ label, url }: { label: string; url: string }) {
@@ -43,13 +42,13 @@ function WeatherAttribution() {
   return (
     <XStack gap={SPACING['3xs']} alignItems="center" flexWrap="wrap">
       <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed">
-        Datos:
+        {WEATHER_ATTRIBUTION.intro}
       </Paragraph>
-      <AttributionLink label="Open-Meteo" url={OPEN_METEO_URL} />
+      <AttributionLink {...WEATHER_ATTRIBUTION.openMeteo} />
       <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed">
-        · ©
+        {WEATHER_ATTRIBUTION.separator}
       </Paragraph>
-      <AttributionLink label="OpenStreetMap" url={OPENSTREETMAP_COPYRIGHT_URL} />
+      <AttributionLink {...WEATHER_ATTRIBUTION.openStreetMap} />
     </XStack>
   );
 }
