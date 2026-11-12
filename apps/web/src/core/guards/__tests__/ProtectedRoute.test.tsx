@@ -83,10 +83,23 @@ describe('ProtectedRoute', () => {
     });
     renderRoute();
 
-    expect(screen.getByRole('alert')).toHaveTextContent('No pudimos verificar tu sesión');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.'
+    );
     expect(screen.queryByText('Login desde /media')).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(retry).toHaveBeenCalledOnce();
+  });
+
+  it('ofrece cerrar sesión cuando no se pudo verificar y vuelve al login', async () => {
+    const logout = vi.fn().mockResolvedValue(undefined);
+    mockAuth.value = createMockAuthValue({ user: null, error: new ApiError('Servicio no disponible', 503), logout });
+    renderRoute();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
+
+    expect(logout).toHaveBeenCalledOnce();
+    expect(await screen.findByText(/Login desde/)).toBeInTheDocument();
   });
 });
