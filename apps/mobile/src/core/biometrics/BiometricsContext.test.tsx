@@ -142,6 +142,14 @@ describe('BiometricsProvider · bloqueo de arranque', () => {
     expect(result.current).toMatchObject({ enabled: true, locked: true });
   });
 
+  it('con la preferencia activada, si SecureStore falla al leerla la app abre sin bloqueo (la biometría es una comodidad)', async () => {
+    store.set(PREFERENCE_KEY, '1');
+    secure.getItemAsync.mockRejectedValueOnce(new Error('boom'));
+    const { result } = await renderBiometrics();
+
+    expect(result.current).toMatchObject({ ready: true, enabled: false, locked: false });
+  });
+
   it('si la preferencia quedó activada pero ya no hay biometría enrolada, no bloquea (no deja a nadie afuera)', async () => {
     store.set(PREFERENCE_KEY, '1');
     isEnrolledAsync.mockResolvedValue(false);

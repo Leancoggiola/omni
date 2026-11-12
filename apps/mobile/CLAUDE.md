@@ -7,7 +7,7 @@ UI con **Tamagui**, nunca Mantine. Nueva feature: `/new-feature`.
 ```
 apps/mobile/
   app/                    # Expo Router
-    _layout.tsx           # Tamagui + SWRProvider + AuthProvider + Notifications/Confirm/ActionSheet + AuthGate (Stack)
+    _layout.tsx           # Tamagui + SWRProvider + AuthProvider + BiometricsProvider + Notifications/Confirm/ActionSheet + AuthGate (Stack)
     login.tsx
     profile.tsx           # ruta de stack sobre las tabs (se abre solo desde la tarjeta de usuario de "Más")
     admin.tsx             # ruta de stack, solo ADMIN (se abre desde "Más")
