@@ -75,13 +75,17 @@ const WeatherSummary: FC<{ weather: CurrentWeather }> = ({ weather }) => {
  * card autónoma: se monta tal cual en la grilla de `HomeMainCard`.
  */
 export const WeatherCard: FC = () => {
-  const { weather, state, retry, requestLocation } = useCurrentWeather();
+  const { weather, state, retry, requestLocation, locationBlocked } = useCurrentWeather();
 
   if (state === 'no-location') {
     return (
       <EmptyState
         icon={<MapPinIcon size="1.5rem" />}
-        title="Activá la ubicación para ver el clima"
+        title={
+          locationBlocked
+            ? 'La ubicación está bloqueada. Habilitala desde el candado de la barra de direcciones'
+            : 'Activá la ubicación para ver el clima'
+        }
         action={
           <Button variant="default" size="xs" onClick={requestLocation}>
             Permitir ubicación

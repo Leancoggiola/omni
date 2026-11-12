@@ -25,10 +25,10 @@ const WEATHER: CurrentWeather = {
   stale: false,
 };
 
-const withState = (state: string, weather: CurrentWeather | null = null) => {
+const withState = (state: string, weather: CurrentWeather | null = null, locationBlocked = false) => {
   const retry = vi.fn();
   const requestLocation = vi.fn();
-  useCurrentWeather.mockReturnValue({ weather, state, error: undefined, retry, requestLocation });
+  useCurrentWeather.mockReturnValue({ weather, state, error: undefined, retry, requestLocation, locationBlocked });
   return { retry, requestLocation };
 };
 
@@ -97,5 +97,12 @@ describe('WeatherCard', () => {
     expect(screen.getByText('Activá la ubicación para ver el clima')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Permitir ubicación' }));
     expect(requestLocation).toHaveBeenCalledOnce();
+  });
+
+  it('con la ubicación bloqueada en el navegador explica cómo habilitarla', () => {
+    withState('no-location', null, true);
+    renderWithProviders(<WeatherCard />);
+    expect(screen.getByText(/candado de la barra de direcciones/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Permitir ubicación' })).toBeInTheDocument();
   });
 });

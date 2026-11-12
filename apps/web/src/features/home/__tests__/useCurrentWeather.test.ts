@@ -62,10 +62,11 @@ describe('useCurrentWeather', () => {
   });
 
   it('sin permiso no llama a la API: la key es null y el estado "no-location"', () => {
-    useDeviceLocation.mockReturnValue({ location: { status: 'unavailable' }, request: vi.fn() });
+    useDeviceLocation.mockReturnValue({ location: { status: 'unavailable', blocked: true }, request: vi.fn() });
     const { result } = renderHook(() => useCurrentWeather());
     expect(useSWR.mock.calls[0]?.[0]).toBeNull();
     expect(result.current.state).toBe('no-location');
+    expect(result.current.locationBlocked).toBe(true);
   });
 
   it('mientras busca la posición está cargando y no llama a la API', () => {

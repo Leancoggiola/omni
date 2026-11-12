@@ -19,26 +19,14 @@ type WeatherKey = readonly [path: string, latitude: number, longitude: number];
  * Clima actual en la posición del dispositivo (= `useCurrentWeather` de web). Es un POST con las coordenadas en el
  * body (no viajan en la URL), así que la key de SWR las incluye y lleva su propio fetcher. Sin posición (permiso
  * negado o sin servicio) no llama a la API. Si la API falla y este dispositivo guardó un clima de hoy y de hace menos
- * de 3 horas, lo muestra como `stale` en vez de un error. Se refresca cada `WEATHER_REFRESH_MS` solo con la pantalla
- * enfocada.
+ * de 3 horas, lo muestra como `stale` en vez de un error; lo lee (y lo valida contra la hora actual) recién cuando
+ * aparece el error. Se refresca cada `WEATHER_REFRESH_MS` solo con la pantalla enfocada.
  */
 export function useCurrentWeather() {
   const { user } = useAuth();
   const username = user?.username ?? null;
   const isFocused = useIsFocused();
   const { location, request: requestLocation } = useDeviceLocation();
-  const [savedWeather, setSavedWeather] = useState<CurrentWeather | null>(null);
-
-  useEffect(() => {
-    if (!username) return;
-    let cancelled = false;
-    void readLastWeather(username).then(saved => {
-      if (!cancelled) setSavedWeather(saved);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [username]);
 
   const key: WeatherKey | null =
     location.status === 'granted'
@@ -50,6 +38,19 @@ export function useCurrentWeather() {
     ([path, latitude, longitude]) => api.post<CurrentWeather>(path, { latitude, longitude }),
     { refreshInterval: isFocused ? WEATHER_REFRESH_MS : 0 }
   );
+
+  const [savedWeather, setSavedWeather] = useState<CurrentWeather | null>(null);
+
+  useEffect(() => {
+    if (!username || !error) return;
+    let cancelled = false;
+    void readLastWeather(username).then(saved => {
+      if (!cancelled) setSavedWeather(saved);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [username, error]);
 
   useEffect(() => {
     if (data && username) void saveLastWeather(username, data);

@@ -120,7 +120,7 @@ export function WeatherCard() {
       <SectionCard>
         <WeatherSummary weather={weather} />
         {weather.stale && (
-          <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed" accessibilityRole="alert">
+          <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed" accessibilityLiveRegion="polite">
             Sin datos nuevos: último dato de las {formatWeatherUpdatedAt(weather.updatedAt)}
           </Paragraph>
         )}
