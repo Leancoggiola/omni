@@ -4,7 +4,7 @@ import { CalendarBlankIcon, EnvelopeSimpleIcon, FloppyDiskIcon, PhoneIcon, UserI
 import { useRef, useState } from 'react';
 import { YStack } from 'tamagui';
 
-import { Button, getErrorMessage, notifyError, notifySuccess, SectionCard, TextField } from '@/shared/ui';
+import { Button, FormFields, getErrorMessage, notifyError, notifySuccess, SectionCard, TextField } from '@/shared/ui';
 
 import {
   BIRTH_DATE_INVALID_MESSAGE,
@@ -21,12 +21,10 @@ const READ_ONLY_DESCRIPTION = 'No se puede editar';
 type PersonalInfoCardProps = {
   profile: Pick<UserProfile, 'name' | 'email' | 'phone' | 'birthDate'>;
   onSave: (payload: UpdateProfilePayload) => Promise<unknown>;
-  /** Al enfocar un campo: la pantalla lo mantiene a la vista sobre el teclado. */
-  onFieldFocus?: () => void;
 };
 
 /** Información personal: nombre y email de solo lectura; teléfono y fecha de nacimiento (dd/mm/aaaa) editables. */
-export function PersonalInfoCard({ profile, onSave, onFieldFocus }: PersonalInfoCardProps) {
+export function PersonalInfoCard({ profile, onSave }: PersonalInfoCardProps) {
   const [phone, setPhone] = useState(profile.phone ?? '');
   const [serverPhone, setServerPhone] = useState(profile.phone);
   const [birthDate, setBirthDate] = useState(birthDateToDisplay(profile.birthDate));
@@ -66,53 +64,53 @@ export function PersonalInfoCard({ profile, onSave, onFieldFocus }: PersonalInfo
 
   return (
     <SectionCard title="Información personal" subtitle="Actualizá tus datos personales">
-      <YStack gap={SPACING.md}>
-        <TextField
-          label="Nombre completo"
-          value={profile.name}
-          disabled
-          description={READ_ONLY_DESCRIPTION}
-          leftSection={UserIcon}
-        />
-        <TextField
-          label="Email"
-          value={profile.email ?? ''}
-          disabled
-          description={READ_ONLY_DESCRIPTION}
-          leftSection={EnvelopeSimpleIcon}
-        />
-        <TextField
-          label="Teléfono"
-          onFocus={onFieldFocus}
-          value={phone}
-          onChangeText={setPhone}
-          placeholder="+54 9 11 1234 5678"
-          keyboardType="phone-pad"
-          autoComplete="tel"
-          maxLength={PHONE_MAX_LENGTH}
-          leftSection={PhoneIcon}
-        />
-        <TextField
-          label="Fecha de nacimiento"
-          onFocus={onFieldFocus}
-          value={birthDate}
-          onChangeText={text => setBirthDate(maskBirthDateInput(text))}
-          placeholder={BIRTH_DATE_PLACEHOLDER}
-          keyboardType="number-pad"
-          maxLength={10}
-          error={birthDate.length === 10 ? birthDateError : undefined}
-          leftSection={CalendarBlankIcon}
-        />
-        <Button
-          fullWidth
-          leftSection={FloppyDiskIcon}
-          loading={saving}
-          disabled={!dirty}
-          onPress={() => void handleSave()}
-        >
-          Guardar cambios
-        </Button>
-      </YStack>
+      <FormFields>
+        <YStack gap={SPACING.md}>
+          <TextField
+            label="Nombre completo"
+            value={profile.name}
+            disabled
+            description={READ_ONLY_DESCRIPTION}
+            leftSection={UserIcon}
+          />
+          <TextField
+            label="Email"
+            value={profile.email ?? ''}
+            disabled
+            description={READ_ONLY_DESCRIPTION}
+            leftSection={EnvelopeSimpleIcon}
+          />
+          <TextField
+            label="Teléfono"
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="+54 9 11 1234 5678"
+            keyboardType="phone-pad"
+            autoComplete="tel"
+            maxLength={PHONE_MAX_LENGTH}
+            leftSection={PhoneIcon}
+          />
+          <TextField
+            label="Fecha de nacimiento"
+            value={birthDate}
+            onChangeText={text => setBirthDate(maskBirthDateInput(text))}
+            placeholder={BIRTH_DATE_PLACEHOLDER}
+            keyboardType="number-pad"
+            maxLength={10}
+            error={birthDate.length === 10 ? birthDateError : undefined}
+            leftSection={CalendarBlankIcon}
+          />
+          <Button
+            fullWidth
+            leftSection={FloppyDiskIcon}
+            loading={saving}
+            disabled={!dirty}
+            onPress={() => void handleSave()}
+          >
+            Guardar cambios
+          </Button>
+        </YStack>
+      </FormFields>
     </SectionCard>
   );
 }

@@ -1,6 +1,6 @@
 import { SPACING } from '@omni/shared/theme';
 import { useRouter } from 'expo-router';
-import { KeyboardAvoidingView, ScrollView } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native';
 import { YStack } from 'tamagui';
 
 import { LocalSessionClearError, useAuth } from '@/core/auth';
@@ -8,12 +8,12 @@ import { useHousehold } from '@/core/household';
 import { useColorSchemeControl } from '@/core/theme';
 import {
   ErrorState,
+  FormScrollView,
   LoadingState,
   notifyWarning,
   Screen,
   ScreenHeader,
   usePullToRefresh,
-  useScrollFocusedInputIntoView,
 } from '@/shared/ui';
 
 import { DeleteAccountCard } from './components/DeleteAccountCard';
@@ -39,7 +39,6 @@ export function ProfileScreen() {
   const { changePassword, deleteAccount } = useAccountActions();
   const { logout, logoutAll } = useAuth();
   const { clearOverride } = useColorSchemeControl();
-  const { scrollRef, onScroll, scrollIntoView } = useScrollFocusedInputIntoView();
   const { mutate: refreshHousehold } = useHousehold();
   const refreshControl = usePullToRefresh(async () => {
     await Promise.all([refresh(), refreshHousehold()]);
@@ -92,12 +91,8 @@ export function ProfileScreen() {
 
     return (
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-        <ScrollView
-          ref={scrollRef}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
+        <FormScrollView
           refreshControl={refreshControl}
-          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ gap: SPACING.md, paddingBottom: SPACING.xl }}
         >
@@ -107,7 +102,7 @@ export function ProfileScreen() {
             onUpload={changeAvatar(uploadAvatar)}
             onRemove={changeAvatar(removeAvatar)}
           />
-          <PersonalInfoCard profile={profile} onSave={updateProfile} onFieldFocus={scrollIntoView} />
+          <PersonalInfoCard profile={profile} onSave={updateProfile} />
           <PreferencesCard
             values={{
               notifications: profile.preferences?.notifications ?? false,
@@ -117,10 +112,10 @@ export function ProfileScreen() {
           />
           <SecurityCard />
           <HouseholdCard />
-          <PasswordCard onSubmit={changePassword} onFieldFocus={scrollIntoView} />
+          <PasswordCard onSubmit={changePassword} />
           <LogoutAllCard onLogoutAll={handleLogoutAll} />
           <DeleteAccountCard onDelete={handleDelete} />
-        </ScrollView>
+        </FormScrollView>
       </KeyboardAvoidingView>
     );
   };

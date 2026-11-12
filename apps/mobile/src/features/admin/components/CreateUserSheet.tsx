@@ -1,7 +1,6 @@
 import { SPACING } from '@omni/shared/theme';
 import { useEffect, useRef, useState } from 'react';
-import { type TextInput } from 'react-native';
-import { YStack, type TamaguiElement } from 'tamagui';
+import { YStack } from 'tamagui';
 
 import { Banner, Button, FormSheet, getErrorMessage, notifySuccess, PasswordField, TextField } from '@/shared/ui';
 
@@ -22,10 +21,6 @@ type CreateUserSheetProps = {
  * error (p. ej. usuario duplicado) sale en un `Banner` adentro y el "Usuario creado" se avisa cuando la hoja ya se cerró.
  */
 export function CreateUserSheet({ open, onOpenChange, onCreate }: CreateUserSheetProps) {
-  const nameRef = useRef<TamaguiElement>(null);
-  const emailRef = useRef<TamaguiElement>(null);
-  const passwordRef = useRef<TamaguiElement>(null);
-  const confirmRef = useRef<TamaguiElement>(null);
   const [values, setValues] = useState<CreateUserFormValues>(INITIAL_CREATE_USER_FORM_VALUES);
   const [errors, setErrors] = useState<CreateUserFormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -48,8 +43,6 @@ export function CreateUserSheet({ open, onOpenChange, onCreate }: CreateUserShee
     setErrors(prev => ({ ...prev, [field]: undefined }));
     setSubmitError(null);
   };
-
-  const focusNext = (ref: { current: TamaguiElement | null }) => () => (ref.current as TextInput | null)?.focus();
 
   const handleSubmit = async () => {
     if (submitting.current || !dirty) return;
@@ -87,12 +80,8 @@ export function CreateUserSheet({ open, onOpenChange, onCreate }: CreateUserShee
         autoCorrect={false}
         autoComplete="off"
         disabled={loading}
-        returnKeyType="next"
-        submitBehavior="submit"
-        onSubmitEditing={focusNext(nameRef)}
       />
       <TextField
-        ref={nameRef}
         label="Nombre"
         placeholder="Nombre y apellido"
         required
@@ -100,12 +89,8 @@ export function CreateUserSheet({ open, onOpenChange, onCreate }: CreateUserShee
         onChangeText={setField('name')}
         error={errors.name}
         disabled={loading}
-        returnKeyType="next"
-        submitBehavior="submit"
-        onSubmitEditing={focusNext(emailRef)}
       />
       <TextField
-        ref={emailRef}
         label="Email"
         description="Opcional."
         placeholder="usuario@email.com"
@@ -117,12 +102,8 @@ export function CreateUserSheet({ open, onOpenChange, onCreate }: CreateUserShee
         autoCorrect={false}
         autoComplete="off"
         disabled={loading}
-        returnKeyType="next"
-        submitBehavior="submit"
-        onSubmitEditing={focusNext(passwordRef)}
       />
       <PasswordField
-        ref={passwordRef}
         label="Contraseña inicial"
         required
         value={values.password}
@@ -130,12 +111,8 @@ export function CreateUserSheet({ open, onOpenChange, onCreate }: CreateUserShee
         error={errors.password}
         autoComplete="new-password"
         disabled={loading}
-        returnKeyType="next"
-        submitBehavior="submit"
-        onSubmitEditing={focusNext(confirmRef)}
       />
       <PasswordField
-        ref={confirmRef}
         label="Confirmar contraseña"
         required
         value={values.confirmPassword}

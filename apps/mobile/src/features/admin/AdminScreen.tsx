@@ -1,7 +1,7 @@
 // tamagui-ignore
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { Redirect, useRouter } from 'expo-router';
-import { GearIcon, UsersIcon } from 'phosphor-react-native';
+import { GearIcon, UserPlusIcon, UsersIcon } from 'phosphor-react-native';
 import { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { Paragraph, XStack, YStack } from 'tamagui';
@@ -11,6 +11,8 @@ import {
   confirm,
   EmptyState,
   ErrorState,
+  Fab,
+  FAB_SIZE,
   getErrorMessage,
   LoadingState,
   notifyError,
@@ -22,7 +24,6 @@ import {
   usePullToRefresh,
 } from '@/shared/ui';
 
-import { CreateUserFab, FAB_SIZE } from './components/CreateUserFab';
 import { CreateUserSheet } from './components/CreateUserSheet';
 import { UserRow } from './components/UserRow';
 import { useAdminUserMutations } from './hooks/useAdminUserMutations';
@@ -133,7 +134,7 @@ function AdminUsersScreen() {
           {renderUsers()}
         </SectionCard>
       </ScrollView>
-      <CreateUserFab onPress={openCreate} />
+      <Fab icon={UserPlusIcon} label="Crear usuario" onPress={openCreate} />
       <CreateUserSheet key={createKey} open={createOpen} onOpenChange={setCreateOpen} onCreate={createUser} />
     </Screen>
   );
