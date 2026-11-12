@@ -4,7 +4,7 @@ export class LoginPage {
   constructor(private readonly page: Page) {}
 
   readonly username = () => this.page.getByLabel('Usuario');
-  readonly password = () => this.page.getByLabel('Contraseña');
+  readonly password = () => this.page.getByLabel('Contraseña', { exact: true });
   readonly submit = () => this.page.getByRole('button', { name: 'Ingresar' });
   readonly card = () => this.page.getByRole('region', { name: 'Ingreso' });
   readonly error = () => this.page.getByRole('alert');

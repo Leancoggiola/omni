@@ -17,7 +17,7 @@ const authLimiter = createRateLimiter({
   max: 10,
   message: {
     statusCode: 429,
-    message: 'Demasiados intentos, intenta de nuevo más tarde',
+    message: 'Demasiados intentos, intentá de nuevo más tarde',
   },
 });
 
@@ -26,7 +26,7 @@ const refreshLimiter = createRateLimiter({
   max: 20,
   message: {
     statusCode: 429,
-    message: 'Demasiados intentos, intenta de nuevo más tarde',
+    message: 'Demasiados intentos, intentá de nuevo más tarde',
   },
 });
 
@@ -35,7 +35,7 @@ const logoutAllLimiter = createRateLimiter({
   max: 10,
   message: {
     statusCode: 429,
-    message: 'Demasiados intentos, intenta de nuevo más tarde',
+    message: 'Demasiados intentos, intentá de nuevo más tarde',
   },
 });
 

@@ -12,7 +12,7 @@ const weatherLimiter = createRateLimiter({
   max: 60,
   message: {
     statusCode: 429,
-    message: 'Demasiadas consultas, intenta de nuevo más tarde',
+    message: 'Demasiadas consultas, intentá de nuevo más tarde',
   },
 });
 

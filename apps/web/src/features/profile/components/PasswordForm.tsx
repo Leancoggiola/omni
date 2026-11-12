@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Group, PasswordInput, SimpleGrid, Stack } from '@mantine/core';
+import { Alert, Button, Group, SimpleGrid, Stack } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
-import { getErrorMessage, notifySuccess } from '@/shared/ui';
+import { getErrorMessage, notifySuccess, PasswordField } from '@/shared/ui';
 
 import type { ChangePasswordPayload } from '@omni/shared/users';
 import type { FC } from 'react';
@@ -67,25 +67,22 @@ export const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
     <form noValidate onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="sm">
         {error && <Alert color="destructive">{error}</Alert>}
-        <PasswordInput
+        <PasswordField
           label="Contraseña actual"
           autoComplete="current-password"
-          visibilityToggleFocusable
           key={form.key('currentPassword')}
           {...form.getInputProps('currentPassword')}
         />
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-          <PasswordInput
+          <PasswordField
             label="Nueva contraseña"
             autoComplete="new-password"
-            visibilityToggleFocusable
             key={form.key('newPassword')}
             {...form.getInputProps('newPassword')}
           />
-          <PasswordInput
+          <PasswordField
             label="Confirmar contraseña"
             autoComplete="new-password"
-            visibilityToggleFocusable
             key={form.key('confirmPassword')}
             {...form.getInputProps('confirmPassword')}
             success={successMessage ?? undefined}

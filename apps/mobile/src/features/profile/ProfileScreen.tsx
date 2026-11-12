@@ -128,7 +128,7 @@ export function ProfileScreen() {
   return (
     <Screen insetBottom>
       <ScreenHeader
-        title="Mi Perfil"
+        title="Mi perfil"
         subtitle="Gestioná tu información personal y preferencias"
         size="lg"
         onBack={goBack}

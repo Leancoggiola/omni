@@ -19,7 +19,7 @@ const readyLimiter = createRateLimiter({
   legacyHeaders: false,
   message: {
     statusCode: 429,
-    message: 'Demasiadas solicitudes, intenta de nuevo más tarde',
+    message: 'Demasiadas solicitudes, intentá de nuevo más tarde',
   },
 });
 
