@@ -44,12 +44,15 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
 
   /**
    * Vacía toda la caché de SWR, la de sesión incluida: `useSWRImmutable` no revalida, así que lo que quede
-   * se le mostraría al próximo usuario de la pestaña. También borra el respaldo del clima de la persona (guarda
-   * su ciudad en `localStorage`): se lee del ref porque este callback también corre al vencer la sesión.
+   * se le mostraría al próximo usuario de la pestaña. Después borra el respaldo del clima de la persona (guarda
+   * su ciudad en `localStorage`): va al final porque SWR descarta las respuestas en vuelo al vaciar la caché, y así
+   * un clima que llega durante el cierre no lo vuelve a guardar. Se lee del ref porque este callback también corre
+   * al vencer la sesión.
    */
   const clearSession = useCallback(async () => {
-    if (usernameRef.current) clearLastWeather(usernameRef.current);
+    const current = usernameRef.current;
     await globalMutate(() => true, undefined, { revalidate: false });
+    if (current) clearLastWeather(current);
   }, [globalMutate]);
 
   /**
