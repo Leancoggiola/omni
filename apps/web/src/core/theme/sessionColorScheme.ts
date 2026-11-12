@@ -1,6 +1,8 @@
 import type { ColorScheme } from '@omni/shared/theme';
 import type { ProfileTheme } from '@omni/shared/users';
 
+import { ignoreError } from '@omni/shared/common';
+
 const STORAGE_KEY = 'omni-session-color-scheme';
 
 const isColorScheme = (value: string | null): value is ColorScheme => value === 'light' || value === 'dark';
@@ -19,12 +21,16 @@ export function getSessionColorScheme(): ColorScheme | null {
 export function setSessionColorScheme(theme: ProfileTheme): void {
   try {
     sessionStorage.setItem(STORAGE_KEY, theme);
-  } catch {}
+  } catch {
+    ignoreError();
+  }
 }
 
 /** Si el storage no responde no hay override que limpiar. */
 export function clearSessionColorScheme(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY);
-  } catch {}
+  } catch {
+    ignoreError();
+  }
 }

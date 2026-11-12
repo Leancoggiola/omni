@@ -133,7 +133,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
       </AppShell.Section>
       <Divider color="var(--mantine-color-border-hairline)" />
       <AppShell.Section grow my="md" component={ScrollArea} type="auto" viewportRef={viewportRef}>
-        <Stack gap="2xs">
+        <Stack gap="2xs" p="3xs">
           {MAIN_NAV_ITEMS.map(renderNavItem)}
           {user?.role === 'ADMIN' && (
             <>

@@ -1,3 +1,4 @@
+import { ignoreError } from '@omni/shared/common';
 import { useEffect, useRef } from 'react';
 import { Animated, Linking, Pressable, StyleSheet, type AccessibilityActionEvent } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -80,7 +81,7 @@ export function HolidaysCard() {
   };
 
   const openSource = () => {
-    Linking.openURL(holidays.sourceUrl).catch(() => {});
+    Linking.openURL(holidays.sourceUrl).catch(ignoreError);
   };
 
   return (

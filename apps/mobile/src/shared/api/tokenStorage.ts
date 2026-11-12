@@ -1,3 +1,4 @@
+import { ignoreError } from '@omni/shared/common';
 import * as SecureStore from 'expo-secure-store';
 
 const SESSION_KEY = 'omni.session';
@@ -17,7 +18,9 @@ function parseTokens(raw: string | null): StoredTokens | null {
     if (typeof value?.accessToken === 'string' && typeof value.refreshToken === 'string') {
       return { accessToken: value.accessToken, refreshToken: value.refreshToken };
     }
-  } catch {}
+  } catch {
+    ignoreError();
+  }
   return null;
 }
 
