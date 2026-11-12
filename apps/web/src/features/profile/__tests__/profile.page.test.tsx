@@ -27,7 +27,7 @@ vi.mock('../components/HouseholdCard', () => ({ HouseholdCard: () => <p>Hogar co
 
 vi.mock('../components/PasswordForm', () => ({ PasswordForm: () => null }));
 
-vi.mock('../components/ProfilePhotoSection', () => ({ ProfilePhotoSection: () => <p>Foto de Perfil</p> }));
+vi.mock('../components/ProfilePhotoSection', () => ({ ProfilePhotoSection: () => <p>Foto de perfil</p> }));
 
 vi.mock('../components/ProfileSectionCard', () => ({ ProfileSectionCard: () => null }));
 

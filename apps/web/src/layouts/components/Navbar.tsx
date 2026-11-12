@@ -90,7 +90,7 @@ export const Navbar: FC<NavbarProps> = ({ onClose, toggle }) => {
           leftSection={renderIcon(false)}
           rightSection={
             <Badge variant="light" color="gray" size="sm" tt="none">
-              Pronto
+              Próximamente
             </Badge>
           }
           disabled

@@ -37,7 +37,7 @@ export const MediaListToolbar: FC<MediaListToolbarProps> = ({
             size="md"
           />
           <Select
-            aria-label="Tipo de contenido"
+            aria-label="Tipo"
             data={MEDIA_TYPE_FILTER_OPTIONS}
             value={typeFilter}
             onChange={val => onTypeFilterChange((val as MediaType | 'all') || 'all')}

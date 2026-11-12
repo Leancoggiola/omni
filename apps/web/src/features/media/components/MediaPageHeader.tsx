@@ -15,7 +15,7 @@ export const MediaPageHeader: FC<MediaPageHeaderProps> = ({ onAdd, displayMode, 
   return (
     <PageHeader
       icon={<FilmSlateIcon size="1.5rem" />}
-      title="Películas y Series"
+      title="Películas y series"
       subtitle="Tu lista de seguimiento"
       actions={
         <Group gap="xs">
