@@ -3,16 +3,10 @@ import { currentWeatherSchema } from './schemas';
 
 import type { CurrentWeather } from './schemas';
 
-/** Cada cuánto el cliente vuelve a pedir el clima: el caché de la API vive 15 minutos, así que antes no cambia. */
 export const WEATHER_REFRESH_MS = 15 * 60 * 1000;
 
-/** Hasta cuánto un dato guardado (en la API o en el cliente) sirve como respaldo si el proveedor falla. */
 export const WEATHER_STALE_MAX_AGE_MS = 3 * 60 * 60 * 1000;
 
-/**
- * Open-Meteo pide CC-BY 4.0 y Nominatim la atribución de OpenStreetMap (ODbL): la UI tiene que mostrar las dos, como
- * `Datos: Open-Meteo · © OpenStreetMap`, con cada fuente enlazada. Los clientes arman la línea con estas piezas.
- */
 export const WEATHER_ATTRIBUTION = {
   intro: 'Datos:',
   separator: '· ©',
@@ -45,7 +39,10 @@ export function formatWeatherUpdatedAt(updatedAt: string): string {
   }).format(new Date(updatedAt));
 }
 
-/** Un dato sirve como respaldo si tiene menos de 3 horas y es de hoy: el mín/máx de ayer ya no describe el día. */
+/**
+ * Un dato sirve como respaldo si tiene menos de `WEATHER_STALE_MAX_AGE_MS` (3 horas, en la API y en el cliente) y es
+ * de hoy: el mín/máx de ayer ya no describe el día.
+ */
 export function canServeWeatherAsStale(weather: CurrentWeather, now = new Date()): boolean {
   const updatedAt = new Date(weather.updatedAt);
   return now.getTime() - updatedAt.getTime() <= WEATHER_STALE_MAX_AGE_MS && appDateKey(updatedAt) === appDateKey(now);

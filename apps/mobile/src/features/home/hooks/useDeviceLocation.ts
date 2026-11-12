@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useState } from 'react';
-import { Linking } from 'react-native';
+import { AppState, Linking } from 'react-native';
 
 import { roundWeatherCoordinates, WEATHER_REFRESH_MS } from '@omni/shared/weather';
 
@@ -27,7 +27,8 @@ export type DeviceLocation =
  * salir de este hook: la ubicación exacta no llega a ningún otro lado. Pide el permiso en primer plano al montar; si
  * se niega, el servicio está apagado o no hay posición queda `unavailable` (no hay ciudad por defecto). Con
  * `Accuracy.Low` alcanza, porque después se redondea a ~1 km. `request` vuelve a pedir el permiso, o abre los ajustes
- * si el sistema ya no deja preguntar (`canAskAgain` en `false`).
+ * si el sistema ya no deja preguntar (`canAskAgain` en `false`); en ese caso, al volver a primer plano re-evalúa el permiso
+ * sin pedirlo, así la card se recupera si la persona lo habilitó en los ajustes.
  */
 export function useDeviceLocation() {
   const [location, setLocation] = useState<DeviceLocation>({ status: 'locating' });
@@ -56,6 +57,16 @@ export function useDeviceLocation() {
       cancelled = true;
     };
   }, [attempt]);
+
+  const canOnlyOpenSettings = location.status === 'unavailable' && !location.canAskAgain;
+
+  useEffect(() => {
+    if (!canOnlyOpenSettings) return;
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') setAttempt(value => value + 1);
+    });
+    return () => subscription.remove();
+  }, [canOnlyOpenSettings]);
 
   const request = useCallback(() => {
     if (location.status === 'unavailable' && !location.canAskAgain) {

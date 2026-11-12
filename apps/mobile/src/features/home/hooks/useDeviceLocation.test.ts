@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import { Linking } from 'react-native';
+import { AppState, Linking } from 'react-native';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 import { useDeviceLocation } from './useDeviceLocation';
@@ -111,5 +111,41 @@ describe('useDeviceLocation', () => {
 
     expect(openSettings).toHaveBeenCalledTimes(1);
     expect(mocked.requestForegroundPermissionsAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it('tras abrir los ajustes, al volver a primer plano re-evalúa el permiso sin pedirlo', async () => {
+    let onChange: (state: string) => void = () => {};
+    const remove = jest.fn();
+    jest.spyOn(AppState, 'addEventListener').mockImplementation(((
+      _event: string,
+      listener: (state: string) => void
+    ) => {
+      onChange = listener;
+      return { remove };
+    }) as unknown as typeof AppState.addEventListener);
+    mocked.requestForegroundPermissionsAsync.mockResolvedValueOnce(permission(false, false));
+    const { result } = renderHook(() => useDeviceLocation());
+    await waitFor(() => expect(result.current.location).toEqual({ status: 'unavailable', canAskAgain: false }));
+    mocked.requestForegroundPermissionsAsync.mockResolvedValueOnce(permission(true));
+    mocked.getCurrentPositionAsync.mockResolvedValue(position(-34.603722, -58.381592));
+
+    act(() => onChange('active'));
+
+    await waitFor(() =>
+      expect(result.current.location).toEqual({
+        status: 'granted',
+        coordinates: { latitude: -34.6, longitude: -58.38 },
+      })
+    );
+    expect(remove).toHaveBeenCalled();
+  });
+
+  it('si todavía se puede preguntar, no reintenta solo al volver a primer plano', async () => {
+    const addEventListener = jest.spyOn(AppState, 'addEventListener');
+    mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(false, true));
+    const { result } = renderHook(() => useDeviceLocation());
+    await waitFor(() => expect(result.current.location).toEqual({ status: 'unavailable', canAskAgain: true }));
+
+    expect(addEventListener).not.toHaveBeenCalled();
   });
 });

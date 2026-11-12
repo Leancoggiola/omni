@@ -42,13 +42,11 @@ const HOLIDAYS = {
   ],
 };
 
-/** Respuesta fija de Open-Meteo `/forecast`: 21,6 °C (se redondea a 22), código WMO 3 (nublado), de día, mín 14 y máx 26. */
 const FORECAST = {
   current: { temperature_2m: 21.6, weather_code: 3, is_day: 1 },
   daily: { temperature_2m_max: [26.2], temperature_2m_min: [14.1] },
 };
 
-/** Respuesta fija de Nominatim `/reverse`. */
 const REVERSE_GEOCODE = { address: { city: 'Rosario' } };
 
 const byId = new Map([...MOVIES, ...TV_SHOWS].map(item => [item.id, item]));
@@ -68,6 +66,10 @@ function send(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+/**
+ * Servidor de las APIs externas. `/forecast` (Open-Meteo) responde siempre 21,6 °C (se redondea a 22), código WMO 3
+ * (nublado), de día, mín 14 y máx 26; `/reverse` (Nominatim) responde siempre la ciudad Rosario.
+ */
 const server = createServer((req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
   const path = url.pathname;

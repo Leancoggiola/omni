@@ -10,7 +10,6 @@ export class HomePage {
   readonly holidaysError = () =>
     this.page.getByRole('alert').filter({ hasText: 'No se pudieron cargar las efemérides de hoy' });
 
-  /** Card de clima */
   readonly weather = () => this.page.getByRole('region', { name: 'Clima' });
   readonly weatherError = () => this.page.getByRole('alert').filter({ hasText: 'No se pudo cargar el clima' });
   readonly weatherNoLocation = () => this.page.getByText('Activá la ubicación para ver el clima');

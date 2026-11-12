@@ -20,7 +20,8 @@ type WeatherKey = readonly [path: string, latitude: number, longitude: number];
  * body (no viajan en la URL), así que la key de SWR las incluye y lleva su propio fetcher. Sin posición (permiso
  * negado o sin servicio) no llama a la API. Si la API falla y este dispositivo guardó un clima de hoy y de hace menos
  * de 3 horas, lo muestra como `stale` en vez de un error; lo lee (y lo valida contra la hora actual) recién cuando
- * aparece el error. Se refresca cada `WEATHER_REFRESH_MS` solo con la pantalla enfocada.
+ * aparece el error. Se refresca cada `WEATHER_REFRESH_MS` (15 minutos: lo que dura el caché de la API, antes no cambia) solo con la
+ * pantalla enfocada.
  */
 export function useCurrentWeather() {
   const { user } = useAuth();
