@@ -8,13 +8,14 @@ import { DisplayTitle, Screen, SectionCard } from '@/shared/ui';
 
 import { HolidaysCard } from './components/HolidaysCard';
 import { WatchingCard } from './components/WatchingCard';
+import { WeatherCard } from './components/WeatherCard';
 
 const NAME_SKELETON = { width: 160, height: 36 } as const;
 const GREETING_LINE_HEIGHT = 24;
 
 /**
  * Inicio (= `HomeMainCard` de web): una card glass con el saludo, el nombre en `display` y las efemérides adentro,
- * sin `ScreenHeader`. Debajo va la card fija "Seguís viendo". `Screen` ya reserva el lugar de la tab bar.
+ * sin `ScreenHeader`. Debajo van los widgets fijos, en orden: Clima y "Seguís viendo". `Screen` ya reserva el lugar de la tab bar.
  */
 export function HomeScreen() {
   const { user, isLoading } = useAuth();
@@ -53,6 +54,7 @@ export function HomeScreen() {
           </YStack>
           <HolidaysCard />
         </SectionCard>
+        <WeatherCard />
         <WatchingCard />
       </ScrollView>
     </Screen>

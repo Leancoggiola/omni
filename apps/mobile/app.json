@@ -36,6 +36,12 @@
         }
       ],
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Omni usa tu ubicación para mostrar el clima de donde estás. No guarda tu ubicación, solo el último clima en tu dispositivo."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

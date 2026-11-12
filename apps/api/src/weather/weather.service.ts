@@ -1,4 +1,4 @@
-import { appDateKey } from '@omni/shared/common';
+import { canServeWeatherAsStale } from '@omni/shared/weather';
 import type { CurrentWeather, WeatherCoordinates } from '@omni/shared/weather';
 
 import { logger } from '../common/utils';
@@ -7,7 +7,6 @@ import { fetchWeather } from './open-meteo.service';
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const RETRY_AFTER_FAILURE_MS = 60 * 1000;
-const MAX_STALE_AGE_MS = 3 * 60 * 60 * 1000;
 const MAX_CACHED_LOCATIONS = 200;
 
 interface CacheEntry {
@@ -17,12 +16,6 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<CurrentWeather>>();
-
-/** Un dato sirve como respaldo si tiene menos de 3 horas y es de hoy: el mín/máx de ayer ya no describe el día. */
-function canServeAsStale(weather: CurrentWeather): boolean {
-  const updatedAt = new Date(weather.updatedAt);
-  return Date.now() - updatedAt.getTime() <= MAX_STALE_AGE_MS && appDateKey(updatedAt) === appDateKey();
-}
 
 /** Guarda el dato como el más reciente y descarta el más viejo si se llenó el caché. */
 function remember(key: string, weather: CurrentWeather): void {
@@ -49,7 +42,7 @@ async function refreshWeather(key: string, coordinates: WeatherCoordinates): Pro
     remember(key, weather);
     return weather;
   } catch (err) {
-    if (previous && canServeAsStale(previous)) {
+    if (previous && canServeWeatherAsStale(previous)) {
       logger.warn({ err }, 'Open-Meteo falló: se devuelve el último clima guardado');
       const weather = { ...previous, stale: true };
       cache.delete(key);
