@@ -1,8 +1,9 @@
 // tamagui-ignore
+import { useIsFocused } from '@react-navigation/native';
 import { NAV_REGISTRY, type NavKey } from '@omni/shared/navigation';
 import { SPACING } from '@omni/shared/theme';
 import { LockKeyIcon } from 'phosphor-react-native';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Paragraph, YStack } from 'tamagui';
 
 import { Button, EmptyState, notifyError, Screen, ScreenHeader } from '@/shared/ui';
@@ -24,7 +25,8 @@ type SensitiveGateProps = {
  * biometría (o el teléfono no tiene), el módulo no es sensible o ya hay un desbloqueo vigente, renderiza `children` sin
  * más. Cancelar no avisa nada y queda el botón para reintentar; una falla avisa con `notifyError`. Como alternativa
  * a la biometría el sistema ofrece el PIN o patrón del teléfono. La vigencia se evalúa al entrar y al volver de
- * background: una pantalla que ya está abierta no se cierra sola a los 5 minutos.
+ * background, y al recuperar el foco (las pantallas de las tabs quedan montadas): al volver a un módulo pasados los 5
+ * minutos vuelve a pedir biometría. Una pantalla que ya está en foco no se cierra sola a los 5 minutos.
  *
  * `module` es el módulo que protege (solo pide biometría si está en `SENSITIVE_MODULES`). `onBack` marca una ruta de
  * stack: suma el botón de volver del header a la pantalla bloqueada y el inset inferior de las rutas sin tab bar.
@@ -35,6 +37,11 @@ export function SensitiveGate({ module, onBack, children }: SensitiveGateProps) 
     isSensitiveUnlocked() ? sensitiveEpoch : null
   );
   const [busy, setBusy] = useState(false);
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (isFocused && unlockedEpoch !== null && !isSensitiveUnlocked()) setUnlockedEpoch(null);
+  }, [isFocused, unlockedEpoch, isSensitiveUnlocked]);
 
   if (!enabled || !isSensitiveModule(module) || unlockedEpoch === sensitiveEpoch) return <>{children}</>;
 

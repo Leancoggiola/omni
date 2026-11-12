@@ -13,6 +13,9 @@ jest.mock(
 );
 jest.mock('@/shared/ui', () => ({ ...jest.requireActual('@/shared/ui'), notifyError: jest.fn() }));
 
+let mockFocused = true;
+jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
+
 const mockAuthenticateSensitive = jest.fn();
 const mockIsSensitiveUnlocked = jest.fn();
 const mockBiometrics = {
@@ -37,14 +40,44 @@ const renderGate = (props: Partial<React.ComponentProps<typeof SensitiveGate>> =
     </SensitiveGate>
   );
 
+const succeed = async () => {
+  mockIsSensitiveUnlocked.mockReturnValue(true);
+  return 'success';
+};
+
 beforeEach(() => {
   jest.clearAllMocks();
-  mockAuthenticateSensitive.mockResolvedValue('success');
+  mockFocused = true;
+  mockAuthenticateSensitive.mockImplementation(succeed);
   mockIsSensitiveUnlocked.mockReturnValue(false);
   Object.assign(mockBiometrics, { enabled: true, kind: 'fingerprint', noun: 'huella', sensitiveEpoch: 0 });
 });
 
 describe('SensitiveGate', () => {
+  it('al recuperar el foco con el desbloqueo vencido vuelve a taparse; con vigencia sigue abierto', () => {
+    mockIsSensitiveUnlocked.mockReturnValue(true);
+    mockFocused = true;
+    const { rerender } = renderGate();
+    expect(screen.getByText('contenido de gastos')).toBeTruthy();
+
+    mockFocused = false;
+    rerender(
+      <SensitiveGate module="expenses">
+        <Text>contenido de gastos</Text>
+      </SensitiveGate>
+    );
+    mockIsSensitiveUnlocked.mockReturnValue(false);
+    mockFocused = true;
+    rerender(
+      <SensitiveGate module="expenses">
+        <Text>contenido de gastos</Text>
+      </SensitiveGate>
+    );
+
+    expect(screen.queryByText('contenido de gastos')).toBeNull();
+    expect(screen.getByText('Módulo protegido')).toBeTruthy();
+  });
+
   it('en un módulo sensible sin desbloqueo vigente tapa el contenido y ofrece desbloquear', () => {
     renderGate();
 
@@ -116,7 +149,14 @@ describe('SensitiveGate', () => {
 
   it('mientras el prompt está abierto el botón queda cargando y un segundo toque no pide otro', async () => {
     let finish!: (result: string) => void;
-    mockAuthenticateSensitive.mockReturnValue(new Promise(resolve => (finish = resolve)));
+    mockAuthenticateSensitive.mockReturnValue(
+      new Promise(resolve => {
+        finish = result => {
+          mockIsSensitiveUnlocked.mockReturnValue(true);
+          resolve(result);
+        };
+      })
+    );
     renderGate();
     fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' }));
 
