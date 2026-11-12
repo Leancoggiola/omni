@@ -213,7 +213,11 @@ export function LoginScreen() {
         setLoading(false);
       }
     }
-    void disableBiometrics().catch(() => undefined);
+    try {
+      await disableBiometrics();
+    } catch {
+      notifyWarning('No se pudo desactivar el ingreso biométrico de este celular. Revisalo en tu perfil.');
+    }
     forgetInvalidUser();
     setUsername('');
     setPassword('');

@@ -397,7 +397,7 @@ describe('LoginScreen', () => {
     it('"Ingresar con otro usuario" olvida al usuario y vuelve al formulario completo', async () => {
       await renderRemembered();
       fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-      fireEvent.press(screen.getByText('Ingresar con otro usuario'));
+      await act(async () => fireEvent.press(screen.getByText('Ingresar con otro usuario')));
 
       expect(mockClearRememberedUser).toHaveBeenCalledTimes(1);
       expect(screen.getByLabelText('Usuario')).toHaveProp('value', '');
@@ -537,6 +537,18 @@ describe('LoginScreen', () => {
 
       expect(notifyWarning).toHaveBeenCalledWith(
         'No se pudieron borrar los datos de la sesión anterior de este celular.'
+      );
+      expect(mockClearRememberedUser).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText('Usuario')).toBeTruthy();
+    });
+
+    it('si falla desactivar la biometría igual cambia de usuario y avisa', async () => {
+      mockDisableBiometrics.mockRejectedValue(new Error('SecureStore'));
+      await renderLocked();
+      await act(async () => fireEvent.press(screen.getByText('Ingresar con otro usuario')));
+
+      expect(notifyWarning).toHaveBeenCalledWith(
+        'No se pudo desactivar el ingreso biométrico de este celular. Revisalo en tu perfil.'
       );
       expect(mockClearRememberedUser).toHaveBeenCalledTimes(1);
       expect(screen.getByLabelText('Usuario')).toBeTruthy();
