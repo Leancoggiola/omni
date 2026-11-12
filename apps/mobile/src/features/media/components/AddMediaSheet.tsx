@@ -17,6 +17,7 @@ import {
   SheetFrame,
   Spinner,
   TextField,
+  useKeyboardInset,
 } from '@/shared/ui';
 
 import { MIN_SEARCH_LENGTH, useMediaSearch } from '../hooks/useMediaSearch';
@@ -56,6 +57,7 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [visible, setVisible] = useState(open);
   if (open && !visible) setVisible(true);
+  const keyboardInset = useKeyboardInset();
   const submittingRef = useRef(false);
   const { results, error, isLoading, tooShort, retry } = useMediaSearch(query);
 
@@ -154,12 +156,11 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
         snapPointsMode="percent"
         dismissOnSnapToBottom={!submitting}
         dismissOnOverlayPress={!submitting}
-        moveOnKeyboardChange
         zIndex={100_000}
         transition="medium"
       >
         <Sheet.Overlay transition="lazy" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }} />
-        <SheetFrame>
+        <SheetFrame keyboardInset={keyboardInset}>
           <XStack alignItems="center" justifyContent="space-between" gap={SPACING.sm}>
             <DisplayTitle size="md" flexShrink={1}>
               Agregar película / serie

@@ -1,9 +1,11 @@
 import { FONT_SIZE, RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, type TextInput } from 'react-native';
 import { Input, Paragraph, XStack, YStack, type InputProps } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
+
+import { useFormField } from './FormContext';
 
 import type { Icon } from 'phosphor-react-native';
 import type { ComponentProps, ReactNode } from 'react';
@@ -29,7 +31,6 @@ export type TextFieldProps = Omit<InputProps, 'size' | 'disabled'> & {
   /** Acción dentro del campo, a la derecha (p. ej. el ojo de `PasswordField`). */
   rightSection?: ReactNode;
   disabled?: boolean;
-  /** Para encadenar el foco entre campos (`ref.current?.focus()`). */
   ref?: ComponentProps<typeof Input>['ref'];
 };
 
@@ -37,7 +38,10 @@ export type TextFieldProps = Omit<InputProps, 'size' | 'disabled'> & {
  * Equivalente de `TextInput` de Mantine: label 14/600 (con `*` si es requerido), ícono izquierdo, alto 44 (52 y fuente
  * de 16 con `size="lg"`) y, debajo del campo, la descripción y el error. Placeholder, cursor y selección vienen de
  * `defaultProps` del config. El ícono izquierdo y la acción derecha ocupan un hueco de 40 (48 en `lg`) dentro del
- * campo, que es también su padding lateral.
+ * campo, que es también su padding lateral. Dentro de un formulario (`FormSheet`, `FormFields`) "Siguiente" salta solo
+ * al próximo campo habilitado y el último queda con "Listo"; un `returnKeyType` u `onSubmitEditing` propio tiene
+ * prioridad. Dentro de un ScrollView de formulario (`FormSheet`, `FormScrollView`) el campo enfocado scrollea hasta
+ * quedar arriba del teclado.
  */
 export function TextField({
   label,
@@ -52,6 +56,10 @@ export function TextField({
   accessibilityLabel,
   accessibilityHint,
   accessibilityState,
+  returnKeyType,
+  submitBehavior,
+  onSubmitEditing,
+  onFocus,
   ...inputProps
 }: TextFieldProps) {
   const colors = useSemanticColors();
@@ -59,6 +67,16 @@ export function TextField({
   const baseLabel = accessibilityLabel ?? label;
   const a11yLabel = baseLabel && required ? `${baseLabel}, obligatorio` : baseLabel;
   const a11yHint = [error, description, accessibilityHint].filter(Boolean).join('. ') || undefined;
+
+  const inputRef = useRef<TextInput | null>(null);
+  const field = useFormField(!disabled, () => inputRef.current);
+  const autoNext = field.inForm && !onSubmitEditing;
+
+  const setRef = (node: TextInput | null) => {
+    inputRef.current = node;
+    if (typeof ref === 'function') ref(node as never);
+    else if (ref) (ref as { current: unknown }).current = node;
+  };
 
   const previousError = useRef(error);
   useEffect(() => {
@@ -80,7 +98,7 @@ export function TextField({
       ) : null}
       <XStack alignItems="center">
         <Input
-          ref={ref}
+          ref={setRef as never}
           flex={1}
           height={metrics.height}
           borderRadius={RADIUS.md}
@@ -95,6 +113,13 @@ export function TextField({
           disabled={disabled}
           accessibilityLabel={a11yLabel}
           accessibilityHint={a11yHint}
+          returnKeyType={returnKeyType ?? (autoNext ? (field.hasNext ? 'next' : 'done') : undefined)}
+          submitBehavior={submitBehavior ?? (autoNext && field.hasNext ? 'submit' : undefined)}
+          onSubmitEditing={autoNext ? () => void field.focusNext() : onSubmitEditing}
+          onFocus={event => {
+            onFocus?.(event);
+            field.scrollIntoView?.();
+          }}
           {...inputProps}
           accessibilityState={{ ...accessibilityState, disabled }}
         />

@@ -6,6 +6,9 @@ import { Sheet, XStack, YStack } from 'tamagui';
 
 import { IconButton } from '../button/IconButton';
 import { DisplayTitle } from '../DisplayTitle';
+import { FormFields, FormScrollProvider } from '../form/FormContext';
+import { useKeyboardInset } from '../form/useKeyboardInset';
+import { useScrollFocusedInputIntoView } from '../form/useScrollFocusedInputIntoView';
 
 import { SheetFrame } from './SheetFrame';
 import { SHEET_EXIT_MS } from './useSheetQueue';
@@ -27,11 +30,20 @@ type FormSheetProps = {
  * mientras está visible tapa los toasts, el error va en un `Banner` adentro y el éxito se avisa desde `onClosed`.
  * Con `busy` no se cierra ni por overlay, gesto, Atrás ni el botón de cerrar. `onClosed` llega una sola vez cuando el Modal
  * ya se ocultó (ahí un toast queda a la vista), aunque el padre lo pase nuevo en cada render; no llega si la hoja se
- * remonta antes ni si nunca se abrió.
+ * remonta antes ni si nunca se abrió. El teclado no mueve la hoja (moverla cancelaba toques como el ojo de la
+ * contraseña): el frame se achica arriba del teclado, el campo enfocado scrollea a la vista y "Siguiente" salta al
+ * próximo campo (`FormFields`).
  */
 export function FormSheet({ open, onOpenChange, title, busy = false, onClosed, children }: FormSheetProps) {
   const [visible, setVisible] = useState(open);
   if (open && !visible) setVisible(true);
+
+  const keyboardInset = useKeyboardInset();
+  const { scrollRef, onScroll, scrollIntoView } = useScrollFocusedInputIntoView();
+
+  useEffect(() => {
+    if (keyboardInset > 0) scrollIntoView();
+  }, [keyboardInset, scrollIntoView]);
 
   const onClosedRef = useRef(onClosed);
   useEffect(() => {
@@ -68,12 +80,11 @@ export function FormSheet({ open, onOpenChange, title, busy = false, onClosed, c
         snapPointsMode="percent"
         dismissOnSnapToBottom={!busy}
         dismissOnOverlayPress={!busy}
-        moveOnKeyboardChange
         zIndex={100_000}
         transition="medium"
       >
         <Sheet.Overlay transition="lazy" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }} />
-        <SheetFrame>
+        <SheetFrame keyboardInset={keyboardInset}>
           <XStack alignItems="center" justifyContent="space-between" gap={SPACING.sm}>
             <DisplayTitle size="md" flexShrink={1}>
               {title}
@@ -86,8 +97,19 @@ export function FormSheet({ open, onOpenChange, title, busy = false, onClosed, c
               onPress={() => handleOpenChange(false)}
             />
           </XStack>
-          <Sheet.ScrollView flex={1} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            <YStack gap={SPACING.md}>{children}</YStack>
+          <Sheet.ScrollView
+            ref={scrollRef}
+            flex={1}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <FormScrollProvider scrollIntoView={scrollIntoView}>
+              <FormFields>
+                <YStack gap={SPACING.md}>{children}</YStack>
+              </FormFields>
+            </FormScrollProvider>
           </Sheet.ScrollView>
         </SheetFrame>
       </Sheet>
