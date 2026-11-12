@@ -540,6 +540,17 @@ describe('LoginScreen', () => {
       expect(mockDisableBiometrics).toHaveBeenCalledTimes(1);
     });
 
+    it('si falla recordar al usuario tras un login exitoso igual libera el bloqueo', async () => {
+      mockLogin.mockResolvedValue(undefined);
+      mockSetRememberedUser.mockRejectedValue(new Error('SecureStore'));
+      await renderLocked();
+      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => submit());
+
+      expect(mockMarkUnlocked).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Error al iniciar sesión')).toBeNull();
+    });
+
     it('un login con contraseña que falla no libera el bloqueo', async () => {
       mockLogin.mockRejectedValue(new ApiError('Credenciales inválidas', 401));
       await renderLocked();

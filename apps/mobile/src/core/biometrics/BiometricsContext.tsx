@@ -80,6 +80,10 @@ async function readCapability(): Promise<Capability | null> {
  *   último desbloqueo y se pierde al mandar la app a background (`sensitiveEpoch` cambia para avisar a los gates
  *   montados). Cualquier desbloqueo, activación o login con contraseña lo renueva.
  *
+ * Decisión de producto: el bloqueo es solo de arranque en frío (la app "abre bloqueada"). Al volver de background no se
+ * vuelve a bloquear la app entera: solo se invalida el desbloqueo de los módulos sensibles (`SensitiveGate`), que son
+ * los que piden biometría de nuevo.
+ *
  * Decisión de seguridad (arranque): si la lectura del sistema falla, se reintenta una vez; si vuelve a fallar cuenta
  * como "sin biometría" y la app abre sin bloqueo, porque un error de la librería no debe dejar a nadie afuera. Al volver
  * a primer plano un fallo, en cambio, conserva la capacidad anterior.
@@ -98,7 +102,8 @@ async function readCapability(): Promise<Capability | null> {
  * Si la app pasa por background mientras hay un prompt abierto, un éxito posterior no renueva el desbloqueo sensible
  * (el prompt empezó en una época anterior): hay que volver a pedirlo. `enable` pide una verificación biométrica antes de
  * guardar la preferencia, así no queda activada una biometría que no funciona, y como la persona acaba de verificarse
- * no se bloquea la app en esta sesión.
+ * no se bloquea la app en esta sesión. Si falla el guardado en SecureStore, `enable` lanza el error (no devuelve
+ * `'failed'`, que es solo "no se pudo verificar") para que quien llama avise que no se guardó la preferencia.
  */
 export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
   const [ready, setReady] = useState(false);
@@ -198,11 +203,7 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
     const epochAtStart = epochRef.current;
     const result = await prompt(`Activá el ingreso con ${noun}`, false);
     if (result !== 'success') return result;
-    try {
-      await setBiometricEnabled(true);
-    } catch {
-      return 'failed';
-    }
+    await setBiometricEnabled(true);
     setPreference(true);
     renewSensitive(epochAtStart);
     return 'success';

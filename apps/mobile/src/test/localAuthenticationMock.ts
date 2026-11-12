@@ -12,12 +12,7 @@ export const authenticateAsync = jest.fn<
   [Record<string, unknown>?]
 >();
 
-/**
- * Deja el doble de `expo-local-authentication` como un teléfono con huella enrolada que acepta la autenticación (sin
- * hardware real). Se carga con `jest.mock('expo-local-authentication', () =>
- * jest.requireActual('@/test/localAuthenticationMock'))` y cada test pisa lo que necesita (`hasHardwareAsync`,
- * `isEnrolledAsync`, `supportedAuthenticationTypesAsync`, `authenticateAsync`).
- */
+/** Deja el doble como un teléfono con huella enrolada que acepta la autenticación. */
 export function resetLocalAuthentication() {
   hasHardwareAsync.mockReset().mockResolvedValue(true);
   isEnrolledAsync.mockReset().mockResolvedValue(true);

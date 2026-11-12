@@ -323,16 +323,11 @@ describe('BiometricsProvider · activar y desactivar', () => {
     expect(result.current.enabled).toBe(false);
   });
 
-  it('si no se puede guardar la preferencia, falla y no queda activada', async () => {
+  it('si no se puede guardar la preferencia, lanza el error y no queda activada', async () => {
     secure.setItemAsync.mockRejectedValueOnce(new Error('boom'));
     const { result } = await renderBiometrics();
 
-    let outcome;
-    await act(async () => {
-      outcome = await result.current.enable();
-    });
-
-    expect(outcome).toBe('failed');
+    await expect(act(async () => result.current.enable())).rejects.toThrow('boom');
     expect(result.current.enabled).toBe(false);
   });
 

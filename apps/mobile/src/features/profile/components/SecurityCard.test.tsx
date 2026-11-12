@@ -110,6 +110,15 @@ describe('SecurityCard', () => {
     expect(mockEnable).not.toHaveBeenCalled();
   });
 
+  it('si no se puede guardar al activar, avisa que no se guardó y el switch vuelve a apagado', async () => {
+    mockEnable.mockRejectedValue(new Error('SecureStore'));
+    render(<SecurityCard />);
+    await act(async () => fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
+
+    expect(notifyError).toHaveBeenCalledWith('No se pudo guardar la preferencia');
+    expect(screen.getByRole('switch', { name: 'Ingresar con huella', checked: false })).toBeTruthy();
+  });
+
   it('si no se puede guardar al desactivar, vuelve a encendido y avisa', async () => {
     mockBiometrics.enabled = true;
     mockDisable.mockRejectedValue(new Error('SecureStore'));
