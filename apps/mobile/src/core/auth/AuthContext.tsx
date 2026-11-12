@@ -1,3 +1,4 @@
+import { ignoreError } from '@omni/shared/common';
 import {
   createContext,
   useCallback,
@@ -168,7 +169,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     logoutInFlight.current ??= (async () => {
       let timer: ReturnType<typeof setTimeout> | undefined;
       await Promise.race([
-        logoutSession().catch(() => undefined),
+        logoutSession().catch(ignoreError),
         new Promise<void>(resolve => {
           timer = setTimeout(resolve, LOGOUT_SERVER_WAIT_MS);
         }),
