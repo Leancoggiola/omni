@@ -1,3 +1,12 @@
+## [1.4.1](https://github.com/Leancoggiola/omni/compare/v1.4.0...v1.4.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **#58:** Borra el respaldo del clima al cerrar o perder la sesión ([8232ffa](https://github.com/Leancoggiola/omni/commit/8232ffa3751e4720c87e0bb33f216efec4ff8ed0)), closes [#58](https://github.com/Leancoggiola/omni/issues/58)
+* **#58:** Borra el respaldo del clima al cerrar o perder la sesión ([#282](https://github.com/Leancoggiola/omni/issues/282)) ([6954ded](https://github.com/Leancoggiola/omni/commit/6954ded1a8ce1a8c2c2f370d4e09f277d23658cf)), closes [#58](https://github.com/Leancoggiola/omni/issues/58)
+* **#58:** Borra el respaldo del clima después de vaciar la caché de SWR ([16d5275](https://github.com/Leancoggiola/omni/commit/16d52752246edb17d071bb44ff9cde495e292c53)), closes [#58](https://github.com/Leancoggiola/omni/issues/58)
+
 # [1.4.0](https://github.com/Leancoggiola/omni/compare/v1.3.0...v1.4.0) (2026-11-12)
 
 
