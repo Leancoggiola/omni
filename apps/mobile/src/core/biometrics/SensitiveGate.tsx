@@ -12,9 +12,7 @@ import { isSensitiveModule } from './biometrics';
 import { useBiometrics } from './BiometricsContext';
 
 type SensitiveGateProps = {
-  /** Módulo que protege: solo pide biometría si está en `SENSITIVE_MODULES`. */
   module: NavKey;
-  /** Ruta de stack: suma el botón de volver del header a la pantalla bloqueada y el inset inferior de las rutas sin tab bar. */
   onBack?: () => void;
   children: ReactNode;
 };
@@ -27,6 +25,9 @@ type SensitiveGateProps = {
  * más. Cancelar no avisa nada y queda el botón para reintentar; una falla avisa con `notifyError`. Como alternativa
  * a la biometría el sistema ofrece el PIN o patrón del teléfono. La vigencia se evalúa al entrar y al volver de
  * background: una pantalla que ya está abierta no se cierra sola a los 5 minutos.
+ *
+ * `module` es el módulo que protege (solo pide biometría si está en `SENSITIVE_MODULES`). `onBack` marca una ruta de
+ * stack: suma el botón de volver del header a la pantalla bloqueada y el inset inferior de las rutas sin tab bar.
  */
 export function SensitiveGate({ module, onBack, children }: SensitiveGateProps) {
   const { enabled, kind, noun, isSensitiveUnlocked, authenticateSensitive, sensitiveEpoch } = useBiometrics();

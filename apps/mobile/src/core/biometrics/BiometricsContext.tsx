@@ -51,16 +51,18 @@ type Capability = { available: boolean; kind: BiometricKind };
 const NO_CAPABILITY: Capability = { available: false, kind: 'generic' };
 
 /**
- * Lee del sistema si hay biometría usable (hardware y al menos una huella o rostro enrolado) y de qué tipo. Un fallo
- * de la librería cuenta como "sin biometría": nunca debe romper el arranque ni dejar a nadie fuera de la app.
+ * Lee del sistema si hay biometría usable (hardware y al menos una huella o rostro enrolado) y de qué tipo. Devuelve
+ * `null` si la librería falla, para que quien llama distinga "sin biometría" de "no se pudo saber": en el arranque un
+ * fallo cuenta como "sin biometría" (no debe dejar a nadie fuera de la app) pero al volver a primer plano se conserva
+ * la capacidad anterior, así un error transitorio no desbloquea una sesión viva.
  */
-async function readCapability(): Promise<Capability> {
+async function readCapability(): Promise<Capability | null> {
   try {
     const [hardware, enrolled] = await Promise.all([hasHardwareAsync(), isEnrolledAsync()]);
     if (!hardware || !enrolled) return NO_CAPABILITY;
     return { available: true, kind: detectBiometricKind(await supportedAuthenticationTypesAsync()) };
   } catch {
-    return NO_CAPABILITY;
+    return null;
   }
 }
 
@@ -78,7 +80,9 @@ async function readCapability(): Promise<Capability> {
  *   último desbloqueo y se pierde al mandar la app a background (`sensitiveEpoch` cambia para avisar a los gates
  *   montados). Cualquier desbloqueo, activación o login con contraseña lo renueva.
  *
- * Los prompts son de a uno: pedir otro mientras hay uno abierto devuelve el mismo resultado.
+ * Los prompts son de a uno: pedir otro con la misma política de PIN mientras hay uno abierto devuelve el mismo
+ * resultado; si la política difiere, espera a que termine el abierto y recién ahí abre el suyo, así un prompt solo
+ * biométrico nunca se resuelve con el PIN del teléfono.
  */
 export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
   const [ready, setReady] = useState(false);
@@ -87,16 +91,17 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
   const [lockedAtStart, setLockedAtStart] = useState(false);
   const [sensitiveEpoch, setSensitiveEpoch] = useState(0);
   const unlockedAt = useRef<number | null>(null);
-  const pending = useRef<Promise<BiometricResult> | null>(null);
+  const pending = useRef<{ promise: Promise<BiometricResult>; allowDeviceFallback: boolean } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const [next, saved] = await Promise.all([readCapability(), getBiometricEnabled()]);
       if (cancelled) return;
-      setCapability(next);
+      const initial = next ?? NO_CAPABILITY;
+      setCapability(initial);
       setPreference(saved);
-      setLockedAtStart(saved && next.available);
+      setLockedAtStart(saved && initial.available);
       setReady(true);
     })();
 
@@ -106,7 +111,7 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
         setSensitiveEpoch(epoch => epoch + 1);
       } else if (state === 'active') {
         void readCapability().then(next => {
-          if (!cancelled) setCapability(next);
+          if (!cancelled && next) setCapability(next);
         });
       }
     });
@@ -126,8 +131,13 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
    * `disableDeviceFallback` deja solo la biometría (la alternativa en el login es el campo de contraseña de la
    * cuenta); en los módulos sensibles se permite el PIN o patrón del teléfono, que ahí hace de alternativa.
    */
-  const prompt = useCallback((promptMessage: string, allowDeviceFallback: boolean) => {
-    pending.current ??= authenticateAsync({
+  const prompt = useCallback(async (promptMessage: string, allowDeviceFallback: boolean): Promise<BiometricResult> => {
+    while (pending.current) {
+      const current = pending.current;
+      if (current.allowDeviceFallback === allowDeviceFallback) return current.promise;
+      await current.promise;
+    }
+    const promise = authenticateAsync({
       promptMessage,
       cancelLabel: 'Cancelar',
       disableDeviceFallback: !allowDeviceFallback,
@@ -138,7 +148,8 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
       .finally(() => {
         pending.current = null;
       });
-    return pending.current;
+    pending.current = { promise, allowDeviceFallback };
+    return promise;
   }, []);
 
   const markUnlocked = useCallback(() => {

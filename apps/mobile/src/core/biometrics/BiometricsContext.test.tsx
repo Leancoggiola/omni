@@ -95,6 +95,20 @@ describe('BiometricsProvider · disponibilidad', () => {
     await waitFor(() => expect(result.current.available).toBe(true));
   });
 
+  it('si al volver a primer plano la librería falla, conserva la capacidad anterior y el bloqueo sigue vigente', async () => {
+    store.set(PREFERENCE_KEY, '1');
+    const { result } = await renderBiometrics();
+    expect(result.current).toMatchObject({ available: true, enabled: true, locked: true });
+
+    hasHardwareAsync.mockRejectedValue(new Error('boom'));
+    await goTo('active');
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current).toMatchObject({ available: true, enabled: true, locked: true });
+  });
+
   it('desuscribe el listener de AppState al desmontar', async () => {
     const { unmount } = await renderBiometrics();
     unmount();
@@ -213,6 +227,32 @@ describe('BiometricsProvider · bloqueo de arranque', () => {
     expect(authenticateAsync).toHaveBeenCalledTimes(1);
     expect(await first).toBe('success');
     expect(await second).toBe('success');
+  });
+
+  it('un pedido solo biométrico no se une a un prompt abierto que permite el PIN: espera y abre el suyo', async () => {
+    store.set(PREFERENCE_KEY, '1');
+    let finishSensitive!: () => void;
+    authenticateAsync
+      .mockReturnValueOnce(new Promise(resolve => (finishSensitive = () => resolve({ success: true }))))
+      .mockResolvedValueOnce({ success: false, error: 'user_cancel' });
+    const { result } = await renderBiometrics();
+
+    let sensitive!: Promise<string>;
+    let unlocking!: Promise<string>;
+    act(() => {
+      sensitive = result.current.authenticateSensitive();
+      unlocking = result.current.unlock();
+    });
+    expect(authenticateAsync).toHaveBeenCalledTimes(1);
+
+    await act(async () => finishSensitive());
+
+    expect(await sensitive).toBe('success');
+    expect(await unlocking).toBe('cancelled');
+    expect(authenticateAsync).toHaveBeenCalledTimes(2);
+    expect(authenticateAsync).toHaveBeenLastCalledWith(
+      expect.objectContaining({ promptMessage: 'Ingresá a Omni', disableDeviceFallback: true })
+    );
   });
 });
 
