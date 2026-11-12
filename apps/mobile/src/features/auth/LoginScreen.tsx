@@ -142,8 +142,8 @@ function OrDivider() {
  * montar sondea el health (`ensureServerAwake`) para que la API despierte mientras el usuario escribe y el aviso
  * aparezca si tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en curso, los campos
  * (el ojo de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la contraseña (el campo
- * deshabilitado lo pierde y cierra el teclado). Tras un login exitoso guarda solo el usuario (`setRememberedUser`, un fallo ahí no frena el ingreso ni el desbloqueo); si
- * hay uno guardado, la hoja muestra la variante "usuario recordado" (avatar, saludo y un único campo de contraseña) y
+ * deshabilitado lo pierde y cierra el teclado). Tras un login exitoso guarda solo el usuario (`setRememberedUser`; un
+ * fallo ahí no frena el ingreso ni el desbloqueo); si hay uno guardado, la hoja muestra la variante "usuario recordado" (avatar, saludo y un único campo de contraseña) y
  * "Ingresar con otro usuario" lo olvida, vuelve al formulario completo y deja el foco en Usuario. Si el usuario
  * guardado no pasa la validación, también se vuelve al formulario completo para mostrar el error. Cerrar sesión no lo
  * borra.

@@ -26,7 +26,8 @@ type SensitiveGateProps = {
  * más. Cancelar no avisa nada y queda el botón para reintentar; una falla avisa con `notifyError`. Como alternativa
  * a la biometría el sistema ofrece el PIN o patrón del teléfono. La vigencia se evalúa al entrar y al volver de
  * background, y al recuperar el foco (las pantallas de las tabs quedan montadas): al volver a un módulo pasados los 5
- * minutos vuelve a pedir biometría. Una pantalla que ya está en foco no se cierra sola a los 5 minutos.
+ * minutos vuelve a pedir biometría; si la biometría se activa con el gate ya montado, recoge el desbloqueo vigente que
+ * renueva la activación, sin pedirla de nuevo. Una pantalla que ya está en foco no se cierra sola a los 5 minutos.
  *
  * `module` es el módulo que protege (solo pide biometría si está en `SENSITIVE_MODULES`). `onBack` marca una ruta de
  * stack: suma el botón de volver del header a la pantalla bloqueada y el inset inferior de las rutas sin tab bar.
@@ -40,8 +41,11 @@ export function SensitiveGate({ module, onBack, children }: SensitiveGateProps) 
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (isFocused && unlockedEpoch !== null && !isSensitiveUnlocked()) setUnlockedEpoch(null);
-  }, [isFocused, unlockedEpoch, isSensitiveUnlocked]);
+    if (!isFocused) return;
+    const fresh = isSensitiveUnlocked();
+    if (unlockedEpoch !== null && !fresh) setUnlockedEpoch(null);
+    else if (enabled && unlockedEpoch === null && fresh) setUnlockedEpoch(sensitiveEpoch);
+  }, [isFocused, enabled, unlockedEpoch, sensitiveEpoch, isSensitiveUnlocked]);
 
   if (!enabled || !isSensitiveModule(module) || unlockedEpoch === sensitiveEpoch) return <>{children}</>;
 

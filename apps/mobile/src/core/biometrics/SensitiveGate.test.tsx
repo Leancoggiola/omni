@@ -54,6 +54,23 @@ beforeEach(() => {
 });
 
 describe('SensitiveGate', () => {
+  it('si la biometría se activa con el gate ya montado, recoge el desbloqueo vigente sin pedir otra vez', () => {
+    mockBiometrics.enabled = false;
+    const { rerender } = renderGate();
+    expect(screen.getByText('contenido de gastos')).toBeTruthy();
+
+    mockBiometrics.enabled = true;
+    mockIsSensitiveUnlocked.mockReturnValue(true);
+    rerender(
+      <SensitiveGate module="expenses">
+        <Text>contenido de gastos</Text>
+      </SensitiveGate>
+    );
+
+    expect(screen.getByText('contenido de gastos')).toBeTruthy();
+    expect(screen.queryByText('Módulo protegido')).toBeNull();
+  });
+
   it('al recuperar el foco con el desbloqueo vencido vuelve a taparse; con vigencia sigue abierto', () => {
     mockIsSensitiveUnlocked.mockReturnValue(true);
     mockFocused = true;
