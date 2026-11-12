@@ -143,10 +143,10 @@ function OrDivider() {
  * aparezca si tarda; el POST del login espera ese sondeo si sigue en curso. Mientras el login está en curso, los campos
  * (el ojo de la contraseña incluido) quedan deshabilitados; si falla, el foco vuelve a la contraseña (el campo
  * deshabilitado lo pierde y cierra el teclado). Tras un login exitoso guarda solo el usuario (`setRememberedUser`; un
- * fallo ahí no frena el ingreso ni el desbloqueo); si hay uno guardado, la hoja muestra la variante "usuario recordado" (avatar, saludo y un único campo de contraseña) y
- * "Ingresar con otro usuario" lo olvida, vuelve al formulario completo y deja el foco en Usuario. Si el usuario
- * guardado no pasa la validación, también se vuelve al formulario completo para mostrar el error. Cerrar sesión no lo
- * borra.
+ * fallo ahí no frena el ingreso ni el desbloqueo); si hay uno guardado, la hoja muestra la variante "usuario recordado"
+ * (avatar, saludo y un único campo de contraseña) y "Ingresar con otro usuario" lo olvida, vuelve al formulario
+ * completo y deja el foco en Usuario. Si el usuario guardado no pasa la validación, también se vuelve al formulario
+ * completo para mostrar el error. Cerrar sesión no lo borra.
  *
  * Biometría (#173): con la biometría activada la app abre bloqueada (`useBiometrics().locked`); si además hay una
  * sesión guardada, `AuthGate` deja acá a la persona y la hoja suma "Ingresar con huella / rostro" como acción
