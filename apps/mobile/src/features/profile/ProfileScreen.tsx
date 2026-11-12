@@ -23,6 +23,7 @@ import { PasswordCard } from './components/PasswordCard';
 import { PersonalInfoCard } from './components/PersonalInfoCard';
 import { PreferencesCard } from './components/PreferencesCard';
 import { ProfilePhotoCard } from './components/ProfilePhotoCard';
+import { SecurityCard } from './components/SecurityCard';
 import { useAccountActions } from './hooks/useAccountActions';
 import { useProfile } from './hooks/useProfile';
 
@@ -114,6 +115,7 @@ export function ProfileScreen() {
             }}
             onChange={savePreferences}
           />
+          <SecurityCard />
           <HouseholdCard />
           <PasswordCard onSubmit={changePassword} onFieldFocus={scrollIntoView} />
           <LogoutAllCard onLogoutAll={handleLogoutAll} />

@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { AuthProvider, useAuth } from '@/core/auth';
 import { AuthGate } from '@/core/authGate';
+import { BiometricsProvider } from '@/core/biometrics';
 import { SWRProvider } from '@/core/providers';
 import { ServerWakeNotice } from '@/core/serverWake';
 import { ColorSchemeProvider, useColorSchemeControl } from '@/core/theme';
@@ -66,18 +67,20 @@ export default function RootLayout() {
     <TamaguiProvider config={tamaguiConfig} defaultTheme={systemScheme === 'dark' ? 'dark' : 'light'}>
       <SWRProvider>
         <AuthProvider>
-          <ProfileColorSchemeProvider>
-            <ThemedRoot>
-              <NotificationsProvider>
-                <ConfirmProvider>
-                  <ActionSheetProvider>
-                    <AuthGate />
-                    <ServerWakeNotice />
-                  </ActionSheetProvider>
-                </ConfirmProvider>
-              </NotificationsProvider>
-            </ThemedRoot>
-          </ProfileColorSchemeProvider>
+          <BiometricsProvider>
+            <ProfileColorSchemeProvider>
+              <ThemedRoot>
+                <NotificationsProvider>
+                  <ConfirmProvider>
+                    <ActionSheetProvider>
+                      <AuthGate />
+                      <ServerWakeNotice />
+                    </ActionSheetProvider>
+                  </ConfirmProvider>
+                </NotificationsProvider>
+              </ThemedRoot>
+            </ProfileColorSchemeProvider>
+          </BiometricsProvider>
         </AuthProvider>
       </SWRProvider>
     </TamaguiProvider>

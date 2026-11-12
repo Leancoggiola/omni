@@ -29,6 +29,12 @@
       "expo-secure-store",
       "expo-dev-client",
       [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Omni usa Face ID para que ingreses y abras los módulos con información sensible sin escribir la contraseña."
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Omni usa la cámara para leer el código de barras de tus productos.",

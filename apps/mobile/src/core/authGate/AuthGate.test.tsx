@@ -15,9 +15,11 @@ const mockAuth = {
   retrySession: jest.fn(),
   logout: jest.fn(),
 };
+const mockBiometrics = { ready: true, locked: false };
 let mockSegments: string[] = [];
 
 jest.mock('@/core/auth', () => ({ useAuth: () => mockAuth }));
+jest.mock('@/core/biometrics', () => ({ useBiometrics: () => mockBiometrics }));
 jest.mock('@/shared/ui', () => ({ ...jest.requireActual('@/shared/ui'), notifyError: jest.fn() }));
 jest.mock('expo-router', () => {
   const { Text: MockText } = jest.requireActual<typeof import('react-native')>('react-native');
@@ -39,6 +41,7 @@ beforeEach(() => {
     retrySession: jest.fn(),
     logout: jest.fn().mockResolvedValue(undefined),
   });
+  Object.assign(mockBiometrics, { ready: true, locked: false });
   mockSegments = [];
 });
 
@@ -73,6 +76,51 @@ describe('AuthGate', () => {
     setAuth({ isAuthenticated: true });
     render(<AuthGate />);
     expect(screen.getByText('stack')).toBeTruthy();
+  });
+
+  describe('bloqueo biométrico', () => {
+    it('con sesión y bloqueado, cualquier ruta redirige al login', () => {
+      setAuth({ isAuthenticated: true });
+      mockBiometrics.locked = true;
+      render(<AuthGate />);
+
+      expect(screen.getByText('redirect:/login')).toBeTruthy();
+      expect(screen.queryByText('stack')).toBeNull();
+    });
+
+    it('con sesión y bloqueado, en el login se queda ahí (no redirige a las tabs)', () => {
+      setAuth({ isAuthenticated: true });
+      mockBiometrics.locked = true;
+      mockSegments = ['login'];
+      render(<AuthGate />);
+
+      expect(screen.getByText('stack')).toBeTruthy();
+      expect(screen.queryByText(/redirect:/)).toBeNull();
+    });
+
+    it('al desbloquear, el login redirige a las tabs', () => {
+      setAuth({ isAuthenticated: true });
+      mockSegments = ['login'];
+      render(<AuthGate />);
+
+      expect(screen.getByText('redirect:/(tabs)')).toBeTruthy();
+    });
+
+    it('sin sesión el bloqueo no cambia nada: va al login', () => {
+      mockBiometrics.locked = true;
+      render(<AuthGate />);
+
+      expect(screen.getByText('redirect:/login')).toBeTruthy();
+    });
+
+    it('mientras se lee la preferencia muestra el spinner, sin dejar ver la app', () => {
+      setAuth({ isAuthenticated: true });
+      mockBiometrics.ready = false;
+      render(<AuthGate />);
+
+      expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
+      expect(screen.queryByText('stack')).toBeNull();
+    });
   });
 
   describe('con token y la sesión sin verificar', () => {
