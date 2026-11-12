@@ -8,7 +8,7 @@ import { useBiometrics } from '@/core/biometrics';
 import { useSemanticColors } from '@/core/theme';
 import { Button, ErrorState, notifyError, Spinner } from '@/shared/ui';
 
-export const SESSION_ERROR_MESSAGE = 'No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.';
+export const SESSION_ERROR_MESSAGE = 'No pudimos verificar tu sesión. Intentá de nuevo.';
 
 /**
  * Decide qué ve la persona según la sesión: spinner mientras se verifica, login sin sesión y la app con sesión.

@@ -238,7 +238,7 @@ export function LoginScreen() {
 
   const onSubmit = async () => {
     if (submitting.current) return;
-    const parsed = loginSchema.safeParse({ username: username.trim(), password });
+    const parsed = loginSchema.safeParse({ username, password });
     if (!parsed.success) {
       const errors: FieldErrors = {};
       for (const issue of parsed.error.issues) {
