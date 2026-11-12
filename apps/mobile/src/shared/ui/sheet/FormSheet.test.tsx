@@ -4,6 +4,8 @@ import { Modal, Text } from 'react-native';
 import { FormSheet } from './FormSheet';
 import { SHEET_EXIT_MS } from './useSheetQueue';
 
+import { mockSheet } from '@/test/tamaguiMock';
+
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
 jest.mock(
@@ -98,5 +100,11 @@ describe('FormSheet', () => {
     act(() => jest.advanceTimersByTime(SHEET_EXIT_MS * 2));
 
     expect(onClosed).not.toHaveBeenCalled();
+  });
+
+  it('el teclado no mueve la hoja: la hoja no usa moveOnKeyboardChange', () => {
+    renderSheet();
+
+    expect(mockSheet.props).not.toHaveProperty('moveOnKeyboardChange');
   });
 });

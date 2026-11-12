@@ -67,7 +67,6 @@ test.describe('media', () => {
 
     await media.changeStatus('The Matrix', 'Vista');
 
-    await expect(page.getByRole('alert').filter({ hasText: 'Estado actualizado' })).toBeVisible();
     await expect(media.statusOf('The Matrix')).toHaveValue('Vista');
 
     await page.reload();

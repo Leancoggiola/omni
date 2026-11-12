@@ -39,4 +39,14 @@ describe('SheetFrame', () => {
     const grabber = screen.UNSAFE_getByProps({ backgroundColor: '$track' });
     expect(grabber.props).toMatchObject({ width: 40, height: 4, importantForAccessibility: 'no-hide-descendants' });
   });
+
+  it('con el teclado abierto el padding inferior es su alto más 16, en vez del inset', () => {
+    render(
+      <SheetFrame keyboardInset={300}>
+        <Text>contenido</Text>
+      </SheetFrame>
+    );
+
+    expect(screen.UNSAFE_getByProps({ backgroundColor: '$backgroundStrong' }).props.paddingBottom).toBe(300 + 16);
+  });
 });

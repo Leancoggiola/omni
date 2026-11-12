@@ -54,9 +54,17 @@ describe('Navbar', () => {
 
   it.each(['Gimnasio', 'Gastos', 'PC Control'])('deja %s deshabilitado y sin destino', label => {
     renderNavbar();
-    const item = screen.getByRole('link', { name: `${label} Pronto` });
+    const item = screen.getByRole('link', { name: `${label} Próximamente` });
     expect(item).toHaveAttribute('aria-disabled', 'true');
     expect(item).not.toHaveAttribute('href');
+  });
+
+  it('solo la lista de módulos scrollea: el logo y la tarjeta de usuario quedan fuera del viewport', () => {
+    renderNavbar();
+    const viewport = '.mantine-ScrollArea-viewport';
+    expect(screen.getByRole('link', { name: 'Inicio' }).closest(viewport)).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Cerrar sesión' }).closest(viewport)).toBeNull();
+    expect(screen.getByText('Hub personal').closest(viewport)).toBeNull();
   });
 
   it('navega y cierra el navbar al elegir un ítem', async () => {

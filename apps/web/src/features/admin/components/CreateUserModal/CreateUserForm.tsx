@@ -1,8 +1,8 @@
 import { FC, useState } from 'react';
-import { Alert, Button, Group, PasswordInput, SimpleGrid, Stack, TextInput } from '@mantine/core';
+import { Alert, Button, Group, SimpleGrid, Stack, TextInput } from '@mantine/core';
 import { schemaResolver, useForm } from '@mantine/form';
 
-import { getErrorMessage } from '@/shared/ui';
+import { getErrorMessage, PasswordField } from '@/shared/ui';
 
 import { createUserFormSchema, INITIAL_CREATE_USER_FORM_VALUES, toCreateUserPayload } from '../../utils/createUserForm';
 
@@ -61,18 +61,16 @@ export const CreateUserForm: FC<CreateUserFormProps> = ({ loading, onCreate, onC
         />
 
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-          <PasswordInput
+          <PasswordField
             label="Contraseña inicial"
             required
             autoComplete="new-password"
-            visibilityToggleFocusable
             {...form.getInputProps('password')}
           />
-          <PasswordInput
+          <PasswordField
             label="Confirmar contraseña"
             required
             autoComplete="new-password"
-            visibilityToggleFocusable
             {...form.getInputProps('confirmPassword')}
           />
         </SimpleGrid>

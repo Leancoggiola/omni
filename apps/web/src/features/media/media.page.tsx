@@ -53,7 +53,6 @@ export const MediaPage: FC = () => {
     async (id: string, status: MediaStatus) => {
       try {
         await updateStatus(id, status);
-        notifySuccess('Estado actualizado');
       } catch (err) {
         notifyError(getErrorMessage(err, 'No se pudo actualizar el estado'));
       }

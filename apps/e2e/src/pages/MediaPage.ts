@@ -8,17 +8,18 @@ export class MediaPage {
   readonly addButton = () => this.page.getByRole('button', { name: 'Agregar' }).first();
   readonly searchField = () => this.page.getByRole('textbox', { name: 'Título' });
   readonly statusField = () => this.page.getByRole('combobox', { name: 'Estado', exact: true });
-  readonly saveButton = () => this.page.getByRole('button', { name: 'Guardar' });
+  readonly saveButton = () => this.page.getByRole('dialog').getByRole('button', { name: 'Agregar', exact: true });
   readonly statusOf = (title: string) => this.page.getByRole('combobox', { name: `Estado de ${title}` });
   readonly deleteButtonOf = (title: string) => this.page.getByRole('button', { name: `Eliminar ${title}` });
   readonly viewToggle = () => this.page.getByRole('radiogroup', { name: 'Vista' });
-  readonly typeFilter = () => this.page.getByRole('combobox', { name: 'Tipo de contenido' });
+  readonly typeFilter = () => this.page.getByRole('combobox', { name: 'Tipo' });
   readonly retryButton = () => this.page.getByRole('button', { name: 'Reintentar' });
   readonly searchErrorText = () => this.page.getByText('No se pudo buscar en TMDB');
   readonly searchEmptyText = () => this.page.getByText('No se encontraron resultados');
   readonly noResultsText = () => this.page.getByText('No hay resultados');
   readonly emptyListText = () => this.page.getByText('Tu lista está vacía');
-  readonly posterOf = (title: string) => this.page.getByRole('button', { name: title, exact: true });
+  readonly posterOf = (title: string) =>
+    this.page.getByRole('button', { name: `Ampliar póster de ${title}`, exact: true });
 
   async goto() {
     await this.page.goto('/media');

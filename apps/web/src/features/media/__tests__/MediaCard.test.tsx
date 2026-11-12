@@ -50,13 +50,16 @@ describe('MediaCard', () => {
   it('el póster usa la w500 con el título como alt', () => {
     renderCard();
 
-    expect(screen.getByRole('button', { name: 'The Matrix' })).toHaveAttribute('src', `${TMDB_POSTER_W500}/matrix.jpg`);
+    expect(screen.getByRole('button', { name: 'Ampliar póster de The Matrix' })).toHaveAttribute(
+      'src',
+      `${TMDB_POSTER_W500}/matrix.jpg`
+    );
   });
 
   it('si el póster falla muestra el ícono y al cambiar el posterPath lo vuelve a intentar', () => {
     const { rerender, container } = renderCard();
 
-    fireEvent.error(screen.getByRole('button', { name: 'The Matrix' }));
+    fireEvent.error(screen.getByRole('button', { name: 'Ampliar póster de The Matrix' }));
     expect(container.querySelector('img')).toBeNull();
 
     rerender(<MediaCard item={{ ...item, posterPath: '/otro.jpg' }} onStatusChange={vi.fn()} onDelete={vi.fn()} />);
@@ -65,7 +68,7 @@ describe('MediaCard', () => {
 
   it('el póster abre el lightbox con clic, Enter y Espacio', () => {
     renderCard();
-    const poster = screen.getByRole('button', { name: 'The Matrix' });
+    const poster = screen.getByRole('button', { name: 'Ampliar póster de The Matrix' });
 
     fireEvent.click(poster);
     fireEvent.keyDown(poster, { key: 'Enter' });
@@ -79,7 +82,7 @@ describe('MediaCard', () => {
   it('el póster se alcanza con Tab', () => {
     renderCard();
 
-    expect(screen.getByRole('button', { name: 'The Matrix' })).toHaveAttribute('tabindex', '0');
+    expect(screen.getByRole('button', { name: 'Ampliar póster de The Matrix' })).toHaveAttribute('tabindex', '0');
   });
 });
 

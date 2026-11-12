@@ -42,7 +42,7 @@ export const ProfilePhotoSection: FC<ProfilePhotoSectionProps> = ({ name, avatar
   };
 
   return (
-    <ProfileSectionCard title="Foto de Perfil" subtitle="Actualizá tu foto de perfil">
+    <ProfileSectionCard title="Foto de perfil" subtitle="Actualizá tu foto de perfil">
       <Group wrap="nowrap" align="center" gap="lg">
         <UserAvatar name={name} src={avatarUrl} size="5rem" />
         <Stack gap="xs" align="flex-start">

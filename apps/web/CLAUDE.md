@@ -47,6 +47,10 @@ El `SWRConfig` global (`core/providers/SWRProvider.tsx`) aplica `SWR_RETRY_OPTIO
 
 Un hook por archivo en `hooks/` (`hooks/useX.ts`), nombre de función = nombre de archivo. Return: dominio + `isLoading` + `error` (+ `isMutating` en mutations). `buildQueryString` para query params.
 
+## Clima en Inicio
+
+`WeatherCard` (`features/home`, #58) ocupa la segunda columna de `HomeMainCard` desde `lg`. `useCurrentWeather` pide la posición con `navigator.geolocation` (`useDeviceLocation`: se redondea con `roundWeatherCoordinates` antes de salir del hook) y consulta `POST SWR_KEYS.weather.current` con las coordenadas en el body: como no es un GET, la key de SWR es `[path, latitude, longitude]` y lleva su propio fetcher (`api.post`). Sin permiso o sin geolocalización no llama a la API y la card invita a darlo (`EmptyState` con "Permitir ubicación"). Cada clima recibido se guarda en `localStorage` por usuario (`utils/lastWeather.ts`); si la API falla y hay uno de hoy y de hace menos de 3 horas se muestra como `stale`, y si no, `ErrorState`. La atribución ("Datos: Open-Meteo · © OpenStreetMap", con enlaces) es obligatoria. En E2E la geolocalización se simula con `geolocation` y `permissions` de Playwright, y la API habla con el stub de Open-Meteo y Nominatim.
+
 ## Estados de UI (Loading / Empty / Error)
 
 Usar **siempre** los componentes de `@/shared/ui`. No armar variantes propias con `Center`/`Loader`/`Paper`.

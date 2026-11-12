@@ -31,7 +31,7 @@ export const STUB_PORT = 3199 + PORT_OFFSET;
 
 export const WEB_URL = `http://localhost:${WEB_PORT}`;
 export const API_URL = `http://localhost:${API_PORT}`;
-/** Stub de TMDB + Wikipedia (src/support/externalStub.mjs). */
+/** Stub de TMDB + Wikipedia + Open-Meteo + Nominatim (src/support/externalStub.mjs). */
 export const EXTERNAL_STUB_URL = `http://127.0.0.1:${STUB_PORT}`;
 
 /** Lee una variable de apps/api/.env.e2e, la única fuente de las credenciales y el nombre de la base. */
@@ -61,6 +61,8 @@ export const API_ENV: Record<string, string> = {
   CORS_ORIGIN: WEB_URL,
   TMDB_BASE_URL: EXTERNAL_STUB_URL,
   WIKIPEDIA_BASE_URL: EXTERNAL_STUB_URL,
+  OPEN_METEO_BASE_URL: EXTERNAL_STUB_URL,
+  NOMINATIM_BASE_URL: EXTERNAL_STUB_URL,
   ...(DB_E2E_PORT
     ? {
         DATABASE_URL: withDbPort(readApiEnvE2e('DATABASE_URL')),
