@@ -139,7 +139,7 @@ test.describe('sesión que no se puede verificar', () => {
 
     await page.goto('/profile');
 
-    await expect(page.getByRole('alert').filter({ hasText: 'No se pudo conectar con el servidor' })).toBeVisible();
+    await expect(page.getByRole('alert').filter({ hasText: 'No pudimos verificar tu sesión' })).toBeVisible();
     await expect(page).toHaveURL('/profile');
 
     failing = false;

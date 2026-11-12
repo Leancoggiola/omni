@@ -1,5 +1,5 @@
-import { FC, useState } from 'react';
-import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { FC } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Button, Center, Container, Stack } from '@mantine/core';
 
 import { ApiError } from '@/shared/api';
@@ -7,7 +7,7 @@ import { ErrorState, LoadingState } from '@/shared/ui';
 
 import { useAuth } from '../auth';
 
-const SESSION_ERROR_MESSAGE = 'No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.';
+const SESSION_ERROR_MESSAGE = 'No pudimos verificar tu sesión. Intentá de nuevo.';
 
 /** Solo un 401/403 prueba que no hay sesión; cualquier otro error (503, 429, red) significa que no se pudo verificar. */
 const isSessionRejected = (error: unknown): boolean =>
@@ -16,18 +16,6 @@ const isSessionRejected = (error: unknown): boolean =>
 export const ProtectedRoute: FC = () => {
   const { user, isLoading, error, retry, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    try {
-      await logout();
-      navigate('/login', { replace: true });
-    } finally {
-      setLoggingOut(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -43,7 +31,7 @@ export const ProtectedRoute: FC = () => {
         <Container size="xs">
           <Stack>
             <ErrorState message={SESSION_ERROR_MESSAGE} onRetry={() => void retry()} />
-            <Button variant="subtle" loading={loggingOut} onClick={() => void handleLogout()}>
+            <Button variant="subtle" onClick={() => void logout()}>
               Cerrar sesión
             </Button>
           </Stack>
