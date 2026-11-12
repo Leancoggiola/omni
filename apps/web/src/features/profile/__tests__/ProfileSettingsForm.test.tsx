@@ -30,7 +30,7 @@ const profile: UserProfile = {
   },
 };
 
-const saveButton = () => screen.getByRole('button', { name: 'Guardar Cambios' });
+const saveButton = () => screen.getByRole('button', { name: 'Guardar cambios' });
 
 describe('ProfileSettingsForm', () => {
   const onSave = vi.fn();

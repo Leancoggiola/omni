@@ -84,10 +84,10 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
     <form noValidate onSubmit={handleSubmit}>
       <Paper>
         <Stack gap="xl">
-          <ProfileSectionCard nested title="Información Personal" subtitle="Actualizá tus datos personales">
+          <ProfileSectionCard nested title="Información personal" subtitle="Actualizá tus datos personales">
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
               <TextInput
-                label="Nombre Completo"
+                label="Nombre completo"
                 name="profile-name"
                 value={profile.name}
                 disabled
@@ -104,12 +104,12 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
               />
               <TextInput
                 label="Teléfono"
-                placeholder="+34 123 456 789"
+                placeholder="+54 9 11 1234 5678"
                 leftSection={<PhoneIcon {...inputIconProps} />}
                 {...form.getInputProps('phone')}
               />
               <DatePickerInput
-                label="Fecha de Nacimiento"
+                label="Fecha de nacimiento"
                 placeholder="dd/mm/aaaa"
                 valueFormat={DISPLAY_DATE_FORMAT}
                 leftSection={<CalendarBlankIcon {...inputIconProps} />}
@@ -162,7 +162,7 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
               disabled={!form.isDirty()}
               leftSection={<FloppyDiskIcon size="1rem" aria-hidden />}
             >
-              Guardar Cambios
+              Guardar cambios
             </Button>
           </Group>
         </Stack>

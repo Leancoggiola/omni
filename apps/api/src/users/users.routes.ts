@@ -12,7 +12,7 @@ const passwordLimiter = createRateLimiter({
   max: 5,
   message: {
     statusCode: 429,
-    message: 'Demasiados intentos de cambio de contraseña, intenta de nuevo más tarde',
+    message: 'Demasiados intentos de cambio de contraseña, intentá de nuevo más tarde',
   },
 });
 
@@ -21,7 +21,7 @@ const avatarLimiter = createRateLimiter({
   max: 10,
   message: {
     statusCode: 429,
-    message: 'Demasiados cambios de foto de perfil, intenta de nuevo más tarde',
+    message: 'Demasiados cambios de foto de perfil, intentá de nuevo más tarde',
   },
 });
 
