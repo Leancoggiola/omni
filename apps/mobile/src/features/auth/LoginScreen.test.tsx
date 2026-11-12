@@ -508,6 +508,19 @@ describe('LoginScreen', () => {
 
       expect(mockLogin).toHaveBeenCalledWith('admin01', 'secreto');
       expect(mockMarkUnlocked).toHaveBeenCalledTimes(1);
+      expect(mockDisableBiometrics).not.toHaveBeenCalled();
+    });
+
+    it('un login con la contraseña de otro usuario (sin recordado) desactiva la biometría', async () => {
+      mockLogin.mockResolvedValue(undefined);
+      await renderLocked(null);
+      fireEvent.changeText(screen.getByLabelText('Usuario'), 'otro01');
+      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => submit());
+
+      expect(mockLogin).toHaveBeenCalledWith('otro01', 'secreto');
+      expect(mockDisableBiometrics).toHaveBeenCalledTimes(1);
+      expect(mockMarkUnlocked).toHaveBeenCalledTimes(1);
     });
 
     it('un login con contraseña que falla no libera el bloqueo', async () => {

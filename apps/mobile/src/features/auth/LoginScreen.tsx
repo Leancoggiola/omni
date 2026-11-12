@@ -160,7 +160,8 @@ function OrDivider() {
  * la persona siguiente no debe heredarla; si quiere, la vuelve a activar desde Perfil). Con el bloqueo puesto, además,
  * cierra antes la sesión guardada: si no, salir de esta pantalla sin biometría abriría la app con la sesión de la
  * persona anterior. Un fallo al borrar los datos locales, o al desactivar la biometría, no frena el cambio de usuario
- * (la sesión ya salió de la UI): se avisa.
+ * (la sesión ya salió de la UI): se avisa. Si con el bloqueo puesto se ingresa con la contraseña de un usuario distinto
+ * del recordado (o sin recordado), también se desactiva la biometría, por la misma razón.
  */
 export function LoginScreen() {
   const { login, logout, isAuthenticated } = useAuth();
@@ -260,6 +261,13 @@ export function LoginScreen() {
     try {
       await login(parsed.data.username, parsed.data.password);
       await setRememberedUser(parsed.data.username);
+      if (locked && parsed.data.username !== remembered) {
+        try {
+          await disableBiometrics();
+        } catch {
+          notifyWarning('No se pudo desactivar el ingreso biométrico de este celular. Revisalo en tu perfil.');
+        }
+      }
       markUnlocked();
     } catch (err) {
       setError(getErrorMessage(err, 'Error al iniciar sesión'));
