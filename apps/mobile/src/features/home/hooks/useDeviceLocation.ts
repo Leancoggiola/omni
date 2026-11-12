@@ -2,6 +2,7 @@ import * as Location from 'expo-location';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState, Linking } from 'react-native';
 
+import { ignoreError } from '@omni/shared/common';
 import { roundWeatherCoordinates, WEATHER_REFRESH_MS } from '@omni/shared/weather';
 
 import type { WeatherCoordinates } from '@omni/shared/weather';
@@ -70,7 +71,7 @@ export function useDeviceLocation() {
 
   const request = useCallback(() => {
     if (location.status === 'unavailable' && !location.canAskAgain) {
-      Linking.openSettings().catch(() => {});
+      Linking.openSettings().catch(ignoreError);
       return;
     }
     setLocation({ status: 'locating' });

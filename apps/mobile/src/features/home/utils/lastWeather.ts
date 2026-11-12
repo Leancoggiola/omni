@@ -1,5 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 
+import { ignoreError } from '@omni/shared/common';
 import { parseStoredWeather } from '@omni/shared/weather';
 
 import type { CurrentWeather } from '@omni/shared/weather';
@@ -23,6 +24,6 @@ export async function saveLastWeather(username: string, weather: CurrentWeather)
   try {
     await SecureStore.setItemAsync(storageKey(username), JSON.stringify(weather));
   } catch {
-    return;
+    ignoreError();
   }
 }

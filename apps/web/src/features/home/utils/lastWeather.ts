@@ -1,5 +1,6 @@
 import type { CurrentWeather } from '@omni/shared/weather';
 
+import { ignoreError } from '@omni/shared/common';
 import { parseStoredWeather } from '@omni/shared/weather';
 
 const storageKey = (username: string) => `omni-last-weather:${username}`;
@@ -17,5 +18,7 @@ export function readLastWeather(username: string): CurrentWeather | null {
 export function saveLastWeather(username: string, weather: CurrentWeather): void {
   try {
     localStorage.setItem(storageKey(username), JSON.stringify(weather));
-  } catch {}
+  } catch {
+    ignoreError();
+  }
 }

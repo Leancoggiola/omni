@@ -1,3 +1,4 @@
+import { ignoreError } from '@omni/shared/common';
 import { DISPLAY, FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import {
   formatTemperature,
@@ -25,7 +26,7 @@ const CHIP_SIZE = 44;
 function AttributionLink({ label, url }: { label: string; url: string }) {
   return (
     <Pressable
-      onPress={() => Linking.openURL(url).catch(() => {})}
+      onPress={() => Linking.openURL(url).catch(ignoreError)}
       accessibilityRole="link"
       accessibilityLabel={label}
       hitSlop={8}
