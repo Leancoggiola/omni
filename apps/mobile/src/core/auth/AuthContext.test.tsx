@@ -3,11 +3,24 @@ import useSWR, { SWRConfig, useSWRConfig } from 'swr';
 import type { FC, PropsWithChildren } from 'react';
 
 import { SWRProvider } from '@/core/providers';
-import { api, API_KEYS } from '@/shared/api';
+import { api, API_KEYS, readLastWeather, saveLastWeather } from '@/shared/api';
 import { getTokens, setTokens } from '@/shared/api/tokenStorage';
 import { deleteItemAsync, getItemAsync, store } from '@/test/secureStoreMock';
 
 import { AuthProvider, LocalSessionClearError, useAuth } from './AuthContext';
+
+import type { CurrentWeather } from '@omni/shared/weather';
+
+const WEATHER: CurrentWeather = {
+  city: 'Rosario',
+  temperature: 20,
+  condition: 'clear',
+  isDay: true,
+  min: 12,
+  max: 24,
+  updatedAt: new Date().toISOString(),
+  stale: false,
+};
 
 jest.mock('expo-secure-store', () => jest.requireActual('@/test/secureStoreMock'));
 
@@ -245,6 +258,17 @@ describe('AuthProvider', () => {
       expect(await getTokens()).toBeNull();
       expect(result.current.auth.user).toBeNull();
       expect(result.current.auth.isAuthenticated).toBe(false);
+    });
+
+    it('borra el respaldo del clima de la persona y no el de otra', async () => {
+      await saveLastWeather('leo', WEATHER);
+      await saveLastWeather('otra', WEATHER);
+      const { result } = await signIn();
+
+      await act(() => result.current.auth.logout());
+
+      expect(await readLastWeather('leo')).toBeNull();
+      expect(await readLastWeather('otra')).not.toBeNull();
     });
 
     it('manda el token que dejó un refresh anterior', async () => {

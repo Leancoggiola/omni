@@ -20,12 +20,10 @@ vi.mock('@/core/auth', () => ({ useAuth: () => ({ user: auth.user }) }));
 vi.mock('@/shared/api', () => ({
   api: { post: (...args: unknown[]) => post(...args) },
   SWR_KEYS: { weather: { current: '/api/weather/current' } },
-}));
-vi.mock('../hooks/useDeviceLocation', () => ({ useDeviceLocation: () => useDeviceLocation() }));
-vi.mock('../utils/lastWeather', () => ({
   readLastWeather: (...args: unknown[]) => readLastWeather(...args),
   saveLastWeather: (...args: unknown[]) => saveLastWeather(...args),
 }));
+vi.mock('../hooks/useDeviceLocation', () => ({ useDeviceLocation: () => useDeviceLocation() }));
 
 const WEATHER: CurrentWeather = {
   city: 'Rosario',

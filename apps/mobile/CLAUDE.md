@@ -33,7 +33,7 @@ Estructura de features (la misma que web; árbol y reglas): [docs/architecture.m
 - **Prohibido:** feature A → feature B.
 - Contratos desde `@omni/shared/*`; no duplicar schemas.
 - **React Compiler activo** en mobile (`experiments.reactCompiler: true` en `app.json`). Web no lo tiene activado.
-- **Tokens:** SecureStore vive en `src/shared/api/tokenStorage.ts` (una sola clave con access y refresh). Solo `tokenStorage`, `rememberedUser`, `biometricPreference` y el respaldo del clima (`features/home/utils/lastWeather.ts`, clave `omni.lastWeather.<usuario>`: solo el dato del contrato, sin coordenadas) hablan con `expo-secure-store`.
+- **Tokens:** SecureStore vive en `src/shared/api/tokenStorage.ts` (una sola clave con access y refresh). Solo `tokenStorage`, `rememberedUser`, `biometricPreference` y el respaldo del clima (`shared/api/lastWeather.ts`, clave `omni.lastWeather.<usuario>`: solo el dato del contrato, sin coordenadas; `AuthProvider.clearSession` lo borra al cerrar o perder la sesión) hablan con `expo-secure-store`.
 
 ## Navegación
 
