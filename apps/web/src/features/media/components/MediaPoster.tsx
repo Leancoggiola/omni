@@ -28,6 +28,7 @@ export function MediaPoster({ posterPath, variant = 'thumb', title = '', zoomabl
   const isCover = variant === 'cover';
   const src = `${isCover ? TMDB_POSTER_W500 : TMDB_POSTER_W185}${posterPath}`;
   const openLightbox = () => openImageLightbox({ src, alt: title });
+  const label = title ? `Ampliar póster de ${title}` : 'Ampliar póster';
 
   return (
     <AspectRatio ratio={POSTER_RATIO} w={isCover ? '100%' : '3.5rem'} style={{ flexShrink: 0 }}>
@@ -39,6 +40,7 @@ export function MediaPoster({ posterPath, variant = 'thumb', title = '', zoomabl
           onError={() => setFailed(true)}
           {...(zoomable && {
             role: 'button',
+            'aria-label': label,
             tabIndex: 0,
             onClick: openLightbox,
             onKeyDown: (event: KeyboardEvent<HTMLImageElement>) => {

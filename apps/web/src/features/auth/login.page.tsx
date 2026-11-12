@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Alert, Button, PasswordInput, Stack, TextInput } from '@mantine/core';
+import { Alert, Button, Stack, TextInput } from '@mantine/core';
 import { schemaResolver, useForm } from '@mantine/form';
 
 import { useAuth } from '@/core/auth';
 import { ensureServerAwake } from '@/shared/api';
-import { getErrorMessage } from '@/shared/ui';
+import { getErrorMessage, PasswordField } from '@/shared/ui';
 
 import { AuthCard } from './components/AuthCard';
 
@@ -71,10 +71,9 @@ export const LoginPage: FC = () => {
             key={form.key('username')}
             {...form.getInputProps('username')}
           />
-          <PasswordInput
+          <PasswordField
             ref={passwordRef}
             label="Contraseña"
-            visibilityToggleFocusable
             disabled={loading}
             key={form.key('password')}
             {...form.getInputProps('password')}

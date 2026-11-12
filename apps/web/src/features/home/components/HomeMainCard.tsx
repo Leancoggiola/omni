@@ -27,7 +27,7 @@ export const HomeMainCard: FC = () => {
               <Skeleton component="span" display="block" height="3.25rem" width="14rem" />
             ) : (
               <Text span c="var(--mantine-color-text-primary)" {...display} fz="3rem" lh="3.25rem">
-                {user?.name}
+                {user?.name ?? '—'}
               </Text>
             )}
           </Stack>

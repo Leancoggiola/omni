@@ -292,6 +292,13 @@ Lo que **no** es automático y hay que replicar a mano en mobile:
 | Radios, espaciado, tamaños y sombras     | Hecho — `RADIUS` / `SPACING` / `SIZE` / `SHADOW_THEMED` de `@omni/shared/theme`                                                                                                                                                                                                                                                                           |
 | Tema del perfil + toggle de sesión       | Hecho — `src/core/theme` (override en memoria; en web vive en `sessionStorage`)                                                                                                                                                                                                                                                                           |
 
+### Diferencias aceptadas (#146)
+
+Divergencias de comportamiento que se mantienen a propósito, una por plataforma:
+
+- **Preferencias del perfil:** web guarda notificaciones y tema junto con los datos personales con "Guardar cambios"; mobile guarda cada preferencia al tocarla y la revierte si falla.
+- **Errores al cambiar la contraseña:** web los muestra en un `Alert` dentro del formulario; mobile, en un toast, porque un `Alert` arriba de una pantalla larga no se ve.
+
 Al tocar el design system, correr siempre:
 
 ```bash
