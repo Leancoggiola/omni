@@ -1,3 +1,4 @@
+import { ignoreError } from '@omni/shared/common';
 import { ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
@@ -8,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { AuthProvider, useAuth } from '@/core/auth';
 import { AuthGate } from '@/core/authGate';
+import { BiometricsProvider } from '@/core/biometrics';
 import { SWRProvider } from '@/core/providers';
 import { ServerWakeNotice } from '@/core/serverWake';
 import { ColorSchemeProvider, useColorSchemeControl } from '@/core/theme';
@@ -21,7 +23,7 @@ import { ActionSheetProvider, ConfirmProvider, NotificationsProvider } from '@/s
  * puede rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
  */
 function holdSplash() {
-  SplashScreen.preventAutoHideAsync().catch(() => {});
+  SplashScreen.preventAutoHideAsync().catch(ignoreError);
 }
 
 holdSplash();
@@ -65,18 +67,20 @@ export default function RootLayout() {
     <TamaguiProvider config={tamaguiConfig} defaultTheme={systemScheme === 'dark' ? 'dark' : 'light'}>
       <SWRProvider>
         <AuthProvider>
-          <ProfileColorSchemeProvider>
-            <ThemedRoot>
-              <NotificationsProvider>
-                <ConfirmProvider>
-                  <ActionSheetProvider>
-                    <AuthGate />
-                    <ServerWakeNotice />
-                  </ActionSheetProvider>
-                </ConfirmProvider>
-              </NotificationsProvider>
-            </ThemedRoot>
-          </ProfileColorSchemeProvider>
+          <BiometricsProvider>
+            <ProfileColorSchemeProvider>
+              <ThemedRoot>
+                <NotificationsProvider>
+                  <ConfirmProvider>
+                    <ActionSheetProvider>
+                      <AuthGate />
+                      <ServerWakeNotice />
+                    </ActionSheetProvider>
+                  </ConfirmProvider>
+                </NotificationsProvider>
+              </ThemedRoot>
+            </ProfileColorSchemeProvider>
+          </BiometricsProvider>
         </AuthProvider>
       </SWRProvider>
     </TamaguiProvider>

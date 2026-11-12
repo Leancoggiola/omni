@@ -23,6 +23,7 @@ import { PasswordCard } from './components/PasswordCard';
 import { PersonalInfoCard } from './components/PersonalInfoCard';
 import { PreferencesCard } from './components/PreferencesCard';
 import { ProfilePhotoCard } from './components/ProfilePhotoCard';
+import { SecurityCard } from './components/SecurityCard';
 import { useAccountActions } from './hooks/useAccountActions';
 import { useProfile } from './hooks/useProfile';
 
@@ -109,6 +110,7 @@ export function ProfileScreen() {
             }}
             onChange={savePreferences}
           />
+          <SecurityCard />
           <HouseholdCard />
           <PasswordCard onSubmit={changePassword} />
           <LogoutAllCard onLogoutAll={handleLogoutAll} />
@@ -121,7 +123,7 @@ export function ProfileScreen() {
   return (
     <Screen insetBottom>
       <ScreenHeader
-        title="Mi Perfil"
+        title="Mi perfil"
         subtitle="Gestioná tu información personal y preferencias"
         size="lg"
         onBack={goBack}

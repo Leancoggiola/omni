@@ -84,7 +84,7 @@ export function PersonalInfoCard({ profile, onSave }: PersonalInfoCardProps) {
             label="Teléfono"
             value={phone}
             onChangeText={setPhone}
-            placeholder="+34 123 456 789"
+            placeholder="+54 9 11 1234 5678"
             keyboardType="phone-pad"
             autoComplete="tel"
             maxLength={PHONE_MAX_LENGTH}

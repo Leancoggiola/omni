@@ -29,6 +29,9 @@ jest.mock('@/core/auth', () => ({
   LocalSessionClearError: jest.requireActual('@/core/auth/AuthContext').LocalSessionClearError,
   useAuth: () => ({ logout: mockLogout, logoutAll: mockLogoutAll }),
 }));
+jest.mock('@/core/biometrics', () => ({
+  useBiometrics: () => ({ available: false, enabled: false, noun: 'huella', enable: jest.fn(), disable: jest.fn() }),
+}));
 jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn() }) }));
 jest.mock(
   'react-native-safe-area-context',

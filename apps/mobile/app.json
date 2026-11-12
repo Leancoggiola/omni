@@ -29,10 +29,22 @@
       "expo-secure-store",
       "expo-dev-client",
       [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Omni usa Face ID para que ingreses y abras los módulos con información sensible sin escribir la contraseña."
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Omni usa la cámara para leer el código de barras de tus productos.",
           "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Omni usa tu ubicación para mostrar el clima de donde estás. No guarda tu ubicación, solo el último clima en tu dispositivo."
         }
       ],
       [

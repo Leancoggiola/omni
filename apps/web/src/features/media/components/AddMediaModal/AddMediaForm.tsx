@@ -61,7 +61,7 @@ export const AddMediaForm: FC<AddMediaFormProps> = ({ loading, existingTmdbIds, 
     try {
       await onSubmit(values.tmdbId, values.mediaType, values.status);
     } catch (err) {
-      setSubmitError(getErrorMessage(err, 'No se pudo guardar'));
+      setSubmitError(getErrorMessage(err, 'No se pudo agregar'));
     }
   };
 
@@ -98,8 +98,8 @@ export const AddMediaForm: FC<AddMediaFormProps> = ({ loading, existingTmdbIds, 
           <Button variant="outline" type="button" onClick={onCancel} disabled={loading}>
             Cancelar
           </Button>
-          <Button type="submit" loading={loading} disabled={!form.isDirty()}>
-            Guardar
+          <Button type="submit" loading={loading} disabled={form.values.tmdbId == null}>
+            Agregar
           </Button>
         </Group>
       </Stack>

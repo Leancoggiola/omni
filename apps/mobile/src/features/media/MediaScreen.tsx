@@ -170,7 +170,7 @@ export function MediaScreen() {
           <YStack gap={SPACING.md} paddingBottom={SPACING.md}>
             <ScreenHeader
               icon={FilmSlateIcon}
-              title="Películas y Series"
+              title="Películas y series"
               subtitle="Tu lista de seguimiento"
               action={<MediaViewToggle value={view} onChange={setView} />}
             />

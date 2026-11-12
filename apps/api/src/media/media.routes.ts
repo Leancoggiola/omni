@@ -18,7 +18,7 @@ const searchLimiter = createRateLimiter({
   max: 50,
   message: {
     statusCode: 429,
-    message: 'Demasiadas búsquedas, intenta de nuevo más tarde',
+    message: 'Demasiadas búsquedas, intentá de nuevo más tarde',
   },
 });
 

@@ -6,12 +6,12 @@ export type ThemeOption = 'Claro' | 'Oscuro' | 'Sistema';
 export class ProfilePage {
   constructor(private readonly page: Page) {}
 
-  readonly nameField = () => this.page.getByRole('textbox', { name: 'Nombre Completo' });
+  readonly nameField = () => this.page.getByRole('textbox', { name: 'Nombre completo' });
   readonly phoneField = () => this.page.getByRole('textbox', { name: 'Teléfono' });
   readonly themeControl = () => this.page.getByRole('radiogroup', { name: 'Tema' });
   readonly themeOption = (option: ThemeOption) => this.themeControl().getByRole('radio', { name: option });
   readonly notificationsSwitch = () => this.page.getByRole('switch', { name: 'Notificaciones' });
-  readonly saveButton = () => this.page.getByRole('button', { name: 'Guardar Cambios' });
+  readonly saveButton = () => this.page.getByRole('button', { name: 'Guardar cambios' });
   readonly savedNotification = () => this.page.getByRole('alert').filter({ hasText: 'Listo' });
 
   readonly currentPasswordField = () => this.page.getByLabel('Contraseña actual');

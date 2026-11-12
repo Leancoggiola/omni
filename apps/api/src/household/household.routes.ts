@@ -9,7 +9,7 @@ const inviteLimiter = createRateLimiter({
   max: 10,
   message: {
     statusCode: 429,
-    message: 'Demasiados intentos con códigos de invitación, intenta de nuevo más tarde',
+    message: 'Demasiados intentos con códigos de invitación, intentá de nuevo más tarde',
   },
 });
 
@@ -18,7 +18,7 @@ const createInviteLimiter = createRateLimiter({
   max: 30,
   message: {
     statusCode: 429,
-    message: 'Demasiadas invitaciones generadas, intenta de nuevo más tarde',
+    message: 'Demasiadas invitaciones generadas, intentá de nuevo más tarde',
   },
 });
 

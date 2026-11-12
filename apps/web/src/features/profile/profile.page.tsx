@@ -92,7 +92,7 @@ export const ProfilePage: FC = () => {
     <Stack gap="xl" maw="60rem" mx="auto">
       <PageHeader
         icon={<UserIcon size="1.5rem" />}
-        title="Mi Perfil"
+        title="Mi perfil"
         subtitle="Gestioná tu información personal y preferencias"
       />
 

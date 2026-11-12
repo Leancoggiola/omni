@@ -42,6 +42,13 @@ const HOLIDAYS = {
   ],
 };
 
+const FORECAST = {
+  current: { temperature_2m: 21.6, weather_code: 3, is_day: 1 },
+  daily: { temperature_2m_max: [26.2], temperature_2m_min: [14.1] },
+};
+
+const REVERSE_GEOCODE = { address: { city: 'Rosario' } };
+
 const byId = new Map([...MOVIES, ...TV_SHOWS].map(item => [item.id, item]));
 
 function searchPayload(query, kind) {
@@ -59,6 +66,10 @@ function send(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+/**
+ * Servidor de las APIs externas. `/forecast` (Open-Meteo) responde siempre 21,6 °C (se redondea a 22), código WMO 3
+ * (nublado), de día, mín 14 y máx 26; `/reverse` (Nominatim) responde siempre la ciudad Rosario.
+ */
 const server = createServer((req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
   const path = url.pathname;
@@ -68,6 +79,10 @@ const server = createServer((req, res) => {
   if (path.startsWith('/search/')) {
     return send(res, 200, searchPayload(url.searchParams.get('query'), path.slice('/search/'.length)));
   }
+
+  if (path === '/forecast') return send(res, 200, FORECAST);
+
+  if (path === '/reverse') return send(res, 200, REVERSE_GEOCODE);
 
   if (/^\/feed\/onthisday\/holidays\/\d{2}\/\d{2}$/.test(path)) return send(res, 200, HOLIDAYS);
 
