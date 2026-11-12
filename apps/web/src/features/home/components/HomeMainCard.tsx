@@ -4,6 +4,7 @@ import { useAuth } from '@/core/auth';
 import { useDisplayStyles } from '@/shared/ui';
 
 import { HolidaysCard } from './HolidaysCard/HolidaysCard';
+import { WeatherCard } from './WeatherCard';
 
 import type { FC } from 'react';
 
@@ -33,6 +34,7 @@ export const HomeMainCard: FC = () => {
         </Title>
         <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
           <HolidaysCard />
+          <WeatherCard />
         </SimpleGrid>
       </Stack>
     </Paper>

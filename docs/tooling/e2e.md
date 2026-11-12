@@ -183,6 +183,8 @@ Usa `services: postgres` en el puerto 5434 y cachea los browsers según la versi
 | ------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `TMDB_BASE_URL`           | Apunta al stub local en vez de a TMDB                                                                |
 | `WIKIPEDIA_BASE_URL`      | Apunta al mismo stub para el feed de efemérides (`/feed/onthisday/holidays/:mm/:dd`)                 |
+| `OPEN_METEO_BASE_URL`     | Apunta al mismo stub para el clima (`/forecast`: 21,6 °C, nublado, de día, mín 14 y máx 26)          |
+| `NOMINATIM_BASE_URL`      | Apunta al mismo stub para la ciudad del clima (`/reverse`: Rosario)                                  |
 | `RATE_LIMIT_DISABLED`     | Los límites son por IP y toda la suite sale de una sola; `authLimiter` permite 10 logins cada 15 min |
 | `ADMIN_USERNAME/PASSWORD` | Los usa el seed, y `ADMIN` de `src/support/env.ts` los lee de ahí                                    |
 

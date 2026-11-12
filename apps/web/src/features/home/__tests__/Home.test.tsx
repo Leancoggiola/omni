@@ -22,6 +22,16 @@ vi.mock('../hooks/useTodayHolidays', () => ({
   }),
 }));
 
+vi.mock('../hooks/useCurrentWeather', () => ({
+  useCurrentWeather: () => ({
+    weather: null,
+    state: 'no-location',
+    error: undefined,
+    retry: vi.fn(),
+    requestLocation: vi.fn(),
+  }),
+}));
+
 vi.mock('../hooks/useWatchingMedia', () => ({
   WATCHING_LIMIT: 3,
   useWatchingMedia: () => ({ items: [], isLoading: false, error: undefined, mutate: vi.fn() }),
@@ -48,6 +58,11 @@ describe('HomePage', () => {
   it('incluye la tarjeta fija "Seguís viendo"', () => {
     renderHome();
     expect(screen.getByRole('heading', { name: 'Seguís viendo' })).toBeInTheDocument();
+  });
+
+  it('incluye el widget de Clima junto a las efemérides', () => {
+    renderHome();
+    expect(screen.getByText('Activá la ubicación para ver el clima')).toBeInTheDocument();
   });
 
   it('muestra un saludo según la hora', () => {
