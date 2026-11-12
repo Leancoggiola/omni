@@ -1,3 +1,42 @@
+# [1.4.0](https://github.com/Leancoggiola/omni/compare/v1.3.0...v1.4.0) (2026-11-12)
+
+
+### Bug Fixes
+
+* **#145:** Actualiza el selector del póster en el E2E ([#280](https://github.com/Leancoggiola/omni/issues/280)) ([7eb7599](https://github.com/Leancoggiola/omni/commit/7eb7599377e91d5cf87a89f282f2755c4cf7db2a)), closes [#145](https://github.com/Leancoggiola/omni/issues/145)
+* **#145:** Arregla el selector de contraseña del login en E2E y cubre el ref ([011cc18](https://github.com/Leancoggiola/omni/commit/011cc18edbae33b01c05996ea86fba3dc162348e)), closes [#145](https://github.com/Leancoggiola/omni/issues/145)
+* **#146:** Unifica el texto de sesión sin verificar y simplifica el logout ([3eebc80](https://github.com/Leancoggiola/omni/commit/3eebc8041dba5c60f378bd4fa554b4bae590813a)), closes [#146](https://github.com/Leancoggiola/omni/issues/146)
+* **#173:** Atiende la revisión del bloqueo biométrico ([82a8607](https://github.com/Leancoggiola/omni/commit/82a8607792672aa3c2f25f90d2b87f5428c5b261)), closes [#173](https://github.com/Leancoggiola/omni/issues/173)
+* **#173:** Atiende la revisión sobre guardado de preferencia y recordar usuario ([5bb449f](https://github.com/Leancoggiola/omni/commit/5bb449f5cc8da0947e9873f07500fb607534b62c)), closes [#173](https://github.com/Leancoggiola/omni/issues/173)
+* **#173:** Atiende la segunda revisión del bloqueo biométrico ([4b7a8c7](https://github.com/Leancoggiola/omni/commit/4b7a8c7d151507ef721735eb3c508a130fd61f84)), closes [#173](https://github.com/Leancoggiola/omni/issues/173)
+* **#173:** Avisa si falla desactivar la biometría al cambiar de usuario ([4f73d21](https://github.com/Leancoggiola/omni/commit/4f73d214b714af9360173b2fef3abd0084780d41)), closes [#173](https://github.com/Leancoggiola/omni/issues/173)
+* **#173:** Desactiva la biometría al ingresar otro usuario aunque no haya bloqueo ([7f1d1e7](https://github.com/Leancoggiola/omni/commit/7f1d1e7bb3e298394358cbe1b603cb43a1e3b49f)), closes [#173](https://github.com/Leancoggiola/omni/issues/173)
+* **#173:** Desactiva la biometría si con el bloqueo puesto ingresa otro usuario ([cac4341](https://github.com/Leancoggiola/omni/commit/cac4341c512a57e067769dce23498c3e70a6d992)), closes [#173](https://github.com/Leancoggiola/omni/issues/173)
+* **#173:** El gate recoge el desbloqueo de la activación y reflow del JSDoc de login ([3e56855](https://github.com/Leancoggiola/omni/commit/3e56855f05e305239d875cb8d39958c3710fa9ce)), closes [#173](https://github.com/Leancoggiola/omni/issues/173)
+* **#173:** Reevalúa el desbloqueo sensible al recuperar el foco ([638cf50](https://github.com/Leancoggiola/omni/commit/638cf50c692a6914bb085ca2c7b72d9a3ceff545)), closes [#173](https://github.com/Leancoggiola/omni/issues/173)
+* **#189:** Navbar lateral fijo con scroll interno sin cortar el foco ([#276](https://github.com/Leancoggiola/omni/issues/276)) ([095de4d](https://github.com/Leancoggiola/omni/commit/095de4d0a33b504218dd71cf738451168fb61aa9)), closes [#189](https://github.com/Leancoggiola/omni/issues/189)
+* **#268:** Hojas con teclado que scrollean al campo y Siguiente automático ([a656505](https://github.com/Leancoggiola/omni/commit/a65650568e6f5ddfdfed61c1250774b306930d51)), closes [#268](https://github.com/Leancoggiola/omni/issues/268) [#269](https://github.com/Leancoggiola/omni/issues/269) [#268](https://github.com/Leancoggiola/omni/issues/268) [#269](https://github.com/Leancoggiola/omni/issues/269)
+* **#270:** Los botones flotantes quedan arriba de la barra de Android ([ace99b5](https://github.com/Leancoggiola/omni/commit/ace99b54c0c1b1471434f24aeee2d44ec74892a4)), closes [#270](https://github.com/Leancoggiola/omni/issues/270) [#270](https://github.com/Leancoggiola/omni/issues/270)
+* **#270:** Teclado en las hojas, Siguiente automático y botones sobre la barra de Android ([#273](https://github.com/Leancoggiola/omni/issues/273)) ([e2ad54e](https://github.com/Leancoggiola/omni/commit/e2ad54e4a5ddab4ac801613f56eaa559bcfc2906)), closes [#270](https://github.com/Leancoggiola/omni/issues/270)
+* **#58:** Ajustes del Clima tras la revisión del PR ([0195545](https://github.com/Leancoggiola/omni/commit/01955456cd306d5e9b0184f8b737d7eb1fb81f93)), closes [#58](https://github.com/Leancoggiola/omni/issues/58)
+* **#58:** Permiso bloqueado en web y respaldo validado al usarlo ([059ca79](https://github.com/Leancoggiola/omni/commit/059ca79f5ea398983a7a5dadb6372ba149bd324f)), closes [#58](https://github.com/Leancoggiola/omni/issues/58)
+* **#58:** Reintento al volver de los ajustes y JSDoc solo sobre funciones ([d680340](https://github.com/Leancoggiola/omni/commit/d680340e0021147d0877226d8f485b9d4043eb7e)), closes [#58](https://github.com/Leancoggiola/omni/issues/58)
+* **e2e:** Usa el nombre accesible nuevo del póster en MediaPage ([eb1e804](https://github.com/Leancoggiola/omni/commit/eb1e8040da895e5f18e7cbf17f7e483c2bd8462e)), closes [#145](https://github.com/Leancoggiola/omni/issues/145)
+* **web:** Evita que el foco se corte en la lista scrolleable del navbar ([f152807](https://github.com/Leancoggiola/omni/commit/f152807ad4f7cc583ff7a8fa0c3f6ab8b37e8d20)), closes [#189](https://github.com/Leancoggiola/omni/issues/189)
+
+
+### Features
+
+* **#146:** Alinea web y mobile en login, sesión y Media ([3babca8](https://github.com/Leancoggiola/omni/commit/3babca837bff0cffc1b6e3e190c30013b9103622)), closes [#146](https://github.com/Leancoggiola/omni/issues/146) [#146](https://github.com/Leancoggiola/omni/issues/146)
+* **#146:** Alinea web y mobile en login, sesión y Media ([#278](https://github.com/Leancoggiola/omni/issues/278)) ([6002ac1](https://github.com/Leancoggiola/omni/commit/6002ac1dd8e680b7e0b8a7db370570390c1e4ec2)), closes [#146](https://github.com/Leancoggiola/omni/issues/146)
+* **#173:** Biometría para ingresar y para módulos sensibles en mobile ([f101194](https://github.com/Leancoggiola/omni/commit/f1011948a93f314d43d129448ea58d59ecffc0df)), closes [#173](https://github.com/Leancoggiola/omni/issues/173)
+* **#173:** Biometría para ingresar y para módulos sensibles en mobile ([#274](https://github.com/Leancoggiola/omni/issues/274)) ([c51f3ce](https://github.com/Leancoggiola/omni/commit/c51f3ce361b3a0c2a19890241beb4053585dd965)), closes [#173](https://github.com/Leancoggiola/omni/issues/173)
+* **#58:** Clima en el Inicio de web y mobile ([#275](https://github.com/Leancoggiola/omni/issues/275)) ([5cffc97](https://github.com/Leancoggiola/omni/commit/5cffc97ed4482760e47e75eea22bd5b7dd6b5c5f)), closes [#58](https://github.com/Leancoggiola/omni/issues/58)
+* **#58:** Widget de Clima en el Inicio mobile ([82b1ab5](https://github.com/Leancoggiola/omni/commit/82b1ab5b2f169f2b00e47149dbd3ddc7f670d543)), closes [#58](https://github.com/Leancoggiola/omni/issues/58)
+* **#58:** Widget de Clima en el Inicio web ([4fc6f76](https://github.com/Leancoggiola/omni/commit/4fc6f762165b5c89955c37e909dcbafbca473684)), closes [#58](https://github.com/Leancoggiola/omni/issues/58)
+* **release:** Lleva a producción clima, biometría en mobile y paridad web y mobile ([#281](https://github.com/Leancoggiola/omni/issues/281)) ([ac6a329](https://github.com/Leancoggiola/omni/commit/ac6a329a46ee670ff993347185174bd436e4941d))
+* **shared:** Helpers de formato y respaldo del clima para los clientes ([88d910d](https://github.com/Leancoggiola/omni/commit/88d910d5fefeb2f18300e6d5324a18ca87ee80ec))
+
 # [1.3.0](https://github.com/Leancoggiola/omni/compare/v1.2.2...v1.3.0) (2026-11-11)
 
 
