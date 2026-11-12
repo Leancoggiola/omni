@@ -2,6 +2,8 @@ import { getSessionColorScheme } from './sessionColorScheme';
 
 import type { MantineColorSchemeManager } from '@mantine/core';
 
+import { ignoreError } from '@omni/shared/common';
+
 /** Clave del `localStorageColorSchemeManager` por defecto de Mantine (versiones previas de la app). */
 export const LEGACY_COLOR_SCHEME_KEY = 'mantine-color-scheme-value';
 
@@ -19,7 +21,9 @@ export const LEGACY_COLOR_SCHEME_KEY = 'mantine-color-scheme-value';
 export function createSessionColorSchemeManager(): MantineColorSchemeManager {
   try {
     localStorage.removeItem(LEGACY_COLOR_SCHEME_KEY);
-  } catch {}
+  } catch {
+    ignoreError();
+  }
 
   return {
     get: defaultValue => getSessionColorScheme() ?? defaultValue,

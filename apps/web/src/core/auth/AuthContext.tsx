@@ -7,6 +7,8 @@ import { api, clearOnAuthFailure, setOnAuthFailure, SWR_KEYS } from '@/shared/ap
 
 import type { AuthTokensResponse, ProfileResponse, SessionUser } from '@omni/shared/auth';
 
+import { ignoreError } from '@omni/shared/common';
+
 export type { SessionUser };
 
 export interface AuthContextValue {
@@ -66,6 +68,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     try {
       await api.post(SWR_KEYS.auth.logout);
     } catch {
+      ignoreError();
     } finally {
       await clearSession();
     }

@@ -1,3 +1,4 @@
+import { ignoreError } from '@omni/shared/common';
 import { ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
@@ -22,7 +23,7 @@ import { ActionSheetProvider, ConfirmProvider, NotificationsProvider } from '@/s
  * puede rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
  */
 function holdSplash() {
-  SplashScreen.preventAutoHideAsync().catch(() => {});
+  SplashScreen.preventAutoHideAsync().catch(ignoreError);
 }
 
 holdSplash();
