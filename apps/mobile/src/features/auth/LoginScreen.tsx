@@ -160,12 +160,12 @@ function OrDivider() {
  * la persona siguiente no debe heredarla; si quiere, la vuelve a activar desde Perfil). Con el bloqueo puesto, además,
  * cierra antes la sesión guardada: si no, salir de esta pantalla sin biometría abriría la app con la sesión de la
  * persona anterior. Un fallo al borrar los datos locales, o al desactivar la biometría, no frena el cambio de usuario
- * (la sesión ya salió de la UI): se avisa. Si con el bloqueo puesto se ingresa con la contraseña de un usuario distinto
- * del recordado (o sin recordado), también se desactiva la biometría, por la misma razón.
+ * (la sesión ya salió de la UI): se avisa. Si con la biometría activada se ingresa con la contraseña de un usuario
+ * distinto del recordado (o sin recordado), esté o no el bloqueo puesto, también se desactiva, por la misma razón.
  */
 export function LoginScreen() {
   const { login, logout, isAuthenticated } = useAuth();
-  const { locked, kind, noun, unlock, markUnlocked, disable: disableBiometrics } = useBiometrics();
+  const { enabled, locked, kind, noun, unlock, markUnlocked, disable: disableBiometrics } = useBiometrics();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorSchemeControl();
   const keyboardInset = useKeyboardInset();
@@ -261,7 +261,7 @@ export function LoginScreen() {
     try {
       await login(parsed.data.username, parsed.data.password);
       await setRememberedUser(parsed.data.username);
-      if (locked && parsed.data.username !== remembered) {
+      if (enabled && parsed.data.username !== remembered) {
         try {
           await disableBiometrics();
         } catch {

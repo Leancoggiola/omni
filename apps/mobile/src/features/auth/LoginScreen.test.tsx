@@ -13,7 +13,7 @@ const mockAuth = { isAuthenticated: false };
 const mockUnlock = jest.fn();
 const mockMarkUnlocked = jest.fn();
 const mockDisableBiometrics = jest.fn();
-const mockBiometrics = { locked: false, kind: 'fingerprint', noun: 'huella' };
+const mockBiometrics = { enabled: false, locked: false, kind: 'fingerprint', noun: 'huella' };
 const mockEnsureServerAwake = jest.fn();
 const mockGetRememberedUser = jest.fn();
 const mockSetRememberedUser = jest.fn();
@@ -71,7 +71,7 @@ beforeEach(() => {
   mockMarkUnlocked.mockReset();
   mockDisableBiometrics.mockReset().mockResolvedValue(undefined);
   mockAuth.isAuthenticated = false;
-  Object.assign(mockBiometrics, { locked: false, kind: 'fingerprint', noun: 'huella' });
+  Object.assign(mockBiometrics, { enabled: false, locked: false, kind: 'fingerprint', noun: 'huella' });
   jest.mocked(notifyWarning).mockClear();
   mockEnsureServerAwake.mockReset().mockResolvedValue(true);
   mockGetRememberedUser.mockReset().mockResolvedValue(null);
@@ -412,6 +412,7 @@ describe('LoginScreen', () => {
       mockGetRememberedUser.mockResolvedValue(remembered);
       mockAuth.isAuthenticated = true;
       mockBiometrics.locked = true;
+      mockBiometrics.enabled = true;
       render(<LoginScreen />);
       await screen.findByRole('button', { name: 'Ingresar con huella' });
     };
@@ -521,6 +522,22 @@ describe('LoginScreen', () => {
       expect(mockLogin).toHaveBeenCalledWith('otro01', 'secreto');
       expect(mockDisableBiometrics).toHaveBeenCalledTimes(1);
       expect(mockMarkUnlocked).toHaveBeenCalledTimes(1);
+    });
+
+    it('sin bloqueo pero con la biometría activada, ingresar como otro usuario también la desactiva', async () => {
+      mockLogin.mockResolvedValue(undefined);
+      mockGetRememberedUser.mockResolvedValue('admin01');
+      mockBiometrics.enabled = true;
+      render(<LoginScreen />);
+      await screen.findByText('Ingresando como admin01');
+      await act(async () => fireEvent.press(screen.getByText('Ingresar con otro usuario')));
+      mockDisableBiometrics.mockClear();
+      fireEvent.changeText(screen.getByLabelText('Usuario'), 'otro01');
+      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => submit());
+
+      expect(mockLogin).toHaveBeenCalledWith('otro01', 'secreto');
+      expect(mockDisableBiometrics).toHaveBeenCalledTimes(1);
     });
 
     it('un login con contraseña que falla no libera el bloqueo', async () => {
