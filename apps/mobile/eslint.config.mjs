@@ -80,7 +80,7 @@ export default defineConfig([
     rules: { 'no-restricted-syntax': ['error', ...ALERT_SELECTORS] },
   },
   {
-    files: ['*.test.js'],
+    files: ['*.test.js', 'jest.setup.js'],
     languageOptions: { globals: JEST_GLOBALS },
   },
   {
