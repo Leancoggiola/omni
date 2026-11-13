@@ -1,3 +1,11 @@
+## [1.4.3](https://github.com/Leancoggiola/omni/compare/v1.4.2...v1.4.3) (2026-11-13)
+
+
+### Bug Fixes
+
+* **#284:** La hoja de opciones de los selectores ya no se arrastra al tocarla ([61d0326](https://github.com/Leancoggiola/omni/commit/61d0326d80191a6faf16fe209290cad50ecbd3bf)), closes [#284](https://github.com/Leancoggiola/omni/issues/284) [#271](https://github.com/Leancoggiola/omni/issues/271)
+* **#284:** La hoja de opciones de los selectores ya no se arrastra al tocarla ([#285](https://github.com/Leancoggiola/omni/issues/285)) ([7fbf1b2](https://github.com/Leancoggiola/omni/commit/7fbf1b219537a381aeefc6d557bf3e1017bef37b)), closes [#284](https://github.com/Leancoggiola/omni/issues/284)
+
 ## [1.4.2](https://github.com/Leancoggiola/omni/compare/v1.4.1...v1.4.2) (2026-11-13)
 
 
