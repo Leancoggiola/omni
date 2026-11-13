@@ -35,6 +35,12 @@ describe('FormSheet', () => {
     expect(screen.getByText('Contenido')).toBeTruthy();
   });
 
+  it('no se puede arrastrar: un toque no la desplaza ni la achica', () => {
+    renderSheet();
+
+    expect(mockSheet.props?.disableDrag).toBe(true);
+  });
+
   it('el botón de cerrar y Atrás piden cerrar', () => {
     const { onOpenChange } = renderSheet();
 

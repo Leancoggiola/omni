@@ -4,6 +4,7 @@ import { Modal } from 'react-native';
 import { ApiError } from '@omni/shared/api';
 
 import { SHEET_EXIT_MS } from '@/shared/ui';
+import { mockSheet } from '@/test/tamaguiMock';
 
 import { AddMediaSheet } from './AddMediaSheet';
 
@@ -89,6 +90,12 @@ describe('AddMediaSheet', () => {
 
     expect(screen.getByTestId('spinner')).toBeTruthy();
     expect(screen.getByRole('radio', { name: 'Dune, Película' })).toBeTruthy();
+  });
+
+  it('no se puede arrastrar: un toque no la desplaza ni la achica', () => {
+    renderSheet();
+
+    expect(mockSheet.props?.disableDrag).toBe(true);
   });
 
   it('"Cerrar" y Atrás cierran el sheet', () => {
