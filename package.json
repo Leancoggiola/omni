@@ -33,7 +33,7 @@
   },
   "name": "omni",
   "packageManager": "pnpm@10.11.0",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "engines": {
     "node": ">=24"
   }

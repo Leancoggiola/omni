@@ -17,7 +17,9 @@ type QueuedSheetProps<T, R extends SheetRequest<T>> = {
  * Hoja inferior de v2 de los providers imperativos (`ConfirmProvider`, `ActionSheetProvider`), atado a su cola.
  * Va dentro de su propio `Modal` de RN: un Modal abierto después queda encima del anterior, así que `confirm()` y
  * `actionSheet()` se ven también por encima de un `FormSheet`. El Modal se oculta `SHEET_EXIT_MS` después de
- * cerrar para dejar correr la animación de salida; Atrás cancela la request.
+ * cerrar para dejar correr la animación de salida; Atrás cancela la request. La hoja no se arrastra (`disableDrag`,
+ * igual que `FormSheet`): un toque con el dedo apenas movido sobre las opciones la desplazaba hacia abajo, y la lista
+ * larga (las categorías de Alacena) scrolleaba contra el arrastre. Se cierra por overlay, Atrás, la opción o "Cancelar".
  */
 export function QueuedSheet<T, R extends SheetRequest<T>>({ queue, children }: QueuedSheetProps<T, R>) {
   const [visible, setVisible] = useState(queue.open);
@@ -50,6 +52,7 @@ export function QueuedSheet<T, R extends SheetRequest<T>>({ queue, children }: Q
         onOpenChange={queue.onOpenChange}
         onAnimationComplete={queue.onAnimationComplete}
         snapPointsMode="fit"
+        disableDrag
         dismissOnSnapToBottom
         zIndex={100_000}
         transition="medium"
