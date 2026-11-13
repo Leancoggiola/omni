@@ -1,6 +1,8 @@
 import { act, render, screen } from '@testing-library/react-native';
 import { Modal, Text } from 'react-native';
 
+import { mockSheet } from '@/test/tamaguiMock';
+
 import { QueuedSheet } from './QueuedSheet';
 import { SHEET_EXIT_MS, type SheetQueue, type SheetRequest } from './useSheetQueue';
 
@@ -53,6 +55,12 @@ describe('QueuedSheet', () => {
 
     act(() => jest.advanceTimersByTime(SHEET_EXIT_MS));
     expect(screen.UNSAFE_getByType(Modal).props.visible).toBe(true);
+  });
+
+  it('no se puede arrastrar: un toque sobre las opciones no la desplaza', () => {
+    render(ui(makeQueue(true)));
+
+    expect(mockSheet.props?.disableDrag).toBe(true);
   });
 
   it('Atrás cancela la request', () => {
