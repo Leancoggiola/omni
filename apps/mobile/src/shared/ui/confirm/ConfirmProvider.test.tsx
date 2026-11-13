@@ -126,7 +126,7 @@ describe('ConfirmProvider', () => {
     const handler = addListener.mock.calls.at(-1)?.[1];
     let handled: boolean | null | undefined;
     act(() => {
-      handled = handler?.();
+      handled = handler?.({ type: 'hardwareBackPress', timeStamp: 0 });
     });
     await flush();
     expect(handled).toBe(true);

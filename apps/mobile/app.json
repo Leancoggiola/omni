@@ -28,6 +28,7 @@
       "expo-dev-client",
       "expo-font",
       "expo-image",
+      "expo-status-bar",
       [
         "expo-local-authentication",
         {
