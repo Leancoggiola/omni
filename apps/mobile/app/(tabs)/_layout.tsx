@@ -3,7 +3,7 @@ import { FONT_SIZE } from '@omni/shared/theme';
 import { MOBILE_TAB_KEYS, NAV_REGISTRY } from '@omni/shared/navigation';
 import { Tabs } from 'expo-router';
 import { type Icon } from 'phosphor-react-native';
-import { type ColorValue, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Paragraph } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
@@ -15,16 +15,18 @@ const PILL = { width: 56, height: 32 } as const;
 const ICON_SIZE = 22;
 const LABEL_MAX_FONT_SCALE = 1.3;
 
-/** El color que manda `FloatingTabBar` es siempre un string; si llegara otro `ColorValue`, el del tab (primary activo, dimmed inactivo). */
-function useTabColor(color: ColorValue, focused: boolean): string {
+/**
+ * Color del tab: primary activo, dimmed inactivo, el mismo que arma `FloatingTabBar`. Se resuelve acá y no con el
+ * `color` que recibe el callback de `tabBarIcon` / `tabBarLabel`, que expo-router tipa como `ColorValue`.
+ */
+function useTabColor(focused: boolean): string {
   const colors = useSemanticColors();
-  if (typeof color === 'string') return color;
   return focused ? colors.primary : colors.dimmed;
 }
 
 /** El alto de la tab bar es fijo: con la fuente del sistema al máximo la etiqueta se pasaría del ancho de su tab. */
-function TabLabel({ label, focused, color: colorValue }: { label: string; focused: boolean; color: ColorValue }) {
-  const color = useTabColor(colorValue, focused);
+function TabLabel({ label, focused }: { label: string; focused: boolean }) {
+  const color = useTabColor(focused);
 
   return (
     <Paragraph
@@ -43,17 +45,9 @@ function TabLabel({ label, focused, color: colorValue }: { label: string; focuse
  * aparte que solo cambia de opacidad: si cambiaba el fondo de la misma vista, Android la dibujaba cuadrada después
  * de cambiar de tab.
  */
-function TabIcon({
-  icon: IconComponent,
-  focused,
-  color: colorValue,
-}: {
-  icon: Icon;
-  focused: boolean;
-  color: ColorValue;
-}) {
+function TabIcon({ icon: IconComponent, focused }: { icon: Icon; focused: boolean }) {
   const colors = useSemanticColors();
-  const color = useTabColor(colorValue, focused);
+  const color = useTabColor(focused);
 
   return (
     <View style={styles.pillSlot}>
@@ -66,12 +60,8 @@ function TabIcon({
 function tabOptions(label: string, icon: Icon) {
   return {
     title: label,
-    tabBarIcon: ({ focused, color }: { focused: boolean; color: ColorValue }) => (
-      <TabIcon icon={icon} focused={focused} color={color} />
-    ),
-    tabBarLabel: ({ focused, color }: { focused: boolean; color: ColorValue }) => (
-      <TabLabel label={label} focused={focused} color={color} />
-    ),
+    tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon={icon} focused={focused} />,
+    tabBarLabel: ({ focused }: { focused: boolean }) => <TabLabel label={label} focused={focused} />,
   };
 }
 

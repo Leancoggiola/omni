@@ -52,7 +52,7 @@ describe('buildAvatarForm', () => {
 
   it('agrega el File del archivo al campo avatar', () => {
     const spy = jest.spyOn(FormData.prototype, 'append');
-    buildAvatarForm({ uri: 'file:///cache/a.png', mimeType: 'image/png', fileName: 'a.png' });
+    buildAvatarForm({ uri: 'file:///cache/a.png' });
 
     expect(mockFiles).toHaveLength(1);
     expect(mockFiles[0].uri).toBe('file:///cache/a.png');

@@ -23,7 +23,7 @@ La app usa un **development build** (no Expo Go): hay que compilar la parte nati
 ### Setup (una sola vez por máquina)
 
 1. **Android Studio** (trae SDK, emulador y un JBR). Crear un AVD desde _Device Manager_ (x86_64, Google APIs).
-2. **JDK 17** aparte: el JBR de Android Studio puede venir con Java 25 y Gradle 9.0 (el de Expo 55 / RN 0.83) solo soporta hasta Java 24 — falla con `Unsupported class file major version 69`. Expo 56 / RN 0.85 trae Gradle 9.3.1, que ya soporta Java 25, pero se mantiene JDK 17 porque es el que se probó. Con winget: `winget install EclipseAdoptium.Temurin.17.JDK`. No desinstalar el JBR: lo usa Android Studio.
+2. **JDK 17** aparte: el JBR de Android Studio puede venir con Java 25 y Gradle 9.0 (el de Expo 55 / RN 0.83) solo soporta hasta Java 24 — falla con `Unsupported class file major version 69`. Expo 56 y 57 (RN 0.85 / 0.86) traen Gradle 9.3.1, que ya soporta Java 25, pero se mantiene JDK 17 porque es el que se probó. Con winget: `winget install EclipseAdoptium.Temurin.17.JDK`. No desinstalar el JBR: lo usa Android Studio.
 3. **Variables de usuario**: `ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk`, `JAVA_HOME=<carpeta de Temurin 17>` y en `Path` `%ANDROID_HOME%\platform-tools` y `%ANDROID_HOME%\emulator`. Reiniciar terminal/IDE para que las tomen. Verificar con `adb version`, `emulator -list-avds` y `java -version`.
 4. **`apps/mobile/.env`** con `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000` (`10.0.2.2` es el host visto desde el emulador; en un celular físico va la IP LAN, ver `.env.example`).
 5. **Rutas largas.** Con el layout aislado de pnpm (`node_modules/.pnpm/<pkg>@<versión>_<hash>/…`) las rutas de los objetos C++ que genera el build en `.cxx/` superan los 260 caracteres. Hacen falta dos cosas:
@@ -37,7 +37,7 @@ La app usa un **development build** (no Expo Go): hay que compilar la parte nati
      sdk.dir=C\:/Users/<usuario>/AppData/Local/Android/Sdk
      cmake.dir=C\:/Users/<usuario>/AppData/Local/Android/Sdk/cmake/4.1.2
      ```
-     `expo prebuild --clean` borra `android/` entero: después de cada prebuild hay que volver a escribir `cmake.dir`.
+     Desde SDK 57 `expo prebuild` limpia por defecto (equivale a `--clean`) y borra `android/` entero: después de cada prebuild hay que volver a escribir `cmake.dir`.
    - Plan B si CMake 4 corta con `Compatibility with CMake < 3.5 has been removed` (alguna librería nativa declara un `cmake_minimum_required` viejo): correr el build con la variable `CMAKE_POLICY_VERSION_MINIMUM=3.5` en esa terminal.
 
 ### Correr
@@ -94,7 +94,7 @@ Mismo flujo que en Windows, sin los pasos de rutas largas (no aplican) ni CMake 
 ### Setup (una sola vez por máquina)
 
 1. **Android Studio** + AVD **arm64** (por ejemplo Pixel con imagen Google APIs `arm64-v8a`).
-2. **JDK 17** (Zulu o Temurin): `brew install --cask zulu@17`. Mismo motivo que en Windows: con Gradle 9.0 (Expo 55) Java 25 no funcionaba; Expo 56 trae Gradle 9.3.1, pero se mantiene JDK 17.
+2. **JDK 17** (Zulu o Temurin): `brew install --cask zulu@17`. Mismo motivo que en Windows: con Gradle 9.0 (Expo 55) Java 25 no funcionaba; Expo 56 y 57 traen Gradle 9.3.1, pero se mantiene JDK 17.
 3. Variables de entorno (por ejemplo en un `~/omni-android-env.sh` que se hace `source` antes de trabajar):
    ```bash
    export JAVA_HOME=$(/usr/libexec/java_home -v 17)
@@ -119,7 +119,7 @@ adb shell am start -a android.intent.action.VIEW -d 'exp+omni://expo-development
 
 Notas:
 
-- Tras subir de SDK hay que regenerar `android/`: `pnpm --filter mobile exec expo prebuild --platform android --clean`.
+- Tras subir de SDK hay que regenerar `android/`: `pnpm --filter mobile prebuild`. Desde SDK 57 `expo prebuild` limpia por defecto (en SDK 56 hacía falta `--clean`); con `--no-clean` aplica los cambios sobre la carpeta existente.
 - `expo prebuild` agrega un script `"ios": "expo run:ios"` a `apps/mobile/package.json`: revertirlo (`git checkout apps/mobile/package.json`) antes de commitear.
 - Si el primer bundle da `SocketTimeoutException`, pedirlo con `curl` (`launchAsset` del manifest con header `expo-platform: android`), `adb shell am force-stop com.omni.app` y reabrir.
 - Con la API en un puerto distinto (varias sesiones en paralelo), `PORT` del entorno gana sobre el `.env` (dotenv no pisa variables ya definidas) y `EXPO_PUBLIC_API_URL` debe usar ese puerto.
