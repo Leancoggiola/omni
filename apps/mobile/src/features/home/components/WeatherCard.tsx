@@ -78,6 +78,7 @@ function WeatherSummary({ weather }: { weather: CurrentWeather }) {
         alignItems="center"
         justifyContent="center"
       >
+        {/* eslint-disable-next-line react-hooks/static-components */}
         <Icon size={26} color={colors.primary} />
       </YStack>
       <YStack flex={1} gap={SPACING['3xs']}>

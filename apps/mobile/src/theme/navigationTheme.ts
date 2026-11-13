@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, type Theme } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, type Theme } from 'expo-router/react-navigation';
 import { SEMANTIC } from '@omni/shared/theme';
 
 function buildTheme(scheme: 'light' | 'dark'): Theme {

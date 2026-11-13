@@ -1,4 +1,5 @@
 import { act, render, screen } from '@testing-library/react-native';
+import { useEffect } from 'react';
 import { Text } from 'react-native';
 
 import { ColorSchemeProvider, useColorSchemeControl } from './ColorSchemeContext';
@@ -14,8 +15,11 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
 let control: ReturnType<typeof useColorSchemeControl>;
 
 function Probe() {
-  control = useColorSchemeControl();
-  return <Text>{control.colorScheme}</Text>;
+  const current = useColorSchemeControl();
+  useEffect(() => {
+    control = current;
+  });
+  return <Text>{current.colorScheme}</Text>;
 }
 
 function renderWith(profileTheme: ProfileTheme | null) {
@@ -54,6 +58,16 @@ describe('ColorSchemeProvider', () => {
     expect(screen.getByText('dark')).toBeTruthy();
 
     rerenderWith(null);
+    expect(screen.getByText('light')).toBeTruthy();
+  });
+
+  it('el override descartado al quedar sin sesión no vuelve al iniciar otra', () => {
+    const { rerenderWith } = renderWith('light');
+    act(() => control.toggle());
+    expect(screen.getByText('dark')).toBeTruthy();
+
+    rerenderWith(null);
+    rerenderWith('light');
     expect(screen.getByText('light')).toBeTruthy();
   });
 

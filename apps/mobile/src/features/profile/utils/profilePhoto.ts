@@ -1,6 +1,8 @@
 import { AVATAR_FIELD, AVATAR_MAX_BYTES, isAvatarMime } from '@omni/shared/users';
+import { File } from 'expo-file-system';
 
 export const AVATAR_TYPE_ERROR = 'Elegí una imagen JPG, PNG o WebP';
+export const AVATAR_READ_ERROR = 'No se pudo leer la imagen elegida';
 export const AVATAR_SIZE_ERROR = 'La imagen no puede pesar más de 2MB';
 
 export type AvatarAsset = { uri: string; mimeType?: string | null; fileSize?: number | null; fileName?: string | null };
@@ -19,11 +21,20 @@ export const validateAvatarAsset = ({
 };
 
 /**
- * `FormData` del PUT del avatar: React Native lee el archivo desde su `uri` cuando se agrega como
- * `{ uri, name, type }`, de ahí el cast (no es un `Blob` real).
+ * `FormData` del PUT del avatar con el archivo elegido como `File` de `expo-file-system` (acepta `file://` y
+ * `content://`): `expo/fetch` lo serializa leyendo sus bytes y toma el nombre y el tipo del propio archivo. Si no
+ * existe o no se puede abrir lanza `AVATAR_READ_ERROR` acá, antes del PUT, para que no llegue al `fetch` ni se
+ * reintente como un error de red. La API no mira nombre ni tipo declarados: detecta el formato por los bytes.
  */
-export const buildAvatarForm = ({ uri, mimeType, fileName }: AvatarAsset): FormData => {
+export const buildAvatarForm = ({ uri }: AvatarAsset): FormData => {
+  let file: File;
+  try {
+    file = new File(uri);
+  } catch {
+    throw new Error(AVATAR_READ_ERROR);
+  }
+  if (!file.exists) throw new Error(AVATAR_READ_ERROR);
   const form = new FormData();
-  form.append(AVATAR_FIELD, { uri, name: fileName ?? 'avatar', type: mimeType ?? 'image/jpeg' } as unknown as Blob);
+  form.append(AVATAR_FIELD, file as unknown as Blob);
   return form;
 };

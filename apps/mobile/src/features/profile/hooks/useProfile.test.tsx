@@ -5,6 +5,7 @@ import useSWRImmutable from 'swr/immutable';
 import { api } from '@/shared/api';
 import { API_KEYS } from '@/shared/api/keys';
 
+import { AVATAR_READ_ERROR } from '../utils/profilePhoto';
 import { useProfile } from './useProfile';
 
 import type { ProfileResponse } from '@omni/shared/auth';
@@ -15,6 +16,19 @@ jest.mock('@/shared/api', () => ({
   api: { patch: jest.fn(), put: jest.fn(), delete: jest.fn() },
   API_KEYS: jest.requireActual('@/shared/api/keys').API_KEYS,
 }));
+
+let mockFileExists = true;
+
+jest.mock('expo-file-system', () => ({
+  File: function File(this: { uri: string; exists: boolean }, uri: string) {
+    this.uri = uri;
+    this.exists = mockFileExists;
+  },
+}));
+
+beforeEach(() => {
+  mockFileExists = true;
+});
 
 const mockPatch = jest.mocked(api.patch);
 const mockPut = jest.mocked(api.put);
@@ -195,6 +209,18 @@ describe('useProfile · foto de perfil', () => {
       await expect(result.current.profile.uploadAvatar({ uri: 'file:///a.png' })).rejects.toThrow('413');
     });
 
+    expect(result.current.profile.profile?.avatarUrl).toBeNull();
+  });
+
+  it('si no se puede leer el archivo rechaza con AVATAR_READ_ERROR y no hace el PUT', async () => {
+    mockFileExists = false;
+    const { result } = setup();
+
+    await act(async () => {
+      await expect(result.current.profile.uploadAvatar({ uri: 'file:///a.png' })).rejects.toThrow(AVATAR_READ_ERROR);
+    });
+
+    expect(mockPut).not.toHaveBeenCalled();
     expect(result.current.profile.profile?.avatarUrl).toBeNull();
   });
 });

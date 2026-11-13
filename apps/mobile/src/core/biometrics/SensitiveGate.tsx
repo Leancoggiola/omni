@@ -1,5 +1,5 @@
 // tamagui-ignore
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router/react-navigation';
 import { NAV_REGISTRY, type NavKey } from '@omni/shared/navigation';
 import { SPACING } from '@omni/shared/theme';
 import { LockKeyIcon } from 'phosphor-react-native';
@@ -43,6 +43,7 @@ export function SensitiveGate({ module, onBack, children }: SensitiveGateProps) 
   useEffect(() => {
     if (!isFocused) return;
     const fresh = isSensitiveUnlocked();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (unlockedEpoch !== null && !fresh) setUnlockedEpoch(null);
     else if (enabled && unlockedEpoch === null && fresh) setUnlockedEpoch(sensitiveEpoch);
   }, [isFocused, enabled, unlockedEpoch, sensitiveEpoch, isSensitiveUnlocked]);

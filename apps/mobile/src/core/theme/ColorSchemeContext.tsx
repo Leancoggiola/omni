@@ -1,13 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type FC,
-  type PropsWithChildren,
-} from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, type FC, type PropsWithChildren } from 'react';
 import { useColorScheme } from 'react-native';
 import { resolveColorScheme, SEMANTIC } from '@omni/shared/theme';
 
@@ -36,9 +27,7 @@ export const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ profileTheme
   const systemScheme: ColorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const [override, setOverride] = useState<ColorScheme | null>(null);
 
-  useEffect(() => {
-    if (profileTheme === null) setOverride(null);
-  }, [profileTheme]);
+  if (profileTheme === null && override !== null) setOverride(null);
 
   const colorScheme = resolveColorScheme({ override, profileTheme, system: systemScheme });
 

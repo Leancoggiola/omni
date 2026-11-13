@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useRevalidateOnFocus } from './useRevalidateOnFocus';
 
 let mockFocused = true;
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
+jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockFocused }));
 
 function setup(revalidate: jest.Mock) {
   return renderHook(() => useRevalidateOnFocus(revalidate));

@@ -11,7 +11,7 @@ jest.mock('@/shared/api', () => jest.requireActual('@/shared/api/keys'));
 jest.mock('@/shared/navigation', () => jest.requireActual('@/shared/navigation/useRevalidateOnFocus'));
 
 let mockFocused = true;
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
+jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockFocused }));
 
 function setup() {
   const fetcher = jest.fn().mockResolvedValue({ totalProducts: 1 });
