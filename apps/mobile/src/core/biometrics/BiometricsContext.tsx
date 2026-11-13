@@ -27,6 +27,7 @@ import {
   type BiometricKind,
   type BiometricResult,
 } from './biometrics';
+import { isStartupUnlocked, markStartupUnlocked } from './startupUnlock';
 
 interface BiometricsContextValue {
   ready: boolean;
@@ -75,7 +76,8 @@ async function readCapability(): Promise<Capability | null> {
  * - **Bloqueo de arranque** (`locked`): con la biometría activada, la app abre bloqueada. Con sesión guardada, el
  *   `AuthGate` muestra el login (usuario recordado) y `unlock()` libera la sesión sin pedir la contraseña; esa
  *   sesión es la que ya guardó `tokenStorage`, la biometría no reemplaza la autenticación del servidor. `markUnlocked`
- *   lo libera después de un login con contraseña.
+ *   lo libera después de un login con contraseña. Que ya se liberó se guarda fuera del provider (`startupUnlock`),
+ *   porque expo-router lo vuelve a montar al redirigir a las tabs y no debe volver a bloquear hasta un arranque en frío.
  * - **Módulos sensibles** (`isSensitiveUnlocked`, `authenticateSensitive`): vale `SENSITIVE_UNLOCK_TTL_MS` desde el
  *   último desbloqueo y se pierde al mandar la app a background (`sensitiveEpoch` cambia para avisar a los gates
  *   montados). Cualquier desbloqueo, activación o login con contraseña lo renueva.
@@ -124,7 +126,7 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
       const initial = next ?? NO_CAPABILITY;
       setCapability(initial);
       setPreference(saved);
-      setLockedAtStart(saved && initial.available);
+      setLockedAtStart(saved && initial.available && !isStartupUnlocked());
       setReady(true);
     })();
 
@@ -174,6 +176,7 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const markUnlocked = useCallback(() => {
     unlockedAt.current = Date.now();
+    markStartupUnlocked();
     setLockedAtStart(false);
   }, []);
 
@@ -186,6 +189,7 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
     const result = await prompt('Ingresá a Omni', false);
     if (result === 'success') {
       renewSensitive(epochAtStart);
+      markStartupUnlocked();
       setLockedAtStart(false);
     }
     return result;
@@ -204,6 +208,7 @@ export const BiometricsProvider: FC<PropsWithChildren> = ({ children }) => {
     const result = await prompt(`Activá el ingreso con ${noun}`, false);
     if (result !== 'success') return result;
     await setBiometricEnabled(true);
+    markStartupUnlocked();
     setPreference(true);
     renewSensitive(epochAtStart);
     return 'success';

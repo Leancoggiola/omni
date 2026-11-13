@@ -13,6 +13,7 @@ import {
 
 import { SENSITIVE_UNLOCK_TTL_MS } from './biometrics';
 import { BiometricsProvider, useBiometrics } from './BiometricsContext';
+import { resetStartupUnlock } from './startupUnlock';
 
 jest.mock('expo-secure-store', () => jest.requireActual('@/test/secureStoreMock'));
 jest.mock('expo-local-authentication', () => jest.requireActual('@/test/localAuthenticationMock'));
@@ -34,6 +35,7 @@ const goTo = (state: AppStateStatus) => act(() => appStateListener?.(state));
 
 beforeEach(() => {
   store.clear();
+  resetStartupUnlock();
   jest.clearAllMocks();
   resetLocalAuthentication();
   appStateListener = undefined;
@@ -238,6 +240,44 @@ describe('BiometricsProvider · bloqueo de arranque', () => {
     expect(authenticateAsync).not.toHaveBeenCalled();
   });
 
+  it('después de desbloquear con biometría, el provider montado de nuevo (redirección a las tabs) no vuelve a bloquear', async () => {
+    store.set(PREFERENCE_KEY, '1');
+    const first = await renderBiometrics();
+    await act(async () => {
+      await first.result.current.unlock();
+    });
+    first.unmount();
+
+    const { result } = await renderBiometrics();
+
+    expect(result.current).toMatchObject({ enabled: true, locked: false });
+  });
+
+  it('después de un login con contraseña, el provider montado de nuevo no vuelve a bloquear', async () => {
+    store.set(PREFERENCE_KEY, '1');
+    const first = await renderBiometrics();
+    act(() => first.result.current.markUnlocked());
+    first.unmount();
+
+    const { result } = await renderBiometrics();
+
+    expect(result.current.locked).toBe(false);
+  });
+
+  it('si se cancela el prompt, el provider montado de nuevo sigue bloqueado', async () => {
+    store.set(PREFERENCE_KEY, '1');
+    authenticateAsync.mockResolvedValue({ success: false, error: 'user_cancel' });
+    const first = await renderBiometrics();
+    await act(async () => {
+      await first.result.current.unlock();
+    });
+    first.unmount();
+
+    const { result } = await renderBiometrics();
+
+    expect(result.current.locked).toBe(true);
+  });
+
   it('dos pedidos a la vez comparten un solo prompt', async () => {
     store.set(PREFERENCE_KEY, '1');
     let finish!: () => void;
@@ -300,6 +340,18 @@ describe('BiometricsProvider · activar y desactivar', () => {
     expect(store.get(PREFERENCE_KEY)).toBe('1');
     expect(result.current.enabled).toBe(true);
     expect(result.current.locked).toBe(false);
+  });
+
+  it('después de activar, el provider montado de nuevo no bloquea la app en esta sesión', async () => {
+    const first = await renderBiometrics();
+    await act(async () => {
+      await first.result.current.enable();
+    });
+    first.unmount();
+
+    const { result } = await renderBiometrics();
+
+    expect(result.current).toMatchObject({ enabled: true, locked: false });
   });
 
   it('el texto del prompt se adapta al rostro', async () => {

@@ -1,3 +1,11 @@
+## [1.4.4](https://github.com/Leancoggiola/omni/compare/v1.4.3...v1.4.4) (2026-11-13)
+
+
+### Bug Fixes
+
+* **#290:** El ingreso con huella o rostro ya no vuelve al login ([7c75e97](https://github.com/Leancoggiola/omni/commit/7c75e97879259a35de51ec220953362c0ea2068d)), closes [#290](https://github.com/Leancoggiola/omni/issues/290)
+* **#290:** El ingreso con huella o rostro ya no vuelve al login ([#291](https://github.com/Leancoggiola/omni/issues/291)) ([96138b6](https://github.com/Leancoggiola/omni/commit/96138b6c27f4a7b4cedab4dcf729b9efe4240aa6)), closes [#290](https://github.com/Leancoggiola/omni/issues/290)
+
 ## [1.4.3](https://github.com/Leancoggiola/omni/compare/v1.4.2...v1.4.3) (2026-11-13)
 
 
