@@ -58,6 +58,7 @@ export type SheetProps = {
 export const mockSheet: { props: SheetProps | null } = { props: null };
 
 export function Sheet(props: SheetProps) {
+  // eslint-disable-next-line react-hooks/immutability
   mockSheet.props = props;
   return <View>{props.children}</View>;
 }

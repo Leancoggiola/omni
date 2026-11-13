@@ -9,7 +9,7 @@ import type { MediaItem } from '@omni/shared/media';
 import type { ReactNode } from 'react';
 
 let mockFocused = true;
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
+jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockFocused }));
 jest.mock('@/shared/api', () => jest.requireActual('@/shared/api/keys'));
 
 const media = (id: string, status: MediaItem['status'], updatedAt: string): MediaItem => ({

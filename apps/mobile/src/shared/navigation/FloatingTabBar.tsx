@@ -1,5 +1,5 @@
-import { type BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useIsFocused } from '@react-navigation/native';
+import { type BottomTabBarProps } from 'expo-router/js-tabs';
+import { useIsFocused } from 'expo-router/react-navigation';
 import { RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

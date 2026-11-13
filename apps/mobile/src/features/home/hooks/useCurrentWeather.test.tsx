@@ -15,7 +15,7 @@ const mockSaveLastWeather = jest.fn();
 const mockIsFocused = jest.fn();
 
 jest.mock('swr', () => ({ __esModule: true, default: (...args: unknown[]) => mockUseSWR(...args) }));
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockIsFocused() }));
+jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockIsFocused() }));
 jest.mock('@/core/auth', () => ({ useAuth: () => ({ user: { username: 'maria' } }) }));
 jest.mock('@/shared/api', () => ({
   api: { post: (...args: unknown[]) => mockPost(...args) },

@@ -63,6 +63,7 @@ export function useSheetQueue<T, R extends SheetRequest<T>>(
     if (current || closing || pending.length === 0) return;
     const [next] = pending;
     currentRef.current = next;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrent(next);
     setShown(next);
     setPending(queue => queue.slice(1));

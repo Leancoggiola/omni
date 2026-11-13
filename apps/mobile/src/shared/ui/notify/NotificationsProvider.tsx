@@ -1,5 +1,5 @@
 import { SPACING } from '@omni/shared/theme';
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type PropsWithChildren } from 'react';
 import { Animated, Dimensions, Keyboard } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { YStack } from 'tamagui';
@@ -45,7 +45,7 @@ function useKeyboardOverlap() {
 }
 
 function AnimatedNotification({ request, onClose }: { request: NotificationRequest; onClose: (id: number) => void }) {
-  const progress = useRef(new Animated.Value(0)).current;
+  const [progress] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     Animated.timing(progress, { toValue: 1, duration: 180, useNativeDriver: true }).start();

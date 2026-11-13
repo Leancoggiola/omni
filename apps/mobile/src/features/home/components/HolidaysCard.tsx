@@ -1,5 +1,5 @@
 import { ignoreError } from '@omni/shared/common';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Linking, Pressable, StyleSheet, type AccessibilityActionEvent } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowSquareOutIcon, ConfettiIcon } from 'phosphor-react-native';
@@ -21,7 +21,7 @@ const TRACK_OPACITY = 0.08;
 const CAROUSEL_A11Y_ACTIONS = [{ name: 'activate', label: 'Siguiente efeméride' }];
 
 function HolidayProgress({ duration, color }: { duration: number; color: string }) {
-  const progress = useRef(new Animated.Value(0)).current;
+  const [progress] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     const animation = Animated.timing(progress, { toValue: 1, duration, useNativeDriver: true });

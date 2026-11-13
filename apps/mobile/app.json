@@ -26,6 +26,8 @@
       "expo-router",
       "expo-secure-store",
       "expo-dev-client",
+      "expo-font",
+      "expo-image",
       [
         "expo-local-authentication",
         {

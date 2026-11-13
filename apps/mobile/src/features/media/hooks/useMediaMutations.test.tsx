@@ -10,7 +10,7 @@ import type { ReactNode } from 'react';
 const mockApi = { post: jest.fn(), patch: jest.fn(), delete: jest.fn() };
 
 let mockFocused = true;
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
+jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockFocused }));
 jest.mock('@/shared/api', () => ({
   ...jest.requireActual('@/shared/api/keys'),
   api: {

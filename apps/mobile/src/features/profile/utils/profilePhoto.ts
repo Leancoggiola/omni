@@ -1,4 +1,5 @@
 import { AVATAR_FIELD, AVATAR_MAX_BYTES, isAvatarMime } from '@omni/shared/users';
+import { File } from 'expo-file-system';
 
 export const AVATAR_TYPE_ERROR = 'Elegí una imagen JPG, PNG o WebP';
 export const AVATAR_READ_ERROR = 'No se pudo leer la imagen elegida';
@@ -20,34 +21,20 @@ export const validateAvatarAsset = ({
 };
 
 /**
- * Lee el archivo local como bytes con `XMLHttpRequest` (`responseType: 'blob'`, que RN resuelve para `file://` y
- * `content://`) y `FileReader`: no depende de `fetch`, que con `expo/fetch` (SDK 56) no abre URIs locales.
+ * `FormData` del PUT del avatar con el archivo elegido como `File` de `expo-file-system` (acepta `file://` y
+ * `content://`): `expo/fetch` lo serializa leyendo sus bytes y toma el nombre y el tipo del propio archivo. Si no
+ * existe o no se puede abrir lanza `AVATAR_READ_ERROR` acá, antes del PUT, para que no llegue al `fetch` ni se
+ * reintente como un error de red. La API no mira nombre ni tipo declarados: detecta el formato por los bytes.
  */
-const readFileBytes = (uri: string): Promise<Uint8Array> =>
-  new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    request.responseType = 'blob';
-    request.onerror = () => reject(new Error(AVATAR_READ_ERROR));
-    request.onload = () => {
-      const reader = new FileReader();
-      reader.onerror = () => reject(new Error(AVATAR_READ_ERROR));
-      reader.onload = () => resolve(new Uint8Array(reader.result as ArrayBuffer));
-      reader.readAsArrayBuffer(request.response as Blob);
-    };
-    request.open('GET', uri);
-    request.send();
-  });
-
-/**
- * `FormData` del PUT del avatar, válido para el `fetch` de React Native y para `expo/fetch` (SDK 56). La parte lleva
- * `uri`, `name` y `type` enumerables: el `FormData` de RN los copia y el `fetch` de RN sube el archivo desde la `uri`.
- * Además lleva `bytes()` no enumerable (RN no lo copia): `expo/fetch` no entiende `uri` y, ante una parte con `bytes`,
- * lee el contenido de ahí y arma el multipart con `name` y `type`.
- */
-export const buildAvatarForm = ({ uri, mimeType, fileName }: AvatarAsset): FormData => {
-  const part = { uri, name: fileName ?? 'avatar', type: mimeType ?? 'image/jpeg' };
-  Object.defineProperty(part, 'bytes', { value: () => readFileBytes(uri) });
+export const buildAvatarForm = ({ uri }: AvatarAsset): FormData => {
+  let file: File;
+  try {
+    file = new File(uri);
+  } catch {
+    throw new Error(AVATAR_READ_ERROR);
+  }
+  if (!file.exists) throw new Error(AVATAR_READ_ERROR);
   const form = new FormData();
-  form.append(AVATAR_FIELD, part as unknown as Blob);
+  form.append(AVATAR_FIELD, file as unknown as Blob);
   return form;
 };

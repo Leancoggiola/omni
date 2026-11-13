@@ -14,7 +14,7 @@ jest.mock(
 jest.mock('@/shared/ui', () => ({ ...jest.requireActual('@/shared/ui'), notifyError: jest.fn() }));
 
 let mockFocused = true;
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
+jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockFocused }));
 
 const mockAuthenticateSensitive = jest.fn();
 const mockIsSensitiveUnlocked = jest.fn();

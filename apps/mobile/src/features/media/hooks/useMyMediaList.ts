@@ -1,4 +1,4 @@
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router/react-navigation';
 import useSWR from 'swr';
 
 import { API_KEYS } from '@/shared/api';
