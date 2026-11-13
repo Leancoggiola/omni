@@ -154,6 +154,7 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
         onOpenChange={handleOpenChange}
         snapPoints={[90]}
         snapPointsMode="percent"
+        disableDrag
         dismissOnSnapToBottom={!submitting}
         dismissOnOverlayPress={!submitting}
         zIndex={100_000}
