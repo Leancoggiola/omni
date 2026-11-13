@@ -23,7 +23,7 @@ La app usa un **development build** (no Expo Go): hay que compilar la parte nati
 ### Setup (una sola vez por máquina)
 
 1. **Android Studio** (trae SDK, emulador y un JBR). Crear un AVD desde _Device Manager_ (x86_64, Google APIs).
-2. **JDK 17** aparte: el JBR de Android Studio puede venir con Java 25 y Gradle 8.14 (el que fija Expo 54 / RN 0.81) solo soporta hasta Java 24 — falla con `Unsupported class file major version 69`. Con winget: `winget install EclipseAdoptium.Temurin.17.JDK`. No desinstalar el JBR: lo usa Android Studio.
+2. **JDK 17** aparte: el JBR de Android Studio puede venir con Java 25 y Gradle 9.0 (el que fija Expo 55 / RN 0.83) solo soporta hasta Java 24 — falla con `Unsupported class file major version 69`. Con winget: `winget install EclipseAdoptium.Temurin.17.JDK`. No desinstalar el JBR: lo usa Android Studio.
 3. **Variables de usuario**: `ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk`, `JAVA_HOME=<carpeta de Temurin 17>` y en `Path` `%ANDROID_HOME%\platform-tools` y `%ANDROID_HOME%\emulator`. Reiniciar terminal/IDE para que las tomen. Verificar con `adb version`, `emulator -list-avds` y `java -version`.
 4. **`apps/mobile/.env`** con `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000` (`10.0.2.2` es el host visto desde el emulador; en un celular físico va la IP LAN, ver `.env.example`).
 5. **Rutas largas.** Con el layout aislado de pnpm (`node_modules/.pnpm/<pkg>@<versión>_<hash>/…`) las rutas de los objetos C++ que genera el build en `.cxx/` superan los 260 caracteres. Hacen falta dos cosas:
@@ -65,7 +65,7 @@ Lo que más pesa en Windows es **Microsoft Defender** escaneando cada archivo qu
 
 ### Problemas conocidos (ya resueltos en el repo)
 
-- **No usar `node-linker=hoisted`.** Aplana `node_modules` y esquiva las rutas largas, pero rompe web: el monorepo tiene dos versiones de React (React Native 0.81 exige 19.1.0 y Mantine/react-router piden ≥19.2), con hoisted la raíz queda con la de mobile y web termina con dos instancias de React (`Cannot read properties of null (reading 'useState')` en los tests). La solución es la de rutas largas del setup (`LongPathsEnabled` + CMake ≥3.31). Si alguna vez se cambia el linker, borrar **todos** los `node_modules` antes de reinstalar: pnpm no limpia las junctions del layout anterior.
+- **No usar `node-linker=hoisted`.** Aplana `node_modules` y esquiva las rutas largas, pero rompe web: el monorepo tiene dos versiones de React (React Native 0.83 exige 19.2.0 exacto y web usa 19.2.8), con hoisted la raíz queda con la de mobile y web termina con dos instancias de React (`Cannot read properties of null (reading 'useState')` en los tests). La solución es la de rutas largas del setup (`LongPathsEnabled` + CMake ≥3.31). Si alguna vez se cambia el linker, borrar **todos** los `node_modules` antes de reinstalar: pnpm no limpia las junctions del layout anterior.
 - **`metro.config.js` fuerza la build CommonJS de `swr`.** swr publica builds CJS y ESM con contextos separados; si el bundle mezcla las dos, los hooks de `swr/immutable` no ven el `fetcher` del `SWRConfig` y nunca piden datos (pantallas en loading infinito o vacías).
 - **`tamagui.config.ts` tiene `export default`.** El compilador de `@tamagui/babel-plugin` solo encuentra la config así; sin eso la descarta, reintenta en cada archivo y el bundle se cuelga.
 - **El compilador de Tamagui pide ~1,5 GB por worker de Metro.** `babel.config.js` lo cargan el dev (`expo start` desde `apps/mobile`), los tests de Jest y el build de release (Gradle corre `expo export:embed` con `apps/mobile` como raíz). Cada worker carga su propia copia de la config y de `tamagui` (~1,4 GB de pico contra ~1 GB sin el plugin, medido con Tamagui 2.7.7 en octubre de 2026), y Metro abre más workers cuantos más núcleos haya (8 con 16 núcleos). En el runner de CI (4 núcleos, 16 GB) entra con margen. En una máquina con muchos núcleos y poca RAM, como WSL con 16 núcleos y 6 GB, se llenan la RAM y el swap, los workers quedan bloqueados en I/O sin usar CPU y el bundle se frena al 99,9 %: parece colgado, pero es swap.
@@ -94,7 +94,7 @@ Mismo flujo que en Windows, sin los pasos de rutas largas (no aplican) ni CMake 
 ### Setup (una sola vez por máquina)
 
 1. **Android Studio** + AVD **arm64** (por ejemplo Pixel con imagen Google APIs `arm64-v8a`).
-2. **JDK 17** (Zulu o Temurin): `brew install --cask zulu@17`. Mismo motivo que en Windows: Gradle 8.14 no soporta Java 25.
+2. **JDK 17** (Zulu o Temurin): `brew install --cask zulu@17`. Mismo motivo que en Windows: Gradle 9.0 solo soporta hasta Java 24.
 3. Variables de entorno (por ejemplo en un `~/omni-android-env.sh` que se hace `source` antes de trabajar):
    ```bash
    export JAVA_HOME=$(/usr/libexec/java_home -v 17)
@@ -110,7 +110,7 @@ Mismo flujo que en Windows, sin los pasos de rutas largas (no aplican) ni CMake 
 ```bash
 pnpm dev:api                                                   # :3000 (la base de dev es Supabase remoto, no hace falta Docker)
 emulator -avd <nombre-del-avd> -no-snapshot-save               # esperar: adb wait-for-device
-pnpm --filter mobile prebuild                                  # solo si no existe apps/mobile/android
+pnpm --filter mobile prebuild                                  # solo si no existe apps/mobile/android; tras subir de SDK, `exec expo prebuild --platform android --clean`
 (cd apps/mobile/android && ./gradlew app:installDebug -PreactNativeArchitectures=arm64-v8a --max-workers=2)
 pnpm --filter mobile start                                     # Metro
 adb reverse tcp:8081 tcp:8081

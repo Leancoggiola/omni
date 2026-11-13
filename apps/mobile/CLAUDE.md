@@ -154,6 +154,7 @@ A diferencia de web (alineados a la derecha), en mobile van **centrados y full-w
 - Tests de una pantalla que mockean `tamagui`: si falla con `Cannot read properties of undefined (reading 'get')`, el compilador de Tamagui aplanó un Stack estático de esa pantalla. Se evita con `// tamagui-ignore` como **primera línea** del archivo (como `LoginScreen.tsx`). El compilador corre en el dev, en Jest y en el build de release; su consumo de memoria y cómo probar el bundle de producción están en `docs/mobile/tooling.md`.
 - Tests que tocan tokens (`tokenStorage`, client, `AuthProvider`): `jest.mock('expo-secure-store', () => jest.requireActual('@/test/secureStoreMock'))` (store en memoria; `store` para sembrar y verificar claves) y `global.fetch` mockeado. `tokenStorage` y el client guardan estado de módulo: en tests que lo necesiten, `jest.resetModules()` + `require`.
 - Si un paquete de `node_modules` publica ESM sin build CommonJS, sumarlo a `transformIgnorePatterns` en `jest.config.js`.
+- `jest.setup.js` (`setupFiles` de `jest.config.js`) mockea `react-native-worklets` con su mock oficial (`react-native-worklets/src/mock`): sin eso, todo test que cargue Reanimated o expo-router falla con "Native part of Worklets doesn't seem to be initialized".
 
 ## Verificación
 
