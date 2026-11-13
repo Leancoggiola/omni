@@ -51,6 +51,7 @@ export type SheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAnimationComplete: (event: { open: boolean }) => void;
+  disableDrag?: boolean;
   children: ReactNode;
 };
 

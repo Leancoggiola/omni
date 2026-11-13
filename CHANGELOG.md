@@ -1,3 +1,11 @@
+## [1.4.2](https://github.com/Leancoggiola/omni/compare/v1.4.1...v1.4.2) (2026-11-13)
+
+
+### Bug Fixes
+
+* **#271:** Las hojas de formulario ya no se arrastran ni se achican al tocarlas ([1ad088e](https://github.com/Leancoggiola/omni/commit/1ad088e077f67509442a81597bffbcaabbdcceb8)), closes [#271](https://github.com/Leancoggiola/omni/issues/271)
+* **#271:** Las hojas de formulario ya no se arrastran ni se achican al tocarlas ([#283](https://github.com/Leancoggiola/omni/issues/283)) ([cdce5ad](https://github.com/Leancoggiola/omni/commit/cdce5ad8663c01d8bc2096c50b53756eff3f550e)), closes [#271](https://github.com/Leancoggiola/omni/issues/271)
+
 ## [1.4.1](https://github.com/Leancoggiola/omni/compare/v1.4.0...v1.4.1) (2026-11-12)
 
 

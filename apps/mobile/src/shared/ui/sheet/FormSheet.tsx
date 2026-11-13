@@ -28,7 +28,9 @@ type FormSheetProps = {
  * Hoja inferior de formulario que tapa las tabs: `Modal` de RN con el `Sheet` sin `modal` y `SheetFrame` (el portal
  * de Tamagui crashea en Fabric, ver `AddMediaSheet`). El Modal se oculta `SHEET_EXIT_MS` después de cerrar, y como
  * mientras está visible tapa los toasts, el error va en un `Banner` adentro y el éxito se avisa desde `onClosed`.
- * Con `busy` no se cierra ni por overlay, gesto, Atrás ni el botón de cerrar. `onClosed` llega una sola vez cuando el Modal
+ * La hoja no se arrastra (`disableDrag`): un toque con el dedo apenas movido sobre el formulario la desplazaba hacia
+ * abajo y, al soltar con el scroll interno trabado, Tamagui no la devolvía a su lugar, así que cada toque la achicaba
+ * un poco más. Se cierra por overlay, Atrás o el botón de cerrar; con `busy` no se cierra por ninguno. `onClosed` llega una sola vez cuando el Modal
  * ya se ocultó (ahí un toast queda a la vista), aunque el padre lo pase nuevo en cada render; no llega si la hoja se
  * remonta antes ni si nunca se abrió. El teclado no mueve la hoja (moverla cancelaba toques como el ojo de la
  * contraseña): el frame se achica arriba del teclado, el campo enfocado scrollea a la vista y "Siguiente" salta al
@@ -78,6 +80,7 @@ export function FormSheet({ open, onOpenChange, title, busy = false, onClosed, c
         onOpenChange={handleOpenChange}
         snapPoints={[90]}
         snapPointsMode="percent"
+        disableDrag
         dismissOnSnapToBottom={!busy}
         dismissOnOverlayPress={!busy}
         zIndex={100_000}
