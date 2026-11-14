@@ -200,7 +200,7 @@ El día 1 de cada mes 08:00 UTC (o con `workflow_dispatch` y `restore_test=true`
 
 1. GitHub → Actions → **Release & Deploy** → **Run workflow** sobre `main`.
 2. `redeploy=true`: deploya API y web desde el HEAD de `main`, sin release.
-3. `build_apk=true`: buildea el APK del último tag (con R8 desde SDK 58: el `omni-vX.Y.Z-r8-mapping.txt` va junto al APK, adjunto al release de `omni-apk` o en el artifact, y es lo que traduce un stack trace de Java/Kotlin de ese APK con `retrace`; si falta, el job falla antes de publicar). Con `upload_apk=false` queda como artifact de 7 días. Si el release ya existe en `omni-apk`, el job falla en vez de pisarlo.
+3. `build_apk=true`: buildea el APK del último tag (con R8 desde SDK 58: el `omni-vX.Y.Z-r8-mapping.txt` va junto al APK, adjunto al release de `omni-apk` (privado, sin vencimiento) o, si no se publica, en el mismo artifact de 7 días que el APK, y es lo que traduce un stack trace de Java/Kotlin de ese APK con `retrace`; si falta, el job falla antes de publicar). Con `upload_apk=false` queda como artifact de 7 días. Si el release ya existe en `omni-apk`, el job falla en vez de pisarlo.
 4. Solo la API: `curl -s "$RENDER_DEPLOY_HOOK_PROD"`.
 
 ### Docker local
