@@ -1,3 +1,4 @@
+import { SEMANTIC } from '@omni/shared/theme';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { UserIcon } from 'phosphor-react-native';
 import { AccessibilityInfo } from 'react-native';
@@ -36,7 +37,7 @@ describe('TextField', () => {
 
     expect(screen.getByText('El usuario es obligatorio')).toBeTruthy();
     const input = screen.getByLabelText('Usuario');
-    expect(input).toHaveProp('borderColor', '$destructive');
+    expect(input).toHaveProp('borderColor', 'destructive focus:destructive');
     expect(input).toHaveProp('accessibilityHint', 'El usuario es obligatorio');
   });
 
@@ -62,7 +63,7 @@ describe('TextField', () => {
   it('sin error no hay mensaje y el borde es el normal', () => {
     render(<TextField label="Usuario" />);
     const input = screen.getByLabelText('Usuario');
-    expect(input).toHaveProp('borderColor', '$borderColor');
+    expect(input).toHaveProp('borderColor', 'border-color focus:primary');
     expect(input.props.accessibilityHint).toBeUndefined();
   });
 
@@ -145,6 +146,14 @@ describe('Switch', () => {
 
     fireEvent.press(screen.getByRole('switch', { name: 'Tema oscuro', checked: true }));
     expect(onCheckedChange).toHaveBeenCalledWith(false);
+  });
+
+  it('el thumb es blanco en los dos estados, con el token blanco de SEMANTIC', () => {
+    const { rerender } = render(<Switch accessibilityLabel="Tema" checked={false} onCheckedChange={jest.fn()} />);
+    expect(screen.getByTestId('switch-thumb')).toHaveProp('activeStyle', { backgroundColor: SEMANTIC.light.white });
+
+    rerender(<Switch accessibilityLabel="Tema" checked onCheckedChange={jest.fn()} />);
+    expect(screen.getByTestId('switch-thumb')).toHaveProp('activeStyle', { backgroundColor: SEMANTIC.light.white });
   });
 
   it('deshabilitado no cambia', () => {

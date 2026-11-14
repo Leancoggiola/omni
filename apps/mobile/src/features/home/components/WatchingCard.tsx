@@ -26,7 +26,7 @@ function WatchingPoster({ posterPath }: { posterPath: string | null }) {
       <YStack
         {...POSTER}
         borderRadius={RADIUS.sm}
-        backgroundColor="$dimmedSurface"
+        backgroundColor="dimmedSurface"
         alignItems="center"
         justifyContent="center"
         accessibilityElementsHidden
@@ -63,7 +63,7 @@ function WatchingRow({ item, onPress }: { item: MediaItem; onPress: () => void }
           <Paragraph fontSize={FONT_SIZE.md} fontWeight="600" numberOfLines={1}>
             {item.title}
           </Paragraph>
-          <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed">
+          <Paragraph fontSize={FONT_SIZE.sm} color="dimmed">
             {MEDIA_TYPE_LABELS[item.mediaType]}
           </Paragraph>
         </YStack>
@@ -89,7 +89,7 @@ export function WatchingCard() {
           Seguís viendo
         </Title>
         <Pressable onPress={goToMedia} accessibilityRole="link" accessibilityLabel="Ver todo" hitSlop={8}>
-          <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600" color="$accent">
+          <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600" color="accent">
             Ver todo
           </Paragraph>
         </Pressable>

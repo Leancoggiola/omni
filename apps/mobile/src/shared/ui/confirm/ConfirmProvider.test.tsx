@@ -62,7 +62,7 @@ function enqueueSpy(title: string) {
 const flush = () => act(async () => {});
 
 function closeAnimationDone() {
-  act(() => sheet().onAnimationComplete({ open: false }));
+  act(() => sheet().onTransition({ phase: 'end', cause: 'close', position: 0, finished: true }));
 }
 
 beforeEach(() => {
@@ -181,7 +181,7 @@ describe('ConfirmProvider', () => {
     expect(second).not.toHaveBeenCalled();
   });
 
-  it('si onAnimationComplete no llega, el fallback de 600 ms destraba la cola', () => {
+  it('si onTransition no llega, el fallback de 600 ms destraba la cola', () => {
     act(() => {
       track({ title: 'Primera' });
       track({ title: 'Segunda' });
@@ -195,6 +195,24 @@ describe('ConfirmProvider', () => {
     expect(screen.queryByText('Segunda')).toBeNull();
 
     act(() => jest.advanceTimersByTime(1));
+    expect(sheet().open).toBe(true);
+    expect(screen.getByText('Segunda')).toBeTruthy();
+  });
+
+  it('solo el fin de la salida avanza la cola: ni la apertura ni un cierre interrumpido', () => {
+    act(() => {
+      track({ title: 'Primera' });
+      track({ title: 'Segunda' });
+    });
+    act(() => sheet().onOpenChange(false));
+
+    act(() => sheet().onTransition({ phase: 'start', cause: 'close', position: 0 }));
+    act(() => sheet().onTransition({ phase: 'end', cause: 'open', position: 0, finished: true }));
+    act(() => sheet().onTransition({ phase: 'end', cause: 'close', position: 0, finished: false }));
+    expect(sheet().open).toBe(false);
+    expect(screen.queryByText('Segunda')).toBeNull();
+
+    closeAnimationDone();
     expect(sheet().open).toBe(true);
     expect(screen.getByText('Segunda')).toBeTruthy();
   });

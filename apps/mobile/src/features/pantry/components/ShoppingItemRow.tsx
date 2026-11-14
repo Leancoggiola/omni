@@ -41,9 +41,9 @@ export const ShoppingItemRow = memo(function ShoppingItemRow({
 
   return (
     <XStack
-      backgroundColor="$surfaceGlass"
+      backgroundColor="surfaceGlass"
       borderWidth={1}
-      borderColor="$glassBorder"
+      borderColor="glassBorder"
       borderRadius={RADIUS.xl}
       padding={SPACING.sm}
       gap={SPACING.sm}
@@ -56,8 +56,8 @@ export const ShoppingItemRow = memo(function ShoppingItemRow({
         height={CHECK_SIZE}
         borderRadius={CHECK_SIZE / 2}
         borderWidth={2}
-        borderColor={item.checked ? '$primary' : '$borderColor'}
-        backgroundColor={item.checked ? '$primary' : 'transparent'}
+        borderColor={item.checked ? 'primary' : 'border-color'}
+        backgroundColor={item.checked ? 'primary' : 'transparent'}
         alignItems="center"
         justifyContent="center"
         hitSlop={SPACING.xs}
@@ -72,14 +72,14 @@ export const ShoppingItemRow = memo(function ShoppingItemRow({
       <YStack flex={1} gap={SPACING['3xs']}>
         <Paragraph
           fontSize={FONT_SIZE.lg}
-          lineHeight={LINE_HEIGHT.xl}
+          lineHeight={`${LINE_HEIGHT.xl}px`}
           fontWeight="600"
           textDecorationLine={item.checked ? 'line-through' : 'none'}
           numberOfLines={2}
         >
           {item.name}
         </Paragraph>
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
           {item.checked ? quantity : `Comprar ${quantity}`}
         </Paragraph>
         {item.checked ? null : (
@@ -88,7 +88,7 @@ export const ShoppingItemRow = memo(function ShoppingItemRow({
               {item.source === 'AUTO' ? 'Auto' : 'Manual'}
             </Badge>
             {item.linkedProduct ? (
-              <Paragraph color="$dimmed" fontSize={FONT_SIZE.xs}>
+              <Paragraph color="dimmed" fontSize={FONT_SIZE.xs}>
                 {`En alacena: ${formatPantryQuantity(item.linkedProduct.quantity, item.linkedProduct.unit)}`}
               </Paragraph>
             ) : null}

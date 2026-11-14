@@ -181,7 +181,7 @@ describe('LoginScreen', () => {
     await act(async () => submit());
 
     expect(screen.getByRole('alert', { name: 'Usuario o contraseña incorrectos' })).toBeTruthy();
-    expect(screen.getByText('Usuario o contraseña incorrectos')).toHaveProp('color', '$destructive');
+    expect(screen.getByText('Usuario o contraseña incorrectos')).toHaveProp('color', 'destructive');
   });
 
   it('si la validación local falla, el error del servidor anterior deja de mostrarse', async () => {

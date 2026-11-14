@@ -27,16 +27,16 @@ export const UserRow = memo(function UserRow({ user, deleting, onDeletePress }: 
     <XStack alignItems="center" gap={SPACING.sm} paddingVertical={SPACING.xs}>
       <UserAvatar name={user.name} />
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl} fontWeight="600" numberOfLines={1}>
+        <Paragraph fontSize={FONT_SIZE.lg} lineHeight={`${LINE_HEIGHT.xl}px`} fontWeight="600" numberOfLines={1}>
           {user.name}
         </Paragraph>
         <XStack gap={SPACING.xs} alignItems="center">
           <Badge color={user.role === 'ADMIN' ? 'accent' : 'dimmed'}>{ROLE_LABELS[user.role]}</Badge>
           <XStack flex={1} minWidth={0} accessible accessibilityLabel={`@${user.username}, alta ${created}`}>
-            <Paragraph flexShrink={1} color="$dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
+            <Paragraph flexShrink={1} color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
               {`@${user.username}`}
             </Paragraph>
-            <Paragraph flexShrink={0} color="$dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
+            <Paragraph flexShrink={0} color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
               {` · Alta ${created}`}
             </Paragraph>
           </XStack>

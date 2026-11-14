@@ -7,8 +7,8 @@ const DOT_SIZE = 8;
 export function PantryLiveIndicator() {
   return (
     <XStack alignItems="center" gap={SPACING['2xs']} accessibilityRole="text" accessibilityLiveRegion="polite">
-      <YStack width={DOT_SIZE} height={DOT_SIZE} borderRadius={RADIUS.full} backgroundColor="$success" />
-      <Paragraph color="$dimmed" fontSize={FONT_SIZE.xs}>
+      <YStack width={DOT_SIZE} height={DOT_SIZE} borderRadius={RADIUS.full} backgroundColor="success" />
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.xs}>
         Se actualiza solo
       </Paragraph>
     </XStack>

@@ -11,9 +11,10 @@ import { useKeyboardInset } from '../form/useKeyboardInset';
 import { useScrollFocusedInputIntoView } from '../form/useScrollFocusedInputIntoView';
 
 import { SheetFrame } from './SheetFrame';
+import { SheetOverlay } from './SheetOverlay';
 import { SHEET_EXIT_MS } from './useSheetQueue';
 
-import type { ReactNode } from 'react';
+import type { ComponentRef, ReactNode } from 'react';
 
 type FormSheetProps = {
   open: boolean;
@@ -41,7 +42,8 @@ export function FormSheet({ open, onOpenChange, title, busy = false, onClosed, c
   if (open && !visible) setVisible(true);
 
   const keyboardInset = useKeyboardInset();
-  const { scrollRef, onScroll, scrollIntoView } = useScrollFocusedInputIntoView();
+  const { scrollRef, onScroll, scrollIntoView } =
+    useScrollFocusedInputIntoView<ComponentRef<typeof Sheet.ScrollView>>();
 
   useEffect(() => {
     if (keyboardInset > 0) scrollIntoView();
@@ -86,7 +88,7 @@ export function FormSheet({ open, onOpenChange, title, busy = false, onClosed, c
         zIndex={100_000}
         transition="medium"
       >
-        <Sheet.Overlay transition="lazy" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }} />
+        <SheetOverlay />
         <SheetFrame keyboardInset={keyboardInset}>
           <XStack alignItems="center" justifyContent="space-between" gap={SPACING.sm}>
             <DisplayTitle size="md" flexShrink={1}>

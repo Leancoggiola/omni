@@ -9,6 +9,7 @@ import {
   WEATHER_CONDITION_LABELS,
 } from '@omni/shared/weather';
 import { MapPinIcon } from 'phosphor-react-native';
+import { createElement } from 'react';
 import { Linking, Pressable } from 'react-native';
 import { Paragraph, XStack, YStack } from 'tamagui';
 
@@ -31,7 +32,7 @@ function AttributionLink({ label, url }: { label: string; url: string }) {
       accessibilityLabel={label}
       hitSlop={8}
     >
-      <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed" textDecorationLine="underline">
+      <Paragraph fontSize={FONT_SIZE.sm} color="dimmed" textDecorationLine="underline">
         {label}
       </Paragraph>
     </Pressable>
@@ -42,11 +43,11 @@ function AttributionLink({ label, url }: { label: string; url: string }) {
 function WeatherAttribution() {
   return (
     <XStack gap={SPACING['3xs']} alignItems="center" flexWrap="wrap">
-      <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed">
+      <Paragraph fontSize={FONT_SIZE.sm} color="dimmed">
         {WEATHER_ATTRIBUTION.intro}
       </Paragraph>
       <AttributionLink {...WEATHER_ATTRIBUTION.openMeteo} />
-      <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed">
+      <Paragraph fontSize={FONT_SIZE.sm} color="dimmed">
         {WEATHER_ATTRIBUTION.separator}
       </Paragraph>
       <AttributionLink {...WEATHER_ATTRIBUTION.openStreetMap} />
@@ -57,7 +58,6 @@ function WeatherAttribution() {
 /** Fila con el ícono de la condición, "[Ciudad] · Ahora", el estado, la temperatura y "Máx · Mín" (widget 4×1 del canvas). */
 function WeatherSummary({ weather }: { weather: CurrentWeather }) {
   const colors = useSemanticColors();
-  const Icon = getWeatherIcon(weather.condition, weather.isDay);
   const { fontSize, lineHeight, fontWeight, letterSpacing } = DISPLAY.md;
   const headline = formatWeatherHeadline(weather.city);
   const condition = WEATHER_CONDITION_LABELS[weather.condition];
@@ -74,15 +74,14 @@ function WeatherSummary({ weather }: { weather: CurrentWeather }) {
         width={CHIP_SIZE}
         height={CHIP_SIZE}
         borderRadius={RADIUS.full}
-        backgroundColor="$primarySurface"
+        backgroundColor="primarySurface"
         alignItems="center"
         justifyContent="center"
       >
-        {/* eslint-disable-next-line react-hooks/static-components */}
-        <Icon size={26} color={colors.primary} />
+        {createElement(getWeatherIcon(weather.condition, weather.isDay), { size: 26, color: colors.primary })}
       </YStack>
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed" fontWeight="500" numberOfLines={1}>
+        <Paragraph fontSize={FONT_SIZE.sm} color="dimmed" fontWeight="500" numberOfLines={1}>
           {headline}
         </Paragraph>
         <Paragraph fontSize={FONT_SIZE.md} fontWeight="600">
@@ -91,15 +90,15 @@ function WeatherSummary({ weather }: { weather: CurrentWeather }) {
       </YStack>
       <YStack alignItems="flex-end" gap={SPACING['3xs']}>
         <Paragraph
-          fontFamily="$display"
+          fontFamily="display"
           fontSize={fontSize}
-          lineHeight={lineHeight}
+          lineHeight={`${lineHeight}px`}
           fontWeight={String(fontWeight) as '700'}
           letterSpacing={letterSpacing}
         >
           {formatTemperature(weather.temperature)}
         </Paragraph>
-        <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed" fontWeight="500">
+        <Paragraph fontSize={FONT_SIZE.sm} color="dimmed" fontWeight="500">
           {range}
         </Paragraph>
       </YStack>
@@ -122,7 +121,7 @@ export function WeatherCard() {
       <SectionCard>
         <WeatherSummary weather={weather} />
         {weather.stale && (
-          <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed" accessibilityLiveRegion="polite">
+          <Paragraph fontSize={FONT_SIZE.sm} color="dimmed" accessibilityLiveRegion="polite">
             Sin datos nuevos: último dato de las {formatWeatherUpdatedAt(weather.updatedAt)}
           </Paragraph>
         )}

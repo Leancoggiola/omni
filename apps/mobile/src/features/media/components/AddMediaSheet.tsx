@@ -15,6 +15,7 @@ import {
   SegmentedControl,
   SHEET_EXIT_MS,
   SheetFrame,
+  SheetOverlay,
   Spinner,
   TextField,
   useKeyboardInset,
@@ -45,7 +46,7 @@ type AddMediaSheetProps = {
  * Va dentro de un `Modal` de RN y no con `<Sheet modal>`: el portal de Tamagui (fallback de Gorhom)
  * crashea en Fabric ("The specified child already has a parent"). El `Modal` es su propia ventana, así
  * que tapa las tabs; por eso el error se muestra adentro y no con un toast, que quedaría debajo. El
- * Modal se oculta `SHEET_EXIT_MS` después de cerrar (Tamagui no llama a `onAnimationComplete`): si no,
+ * Modal se oculta `SHEET_EXIT_MS` después de cerrar (no se cuenta con `onTransition` al cerrar): si no,
  * queda abierto y transparente encima de la app. El aviso de éxito lo da el padre en `onClosed`, que
  * sobrevive al remonte por `key`.
  */
@@ -93,7 +94,7 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
   const renderResults = () => {
     if (tooShort) {
       return (
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm} textAlign="center" paddingVertical={SPACING.md}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} textAlign="center" paddingVertical={SPACING.md}>
           Escribí al menos {MIN_SEARCH_LENGTH} caracteres
         </Paragraph>
       );
@@ -105,7 +106,7 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
           <Spinner />
         </YStack>
       ) : (
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm} textAlign="center" paddingVertical={SPACING.md}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} textAlign="center" paddingVertical={SPACING.md}>
           No se encontraron resultados
         </Paragraph>
       );
@@ -160,7 +161,7 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
         zIndex={100_000}
         transition="medium"
       >
-        <Sheet.Overlay transition="lazy" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }} />
+        <SheetOverlay />
         <SheetFrame keyboardInset={keyboardInset}>
           <XStack alignItems="center" justifyContent="space-between" gap={SPACING.sm}>
             <DisplayTitle size="md" flexShrink={1}>
@@ -198,7 +199,7 @@ export function AddMediaSheet({ open, onOpenChange, existingTmdbIds, onSubmit, o
             {renderResults()}
           </Sheet.ScrollView>
           <YStack gap={SPACING['2xs']}>
-            <Paragraph fontSize={FONT_SIZE.lg} lineHeight={24} fontWeight="600">
+            <Paragraph fontSize={FONT_SIZE.lg} lineHeight="24px" fontWeight="600">
               Estado
             </Paragraph>
             <SegmentedControl

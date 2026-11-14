@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { SPACING } from '@omni/shared/theme';
 import { MagnifyingGlassIcon } from 'phosphor-react-native';
 import { useState } from 'react';
@@ -81,8 +80,8 @@ function AddShoppingItemForm({ onAdd, submitting, onSubmittingChange, onDone }: 
             <YStack
               key={suggestion.id}
               paddingVertical={SPACING.xs}
+              opacity="press:0.6"
               onPress={() => setName(suggestion.name)}
-              pressStyle={{ opacity: 0.6 }}
               accessible
               accessibilityRole="button"
               accessibilityLabel={`Usar ${suggestion.name}`}
@@ -92,7 +91,7 @@ function AddShoppingItemForm({ onAdd, submitting, onSubmittingChange, onDone }: 
           ))}
         </YStack>
       ) : null}
-      {linked ? <Paragraph color="$dimmed">Está en tu alacena: se vincula y toma su unidad.</Paragraph> : null}
+      {linked ? <Paragraph color="dimmed">Está en tu alacena: se vincula y toma su unidad.</Paragraph> : null}
       <TextField label="Cantidad" keyboardType="decimal-pad" value={quantity} onChangeText={setQuantity} />
       <YStack gap={SPACING['2xs']}>
         <Paragraph fontWeight="600">Unidad</Paragraph>

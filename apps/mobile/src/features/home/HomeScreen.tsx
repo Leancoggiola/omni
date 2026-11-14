@@ -35,14 +35,14 @@ export function HomeScreen() {
             accessibilityRole="header"
             accessibilityLabel={`Inicio. ${greeting}, ${isLoading ? 'cargando' : name}`}
           >
-            <Paragraph color="$dimmed" fontSize={FONT_SIZE.lg} lineHeight={GREETING_LINE_HEIGHT} fontWeight="500">
+            <Paragraph color="dimmed" fontSize={FONT_SIZE.lg} lineHeight={`${GREETING_LINE_HEIGHT}px`} fontWeight="500">
               {greeting}
             </Paragraph>
             {isLoading ? (
               <YStack
                 {...NAME_SKELETON}
                 borderRadius={RADIUS.sm}
-                backgroundColor="$disabledSurface"
+                backgroundColor="disabledSurface"
                 accessible
                 accessibilityLabel="Cargando tu nombre"
               />

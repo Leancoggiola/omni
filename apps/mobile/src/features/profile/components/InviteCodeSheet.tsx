@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { buildInviteMessage, formatInviteCode, formatInviteExpiryDate, inviteHoursLeft } from '@omni/shared/household';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { ClockIcon, CopyIcon, ShareNetworkIcon } from 'phosphor-react-native';
@@ -66,19 +65,19 @@ export function InviteCodeSheet({ invite, open, onOpenChange, onRevoke, onClosed
 
   return (
     <FormSheet open={open} onOpenChange={onOpenChange} title="Tu invitación" busy={revoking} onClosed={onClosed}>
-      <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.md}>
         Pasale este código a tu pareja.
       </Paragraph>
       <YStack
-        backgroundColor="$primarySurface"
+        backgroundColor="primarySurface"
         borderWidth={1}
-        borderColor="$primaryBorder"
+        borderColor="primaryBorder"
         borderRadius={RADIUS.lg}
         paddingVertical={SPACING.lg}
         alignItems="center"
       >
         <Paragraph
-          color="$primary"
+          color="primary"
           fontSize={32}
           fontWeight="800"
           letterSpacing={2}
@@ -92,7 +91,7 @@ export function InviteCodeSheet({ invite, open, onOpenChange, onRevoke, onClosed
       </Banner>
       <XStack gap={SPACING['2xs']} alignItems="center">
         <ClockIcon size={16} />
-        <Paragraph flex={1} color="$dimmed" fontSize={FONT_SIZE.sm}>
+        <Paragraph flex={1} color="dimmed" fontSize={FONT_SIZE.sm}>
           {`Vence en ${inviteHoursLeft(invite.expiresAt, new Date())} h · ${formatInviteExpiryDate(invite.expiresAt)}. Sirve para una sola persona.`}
         </Paragraph>
       </XStack>

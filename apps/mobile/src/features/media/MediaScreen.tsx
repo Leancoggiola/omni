@@ -1,4 +1,3 @@
-// tamagui-ignore
 import {
   buildMediaTmdbKey,
   DEFAULT_MEDIA_FILTERS,

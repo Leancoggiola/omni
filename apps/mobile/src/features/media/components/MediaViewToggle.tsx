@@ -19,9 +19,9 @@ export function MediaViewToggle({ value, onChange }: MediaViewToggleProps) {
   return (
     <XStack
       flexShrink={0}
-      backgroundColor="$surfaceGlass"
+      backgroundColor="surfaceGlass"
       borderWidth={1}
-      borderColor="$glassBorder"
+      borderColor="glassBorder"
       borderRadius={RADIUS.full}
       accessibilityRole="radiogroup"
       accessibilityLabel="Vista"

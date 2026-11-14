@@ -7,6 +7,7 @@ import {
   BUTTON_SIZES,
   buttonPalette,
   touchHitSlop,
+  withPress,
   type ButtonColor,
   type ButtonSize,
   type ButtonVariant,
@@ -54,11 +55,11 @@ export function IconButton({
       borderRadius={RADIUS.full}
       borderWidth={1}
       borderColor={palette.borderColor}
-      backgroundColor={palette.background}
+      backgroundColor={disabled ? palette.background : withPress(palette.background, palette.backgroundPress)}
       alignItems="center"
       justifyContent="center"
       onPress={disabled ? undefined : onPress}
-      pressStyle={disabled ? undefined : { backgroundColor: palette.backgroundPress, opacity: palette.pressOpacity }}
+      opacity={disabled || palette.pressOpacity === 1 ? undefined : `press:${palette.pressOpacity}`}
       hitSlop={touchHitSlop(metrics.height)}
       accessible
       accessibilityRole="button"

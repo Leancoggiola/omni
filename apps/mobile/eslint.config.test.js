@@ -61,10 +61,40 @@ const CASES = [
     rule: IMPORTS,
   },
   {
+    name: 'tamagui/button (subpath de Tamagui 3) en features',
+    file: 'src/features/x/I2.tsx',
+    code: "import { Button } from 'tamagui/button';\nexport const x = Button;\n",
+    rule: IMPORTS,
+  },
+  {
+    name: 'tamagui/input (subpath de Tamagui 3) en features',
+    file: 'src/features/x/I3.tsx',
+    code: "import { Input } from 'tamagui/input';\nexport const x = Input;\n",
+    rule: IMPORTS,
+  },
+  {
+    name: 'tamagui/switch (subpath de Tamagui 3) en features',
+    file: 'src/features/x/I4.tsx',
+    code: "import { Switch } from 'tamagui/switch';\nexport const x = Switch;\n",
+    rule: IMPORTS,
+  },
+  {
     name: 'import * as de tamagui en features',
     file: 'src/features/x/J.tsx',
     code: "import * as T from 'tamagui';\nexport const x = T;\n",
     rule: ALERT,
+  },
+  {
+    name: 'tamagui/spinner (subpath de Tamagui 3) en cualquier lado',
+    file: 'src/shared/x/K2.tsx',
+    code: "import { Spinner } from 'tamagui/spinner';\nexport const x = Spinner;\n",
+    rule: IMPORTS,
+  },
+  {
+    name: '@tamagui/spinner en cualquier lado',
+    file: 'src/shared/x/K3.tsx',
+    code: "import { Spinner } from '@tamagui/spinner';\nexport const x = Spinner;\n",
+    rule: IMPORTS,
   },
   {
     name: 'Spinner de tamagui en cualquier lado',

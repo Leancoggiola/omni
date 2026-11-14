@@ -20,7 +20,7 @@ describe('UserCard', () => {
     render(<UserCard />);
 
     const card = screen.getByRole('button', { name: 'Leandro Coggiola. Ver perfil' });
-    expect(card).toHaveProp('backgroundColor', '$surfaceGlass');
+    expect(card).toHaveProp('backgroundColor', 'surfaceGlass');
     expect(card).toHaveProp('borderRadius', 24);
     expect(screen.getByText('leandro@ejemplo.com')).toBeTruthy();
 

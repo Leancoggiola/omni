@@ -6,9 +6,9 @@ import { Paragraph, XStack } from 'tamagui';
 import { useSemanticColors } from '@/core/theme';
 
 const STATUS_TOKENS = {
-  to_watch: { background: '$disabledSurface', border: '$borderSubtle' },
-  watching: { background: '$accentSurface', border: '$accentBorder' },
-  watched: { background: '$successSurface', border: '$successBorder' },
+  to_watch: { background: 'disabledSurface', border: 'borderSubtle' },
+  watching: { background: 'accentSurface', border: 'accentBorder' },
+  watched: { background: 'successSurface', border: 'successBorder' },
 } as const satisfies Record<MediaStatus, { background: string; border: string }>;
 
 export const STATUS_PILL_HEIGHT = 28;
@@ -42,11 +42,11 @@ export function StatusPill({ status, onPress, accessibilityLabel }: StatusPillPr
       borderColor={tokens.border}
       onPress={onPress}
       hitSlop={onPress ? { top: 12, bottom: 12, left: 8, right: 8 } : undefined}
-      pressStyle={onPress ? { opacity: 0.7 } : undefined}
+      opacity={onPress ? 'press:0.7' : undefined}
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityLabel={accessibilityLabel ?? (onPress ? `Estado: ${label}. Cambiar estado` : `Estado: ${label}`)}
     >
-      <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600" color="$color">
+      <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600" color="color">
         {label}
       </Paragraph>
       {onPress ? <CaretDownIcon size={14} color={colors.text} /> : null}

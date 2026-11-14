@@ -14,8 +14,8 @@ describe('SectionCard', () => {
       </SectionCard>
     );
 
-    const card = screen.UNSAFE_getByProps({ backgroundColor: '$surfaceGlass' });
-    expect(card.props).toMatchObject({ borderColor: '$glassBorder', borderRadius: 24, shadowRadius: 32 });
+    const card = screen.UNSAFE_getByProps({ backgroundColor: 'surfaceGlass' });
+    expect(card.props).toMatchObject({ borderColor: 'glassBorder', borderRadius: 24, shadowRadius: 32 });
   });
 
   it('con título y subtítulo los muestra arriba del contenido', () => {
@@ -37,7 +37,7 @@ describe('SectionCard', () => {
       </SectionCard>
     );
 
-    const card = screen.UNSAFE_getByProps({ backgroundColor: '$surfaceGlass' });
+    const card = screen.UNSAFE_getByProps({ backgroundColor: 'surfaceGlass' });
     expect(card.props).toMatchObject({ paddingHorizontal: 16, paddingVertical: 4 });
   });
 });

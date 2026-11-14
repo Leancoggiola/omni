@@ -36,15 +36,14 @@ export function Fab({ onPress, icon: IconComponent = PlusIcon, label, accessibil
       paddingHorizontal={label ? SPACING.lg : undefined}
       gap={SPACING.xs}
       borderRadius={RADIUS.full}
-      backgroundColor="$background"
-      pressStyle={{ backgroundColor: '$backgroundPress' }}
+      backgroundColor="background press:background-press"
       alignItems="center"
       justifyContent="center"
+      {...themedElevation('float', colorScheme)}
       onPress={onPress}
       accessible
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
-      {...themedElevation('float', colorScheme)}
     >
       <IconComponent size={label ? 20 : 24} weight="bold" color={colors.onPrimaryFill} />
       {label ? (

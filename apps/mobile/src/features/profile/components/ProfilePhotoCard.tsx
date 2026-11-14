@@ -4,7 +4,7 @@ import { CameraIcon, TrashIcon } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
 import { Paragraph, XStack, YStack } from 'tamagui';
 
-import { Button, getErrorMessage, notifyError, notifySuccess, SectionCard, UserAvatar } from '@/shared/ui';
+import { Button, getErrorMessage, IconButton, notifyError, notifySuccess, SectionCard, UserAvatar } from '@/shared/ui';
 
 import { validateAvatarAsset } from '../utils/profilePhoto';
 
@@ -19,7 +19,7 @@ type ProfilePhotoCardProps = {
 
 /**
  * Foto de perfil: elige una imagen de la galería (JPG, PNG o WebP de hasta 2MB, como la API), la valida y la sube de
- * inmediato; "Quitar foto" la borra. Mientras hay un request en vuelo ambos botones quedan bloqueados. El selector del
+ * inmediato; el tacho al lado de "Cambiar foto" (solo con foto, "Quitar foto" para el lector de pantalla) la borra. Mientras hay un request en vuelo ambos botones quedan bloqueados. El selector del
  * sistema no necesita permisos de almacenamiento.
  */
 export function ProfilePhotoCard({ profile, onUpload, onRemove }: ProfilePhotoCardProps) {
@@ -79,28 +79,28 @@ export function ProfilePhotoCard({ profile, onUpload, onRemove }: ProfilePhotoCa
       <XStack alignItems="center" gap={SPACING.lg}>
         <UserAvatar name={profile.name} size={80} uri={profile.avatarUrl} />
         <YStack flex={1} gap={SPACING.xs}>
-          <Button
-            variant="light"
-            leftSection={CameraIcon}
-            loading={busy === 'upload'}
-            disabled={busy !== null}
-            onPress={() => void handlePick()}
-          >
-            Cambiar foto
-          </Button>
-          {profile.avatarUrl ? (
+          <XStack alignItems="center" gap={SPACING.xs}>
             <Button
-              variant="outline"
-              color="destructive"
-              leftSection={TrashIcon}
-              loading={busy === 'remove'}
+              variant="light"
+              leftSection={CameraIcon}
+              loading={busy === 'upload'}
               disabled={busy !== null}
-              onPress={() => void handleRemove()}
+              onPress={() => void handlePick()}
             >
-              Quitar foto
+              Cambiar foto
             </Button>
-          ) : null}
-          <Paragraph color="$dimmed" fontSize={FONT_SIZE.xs}>
+            {profile.avatarUrl ? (
+              <IconButton
+                icon={TrashIcon}
+                accessibilityLabel="Quitar foto"
+                variant="light"
+                color="destructive"
+                disabled={busy !== null}
+                onPress={() => void handleRemove()}
+              />
+            ) : null}
+          </XStack>
+          <Paragraph color="dimmed" fontSize={FONT_SIZE.xs}>
             JPG, PNG o WebP (máx. 2MB)
           </Paragraph>
         </YStack>

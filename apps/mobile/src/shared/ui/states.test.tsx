@@ -15,7 +15,7 @@ describe('ErrorState', () => {
     render(<ErrorState message="No se pudieron cargar las efemérides de hoy" />);
 
     expect(screen.UNSAFE_getByProps({ accessibilityRole: 'alert' })).toBeTruthy();
-    expect(screen.getByText('No se pudieron cargar las efemérides de hoy')).toHaveProp('fontFamily', '$display');
+    expect(screen.getByText('No se pudieron cargar las efemérides de hoy')).toHaveProp('fontFamily', 'display');
     expect(screen.queryByRole('button', { name: 'Reintentar' })).toBeNull();
   });
 
@@ -35,7 +35,7 @@ describe('EmptyState', () => {
   it('muestra el título en display y la acción debajo', () => {
     render(<EmptyState icon={TrayIcon} title="Tu lista está vacía" action={<></>} />);
 
-    expect(screen.getByText('Tu lista está vacía')).toHaveProp('fontFamily', '$display');
+    expect(screen.getByText('Tu lista está vacía')).toHaveProp('fontFamily', 'display');
   });
 });
 
@@ -51,7 +51,7 @@ describe('LoadingState', () => {
   });
 
   it('con variant="skeleton" se llama "Cargando" y dibuja 3 filas por defecto, o las que se pidan', () => {
-    const rowsDrawn = () => screen.UNSAFE_getAllByProps({ backgroundColor: '$surfaceGlass' }).length;
+    const rowsDrawn = () => screen.UNSAFE_getAllByProps({ backgroundColor: 'surfaceGlass' }).length;
 
     const { rerender } = render(<LoadingState variant="skeleton" rows={1} />);
     const perRow = rowsDrawn();
@@ -68,7 +68,7 @@ describe('LoadingState', () => {
   it('las filas skeleton son bloques en track', () => {
     render(<LoadingState variant="skeleton" rows={1} />);
 
-    expect(screen.UNSAFE_getAllByProps({ backgroundColor: '$track' }).length).toBeGreaterThan(0);
+    expect(screen.UNSAFE_getAllByProps({ backgroundColor: 'track' }).length).toBeGreaterThan(0);
   });
 
   it('con "reducir movimiento" quedan quietas, sin pulso', () => {

@@ -31,9 +31,9 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusPress, 
 
   return (
     <XStack
-      backgroundColor="$surfaceGlass"
+      backgroundColor="surfaceGlass"
       borderWidth={1}
-      borderColor="$glassBorder"
+      borderColor="glassBorder"
       borderRadius={RADIUS.xl}
       padding={SPACING.sm}
       gap={SPACING.sm}
@@ -42,7 +42,13 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusPress, 
       <MediaPoster posterPath={item.posterPath} width={POSTER_WIDTH} />
       <YStack flex={1} gap={SPACING.xs} justifyContent="space-between">
         <XStack gap={SPACING.xs} alignItems="flex-start">
-          <Paragraph flex={1} fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl} fontWeight="600" numberOfLines={2}>
+          <Paragraph
+            flex={1}
+            fontSize={FONT_SIZE.lg}
+            lineHeight={`${LINE_HEIGHT.xl}px`}
+            fontWeight="600"
+            numberOfLines={2}
+          >
             {item.title}
           </Paragraph>
           <YStack paddingTop={SPACING['3xs']}>

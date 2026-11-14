@@ -60,7 +60,7 @@ export function ScreenHeader({
             width={CHIP_SIZE}
             height={CHIP_SIZE}
             borderRadius={RADIUS.full}
-            backgroundColor="$primarySurface"
+            backgroundColor="primarySurface"
             alignItems="center"
             justifyContent="center"
           >
@@ -72,7 +72,7 @@ export function ScreenHeader({
             {title}
           </DisplayTitle>
           {subtitle ? (
-            <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
+            <Paragraph color="dimmed" fontSize={FONT_SIZE.md}>
               {subtitle}
             </Paragraph>
           ) : null}

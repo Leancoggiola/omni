@@ -46,7 +46,8 @@ describe('Button', () => {
     expect(screen.queryByRole('progressbar')).toBeNull();
     fireEvent.press(button);
     expect(onPress).not.toHaveBeenCalled();
-    expect(button.props.pressStyle).toBeUndefined();
+    expect(button.props.opacity).toBeUndefined();
+    expect(button.props.backgroundColor).not.toContain('press:');
   });
 
   it('el texto va en peso 600 y con el tamaño de la variante', () => {
@@ -106,9 +107,9 @@ describe('buttonPalette', () => {
   });
 
   it.each([
-    ['outline', { background: 'transparent', borderColor: '$destructive', color: '$destructive' }],
-    ['light', { background: '$errorSurface', borderColor: 'transparent', color: '$destructive' }],
-    ['subtle', { background: 'transparent', backgroundPress: '$errorSurface', color: '$destructive' }],
+    ['outline', { background: 'transparent', borderColor: 'destructive', color: 'destructive' }],
+    ['light', { background: 'errorSurface', borderColor: 'transparent', color: 'destructive' }],
+    ['subtle', { background: 'transparent', backgroundPress: 'errorSurface', color: 'destructive' }],
   ] as const)('%s destructive', (variant, expected) => {
     expect(buttonPalette(variant, 'destructive', false, s)).toMatchObject({ ...expected, icon: s.destructive });
   });
@@ -116,8 +117,8 @@ describe('buttonPalette', () => {
   it('deshabilitado ignora la variante, como Mantine', () => {
     for (const variant of ['filled', 'outline', 'light', 'subtle'] as const) {
       expect(buttonPalette(variant, 'brand', true, s)).toMatchObject({
-        background: '$disabledSurface',
-        color: '$disabledText',
+        background: 'disabledSurface',
+        color: 'disabledText',
         icon: s.disabledText,
       });
       expect(buttonPalette(variant, 'brand', true, s).theme).toBeUndefined();

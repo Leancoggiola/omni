@@ -12,7 +12,7 @@ import { glassElevation } from '@/theme/elevation';
 import { MediaPoster } from './MediaPoster';
 
 import type { MediaItem } from '@omni/shared/media';
-import type { LayoutChangeEvent } from 'react-native';
+import type { ComponentProps } from 'react';
 
 const CARD_PADDING = SPACING.xs;
 const OVERLAY_OFFSET = SPACING.xs;
@@ -34,7 +34,7 @@ export const MediaGridCard = memo(function MediaGridCard({ item, onStatusPress, 
   const author = useItemAuthor(item.createdById);
   const [posterWidth, setPosterWidth] = useState(0);
 
-  const onLayout = (event: LayoutChangeEvent) => {
+  const onLayout: ComponentProps<typeof YStack>['onLayout'] = event => {
     const width = Math.floor(event.nativeEvent.layout.width - CARD_PADDING * 2 - 2);
     if (width > 0 && width !== posterWidth) setPosterWidth(width);
   };
@@ -43,14 +43,14 @@ export const MediaGridCard = memo(function MediaGridCard({ item, onStatusPress, 
     <YStack width="50%" paddingHorizontal={SPACING.sm / 2}>
       <YStack
         flex={1}
-        backgroundColor="$surfaceGlass"
+        backgroundColor="surfaceGlass"
         borderWidth={1}
-        borderColor="$glassBorder"
+        borderColor="glassBorder"
         borderRadius={RADIUS.xl}
         padding={CARD_PADDING}
         gap={SPACING.xs}
-        onLayout={onLayout}
         {...glassElevation('card', colorScheme)}
+        onLayout={onLayout}
       >
         <YStack>
           {posterWidth > 0 ? <MediaPoster posterPath={item.posterPath} width={posterWidth} /> : null}
@@ -64,7 +64,7 @@ export const MediaGridCard = memo(function MediaGridCard({ item, onStatusPress, 
             top={OVERLAY_OFFSET}
             right={OVERLAY_OFFSET}
             borderRadius={RADIUS.full}
-            backgroundColor="$background"
+            backgroundColor="background"
           >
             <IconButton
               icon={TrashIcon}
@@ -78,7 +78,7 @@ export const MediaGridCard = memo(function MediaGridCard({ item, onStatusPress, 
         </YStack>
         <YStack flex={1} gap={SPACING.xs} justifyContent="space-between" paddingHorizontal={SPACING['2xs']}>
           <YStack gap={SPACING.xs}>
-            <Paragraph fontSize={FONT_SIZE.md} lineHeight={LINE_HEIGHT.lg} fontWeight="600" numberOfLines={2}>
+            <Paragraph fontSize={FONT_SIZE.md} lineHeight={`${LINE_HEIGHT.lg}px`} fontWeight="600" numberOfLines={2}>
               {item.title}
             </Paragraph>
             {author ? <AuthorTag author={author} /> : null}

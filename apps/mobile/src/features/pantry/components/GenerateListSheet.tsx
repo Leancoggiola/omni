@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { formatPantryQuantity } from '@omni/shared/pantry';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { useState } from 'react';
@@ -41,7 +40,7 @@ function GenerateListForm({ rows, onConfirm, submitting, onSubmittingChange, onD
 
   return (
     <YStack gap={SPACING.md}>
-      <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.md}>
         Se suman los productos que están en su mínimo o por debajo. Si ya estaban en la lista, se actualiza la cantidad.
       </Paragraph>
       {error ? <Banner color="destructive">{error}</Banner> : null}
@@ -53,7 +52,7 @@ function GenerateListForm({ rows, onConfirm, submitting, onSubmittingChange, onD
               <Paragraph fontWeight="600" numberOfLines={1}>
                 {product.name}
               </Paragraph>
-              <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+              <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
                 {`En alacena: ${formatPantryQuantity(product.quantity, product.unit)} · mínimo ${product.minQuantity}`}
               </Paragraph>
             </YStack>

@@ -9,7 +9,7 @@ describe('DisplayTitle', () => {
     render(<DisplayTitle size="lg">Mi Perfil</DisplayTitle>);
 
     const title = screen.getByRole('header', { name: 'Mi Perfil' });
-    expect(title).toHaveProp('fontFamily', '$display');
+    expect(title).toHaveProp('fontFamily', 'display');
     expect(title).toHaveProp('fontSize', 32);
     expect(title).toHaveProp('fontWeight', '800');
     expect(title).toHaveProp('textTransform', 'none');
@@ -24,9 +24,9 @@ describe('DisplayTitle', () => {
   it('pinta solo la palabra acentuada en primary y conserva el resto del texto', () => {
     render(<DisplayTitle accent="Series">Películas y Series</DisplayTitle>);
 
-    expect(screen.getByText('Series')).toHaveProp('color', '$primary');
+    expect(screen.getByText('Series')).toHaveProp('color', 'primary');
     expect(screen.getByText('Series')).toHaveProp('letterSpacing', 0);
-    expect(screen.getByRole('header', { name: 'Películas y Series' })).toHaveProp('color', '$color');
+    expect(screen.getByRole('header', { name: 'Películas y Series' })).toHaveProp('color', 'color');
   });
 
   it('si el acento no aparece en el texto queda sin acentuar', () => {
@@ -57,13 +57,13 @@ describe('DisplayTitle', () => {
   it('el acento es una palabra entera: no resalta un fragmento dentro de otra palabra', () => {
     render(<DisplayTitle accent="Mi">Mi Miniatura</DisplayTitle>);
 
-    expect(screen.getByText('Mi', { exact: true })).toHaveProp('color', '$primary');
+    expect(screen.getByText('Mi', { exact: true })).toHaveProp('color', 'primary');
     expect(screen.getByRole('header', { name: 'Mi Miniatura' })).toBeTruthy();
   });
 
   it('acepta un acento pegado a la puntuación', () => {
     render(<DisplayTitle accent="Omni">¡Te damos la bienvenida a Omni!</DisplayTitle>);
 
-    expect(screen.getByText('Omni')).toHaveProp('color', '$primary');
+    expect(screen.getByText('Omni')).toHaveProp('color', 'primary');
   });
 });
