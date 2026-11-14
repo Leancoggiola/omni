@@ -1,13 +1,42 @@
-import { config } from '@tamagui/config';
+import { animations } from '@tamagui/config/animations-rn';
+import { defaultConfig as config, type V5Theme } from '@tamagui/config/v5';
 import { BRAND, DISPLAY_FONT, SEMANTIC } from '@omni/shared/theme';
 import { createTamagui } from 'tamagui';
 
-type Theme = (typeof config.themes)['light'];
+type Theme = V5Theme;
 
-function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
+/** `backgroundHover` desde `background-hover`: la grafía camelCase de una clave con guiones. */
+function camelCase(kebab: string) {
+  return kebab.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
+}
+
+/**
+ * Los themes v5 de `@tamagui/config` traen cada clave compuesta en dos grafías (`backgroundHover` y
+ * `background-hover`) y los componentes de Tamagui 3 leen la segunda. La lista sale del theme base de `config` (toda
+ * clave con guion que tenga su grafía camelCase), así que un theme nuevo de v5 no queda fuera. Quien pisa una de las
+ * dos tiene que pisar también la otra, o el componente sigue con el gris de la base.
+ */
+const KEBAB_KEYS: (readonly [camel: string, kebab: string])[] = Object.keys(config.themes.light)
+  .filter(key => key.includes('-') && camelCase(key) !== key)
+  .map(kebab => [camelCase(kebab), kebab] as const);
+
+/** Copia cada clave compuesta de `KEBAB_KEYS` a su grafía con guiones. */
+function withKebabKeys<T extends object>(theme: T): T {
+  const out: Record<string, unknown> = { ...(theme as Record<string, unknown>) };
+  for (const [camel, kebab] of KEBAB_KEYS) {
+    if (camel in out) out[kebab] = out[camel];
+  }
+  return out as T;
+}
+
+/**
+ * Claves propias del theme base: los colores de `SEMANTIC` y los pisados de los tokens de Tamagui. `color-4` y
+ * `color-5` son los dos tonos que lee la pista del Switch apagado de Tamagui 3: van en `borderSubtle`, gris con
+ * contraste sobre la card.
+ */
+function surfaceValues(scheme: 'light' | 'dark') {
   const s = SEMANTIC[scheme];
   return {
-    ...base,
     background: s.body,
     backgroundHover: s.secondary,
     backgroundPress: s.border,
@@ -63,26 +92,36 @@ function surfaceTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     hairline: s.hairline,
     borderSubtle: s.borderSubtle,
     track: s.track,
+    scrim: s.scrim,
     successFill: s.successFill,
     onSuccessFill: s.onSuccessFill,
-  } as Theme;
+    'color-4': s.borderSubtle,
+    'color-5': s.borderSubtle,
+  };
+}
+
+/** `Theme` con las claves propias de `surfaceValues`: sin ellas Tamagui rechaza `color="dimmed"` en el tipo. */
+type AppTheme = Theme & Record<keyof ReturnType<typeof surfaceValues>, string>;
+
+function surfaceTheme(scheme: 'light' | 'dark', base: Theme): AppTheme {
+  return withKebabKeys({ ...base, ...surfaceValues(scheme) });
 }
 
 /**
- * Los themes de color (`active`, `red`, `alt*`) parten de `surfaceTheme` y pisan fondo y texto: así
- * los tokens propios (`$primarySurface`, `$disabledSurface`…) siguen resolviendo dentro de un subárbol
+ * Los themes de color (`active`, `red`) parten de `surfaceTheme` y pisan fondo y texto: así
+ * los tokens propios (`primarySurface`, `disabledSurface`…) siguen resolviendo dentro de un subárbol
  * con `theme="active"` y una primitiva anidada no se queda sin color. `fill` es el relleno del Button de marca
  * (primaryShade de web: 7 en claro, 4 en oscuro) y `accent` el tono de texto/acento (Switch, Slider, Progress),
  * más suave. Los tonos de interacción del relleno salen de SEMANTIC: con el texto encima siguen en AA.
  */
-function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'accent' = 'accent'): Theme {
+function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'accent' = 'accent'): AppTheme {
   const s = SEMANTIC[scheme];
   const fill = tone === 'fill';
   const background = fill ? s.primaryFill : s.primary;
   const onPrimary = fill ? s.onPrimaryFill : s.onPrimary;
   const hover = fill ? s.primaryFillHover : scheme === 'light' ? BRAND[6] : BRAND[3];
   const press = fill ? s.primaryFillPress : scheme === 'light' ? BRAND[8] : BRAND[5];
-  return {
+  return withKebabKeys({
     ...surfaceTheme(scheme, base),
     background,
     backgroundHover: hover,
@@ -98,18 +137,18 @@ function primaryTheme(scheme: 'light' | 'dark', base: Theme, tone: 'fill' | 'acc
     borderColorFocus: background,
     borderColorPress: background,
     placeholderColor: onPrimary,
-  };
+  });
 }
 
 /**
  * El relleno es `destructiveFill` (RED[7], como web), no el `destructive` de texto: en oscuro es RED[4] y con
  * blanco daba 2,9:1.
  */
-function destructiveTheme(scheme: 'light' | 'dark', base: Theme): Theme {
+function destructiveTheme(scheme: 'light' | 'dark', base: Theme): AppTheme {
   const s = SEMANTIC[scheme];
   const fill = s.destructiveFill;
   const onDestructive = s.onDestructive;
-  return {
+  return withKebabKeys({
     ...surfaceTheme(scheme, base),
     background: fill,
     backgroundHover: fill,
@@ -125,28 +164,18 @@ function destructiveTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     borderColorFocus: fill,
     borderColorPress: fill,
     placeholderColor: onDestructive,
-  };
-}
-
-function altTheme(scheme: 'light' | 'dark', base: Theme, strength: 1 | 2): Theme {
-  const s = SEMANTIC[scheme];
-  return {
-    ...surfaceTheme(scheme, base),
-    background: s.body,
-    color: s.dimmed,
-    colorHover: strength === 1 ? s.text : s.dimmed,
-    placeholderColor: s.placeholder,
-  };
+  });
 }
 
 /**
- * `@tamagui/config` trae themes propios para Input y TextArea con su propio `placeholderColor`
- * (`#545454` en oscuro, casi invisible sobre el canvas) que pisan el del theme base. Parte de
- * `surfaceTheme` para que dentro del Input resuelvan los tokens propios (`$destructive`, `$disabledSurface`).
+ * El `Input` y el `TextArea` de Tamagui 3 se montan dentro de `<Theme name="Input">` / `<Theme name="TextArea">`, y los
+ * themes v5 `light_Input`, `light_TextArea` traen su propio `placeholderColor` (casi invisible en oscuro) que
+ * pisa el del theme base. Parte de `surfaceTheme` para que dentro del Input resuelvan los tokens propios
+ * (`destructive`, `disabledSurface`).
  */
-function inputTheme(scheme: 'light' | 'dark', base: Theme): Theme {
+function inputTheme(scheme: 'light' | 'dark', base: Theme): AppTheme {
   const s = SEMANTIC[scheme];
-  return {
+  return withKebabKeys({
     ...surfaceTheme(scheme, base),
     background: s.card,
     color: s.text,
@@ -154,105 +183,11 @@ function inputTheme(scheme: 'light' | 'dark', base: Theme): Theme {
     borderColorHover: s.dimmed,
     borderColorFocus: s.primary,
     placeholderColor: s.placeholder,
-  };
+  });
 }
-
-/**
- * Familias de sub-themes por componente de `@tamagui/config` (`light_Button`, `dark_red_active_Switch`…).
- * Tamagui las busca antes que el theme base, así que sin pisarlas Button y Switch salen grises o rosas.
- */
-export const COMPONENT_THEMES = [
-  'Button',
-  'Switch',
-  'SwitchThumb',
-  'Checkbox',
-  'RadioGroupItem',
-  'SliderTrack',
-  'SliderTrackActive',
-  'SliderThumb',
-  'Progress',
-  'ProgressIndicator',
-  'ListItem',
-  'Card',
-  'Tooltip',
-  'TooltipContent',
-  'TooltipArrow',
-  'DrawerFrame',
-];
 
 /** Existen en runtime, pero el tipo de `config.themes` de @tamagui/config no los declara. */
 const allThemes: Partial<Record<string, Theme>> = config.themes;
-
-/** Pista del Switch apagado (gris con contraste sobre la card) y su thumb blanco (en claro sale negro). */
-function switchTheme(scheme: 'light' | 'dark', base: Theme, part: 'track' | 'thumb'): Theme {
-  const s = SEMANTIC[scheme];
-  const color = part === 'thumb' ? s.white : s.borderSubtle;
-  return {
-    ...base,
-    background: color,
-    backgroundHover: color,
-    backgroundPress: color,
-    backgroundFocus: color,
-    backgroundStrong: color,
-    borderColor: s.border,
-    borderColorHover: s.border,
-    borderColorFocus: s.border,
-    borderColorPress: s.border,
-  };
-}
-
-/** Superficie con otro fondo que el canvas: Button neutro (botón sobre el fondo no se vería) y Card/ListItem. */
-function onSurfaceTheme(scheme: 'light' | 'dark', base: Theme, background: string): Theme {
-  return {
-    ...surfaceTheme(scheme, base),
-    background,
-    backgroundHover: background,
-    backgroundPress: SEMANTIC[scheme].border,
-    backgroundFocus: background,
-  };
-}
-
-const FILLED = ['SliderTrackActive', 'SliderThumb', 'ProgressIndicator'];
-
-/** Sub-theme de un componente según su variante (`parts`: `['light', 'red', 'active', 'Button']`). */
-function buildComponentTheme(scheme: 'light' | 'dark', component: string, parts: string[], base: Theme): Theme {
-  const s = SEMANTIC[scheme];
-  const active = parts.includes('active');
-  const red = parts.includes('red');
-  if (component === 'SwitchThumb') return switchTheme(scheme, base, 'thumb');
-  if (component === 'Switch') {
-    const theme = red
-      ? destructiveTheme(scheme, base)
-      : active
-        ? primaryTheme(scheme, base, 'fill')
-        : switchTheme(scheme, base, 'track');
-    return { ...theme, backgroundActive: s.primaryFill } as Theme;
-  }
-  if (red) return destructiveTheme(scheme, base);
-  if (active) return primaryTheme(scheme, base, component === 'Button' ? 'fill' : 'accent');
-  if (FILLED.includes(component)) return primaryTheme(scheme, base);
-  if (component === 'Button') return { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
-  if (component === 'Card' || component === 'ListItem') return onSurfaceTheme(scheme, base, s.card);
-  if (component === 'SliderTrack' || component === 'Progress') return onSurfaceTheme(scheme, base, s.border);
-  if (component.startsWith('Tooltip')) return { ...onSurfaceTheme(scheme, base, s.card), borderColor: s.border };
-  return base;
-}
-
-/**
- * Reconstruye todas las variantes (`<scheme>_<color|alt|active>_<Componente>`) de cada familia:
- * `_red` → destructivo, `_active` → primario, el resto → superficie. Los `*Overlay` (scrim) no están en la lista: Tamagui ya los resuelve con `rgba` neutro, válido en los dos esquemas.
- */
-function componentThemes(scheme: 'light' | 'dark'): Record<string, Theme> {
-  const out: Record<string, Theme> = {};
-  for (const [name, original] of Object.entries(allThemes)) {
-    const parts = name.split('_');
-    const component = parts[parts.length - 1];
-    if (parts[0] !== scheme || !original || !COMPONENT_THEMES.includes(component)) continue;
-
-    out[name] = buildComponentTheme(scheme, component, parts, surfaceTheme(scheme, original));
-  }
-  return out;
-}
 
 /**
  * Montserrat, igual que web. En nativo cada peso es una familia aparte (las carga `app/_layout.tsx`,
@@ -280,22 +215,28 @@ const bricolageFace = {
   900: { normal: 'BricolageGrotesqueExtraBold' },
 };
 
+/** Pone el tamaño `4` de la fuente en 14 con interlineado 23, sin tocar el tipo que declara `@tamagui/config`. */
+function withDefaultSize<F extends typeof config.fonts.body>(font: F): F {
+  return { ...font, size: { ...font.size, 4: '14px' }, lineHeight: { ...font.lineHeight, 4: '23px' } };
+}
+
 /**
  * Radios y espaciado compartidos con web (`RADIUS` / `SPACING` de `@omni/shared/theme`) van como números, no como
- * tokens de Tamagui: sus componentes (Input, Select, Popover, ListItem) recorren `space`/`radius` ordenados por
- * valor con `getSpace(token, { shift })`, y meter valores nuevos en la escala les cambia el padding. En nativo el
- * Input no le pasa color de placeholder a RN (sin `defaultProps` Android usa su gris, ilegible en oscuro) ni
- * cursor y selección (usaría su teal).
+ * tokens de Tamagui. Tamagui 3 no trae driver de animaciones en ningún config: se suma el de React Native, el que
+ * usan los `transition` de los Sheet (`lazy`, `medium`). `onlyAllowShorthands` y `allowedStyleValues` van apagados
+ * (v5 los trae encendidos): el código usa los nombres largos de RN (`backgroundColor`, `paddingHorizontal`) y
+ * colores crudos de `SEMANTIC`. El `4` de la fuente `body` es el tamaño por defecto de todo `Paragraph` (`size` en
+ * `true`): se deja en 14 con interlineado 23, como el `$true` de Tamagui 2, en vez de los 17 de v5 en nativo. El
+ * Input no recibe `defaultProps` (Tamagui 3 los quitó): el color de placeholder, el cursor y la selección los fija
+ * `TextField`.
  */
 export const tamaguiConfig = createTamagui({
   ...config,
-  defaultProps: {
-    Input: { placeholderTextColor: '$placeholderColor', cursorColor: '$primary', selectionColor: '$primary' },
-    TextArea: { placeholderTextColor: '$placeholderColor', cursorColor: '$primary', selectionColor: '$primary' },
-  },
+  animations,
+  settings: { ...config.settings, onlyAllowShorthands: false, allowedStyleValues: false },
   fonts: {
     ...config.fonts,
-    body: { ...config.fonts.body, family: 'Montserrat', face: montserratFace },
+    body: { ...withDefaultSize(config.fonts.body), family: 'Montserrat', face: montserratFace },
     heading: { ...config.fonts.heading, family: 'Montserrat', face: montserratFace },
     display: { ...config.fonts.heading, family: DISPLAY_FONT, face: bricolageFace },
   },
@@ -303,25 +244,19 @@ export const tamaguiConfig = createTamagui({
     ...config.themes,
     light: surfaceTheme('light', config.themes.light),
     dark: surfaceTheme('dark', config.themes.dark),
-    light_active: primaryTheme('light', config.themes.light_active, 'fill'),
-    dark_active: primaryTheme('dark', config.themes.dark_active, 'fill'),
+    light_active: primaryTheme('light', config.themes.light_accent, 'fill'),
+    dark_active: primaryTheme('dark', config.themes.dark_accent, 'fill'),
     light_red: destructiveTheme('light', config.themes.light_red),
     dark_red: destructiveTheme('dark', config.themes.dark_red),
-    light_alt1: altTheme('light', config.themes.light_alt1, 1),
-    dark_alt1: altTheme('dark', config.themes.dark_alt1, 1),
-    light_alt2: altTheme('light', config.themes.light_alt2, 2),
-    dark_alt2: altTheme('dark', config.themes.dark_alt2, 2),
     light_Input: inputTheme('light', allThemes.light_Input ?? config.themes.light),
     dark_Input: inputTheme('dark', allThemes.dark_Input ?? config.themes.dark),
     light_TextArea: inputTheme('light', allThemes.light_TextArea ?? config.themes.light),
     dark_TextArea: inputTheme('dark', allThemes.dark_TextArea ?? config.themes.dark),
-    ...componentThemes('light'),
-    ...componentThemes('dark'),
   },
 });
 
 /**
- * El compilador de @tamagui/babel-plugin solo encuentra la config como `export default` (o `config`): sin esto
+ * El compilador de `@tamagui/metro-plugin` solo encuentra la config como `export default` (o `config`): sin esto
  * la descarta, reintenta en cada archivo y el bundle de Metro se cuelga.
  */
 export default tamaguiConfig;

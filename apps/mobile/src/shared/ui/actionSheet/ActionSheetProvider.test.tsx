@@ -118,7 +118,7 @@ describe('ActionSheetProvider', () => {
     await flush();
     expect(first.result).toBe('to_watch');
 
-    act(() => sheet().onAnimationComplete({ open: false }));
+    act(() => sheet().onTransition({ phase: 'end', cause: 'close', position: 0, finished: true }));
     expect(screen.getByText('Segundo')).toBeTruthy();
     expect(second.result).toBeUndefined();
   });

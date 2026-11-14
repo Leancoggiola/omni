@@ -22,12 +22,12 @@ type SemanticColors = ReturnType<typeof useSemanticColors>;
 
 /** Wash, borde y texto de cada color: los mismos `surfaces-{color}-light` / `border-{color}` que web. */
 const BANNER_TOKENS = {
-  brand: { surface: '$primarySurface', border: '$primaryBorder', text: '$primary' },
-  accent: { surface: '$accentSurface', border: '$accentBorder', text: '$accent' },
-  success: { surface: '$successSurface', border: '$successBorder', text: '$success' },
-  warning: { surface: '$warningSurface', border: '$warningBorder', text: '$warning' },
-  info: { surface: '$infoSurface', border: '$infoBorder', text: '$info' },
-  destructive: { surface: '$errorSurface', border: '$destructiveBorder', text: '$destructive' },
+  brand: { surface: 'primarySurface', border: 'primaryBorder', text: 'primary' },
+  accent: { surface: 'accentSurface', border: 'accentBorder', text: 'accent' },
+  success: { surface: 'successSurface', border: 'successBorder', text: 'success' },
+  warning: { surface: 'warningSurface', border: 'warningBorder', text: 'warning' },
+  info: { surface: 'infoSurface', border: 'infoBorder', text: 'info' },
+  destructive: { surface: 'errorSurface', border: 'destructiveBorder', text: 'destructive' },
 } as const satisfies Record<BannerColor, Record<'surface' | 'border' | 'text', string>>;
 
 /** El ícono de Phosphor no resuelve tokens `$`: va con el color crudo equivalente. */
@@ -56,7 +56,7 @@ export function Banner({ children, color = 'brand', icon: IconComponent, floatin
 
   return (
     <XStack
-      backgroundColor={floating ? '$backgroundStrong' : t.surface}
+      backgroundColor={floating ? 'backgroundStrong' : t.surface}
       borderWidth={1}
       borderColor={t.border}
       borderRadius={RADIUS.md}

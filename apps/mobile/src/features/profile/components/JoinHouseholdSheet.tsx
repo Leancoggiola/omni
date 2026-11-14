@@ -84,7 +84,7 @@ export function JoinHouseholdSheet({
         <PreviewStep preview={reviewed.preview} />
       ) : (
         <>
-          <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
+          <Paragraph color="dimmed" fontSize={FONT_SIZE.md}>
             Pedile a tu pareja el código de 8 caracteres que generó en su Perfil. Primero vas a ver un resumen de lo que
             se suma, antes de confirmar nada.
           </Paragraph>
@@ -104,9 +104,9 @@ export function JoinHouseholdSheet({
             <XStack
               gap={SPACING.xs}
               alignItems="center"
-              backgroundColor="$successSurface"
+              backgroundColor="successSurface"
               borderWidth={1}
-              borderColor="$successBorder"
+              borderColor="successBorder"
               borderRadius={RADIUS.md}
               paddingVertical={SPACING.xs}
               paddingHorizontal={SPACING.md}
@@ -148,12 +148,12 @@ function PreviewStep({ preview }: { preview: HouseholdInvitePreview }) {
           <Paragraph fontWeight="700" fontSize={FONT_SIZE.lg}>
             {inviter.name}
           </Paragraph>
-          <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+          <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
             te invitó a su hogar
           </Paragraph>
         </YStack>
       </XStack>
-      <Paragraph color="$dimmed" fontSize={FONT_SIZE.xs} fontWeight="700" textTransform="uppercase">
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.xs} fontWeight="700" textTransform="uppercase">
         Vos aportás
       </Paragraph>
       <XStack gap={SPACING.xs}>
@@ -166,7 +166,7 @@ function PreviewStep({ preview }: { preview: HouseholdInvitePreview }) {
           <Paragraph fontWeight="700" fontSize={FONT_SIZE.md}>
             {`${discarded} ${discarded === 1 ? 'repetido se descarta' : 'repetidos se descartan'}`}
           </Paragraph>
-          <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+          <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
             {`Si algo está en los dos hogares, queda el registro de ${inviter.name}.`}
           </Paragraph>
           {conflicts.media.map(item => (
@@ -197,14 +197,14 @@ function Stat({ value, label }: { value: number; label: string }) {
       padding={SPACING.sm}
       borderRadius={RADIUS.md}
       borderWidth={1}
-      borderColor="$borderSubtle"
+      borderColor="borderSubtle"
       accessible
       accessibilityLabel={`${value} ${label}`}
     >
       <Paragraph fontWeight="800" fontSize={FONT_SIZE.xl}>
         {String(value)}
       </Paragraph>
-      <Paragraph color="$dimmed" fontSize={FONT_SIZE.xs} textAlign="center">
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.xs} textAlign="center">
         {label}
       </Paragraph>
     </YStack>
@@ -217,7 +217,7 @@ function DiscardedRow({ name, kind }: { name: string; kind: string }) {
       <Paragraph flex={1} fontSize={FONT_SIZE.md} numberOfLines={1}>
         {name}
       </Paragraph>
-      <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
         {kind}
       </Paragraph>
     </XStack>

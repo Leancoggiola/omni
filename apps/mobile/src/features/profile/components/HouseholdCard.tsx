@@ -216,7 +216,7 @@ function SoloBody({ busy, onInvite, onJoin }: { busy: boolean; onInvite: () => v
         <Paragraph fontWeight="700" fontSize={FONT_SIZE.lg}>
           Todavía estás solo
         </Paragraph>
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.md}>
           Vinculá tu cuenta con tu pareja y compartan películas, series, alacena y lista de compras. Gimnasio y gastos
           siguen siendo solo tuyos.
         </Paragraph>
@@ -229,7 +229,7 @@ function SoloBody({ busy, onInvite, onJoin }: { busy: boolean; onInvite: () => v
           Tengo un código
         </Button>
       </YStack>
-      <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm} textAlign="center">
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} textAlign="center">
         Un hogar admite hasta 2 personas y cada persona solo puede estar en uno.
       </Paragraph>
     </YStack>
@@ -287,7 +287,7 @@ function LinkedBody({ household, selfUsername, pushDismissed, busy, onDismissPus
                 <Paragraph fontWeight="700" fontSize={FONT_SIZE.lg}>
                   {member.username === selfUsername ? `${member.name} (vos)` : member.name}
                 </Paragraph>
-                <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+                <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
                   {`@${member.username} · desde ${formatJoinedAt(member.joinedAt)}`}
                 </Paragraph>
               </YStack>
@@ -295,7 +295,7 @@ function LinkedBody({ household, selfUsername, pushDismissed, busy, onDismissPus
           ))}
       </YStack>
       <YStack gap={SPACING['2xs']}>
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.xs} fontWeight="700" textTransform="uppercase">
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.xs} fontWeight="700" textTransform="uppercase">
           Compartido entre los dos
         </Paragraph>
         <XStack gap={SPACING.xs} flexWrap="wrap">
@@ -309,7 +309,7 @@ function LinkedBody({ household, selfUsername, pushDismissed, busy, onDismissPus
             Lista de compras
           </Badge>
         </XStack>
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
           Gimnasio y gastos siguen siendo solo tuyos.
         </Paragraph>
       </YStack>

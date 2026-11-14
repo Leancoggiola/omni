@@ -142,6 +142,18 @@ describe('SensitiveGate', () => {
     expect(screen.getByText('contenido de gastos')).toBeTruthy();
   });
 
+  it('si la app pasó por background durante el prompt, un éxito con el desbloqueo ya vencido no destapa', async () => {
+    mockAuthenticateSensitive.mockImplementation(async () => {
+      mockIsSensitiveUnlocked.mockReturnValue(false);
+      return 'success';
+    });
+    renderGate();
+    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
+
+    expect(screen.queryByText('contenido de gastos')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Desbloquear con huella', busy: false })).toBeTruthy();
+  });
+
   it('si se cancela no avisa nada y queda el botón para reintentar', async () => {
     mockAuthenticateSensitive.mockResolvedValue('cancelled');
     renderGate();

@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { formatPantryQuantity, hasValidCheckDigit, isInternalBarcode, normalizeBarcode } from '@omni/shared/pantry';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult, type BarcodeType } from 'expo-camera';
@@ -166,7 +165,7 @@ function CameraPanel({ scanning, torch, onTorchChange, onScanned, onReady }: Cam
         title={blocked ? 'La cámara está bloqueada para Omni' : 'Usá la cámara para escanear'}
         action={
           <YStack gap={SPACING.sm} alignSelf="stretch">
-            <Paragraph color="$dimmed" fontSize={FONT_SIZE.md} textAlign="center">
+            <Paragraph color="dimmed" fontSize={FONT_SIZE.md} textAlign="center">
               {blocked
                 ? 'Habilitala en Ajustes para escanear códigos, o cargá el producto a mano.'
                 : 'La usamos solo para leer el código de barras de tus productos.'}
@@ -193,7 +192,7 @@ function CameraPanel({ scanning, torch, onTorchChange, onScanned, onReady }: Cam
         height={CAMERA_HEIGHT}
         borderRadius={RADIUS.lg}
         overflow="hidden"
-        backgroundColor="$track"
+        backgroundColor="track"
         accessible
         accessibilityLabel="Vista de la cámara para escanear el código"
       >
@@ -213,13 +212,13 @@ function CameraPanel({ scanning, torch, onTorchChange, onScanned, onReady }: Cam
           left={FRAME_INSET}
           right={FRAME_INSET}
           borderWidth={2}
-          borderColor="$primary"
+          borderColor="primary"
           borderRadius={RADIUS.md}
           pointerEvents="none"
         />
       </YStack>
       <XStack alignItems="center" gap={SPACING.sm}>
-        <Paragraph flex={1} color="$dimmed" fontSize={FONT_SIZE.md}>
+        <Paragraph flex={1} color="dimmed" fontSize={FONT_SIZE.md}>
           Apuntá al código de barras del envase.
         </Paragraph>
         <IconButton
@@ -431,7 +430,7 @@ function ScanFlow({ open, busy, onBusyChange, onClosingNotice }: ScanFlowProps) 
       <YStack gap={SPACING.md}>
         {banner ? <Banner color={banner.color}>{banner.message}</Banner> : null}
         {phase.barcode ? (
-          <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
+          <Paragraph color="dimmed" fontSize={FONT_SIZE.md}>
             {`Código ${phase.barcode}`}
           </Paragraph>
         ) : null}
@@ -445,7 +444,7 @@ function ScanFlow({ open, busy, onBusyChange, onClosingNotice }: ScanFlowProps) 
         />
         {sourceUrl ? (
           <YStack gap={SPACING.xs}>
-            <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm} textAlign="center">
+            <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} textAlign="center">
               Datos de Open Food Facts, con licencia ODbL.
             </Paragraph>
             <Button
@@ -479,7 +478,7 @@ function ScanFlow({ open, busy, onBusyChange, onClosingNotice }: ScanFlowProps) 
           accessibilityLiveRegion="polite"
         >
           <Spinner size="small" />
-          <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
+          <Paragraph color="dimmed" fontSize={FONT_SIZE.md}>
             {`Buscando ${processing}…`}
           </Paragraph>
         </XStack>

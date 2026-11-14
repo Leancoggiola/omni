@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { buildGeneratePreview, splitShoppingList } from '@omni/shared/pantry';
 import { SPACING } from '@omni/shared/theme';
 import { ShoppingCartIcon } from 'phosphor-react-native';
@@ -181,7 +180,7 @@ export function ShoppingListView({ header }: ShoppingListViewProps) {
             ) : null}
           </XStack>
           {done.length === 0 ? (
-            <Paragraph color="$dimmed">Lo que tildes como comprado aparece acá y se suma a tu alacena.</Paragraph>
+            <Paragraph color="dimmed">Lo que tildes como comprado aparece acá y se suma a tu alacena.</Paragraph>
           ) : (
             done.map(item => (
               <ShoppingItemRow

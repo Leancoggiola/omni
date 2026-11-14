@@ -16,14 +16,14 @@ describe('Badge', () => {
       </Badge>
     );
     const text = screen.getByText('Serie');
-    expect(text).toHaveProp('color', '$onAccentFill');
+    expect(text).toHaveProp('color', 'onAccentFill');
     expect(text).toHaveProp('textTransform', 'uppercase');
     expect(text).toHaveProp('fontWeight', '700');
   });
 
   it('light dimmed: texto atenuado ("Próximamente")', () => {
     render(<Badge color="dimmed">Próximamente</Badge>);
-    expect(screen.getByText('Próximamente')).toHaveProp('color', '$dimmed');
+    expect(screen.getByText('Próximamente')).toHaveProp('color', 'dimmed');
   });
 
   it('outline warning: texto ámbar sobre fondo transparente (el ámbar es de un solo tono)', () => {
@@ -32,7 +32,7 @@ describe('Badge', () => {
         Por vencer
       </Badge>
     );
-    expect(screen.getByText('Por vencer')).toHaveProp('color', '$warning');
+    expect(screen.getByText('Por vencer')).toHaveProp('color', 'warning');
   });
 });
 
@@ -42,7 +42,7 @@ describe('Banner', () => {
     render(<Banner color="destructive">Usuario o contraseña incorrectos</Banner>);
 
     expect(screen.getByRole('alert', { name: 'Usuario o contraseña incorrectos' })).toBeTruthy();
-    expect(screen.getByText('Usuario o contraseña incorrectos')).toHaveProp('color', '$destructive');
+    expect(screen.getByText('Usuario o contraseña incorrectos')).toHaveProp('color', 'destructive');
     expect(announce).toHaveBeenCalledWith('Usuario o contraseña incorrectos');
   });
 
@@ -54,7 +54,7 @@ describe('Banner', () => {
     );
 
     expect(screen.getByRole('alert', { name: 'Modo de prueba' })).toBeTruthy();
-    expect(screen.getByText('Modo de prueba')).toHaveProp('color', '$info');
+    expect(screen.getByText('Modo de prueba')).toHaveProp('color', 'info');
   });
 
   it('floating: fondo de card y sombra float en vez del wash del color', () => {
@@ -65,7 +65,7 @@ describe('Banner', () => {
     );
 
     const banner = screen.getByRole('alert', { name: 'Despertando el servidor' });
-    expect(banner).toHaveProp('backgroundColor', '$backgroundStrong');
+    expect(banner).toHaveProp('backgroundColor', 'backgroundStrong');
     expect(banner).toHaveProp('shadowRadius', 32);
   });
 
@@ -73,7 +73,7 @@ describe('Banner', () => {
     render(<Banner color="info">Aviso</Banner>);
 
     const banner = screen.getByRole('alert', { name: 'Aviso' });
-    expect(banner).toHaveProp('backgroundColor', '$infoSurface');
+    expect(banner).toHaveProp('backgroundColor', 'infoSurface');
     expect(banner.props.shadowRadius).toBeUndefined();
   });
 });

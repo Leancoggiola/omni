@@ -21,8 +21,8 @@ describe('IconButton', () => {
     render(<IconButton icon={XIcon} variant="glass" accessibilityLabel="Volver" />);
 
     const button = screen.getByRole('button', { name: 'Volver' });
-    expect(button).toHaveProp('backgroundColor', '$surfaceGlass');
-    expect(button).toHaveProp('borderColor', '$glassBorder');
+    expect(button).toHaveProp('backgroundColor', 'surfaceGlass');
+    expect(button).toHaveProp('borderColor', 'glassBorder');
   });
 
   it('deshabilitado no llama a onPress', () => {

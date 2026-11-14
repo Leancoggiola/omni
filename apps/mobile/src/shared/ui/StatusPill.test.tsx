@@ -11,14 +11,14 @@ describe('StatusPill', () => {
     const pill = () => screen.getByLabelText(/^Estado:/);
 
     expect(pill()).toHaveProp('height', 28);
-    expect(pill()).toHaveProp('backgroundColor', '$disabledSurface');
-    expect(pill()).toHaveProp('borderColor', '$borderSubtle');
+    expect(pill()).toHaveProp('backgroundColor', 'disabledSurface');
+    expect(pill()).toHaveProp('borderColor', 'borderSubtle');
 
     rerender(<StatusPill status="watching" />);
-    expect(pill()).toHaveProp('backgroundColor', '$accentSurface');
+    expect(pill()).toHaveProp('backgroundColor', 'accentSurface');
 
     rerender(<StatusPill status="watched" />);
-    expect(pill()).toHaveProp('backgroundColor', '$successSurface');
+    expect(pill()).toHaveProp('backgroundColor', 'successSurface');
   });
 
   it('con onPress es un botón que abre el selector; sin onPress es solo texto', () => {

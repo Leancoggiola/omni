@@ -32,7 +32,7 @@ export function NavRow({ navKey }: { navKey: NavKey }) {
       minHeight={ROW_HEIGHT}
       disabled={!available}
       onPress={href ? () => router.navigate(href) : undefined}
-      pressStyle={available ? { opacity: 0.7 } : undefined}
+      opacity={available ? 'press:0.7' : undefined}
       accessibilityRole="button"
       accessibilityLabel={available ? label : `${label}, próximamente`}
       accessibilityState={{ disabled: !available }}
@@ -41,13 +41,18 @@ export function NavRow({ navKey }: { navKey: NavKey }) {
         width={CHIP_SIZE}
         height={CHIP_SIZE}
         borderRadius={RADIUS.md}
-        backgroundColor={available ? '$primarySurface' : '$disabledSurface'}
+        backgroundColor={available ? 'primarySurface' : 'disabledSurface'}
         alignItems="center"
         justifyContent="center"
       >
         <IconComponent size={20} color={available ? colors.primary : colors.dimmed} />
       </YStack>
-      <Paragraph flex={1} fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl} color={available ? '$color' : '$dimmed'}>
+      <Paragraph
+        flex={1}
+        fontSize={FONT_SIZE.lg}
+        lineHeight={`${LINE_HEIGHT.xl}px`}
+        color={available ? 'color' : 'dimmed'}
+      >
         {label}
       </Paragraph>
       {available ? (

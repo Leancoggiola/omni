@@ -44,12 +44,12 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
         height={SIZE.tabBar}
         borderRadius={RADIUS.full}
         borderWidth={1}
-        borderColor="$glassBorder"
-        backgroundColor="$surfaceGlass"
+        borderColor="glassBorder"
+        backgroundColor="surfaceGlass"
         alignItems="center"
         justifyContent="space-around"
-        accessibilityRole="tablist"
         {...glassElevation('float', colorScheme)}
+        accessibilityRole="tablist"
       >
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];

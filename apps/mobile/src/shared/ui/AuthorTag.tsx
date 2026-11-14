@@ -9,9 +9,9 @@ import type { ItemAuthor } from '@omni/shared/household';
 const AVATAR_SIZE = 24;
 
 const AVATAR_TOKENS = {
-  self: { surface: '$primarySurface', text: '$primary' },
-  member: { surface: '$accentSurface', text: '$accent' },
-  deleted: { surface: '$track', text: '$dimmed' },
+  self: { surface: 'primarySurface', text: 'primary' },
+  member: { surface: 'accentSurface', text: 'accent' },
+  deleted: { surface: 'track', text: 'dimmed' },
 } as const satisfies Record<ItemAuthor['kind'], Record<'surface' | 'text', string>>;
 
 type AuthorTagProps = {
@@ -52,7 +52,7 @@ export function AuthorTag({
         </Paragraph>
       </YStack>
       {showName ? (
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.xs} numberOfLines={1} flexShrink={1}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.xs} numberOfLines={1} flexShrink={1}>
           {showActionLabel ? `${actionLabel} ${label}` : label}
         </Paragraph>
       ) : null}

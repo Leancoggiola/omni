@@ -1,4 +1,5 @@
 const { getDefaultConfig } = require('expo/metro-config');
+const { withTamagui } = require('@tamagui/metro-plugin');
 
 const config = getDefaultConfig(__dirname);
 
@@ -15,4 +16,10 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 
 config.resolver.useWatchman = !/[\\/]\.claude[\\/]worktrees[\\/]/.test(__dirname);
 
-module.exports = config;
+/**
+ * `withTamagui` instala el compilador de Tamagui (reemplaza a `@tamagui/babel-plugin`) y lee sus opciones de
+ * `tamagui.build.ts`. Va al final para componer con el `resolveRequest` de swr y con `useWatchman`. Se usa
+ * `@tamagui/metro-plugin` y no `@tamagui/cli/metro` (mismos exports): `@tamagui/cli` fija `typescript@7` y pnpm lo
+ * propaga como peer de `typescript-eslint`, que no lo soporta.
+ */
+module.exports = withTamagui(config);

@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { SPACING } from '@omni/shared/theme';
 import { useState } from 'react';
 import { Paragraph, YStack } from 'tamagui';
@@ -46,7 +45,7 @@ function EditShoppingItemForm({ item, onSave, submitting, onSubmittingChange, on
 
   return (
     <YStack gap={SPACING.md}>
-      <Paragraph color="$dimmed">{item.name}</Paragraph>
+      <Paragraph color="dimmed">{item.name}</Paragraph>
       {error ? <Banner color="destructive">{error}</Banner> : null}
       <TextField
         label="Cantidad a comprar"

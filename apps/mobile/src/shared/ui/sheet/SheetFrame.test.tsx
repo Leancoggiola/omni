@@ -17,15 +17,10 @@ describe('SheetFrame', () => {
       </SheetFrame>
     );
 
-    const frame = screen.UNSAFE_getByProps({ backgroundColor: '$backgroundStrong' });
-    expect(frame.props).toMatchObject({
-      borderTopLeftRadius: 32,
-      borderTopRightRadius: 32,
-      paddingTop: 12,
-      paddingHorizontal: 20,
-      paddingBottom: 24 + 16,
-      shadowRadius: 32,
-    });
+    const background = screen.UNSAFE_getByProps({ backgroundColor: 'backgroundStrong' });
+    expect(background.props).toMatchObject({ borderTopLeftRadius: 32, borderTopRightRadius: 32, shadowRadius: 32 });
+    const container = screen.UNSAFE_getByProps({ paddingTop: 12 });
+    expect(container.props).toMatchObject({ paddingHorizontal: 20, paddingBottom: 24 + 16 });
     expect(screen.getByText('contenido')).toBeTruthy();
   });
 
@@ -36,7 +31,7 @@ describe('SheetFrame', () => {
       </SheetFrame>
     );
 
-    const grabber = screen.UNSAFE_getByProps({ backgroundColor: '$track' });
+    const grabber = screen.UNSAFE_getByProps({ backgroundColor: 'track' });
     expect(grabber.props).toMatchObject({ width: 40, height: 4, importantForAccessibility: 'no-hide-descendants' });
   });
 
@@ -47,6 +42,6 @@ describe('SheetFrame', () => {
       </SheetFrame>
     );
 
-    expect(screen.UNSAFE_getByProps({ backgroundColor: '$backgroundStrong' }).props.paddingBottom).toBe(300 + 16);
+    expect(screen.UNSAFE_getByProps({ paddingTop: 12 }).props.paddingBottom).toBe(300 + 16);
   });
 });

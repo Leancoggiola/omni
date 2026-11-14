@@ -14,7 +14,7 @@ jest.mock(
 );
 
 function makeQueue(open: boolean): SheetQueue<boolean, SheetRequest<boolean>> {
-  return { open, shown: null, close: jest.fn(), onOpenChange: jest.fn(), onAnimationComplete: jest.fn() };
+  return { open, shown: null, close: jest.fn(), onOpenChange: jest.fn(), onTransition: jest.fn() };
 }
 
 function ui(queue: SheetQueue<boolean, SheetRequest<boolean>>) {

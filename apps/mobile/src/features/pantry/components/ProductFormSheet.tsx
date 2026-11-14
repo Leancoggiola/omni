@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { useState } from 'react';
 
 import { FormSheet } from '@/shared/ui';

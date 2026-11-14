@@ -29,6 +29,14 @@ export function touchHitSlop(height: number) {
   return slop ? { top: slop, bottom: slop, left: slop, right: slop } : undefined;
 }
 
+/**
+ * Valor plano de Tamagui 3 para un color con estado presionado (`background press:background-press`). Si el color no
+ * cambia al presionar devuelve el base solo: un `press:` idéntico no hace nada.
+ */
+export function withPress(base: string, press: string) {
+  return press === base ? base : `${base} press:${press}`;
+}
+
 export type ButtonPalette = {
   /** Theme de Tamagui (solo filled): `active`/`red` traen el fondo, el texto y el estado presionado de #75. */
   theme?: 'active' | 'red';
@@ -43,9 +51,9 @@ export type ButtonPalette = {
 };
 
 const ACCENT = {
-  brand: { token: '$primary', surface: '$primarySurface', raw: (s: SemanticColors) => s.primary },
-  destructive: { token: '$destructive', surface: '$errorSurface', raw: (s: SemanticColors) => s.destructive },
-  dimmed: { token: '$dimmed', surface: '$dimmedSurface', raw: (s: SemanticColors) => s.dimmed },
+  brand: { token: 'primary', surface: 'primarySurface', raw: (s: SemanticColors) => s.primary },
+  destructive: { token: 'destructive', surface: 'errorSurface', raw: (s: SemanticColors) => s.destructive },
+  dimmed: { token: 'dimmed', surface: 'dimmedSurface', raw: (s: SemanticColors) => s.dimmed },
 } as const;
 
 /**
@@ -60,10 +68,10 @@ export function buttonPalette(
 ): ButtonPalette {
   if (disabled) {
     return {
-      background: '$disabledSurface',
-      backgroundPress: '$disabledSurface',
+      background: 'disabledSurface',
+      backgroundPress: 'disabledSurface',
       borderColor: 'transparent',
-      color: '$disabledText',
+      color: 'disabledText',
       icon: colors.disabledText,
       pressOpacity: 1,
     };
@@ -74,20 +82,20 @@ export function buttonPalette(
     case 'filled':
       if (color === 'dimmed') {
         return {
-          background: '$dimmed',
-          backgroundPress: '$dimmed',
+          background: 'dimmed',
+          backgroundPress: 'dimmed',
           borderColor: 'transparent',
-          color: '$onDimmed',
+          color: 'onDimmed',
           icon: colors.onDimmed,
           pressOpacity: 0.85,
         };
       }
       return {
         theme: color === 'destructive' ? 'red' : 'active',
-        background: '$background',
-        backgroundPress: '$backgroundPress',
+        background: 'background',
+        backgroundPress: 'background-press',
         borderColor: 'transparent',
-        color: '$color',
+        color: 'color',
         icon: color === 'destructive' ? colors.onDestructive : colors.onPrimaryFill,
         pressOpacity: color === 'destructive' ? 0.85 : 1,
       };
@@ -111,10 +119,10 @@ export function buttonPalette(
       };
     case 'glass':
       return {
-        background: '$surfaceGlass',
-        backgroundPress: '$surfaceGlass',
-        borderColor: '$glassBorder',
-        color: '$color',
+        background: 'surfaceGlass',
+        backgroundPress: 'surfaceGlass',
+        borderColor: 'glassBorder',
+        color: 'color',
         icon: color === 'destructive' ? colors.destructive : colors.text,
         pressOpacity: 0.75,
       };

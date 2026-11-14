@@ -31,7 +31,7 @@ function SkeletonBlock({
   radius: number;
   flex?: number;
 }) {
-  return <YStack width={width} height={height} flex={flex} borderRadius={radius} backgroundColor="$track" />;
+  return <YStack width={width} height={height} flex={flex} borderRadius={radius} backgroundColor="track" />;
 }
 
 /**
@@ -43,9 +43,9 @@ function SkeletonRow() {
 
   return (
     <XStack
-      backgroundColor="$surfaceGlass"
+      backgroundColor="surfaceGlass"
       borderWidth={1}
-      borderColor="$glassBorder"
+      borderColor="glassBorder"
       borderRadius={RADIUS.xl}
       padding={SPACING.sm}
       gap={SPACING.sm}
@@ -134,9 +134,9 @@ export function EmptyState({ icon: IconComponent, title, action }: EmptyStatePro
 
   return (
     <YStack
-      backgroundColor="$backgroundStrong"
+      backgroundColor="backgroundStrong"
       borderWidth={1}
-      borderColor="$hairline"
+      borderColor="hairline"
       borderRadius={RADIUS.lg}
       padding={SPACING.xl}
       gap={SPACING.md}
@@ -147,8 +147,8 @@ export function EmptyState({ icon: IconComponent, title, action }: EmptyStatePro
         height={INDICATOR_SIZE}
         borderRadius={RADIUS.xl}
         borderWidth={1}
-        borderColor="$glassBorder"
-        backgroundColor="$surfaceGlass"
+        borderColor="glassBorder"
+        backgroundColor="surfaceGlass"
         alignItems="center"
         justifyContent="center"
         {...glassElevation('card', colorScheme)}
@@ -183,9 +183,9 @@ export function ErrorState({
 
   return (
     <YStack
-      backgroundColor="$backgroundStrong"
+      backgroundColor="backgroundStrong"
       borderWidth={1}
-      borderColor="$hairline"
+      borderColor="hairline"
       borderRadius={RADIUS.lg}
       paddingVertical={SPACING.lg}
       paddingHorizontal={SPACING.md}
@@ -197,7 +197,7 @@ export function ErrorState({
         width={INDICATOR_SIZE}
         height={INDICATOR_SIZE}
         borderRadius={RADIUS.xl}
-        backgroundColor="$errorSurface"
+        backgroundColor="errorSurface"
         alignItems="center"
         justifyContent="center"
       >

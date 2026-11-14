@@ -22,25 +22,25 @@ type BadgeProps = {
  */
 const BADGE_TOKENS = {
   accent: {
-    fill: '$accentFill',
-    onFill: '$onAccentFill',
-    surface: '$accentSurface',
-    text: '$accent',
-    border: '$accentBorder',
+    fill: 'accentFill',
+    onFill: 'onAccentFill',
+    surface: 'accentSurface',
+    text: 'accent',
+    border: 'accentBorder',
   },
   dimmed: {
-    fill: '$dimmed',
-    onFill: '$onDimmed',
-    surface: '$disabledSurface',
-    text: '$dimmed',
-    border: '$borderColor',
+    fill: 'dimmed',
+    onFill: 'onDimmed',
+    surface: 'disabledSurface',
+    text: 'dimmed',
+    border: 'border-color',
   },
   warning: {
-    fill: '$warning',
-    onFill: '$onDimmed',
-    surface: '$warningSurface',
-    text: '$warning',
-    border: '$warningBorder',
+    fill: 'warning',
+    onFill: 'onDimmed',
+    surface: 'warningSurface',
+    text: 'warning',
+    border: 'warningBorder',
   },
 } as const satisfies Record<BadgeColor, Record<'fill' | 'onFill' | 'surface' | 'text' | 'border', string>>;
 
@@ -75,7 +75,7 @@ export function Badge({ children, color, variant = 'light', size = 'sm', alignSe
       <Paragraph
         color={text}
         fontSize={metrics.fontSize}
-        lineHeight={metrics.fontSize * 1.2}
+        lineHeight={`${metrics.fontSize * 1.2}px`}
         fontWeight="700"
         letterSpacing={0.25}
         textTransform="uppercase"

@@ -20,8 +20,8 @@ export function GenerateBanner({ lowStockCount, onGenerate }: GenerateBannerProp
       padding={SPACING.md}
       borderRadius={RADIUS.xl}
       borderWidth={1}
-      borderColor="$primaryBorder"
-      backgroundColor="$primarySurface"
+      borderColor="primaryBorder"
+      backgroundColor="primarySurface"
     >
       <XStack gap={SPACING.sm} alignItems="center">
         <SparkleIcon size={20} color={colors.primary} />

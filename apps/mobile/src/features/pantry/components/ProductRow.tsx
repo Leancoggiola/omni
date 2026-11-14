@@ -35,20 +35,20 @@ export const ProductRow = memo(function ProductRow({ product, onPress }: Product
 
   return (
     <XStack
-      backgroundColor="$surfaceGlass"
+      backgroundColor="surfaceGlass"
       borderWidth={1}
-      borderColor="$glassBorder"
+      borderColor="glassBorder"
       borderRadius={RADIUS.xl}
       padding={SPACING.sm}
       gap={SPACING.sm}
       alignItems="center"
+      opacity="press:0.8"
+      {...glassElevation('card', colorScheme)}
       onPress={() => onPress(product)}
-      pressStyle={{ opacity: 0.8 }}
       accessible
       accessibilityRole="button"
       accessibilityLabel={`${product.name}, ${PANTRY_CATEGORY_LABELS[product.category]}, ${details}`}
       accessibilityHint="Abre el detalle del producto"
-      {...glassElevation('card', colorScheme)}
     >
       <CategoryTile
         category={product.category}
@@ -56,10 +56,10 @@ export const ProductRow = memo(function ProductRow({ product, onPress }: Product
         isExpiringSoon={product.isExpiringSoon}
       />
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl} fontWeight="600" numberOfLines={1}>
+        <Paragraph fontSize={FONT_SIZE.lg} lineHeight={`${LINE_HEIGHT.xl}px`} fontWeight="600" numberOfLines={1}>
           {product.name}
         </Paragraph>
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
           {details}
         </Paragraph>
         {hasAlerts ? <ProductAlertBadges product={product} /> : null}

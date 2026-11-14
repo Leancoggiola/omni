@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { PANTRY_CATEGORIES, PANTRY_CATEGORY_LABELS } from '@omni/shared/pantry';
 import { SPACING } from '@omni/shared/theme';
 import { useState } from 'react';
@@ -58,7 +57,7 @@ function CompletePurchaseForm({ item, onConfirm, submitting, onSubmittingChange,
 
   return (
     <YStack gap={SPACING.md}>
-      <Paragraph color="$dimmed">{item.name}</Paragraph>
+      <Paragraph color="dimmed">{item.name}</Paragraph>
       {error ? <Banner color="destructive">{error}</Banner> : null}
       <TextField
         label="Cantidad comprada"
@@ -76,7 +75,7 @@ function CompletePurchaseForm({ item, onConfirm, submitting, onSubmittingChange,
             onChange={setCategory}
             accessibilityLabel="Categoría"
           />
-          <Paragraph color="$dimmed">Es un producto nuevo: elegí dónde guardarlo en tu alacena.</Paragraph>
+          <Paragraph color="dimmed">Es un producto nuevo: elegí dónde guardarlo en tu alacena.</Paragraph>
         </YStack>
       ) : null}
       <YStack gap={SPACING.sm}>

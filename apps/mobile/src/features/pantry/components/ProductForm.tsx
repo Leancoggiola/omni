@@ -1,4 +1,3 @@
-// tamagui-ignore
 import {
   INITIAL_PRODUCT_FORM_VALUES,
   PANTRY_CATEGORIES,
@@ -176,7 +175,7 @@ export function ProductForm({
               isLowStock={product.isLowStock}
               isExpiringSoon={product.isExpiringSoon}
             />
-            <Paragraph color="$dimmed" fontSize={FONT_SIZE.md} flex={1}>
+            <Paragraph color="dimmed" fontSize={FONT_SIZE.md} flex={1}>
               {PANTRY_CATEGORY_LABELS[product.category]}
             </Paragraph>
           </XStack>
@@ -203,7 +202,7 @@ export function ProductForm({
       <YStack gap={SPACING['2xs']}>
         <Paragraph fontSize={FONT_SIZE.md} fontWeight="600">
           Categoría
-          <Paragraph color="$destructive" fontSize={FONT_SIZE.md} fontWeight="600">
+          <Paragraph color="destructive" fontSize={FONT_SIZE.md} fontWeight="600">
             {' *'}
           </Paragraph>
         </Paragraph>
@@ -214,7 +213,7 @@ export function ProductForm({
           accessibilityLabel="Categoría"
         />
         {errors.category ? (
-          <Paragraph color="$destructive" fontSize={FONT_SIZE.sm}>
+          <Paragraph color="destructive" fontSize={FONT_SIZE.sm}>
             {errors.category}
           </Paragraph>
         ) : null}
@@ -272,7 +271,7 @@ export function ProductForm({
                 <Paragraph fontSize={FONT_SIZE.md} fontWeight="600">
                   Código de barras
                 </Paragraph>
-                <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
+                <Paragraph color="dimmed" fontSize={FONT_SIZE.md}>
                   {barcode}
                 </Paragraph>
               </YStack>

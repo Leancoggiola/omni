@@ -27,7 +27,7 @@ export function ProductQuantityStepper({ value, unit, minQuantity, onChange }: P
       padding={SPACING.sm}
       borderRadius={RADIUS.lg}
       borderWidth={1}
-      borderColor="$glassBorder"
+      borderColor="glassBorder"
       accessibilityRole="adjustable"
       accessibilityLabel="Cantidad en la alacena"
       accessibilityValue={{ text: `${value} ${unitLabel}` }}
@@ -41,10 +41,10 @@ export function ProductQuantityStepper({ value, unit, minQuantity, onChange }: P
         onPress={() => onChange(Math.max(0, value - 1))}
       />
       <YStack alignItems="center" accessibilityLiveRegion="polite">
-        <Paragraph fontSize={VALUE_FONT_SIZE} lineHeight={VALUE_FONT_SIZE} fontWeight="800">
+        <Paragraph fontSize={VALUE_FONT_SIZE} lineHeight={`${VALUE_FONT_SIZE}px`} fontWeight="800">
           {value}
         </Paragraph>
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
           {`${unitLabel}${minQuantity !== null ? ` · mínimo ${minQuantity}` : ''}`}
         </Paragraph>
       </YStack>

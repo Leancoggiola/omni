@@ -5,7 +5,14 @@ import { useSemanticColors } from '@/core/theme';
 
 import { Spinner } from '../Spinner';
 
-import { BUTTON_SIZES, buttonPalette, touchHitSlop, type ButtonSize, type ButtonVariant } from './buttonStyles';
+import {
+  BUTTON_SIZES,
+  buttonPalette,
+  touchHitSlop,
+  withPress,
+  type ButtonSize,
+  type ButtonVariant,
+} from './buttonStyles';
 
 import type { InlineAlign } from '../types';
 import type { Icon } from 'phosphor-react-native';
@@ -60,11 +67,11 @@ export function Button({
       borderRadius={RADIUS.full}
       borderWidth={1}
       borderColor={palette.borderColor}
-      backgroundColor={palette.background}
+      backgroundColor={interactive ? withPress(palette.background, palette.backgroundPress) : palette.background}
       alignItems="center"
       justifyContent="center"
       onPress={interactive ? onPress : undefined}
-      pressStyle={interactive ? { backgroundColor: palette.backgroundPress, opacity: palette.pressOpacity } : undefined}
+      opacity={interactive && palette.pressOpacity !== 1 ? `press:${palette.pressOpacity}` : undefined}
       hitSlop={touchHitSlop(metrics.height)}
       accessible
       accessibilityRole="button"
@@ -76,7 +83,7 @@ export function Button({
         <Paragraph
           color={palette.color}
           fontSize={metrics.fontSize}
-          lineHeight={metrics.fontSize * 1.25}
+          lineHeight={`${metrics.fontSize * 1.25}px`}
           fontWeight="600"
           numberOfLines={1}
         >

@@ -31,6 +31,7 @@ export { ScreenHeader } from './ScreenHeader';
 export { SectionCard } from './SectionCard';
 export { FormSheet } from './sheet/FormSheet';
 export { SheetFrame } from './sheet/SheetFrame';
+export { SheetOverlay } from './sheet/SheetOverlay';
 export { SHEET_EXIT_MS } from './sheet/useSheetQueue';
 export type { SegmentedControlItem } from './selection/SegmentedControl';
 export { SegmentedControl } from './selection/SegmentedControl';

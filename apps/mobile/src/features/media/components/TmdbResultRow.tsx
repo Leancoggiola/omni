@@ -33,6 +33,7 @@ export const TmdbResultRow = memo(function TmdbResultRow({
 }: TmdbResultRowProps) {
   const colors = useSemanticColors();
   const type = MEDIA_TYPE_LABELS[mediaType];
+  const rowBackground = selected ? 'primarySurface' : 'transparent';
 
   return (
     <XStack
@@ -40,10 +41,9 @@ export const TmdbResultRow = memo(function TmdbResultRow({
       gap={SPACING.sm}
       padding={SPACING.xs}
       borderRadius={RADIUS.sm}
-      backgroundColor={selected ? '$primarySurface' : 'transparent'}
+      backgroundColor={alreadyAdded ? rowBackground : `${rowBackground} press:hover`}
       opacity={alreadyAdded ? 0.5 : 1}
       onPress={alreadyAdded ? undefined : onPress}
-      pressStyle={alreadyAdded ? undefined : { backgroundColor: '$hover' }}
       accessible
       accessibilityRole="radio"
       accessibilityLabel={`${title}, ${type}${alreadyAdded ? ', ya en tu lista' : ''}`}
@@ -54,7 +54,7 @@ export const TmdbResultRow = memo(function TmdbResultRow({
         <Paragraph fontSize={FONT_SIZE.md} fontWeight="500" numberOfLines={1}>
           {title}
         </Paragraph>
-        <Paragraph fontSize={FONT_SIZE.sm} color="$dimmed">
+        <Paragraph fontSize={FONT_SIZE.sm} color="dimmed">
           {type}
           {alreadyAdded ? ' · Ya en tu lista' : ''}
         </Paragraph>

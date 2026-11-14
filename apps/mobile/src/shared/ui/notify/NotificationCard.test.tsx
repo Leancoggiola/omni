@@ -22,8 +22,8 @@ describe('NotificationCard', () => {
 
     const card = screen.UNSAFE_getByProps({ accessibilityRole: 'alert' });
     expect(card.props).toMatchObject({
-      backgroundColor: '$backgroundStrong',
-      borderColor: '$hairline',
+      backgroundColor: 'backgroundStrong',
+      borderColor: 'hairline',
       borderRadius: 16,
       shadowRadius: 32,
       accessibilityLiveRegion: 'assertive',

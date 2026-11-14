@@ -1,6 +1,6 @@
 import { ignoreError } from '@omni/shared/common';
-import { useEffect, useState } from 'react';
-import { Animated, Linking, Pressable, StyleSheet, type AccessibilityActionEvent } from 'react-native';
+import { useEffect, useState, type ComponentProps } from 'react';
+import { Animated, Linking, Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowSquareOutIcon, ConfettiIcon } from 'phosphor-react-native';
 import { Paragraph, XStack, YStack } from 'tamagui';
@@ -62,9 +62,9 @@ export function HolidaysCard() {
     return (
       <YStack
         minHeight={CARD_MIN_HEIGHT}
-        accessible
         borderRadius={RADIUS.lg}
-        backgroundColor="$disabledSurface"
+        backgroundColor="disabledSurface"
+        accessible
         accessibilityLabel="Cargando efemérides"
       />
     );
@@ -76,7 +76,7 @@ export function HolidaysCard() {
     ? `${currentItem.title}${currentItem.isArgentina ? ', en Argentina' : ''}`
     : 'Hoy no hay efemérides registradas';
 
-  const onAccessibilityAction = (event: AccessibilityActionEvent) => {
+  const onAccessibilityAction: ComponentProps<typeof YStack>['onAccessibilityAction'] = event => {
     if (event.nativeEvent.actionName === 'activate') next();
   };
 
@@ -86,7 +86,7 @@ export function HolidaysCard() {
 
   return (
     <Pressable onPress={next} disabled={!hasCarousel} accessible={false}>
-      <YStack borderWidth={1} borderColor="$glassBorder" borderRadius={RADIUS.lg} overflow="hidden">
+      <YStack borderWidth={1} borderColor="glassBorder" borderRadius={RADIUS.lg} overflow="hidden">
         <LinearGradient
           colors={[gradient.from, gradient.to]}
           {...gradientPoints(gradient.deg)}
@@ -120,13 +120,13 @@ export function HolidaysCard() {
             </Paragraph>
 
             {holidays.items.length === 0 && (
-              <Paragraph size="$2" fontWeight="600" color={s.black}>
+              <Paragraph size="2" fontWeight="600" color={s.black}>
                 Hoy no hay efemérides registradas
               </Paragraph>
             )}
 
             {currentItem && (
-              <Paragraph size="$2" fontWeight="600" color={s.black}>
+              <Paragraph size="2" fontWeight="600" color={s.black}>
                 {currentItem.title}
                 {currentItem.isArgentina ? ' · en Argentina' : ''}
               </Paragraph>

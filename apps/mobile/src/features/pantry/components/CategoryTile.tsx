@@ -55,9 +55,9 @@ export function CategoryTile({ category, isLowStock = false, isExpiringSoon = fa
       borderRadius={RADIUS.md}
       alignItems="center"
       justifyContent="center"
-      backgroundColor={isLowStock ? '$accentSurface' : isExpiringSoon ? 'transparent' : '$track'}
+      backgroundColor={isLowStock ? 'accentSurface' : isExpiringSoon ? 'transparent' : 'track'}
       borderWidth={isExpiringSoon && !isLowStock ? 1 : 0}
-      borderColor="$warningBorder"
+      borderColor="warningBorder"
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >

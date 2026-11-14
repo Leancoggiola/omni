@@ -16,7 +16,7 @@ type ProductAuthorRowProps = {
 function ProductAuthorRow({ label, author }: ProductAuthorRowProps) {
   return (
     <XStack alignItems="center" justifyContent="space-between">
-      <Paragraph color="$dimmed" fontSize={FONT_SIZE.md}>
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.md}>
         {label}
       </Paragraph>
       <AuthorTag author={author} actionLabel={label} />
