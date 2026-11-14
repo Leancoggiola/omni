@@ -11,29 +11,29 @@ jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
 
 describe('TextField', () => {
-  it('el label nombra al campo y onChangeText recibe el texto', () => {
+  it('el label nombra al campo y onChangeText recibe el texto', async () => {
     const onChangeText = jest.fn();
-    render(<TextField label="Usuario" leftSection={UserIcon} onChangeText={onChangeText} />);
+    await render(<TextField label="Usuario" leftSection={UserIcon} onChangeText={onChangeText} />);
 
-    fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin');
+    await fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin');
     expect(onChangeText).toHaveBeenCalledWith('admin');
   });
 
-  it('required suma el asterisco y lo anuncia; la descripción va como hint', () => {
-    render(<TextField label="Teléfono" required description="Con código de área" />);
+  it('required suma el asterisco y lo anuncia; la descripción va como hint', async () => {
+    await render(<TextField label="Teléfono" required description="Con código de área" />);
 
     expect(screen.getByText(/\*/)).toBeTruthy();
     expect(screen.getByText('Con código de área')).toBeTruthy();
     expect(screen.getByLabelText('Teléfono, obligatorio')).toHaveProp('accessibilityHint', 'Con código de área');
   });
 
-  it('un accessibilityLabel propio también suma ", obligatorio"', () => {
-    render(<TextField label="Tel." accessibilityLabel="Teléfono" required />);
+  it('un accessibilityLabel propio también suma ", obligatorio"', async () => {
+    await render(<TextField label="Tel." accessibilityLabel="Teléfono" required />);
     expect(screen.getByLabelText('Teléfono, obligatorio')).toBeTruthy();
   });
 
-  it('el error se muestra debajo, pinta el borde y va en el hint', () => {
-    render(<TextField label="Usuario" error="El usuario es obligatorio" />);
+  it('el error se muestra debajo, pinta el borde y va en el hint', async () => {
+    await render(<TextField label="Usuario" error="El usuario es obligatorio" />);
 
     expect(screen.getByText('El usuario es obligatorio')).toBeTruthy();
     const input = screen.getByLabelText('Usuario');
@@ -41,34 +41,36 @@ describe('TextField', () => {
     expect(input).toHaveProp('accessibilityHint', 'El usuario es obligatorio');
   });
 
-  it('anuncia el error solo cuando aparece o cambia, no el que ya estaba al montar', () => {
+  it('anuncia el error solo cuando aparece o cambia, no el que ya estaba al montar', async () => {
     const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockClear();
-    const { rerender } = render(<TextField label="Usuario" error="Inicial" />);
+    const { rerender } = await render(<TextField label="Usuario" error="Inicial" />);
     expect(announce).not.toHaveBeenCalled();
 
-    rerender(<TextField label="Usuario" />);
-    rerender(<TextField label="Usuario" error="El usuario es obligatorio" />);
+    await rerender(<TextField label="Usuario" />);
+    await rerender(<TextField label="Usuario" error="El usuario es obligatorio" />);
     expect(announce).toHaveBeenCalledTimes(1);
     expect(announce).toHaveBeenCalledWith('El usuario es obligatorio');
 
-    rerender(<TextField label="Usuario" error="El usuario es obligatorio" />);
+    await rerender(<TextField label="Usuario" error="El usuario es obligatorio" />);
     expect(announce).toHaveBeenCalledTimes(1);
   });
 
-  it('el hint junta error, descripción y el hint propio, sin pisar el error', () => {
-    render(<TextField label="Usuario" error="Obligatorio" description="Tu alias" accessibilityHint="Sin espacios" />);
+  it('el hint junta error, descripción y el hint propio, sin pisar el error', async () => {
+    await render(
+      <TextField label="Usuario" error="Obligatorio" description="Tu alias" accessibilityHint="Sin espacios" />
+    );
     expect(screen.getByLabelText('Usuario')).toHaveProp('accessibilityHint', 'Obligatorio. Tu alias. Sin espacios');
   });
 
-  it('sin error no hay mensaje y el borde es el normal', () => {
-    render(<TextField label="Usuario" />);
+  it('sin error no hay mensaje y el borde es el normal', async () => {
+    await render(<TextField label="Usuario" />);
     const input = screen.getByLabelText('Usuario');
     expect(input).toHaveProp('borderColor', 'border-color focus:primary');
     expect(input.props.accessibilityHint).toBeUndefined();
   });
 
-  it('mide 44 con fuente de 14 y, con size="lg", 52 con fuente de 16', () => {
-    render(
+  it('mide 44 con fuente de 14 y, con size="lg", 52 con fuente de 16', async () => {
+    await render(
       <>
         <TextField label="Usuario" />
         <TextField label="Contraseña" size="lg" />
@@ -80,15 +82,15 @@ describe('TextField', () => {
     expect(screen.getByLabelText('Contraseña')).toHaveProp('fontSize', 16);
   });
 
-  it('deshabilitado no es editable', () => {
-    render(<TextField label="Email" disabled value="admin@omni.app" />);
+  it('deshabilitado no es editable', async () => {
+    await render(<TextField label="Email" disabled value="admin@omni.app" />);
     const input = screen.getByLabelText('Email');
     expect(input).toHaveProp('editable', false);
     expect(input).toHaveProp('accessibilityState', { disabled: true });
   });
 
-  it('mezcla el accessibilityState del caller con el calculado, que manda en disabled', () => {
-    render(
+  it('mezcla el accessibilityState del caller con el calculado, que manda en disabled', async () => {
+    await render(
       <>
         <TextField label="Notas" accessibilityState={{ busy: true }} />
         <TextField label="Email" disabled accessibilityState={{ busy: true, disabled: false }} />
@@ -100,67 +102,69 @@ describe('TextField', () => {
 });
 
 describe('PasswordField', () => {
-  it('oculta el texto y el ojo lo muestra y lo vuelve a ocultar', () => {
-    render(<PasswordField label="Contraseña" />);
+  it('oculta el texto y el ojo lo muestra y lo vuelve a ocultar', async () => {
+    await render(<PasswordField label="Contraseña" />);
     expect(screen.getByLabelText('Contraseña')).toHaveProp('secureTextEntry', true);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Mostrar contraseña' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Mostrar contraseña' }));
     expect(screen.getByLabelText('Contraseña')).toHaveProp('secureTextEntry', false);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Ocultar contraseña' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Ocultar contraseña' }));
     expect(screen.getByLabelText('Contraseña')).toHaveProp('secureTextEntry', true);
   });
 
-  it('deshabilitado no deja mostrar la contraseña', () => {
-    render(<PasswordField label="Contraseña" disabled />);
-    fireEvent.press(screen.getByRole('button', { name: 'Mostrar contraseña', disabled: true }));
+  it('deshabilitado no deja mostrar la contraseña', async () => {
+    await render(<PasswordField label="Contraseña" disabled />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Mostrar contraseña', disabled: true }));
     expect(screen.getByLabelText('Contraseña')).toHaveProp('secureTextEntry', true);
   });
 });
 
 describe('Switch', () => {
-  it('es un switch con su estado y al tocarlo pide el valor contrario', () => {
+  it('es un switch con su estado y al tocarlo pide el valor contrario', async () => {
     const onCheckedChange = jest.fn();
-    render(<Switch label="Notificaciones" checked={false} onCheckedChange={onCheckedChange} />);
+    await render(<Switch label="Notificaciones" checked={false} onCheckedChange={onCheckedChange} />);
 
-    fireEvent.press(screen.getByRole('switch', { name: 'Notificaciones', checked: false }));
+    await fireEvent.press(screen.getByRole('switch', { name: 'Notificaciones', checked: false }));
     expect(onCheckedChange).toHaveBeenCalledWith(true);
   });
 
-  it('con label la fila es un solo switch (descripción como hint) y tocar el texto lo cambia', () => {
+  it('con label la fila es un solo switch (descripción como hint) y tocar el texto lo cambia', async () => {
     const onCheckedChange = jest.fn();
-    render(<Switch label="Notificaciones" description="Avisos por email" checked onCheckedChange={onCheckedChange} />);
+    await render(
+      <Switch label="Notificaciones" description="Avisos por email" checked onCheckedChange={onCheckedChange} />
+    );
 
     expect(screen.getAllByRole('switch')).toHaveLength(1);
     expect(screen.getByRole('switch', { name: 'Notificaciones', checked: true })).toHaveProp(
       'accessibilityHint',
       'Avisos por email'
     );
-    fireEvent.press(screen.getByText('Notificaciones'));
+    await fireEvent.press(screen.getByText('Notificaciones'));
     expect(onCheckedChange).toHaveBeenCalledWith(false);
   });
 
-  it('sin label usa accessibilityLabel', () => {
+  it('sin label usa accessibilityLabel', async () => {
     const onCheckedChange = jest.fn();
-    render(<Switch accessibilityLabel="Tema oscuro" checked onCheckedChange={onCheckedChange} />);
+    await render(<Switch accessibilityLabel="Tema oscuro" checked onCheckedChange={onCheckedChange} />);
 
-    fireEvent.press(screen.getByRole('switch', { name: 'Tema oscuro', checked: true }));
+    await fireEvent.press(screen.getByRole('switch', { name: 'Tema oscuro', checked: true }));
     expect(onCheckedChange).toHaveBeenCalledWith(false);
   });
 
-  it('el thumb es blanco en los dos estados, con el token blanco de SEMANTIC', () => {
-    const { rerender } = render(<Switch accessibilityLabel="Tema" checked={false} onCheckedChange={jest.fn()} />);
+  it('el thumb es blanco en los dos estados, con el token blanco de SEMANTIC', async () => {
+    const { rerender } = await render(<Switch accessibilityLabel="Tema" checked={false} onCheckedChange={jest.fn()} />);
     expect(screen.getByTestId('switch-thumb')).toHaveProp('activeStyle', { backgroundColor: SEMANTIC.light.white });
 
-    rerender(<Switch accessibilityLabel="Tema" checked onCheckedChange={jest.fn()} />);
+    await rerender(<Switch accessibilityLabel="Tema" checked onCheckedChange={jest.fn()} />);
     expect(screen.getByTestId('switch-thumb')).toHaveProp('activeStyle', { backgroundColor: SEMANTIC.light.white });
   });
 
-  it('deshabilitado no cambia', () => {
+  it('deshabilitado no cambia', async () => {
     const onCheckedChange = jest.fn();
-    render(<Switch label="Notificaciones" checked disabled onCheckedChange={onCheckedChange} />);
+    await render(<Switch label="Notificaciones" checked disabled onCheckedChange={onCheckedChange} />);
 
-    fireEvent.press(screen.getByRole('switch', { name: 'Notificaciones', disabled: true }));
+    await fireEvent.press(screen.getByRole('switch', { name: 'Notificaciones', disabled: true }));
     expect(onCheckedChange).not.toHaveBeenCalled();
   });
 });

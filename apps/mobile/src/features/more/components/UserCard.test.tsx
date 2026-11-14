@@ -16,21 +16,21 @@ beforeEach(() => {
 });
 
 describe('UserCard', () => {
-  it('es una card glass con el nombre y el email, y lleva a Perfil', () => {
-    render(<UserCard />);
+  it('es una card glass con el nombre y el email, y lleva a Perfil', async () => {
+    await render(<UserCard />);
 
     const card = screen.getByRole('button', { name: 'Leandro Coggiola. Ver perfil' });
     expect(card).toHaveProp('backgroundColor', 'surfaceGlass');
     expect(card).toHaveProp('borderRadius', 24);
     expect(screen.getByText('leandro@ejemplo.com')).toBeTruthy();
 
-    fireEvent.press(card);
+    await fireEvent.press(card);
     expect(mockNavigate).toHaveBeenCalledWith('/profile');
   });
 
-  it('sin email muestra el usuario', () => {
+  it('sin email muestra el usuario', async () => {
     mockUser = { name: 'Leandro Coggiola', email: null, username: 'leandroc' };
-    render(<UserCard />);
+    await render(<UserCard />);
 
     expect(screen.getByText('@leandroc')).toBeTruthy();
   });

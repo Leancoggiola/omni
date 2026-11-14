@@ -15,30 +15,30 @@ jest.mock('@/core/household', () => ({
     updatedById !== createdById ? { kind: 'self', name: 'Yo' } : undefined,
 }));
 
-function renderSheet(props: Partial<React.ComponentProps<typeof ProductFormSheet>> = {}) {
+async function renderSheet(props: Partial<React.ComponentProps<typeof ProductFormSheet>> = {}) {
   const onSubmit = jest.fn().mockResolvedValue(undefined);
   const onOpenChange = jest.fn();
-  render(<ProductFormSheet open onOpenChange={onOpenChange} onSubmit={onSubmit} {...props} />);
+  await render(<ProductFormSheet open onOpenChange={onOpenChange} onSubmit={onSubmit} {...props} />);
   return { onSubmit, onOpenChange };
 }
 
 describe('ProductFormSheet · alta', () => {
-  it('Agregar producto está deshabilitado hasta que el form cambia', () => {
-    renderSheet();
+  it('Agregar producto está deshabilitado hasta que el form cambia', async () => {
+    await renderSheet();
 
     expect(screen.getByRole('button', { name: 'Agregar producto' }).props.accessibilityState.disabled).toBe(true);
-    fireEvent.changeText(screen.getByLabelText(/Nombre/), 'Té');
+    await fireEvent.changeText(screen.getByLabelText(/Nombre/), 'Té');
     expect(screen.getByRole('button', { name: 'Agregar producto' }).props.accessibilityState.disabled).toBe(false);
   });
 
   it('valida al enviar: nombre, categoría y cantidad', async () => {
-    const { onSubmit } = renderSheet();
+    const { onSubmit } = await renderSheet();
 
-    fireEvent.changeText(screen.getByLabelText(/Nombre/), ' ');
-    fireEvent.changeText(screen.getByLabelText(/Cantidad/), '2');
-    fireEvent.changeText(screen.getByLabelText(/Cantidad/), '');
-    fireEvent.changeText(screen.getByLabelText(/Nombre/), 'Té');
-    fireEvent.press(screen.getByRole('button', { name: 'Agregar producto' }));
+    await fireEvent.changeText(screen.getByLabelText(/Nombre/), ' ');
+    await fireEvent.changeText(screen.getByLabelText(/Cantidad/), '2');
+    await fireEvent.changeText(screen.getByLabelText(/Cantidad/), '');
+    await fireEvent.changeText(screen.getByLabelText(/Nombre/), 'Té');
+    await fireEvent.press(screen.getByRole('button', { name: 'Agregar producto' }));
 
     expect(await screen.findAllByText('Elegí una categoría')).toHaveLength(2);
     expect(screen.getByText('Ingresá una cantidad')).toBeTruthy();
@@ -46,13 +46,13 @@ describe('ProductFormSheet · alta', () => {
   });
 
   it('muestra el error del envío en la hoja y la deja abierta', async () => {
-    const { onSubmit, onOpenChange } = renderSheet({
+    const { onSubmit, onOpenChange } = await renderSheet({
       product: product({ expiresAt: '2026-11-20T00:00:00.000Z' }),
     });
     onSubmit.mockRejectedValue(new Error('x'));
 
-    fireEvent.press(screen.getByRole('button', { name: 'Sumar uno' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Guardar cambios' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Sumar uno' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Guardar cambios' }));
 
     expect(await screen.findByText('No se pudo guardar el producto')).toBeTruthy();
     expect(onOpenChange).not.toHaveBeenCalledWith(false);
@@ -61,12 +61,12 @@ describe('ProductFormSheet · alta', () => {
 
 describe('ProductFormSheet · edición', () => {
   it('el stepper ajusta la cantidad, habilita Guardar y envía el payload completo', async () => {
-    const { onSubmit, onOpenChange } = renderSheet({ product: product(), showAuthor: true });
+    const { onSubmit, onOpenChange } = await renderSheet({ product: product(), showAuthor: true });
 
     expect(screen.getByText('Ana')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Guardar cambios' }).props.accessibilityState.disabled).toBe(true);
-    fireEvent.press(screen.getByRole('button', { name: 'Sumar uno' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Guardar cambios' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Sumar uno' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Guardar cambios' }));
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith({
@@ -81,25 +81,25 @@ describe('ProductFormSheet · edición', () => {
     await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
   });
 
-  it('sin hogar compartido no muestra "Agregado por" y Eliminar pide la baja', () => {
+  it('sin hogar compartido no muestra "Agregado por" y Eliminar pide la baja', async () => {
     const onDelete = jest.fn();
-    renderSheet({ product: product(), onDelete });
+    await renderSheet({ product: product(), onDelete });
 
     expect(screen.queryByText('Agregado por')).toBeNull();
-    fireEvent.press(screen.getByRole('button', { name: 'Eliminar' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Eliminar' }));
     expect(onDelete).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1' }));
   });
 
-  it('con hogar compartido suma "Editado por" si editó otra persona', () => {
-    renderSheet({ product: product({ updatedById: 'u2' }), showAuthor: true });
+  it('con hogar compartido suma "Editado por" si editó otra persona', async () => {
+    await renderSheet({ product: product({ updatedById: 'u2' }), showAuthor: true });
 
     expect(screen.getByText('Agregado por')).toBeTruthy();
     expect(screen.getByText('Editado por')).toBeTruthy();
     expect(screen.getByLabelText('Editado por Vos')).toBeTruthy();
   });
 
-  it('el stepper no baja de cero', () => {
-    renderSheet({ product: product({ quantity: 0 }) });
+  it('el stepper no baja de cero', async () => {
+    await renderSheet({ product: product({ quantity: 0 }) });
 
     expect(screen.getByRole('button', { name: 'Restar uno' }).props.accessibilityState.disabled).toBe(true);
   });
@@ -108,8 +108,8 @@ describe('ProductFormSheet · edición', () => {
 describe('ProductFormSheet · código de barras', () => {
   const BARCODE = '7790895000997';
 
-  it('sin código vinculado no muestra la fila del código', () => {
-    renderSheet({ product: product(), onUnlinkBarcode: jest.fn() });
+  it('sin código vinculado no muestra la fila del código', async () => {
+    await renderSheet({ product: product(), onUnlinkBarcode: jest.fn() });
 
     expect(screen.queryByText('Código de barras')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Quitar código' })).toBeNull();
@@ -117,10 +117,10 @@ describe('ProductFormSheet · código de barras', () => {
 
   it('Quitar código lo desvincula, avisa en la hoja y no envía el resto del form', async () => {
     const onUnlinkBarcode = jest.fn().mockResolvedValue(undefined);
-    const { onSubmit, onOpenChange } = renderSheet({ product: product({ barcode: BARCODE }), onUnlinkBarcode });
+    const { onSubmit, onOpenChange } = await renderSheet({ product: product({ barcode: BARCODE }), onUnlinkBarcode });
 
     expect(screen.getByText(BARCODE)).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Quitar código' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Quitar código' }));
 
     expect(await screen.findByText('Quitamos el código de barras')).toBeTruthy();
     expect(onUnlinkBarcode).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1' }));
@@ -131,9 +131,9 @@ describe('ProductFormSheet · código de barras', () => {
 
   it('si quitar el código falla muestra el error y lo conserva', async () => {
     const onUnlinkBarcode = jest.fn().mockRejectedValue(new Error('red'));
-    renderSheet({ product: product({ barcode: BARCODE }), onUnlinkBarcode });
+    await renderSheet({ product: product({ barcode: BARCODE }), onUnlinkBarcode });
 
-    fireEvent.press(screen.getByRole('button', { name: 'Quitar código' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Quitar código' }));
 
     expect(await screen.findByText('No se pudo quitar el código')).toBeTruthy();
     expect(screen.getByText(BARCODE)).toBeTruthy();
@@ -143,10 +143,10 @@ describe('ProductFormSheet · código de barras', () => {
   it('mientras quita el código no se puede guardar', async () => {
     let release: () => void = () => {};
     const onUnlinkBarcode = jest.fn(() => new Promise<void>(resolve => (release = resolve)));
-    renderSheet({ product: product({ barcode: BARCODE }), onUnlinkBarcode });
+    await renderSheet({ product: product({ barcode: BARCODE }), onUnlinkBarcode });
 
-    fireEvent.press(screen.getByRole('button', { name: 'Sumar uno' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Quitar código' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Sumar uno' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Quitar código' }));
 
     expect(screen.getByRole('button', { name: 'Guardar cambios' }).props.accessibilityState.disabled).toBe(true);
     release();

@@ -20,8 +20,10 @@ const onOpenChange = jest.fn();
 const onRevoke = jest.fn();
 const onClosed = jest.fn();
 
-function renderSheet() {
-  render(<InviteCodeSheet invite={INVITE} open onOpenChange={onOpenChange} onRevoke={onRevoke} onClosed={onClosed} />);
+async function renderSheet() {
+  await render(
+    <InviteCodeSheet invite={INVITE} open onOpenChange={onOpenChange} onRevoke={onRevoke} onClosed={onClosed} />
+  );
 }
 
 beforeEach(() => {
@@ -30,8 +32,8 @@ beforeEach(() => {
 });
 
 describe('InviteCodeSheet', () => {
-  it('muestra el código agrupado y avisa que se ve una sola vez', () => {
-    renderSheet();
+  it('muestra el código agrupado y avisa que se ve una sola vez', async () => {
+    await renderSheet();
 
     expect(screen.getByText('K7M2 QX4P')).toBeTruthy();
     expect(screen.getByText(/se muestra una sola vez/)).toBeTruthy();
@@ -39,9 +41,9 @@ describe('InviteCodeSheet', () => {
   });
 
   it('copiar guarda el código en el portapapeles y lo confirma en el botón', async () => {
-    renderSheet();
+    await renderSheet();
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Copiar código' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Copiar código' })));
 
     expect(Clipboard.setStringAsync).toHaveBeenCalledWith('K7M2QX4P');
     expect(screen.getByRole('button', { name: 'Código copiado' })).toBeTruthy();
@@ -49,9 +51,9 @@ describe('InviteCodeSheet', () => {
 
   it('si copiar falla lo avisa adentro y no confirma "copiado"', async () => {
     jest.mocked(Clipboard.setStringAsync).mockRejectedValueOnce(new Error('x'));
-    renderSheet();
+    await renderSheet();
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Copiar código' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Copiar código' })));
 
     expect(screen.getByText(/No pudimos copiar el código/)).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Copiar código' })).toBeTruthy();
@@ -59,29 +61,29 @@ describe('InviteCodeSheet', () => {
 
   it('si copiar falla y se reintenta con éxito, el error desaparece', async () => {
     jest.mocked(Clipboard.setStringAsync).mockRejectedValueOnce(new Error('x'));
-    renderSheet();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Copiar código' })));
+    await renderSheet();
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Copiar código' })));
     expect(screen.getByText(/No pudimos copiar el código/)).toBeTruthy();
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Copiar código' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Copiar código' })));
 
     expect(screen.queryByText(/No pudimos copiar el código/)).toBeNull();
     expect(screen.getByRole('button', { name: 'Código copiado' })).toBeTruthy();
   });
 
   it('compartir abre el menú del sistema con el mensaje', async () => {
-    const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' });
-    renderSheet();
+    const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction', activityType: undefined });
+    await renderSheet();
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Compartir código' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Compartir código' })));
 
     expect(share).toHaveBeenCalledWith({ message: expect.stringContaining('K7M2-QX4P') });
   });
 
   it('revocar llama a la API y cierra la hoja', async () => {
-    renderSheet();
+    await renderSheet();
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Revocar invitación' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Revocar invitación' })));
 
     expect(onRevoke).toHaveBeenCalledTimes(1);
     expect(onOpenChange).toHaveBeenCalledWith(false);
@@ -89,9 +91,9 @@ describe('InviteCodeSheet', () => {
 
   it('si revocar falla muestra el error adentro y no cierra', async () => {
     onRevoke.mockRejectedValue(new ApiError('Demasiadas invitaciones generadas', 429));
-    renderSheet();
+    await renderSheet();
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Revocar invitación' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Revocar invitación' })));
 
     expect(screen.getByText('Demasiadas invitaciones generadas')).toBeTruthy();
     expect(onOpenChange).not.toHaveBeenCalled();

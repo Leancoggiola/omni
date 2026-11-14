@@ -39,44 +39,44 @@ beforeEach(() => {
 });
 
 describe('WatchingCard', () => {
-  it('muestra el encabezado y "Ver todo" lleva a Películas', () => {
+  it('muestra el encabezado y "Ver todo" lleva a Películas', async () => {
     state({});
-    render(<WatchingCard />);
+    await render(<WatchingCard />);
     expect(screen.getByText('Seguís viendo')).toBeTruthy();
-    fireEvent.press(screen.getByRole('link', { name: 'Ver todo' }));
+    await fireEvent.press(screen.getByRole('link', { name: 'Ver todo' }));
     expect(mockNavigate).toHaveBeenCalledWith('/media');
   });
 
-  it('cada ítem muestra título, tipo y pill "Viendo", y la fila navega a Películas', () => {
+  it('cada ítem muestra título, tipo y pill "Viendo", y la fila navega a Películas', async () => {
     state({ items: [media('1', 'The Bear', 'tv'), media('2', 'Dune', 'movie')] });
-    render(<WatchingCard />);
+    await render(<WatchingCard />);
     expect(screen.getByText('The Bear')).toBeTruthy();
     expect(screen.getByText('Serie')).toBeTruthy();
     expect(screen.getByText('Película')).toBeTruthy();
     expect(screen.getAllByText('Viendo')).toHaveLength(2);
-    fireEvent.press(screen.getByRole('button', { name: /The Bear/ }));
+    await fireEvent.press(screen.getByRole('button', { name: /The Bear/ }));
     expect(mockNavigate).toHaveBeenCalledWith('/media');
   });
 
-  it('mientras carga muestra el skeleton y no el vacío', () => {
+  it('mientras carga muestra el skeleton y no el vacío', async () => {
     state({ isLoading: true });
-    render(<WatchingCard />);
+    await render(<WatchingCard />);
     expect(screen.getByLabelText('Cargando')).toBeTruthy();
     expect(screen.queryByText('No tenés nada en curso')).toBeNull();
   });
 
-  it('sin nada en "Viendo" muestra el estado vacío', () => {
+  it('sin nada en "Viendo" muestra el estado vacío', async () => {
     state({});
-    render(<WatchingCard />);
+    await render(<WatchingCard />);
     expect(screen.getByText('No tenés nada en curso')).toBeTruthy();
   });
 
-  it('el error se muestra con Reintentar y no se confunde con el vacío', () => {
+  it('el error se muestra con Reintentar y no se confunde con el vacío', async () => {
     state({ error: new Error('x') });
-    render(<WatchingCard />);
+    await render(<WatchingCard />);
     expect(screen.getByText('No se pudo cargar tu lista')).toBeTruthy();
     expect(screen.queryByText('No tenés nada en curso')).toBeNull();
-    fireEvent.press(screen.getByText('Reintentar'));
+    await fireEvent.press(screen.getByText('Reintentar'));
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 });

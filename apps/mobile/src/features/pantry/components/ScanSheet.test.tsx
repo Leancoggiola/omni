@@ -69,8 +69,8 @@ const SUGGESTION: PantryBarcodeSuggestion = {
 
 const ADDED_ONE_MILK = `Sumamos ${formatPantryQuantity(1, 'PACKAGES')} a Leche entera`;
 
-function renderSheet() {
-  return render(<ScanSheet open onOpenChange={jest.fn()} />);
+async function renderSheet() {
+  return await render(<ScanSheet open onOpenChange={jest.fn()} />);
 }
 
 /** Simula que la cámara leyó `data`, como lo reporta `onBarcodeScanned`. */
@@ -101,66 +101,66 @@ afterEach(() => {
 });
 
 describe('ScanSheet · permiso', () => {
-  it('mientras se resuelve el permiso muestra la carga y no la cámara', () => {
+  it('mientras se resuelve el permiso muestra la carga y no la cámara', async () => {
     mockPermission.current = null;
-    renderSheet();
+    await renderSheet();
 
     expect(screen.getByLabelText('Cargando')).toBeTruthy();
     expect(screen.queryByTestId('camera')).toBeNull();
     expect(screen.getByRole('button', { name: 'Cargar a mano' })).toBeTruthy();
   });
 
-  it('sin pedir todavía explica para qué es y Permitir cámara lo pide', () => {
+  it('sin pedir todavía explica para qué es y Permitir cámara lo pide', async () => {
     mockPermission.current = { granted: false, canAskAgain: true };
-    renderSheet();
+    await renderSheet();
 
     expect(screen.getByText('Usá la cámara para escanear')).toBeTruthy();
     expect(screen.queryByTestId('camera')).toBeNull();
-    fireEvent.press(screen.getByRole('button', { name: 'Permitir cámara' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Permitir cámara' }));
     expect(mockRequestPermission).toHaveBeenCalledTimes(1);
   });
 
-  it('bloqueado sin poder preguntar ofrece Abrir Ajustes y Cargar a mano', () => {
+  it('bloqueado sin poder preguntar ofrece Abrir Ajustes y Cargar a mano', async () => {
     const openSettings = jest.spyOn(Linking, 'openSettings').mockResolvedValue(undefined);
     mockPermission.current = { granted: false, canAskAgain: false };
-    renderSheet();
+    await renderSheet();
 
     expect(screen.getByText('La cámara está bloqueada para Omni')).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Abrir Ajustes' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Abrir Ajustes' }));
     expect(openSettings).toHaveBeenCalledTimes(1);
-    fireEvent.press(screen.getByRole('button', { name: 'Cargar a mano' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Cargar a mano' }));
     expect(screen.getByLabelText(/Nombre/)).toBeTruthy();
   });
 
   it('si la cámara no abre muestra el error con reintento', async () => {
-    renderSheet();
+    await renderSheet();
 
     await act(async () => mockCamera.props?.onMountError?.());
 
     expect(screen.getByText('No se pudo abrir la cámara')).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
     expect(screen.getByTestId('camera')).toBeTruthy();
   });
 
-  it('vuelve a leer el permiso cuando la app vuelve a primer plano', () => {
+  it('vuelve a leer el permiso cuando la app vuelve a primer plano', async () => {
     const listen = jest.spyOn(AppState, 'addEventListener');
     mockPermission.current = { granted: false, canAskAgain: false };
-    renderSheet();
+    await renderSheet();
 
     const onChange = listen.mock.calls.find(([type]) => type === 'change')![1];
-    act(() => onChange('background'));
+    await act(() => onChange('background'));
     expect(mockGetPermission).not.toHaveBeenCalled();
-    act(() => onChange('active'));
+    await act(() => onChange('active'));
     expect(mockGetPermission).toHaveBeenCalledTimes(1);
   });
 
-  it('lee solo EAN-13, EAN-8 y UPC-A, y la linterna se prende y apaga', () => {
-    renderSheet();
+  it('lee solo EAN-13, EAN-8 y UPC-A, y la linterna se prende y apaga', async () => {
+    await renderSheet();
 
     expect(mockCamera.props?.barcodeScannerSettings?.barcodeTypes).toEqual(['ean13', 'ean8', 'upc_a']);
-    fireEvent.press(screen.getByRole('button', { name: 'Encender linterna' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Encender linterna' }));
     expect(mockCamera.props?.enableTorch).toBe(true);
-    fireEvent.press(screen.getByRole('button', { name: 'Apagar linterna' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Apagar linterna' }));
     expect(mockCamera.props?.enableTorch).toBe(false);
   });
 });
@@ -170,7 +170,7 @@ describe('ScanSheet · código ya en la alacena', () => {
     const scanned: PantryScanResult = { outcome: 'INCREMENTED', product: MILK };
     mockBarcode.scan.mockResolvedValue(scanned);
     mockBarcode.undoScan.mockResolvedValue({ codeKept: false });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
 
@@ -179,7 +179,7 @@ describe('ScanSheet · código ya en la alacena', () => {
     expect(await screen.findByText(ADDED_ONE_MILK)).toBeTruthy();
     expect(screen.getByTestId('camera')).toBeTruthy();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Deshacer' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Deshacer' }));
     expect(await screen.findByText('Deshicimos el último escaneo')).toBeTruthy();
     expect(mockBarcode.undoScan).toHaveBeenCalledWith(scanned, 1);
     expect(screen.queryByRole('button', { name: 'Deshacer' })).toBeNull();
@@ -189,10 +189,10 @@ describe('ScanSheet · código ya en la alacena', () => {
     let finishUndo: (value: { codeKept: boolean }) => void = () => {};
     mockBarcode.scan.mockResolvedValue({ outcome: 'INCREMENTED', product: MILK });
     mockBarcode.undoScan.mockReturnValue(new Promise(resolve => (finishUndo = resolve)));
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
-    fireEvent.press(await screen.findByRole('button', { name: 'Deshacer' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Deshacer' }));
 
     expect(mockCamera.props?.onBarcodeScanned).toBeUndefined();
     expect(screen.getByRole('button', { name: 'Cerrar' }).props.accessibilityState.disabled).toBe(true);
@@ -204,10 +204,10 @@ describe('ScanSheet · código ya en la alacena', () => {
   it('si al deshacer una vinculación el código queda vinculado lo avisa', async () => {
     mockBarcode.scan.mockResolvedValue({ outcome: 'LINKED', product: MILK });
     mockBarcode.undoScan.mockResolvedValue({ codeKept: true });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
-    fireEvent.press(await screen.findByRole('button', { name: 'Deshacer' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Deshacer' }));
 
     expect(await screen.findByText(/pero el código sigue vinculado. Quitalo desde el detalle./)).toBeTruthy();
   });
@@ -215,10 +215,10 @@ describe('ScanSheet · código ya en la alacena', () => {
   it('si deshacer falla avisa y no ofrece repetirlo', async () => {
     mockBarcode.scan.mockResolvedValue({ outcome: 'INCREMENTED', product: MILK });
     mockBarcode.undoScan.mockRejectedValue(new Error('red'));
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
-    fireEvent.press(await screen.findByRole('button', { name: 'Deshacer' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Deshacer' }));
 
     expect(await screen.findByText('No se pudo deshacer. Revisá Leche entera en el inventario.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Deshacer' })).toBeNull();
@@ -226,7 +226,7 @@ describe('ScanSheet · código ya en la alacena', () => {
 
   it('el mismo código que sigue a la vista no suma dos veces', async () => {
     mockBarcode.scan.mockResolvedValue({ outcome: 'INCREMENTED', product: MILK });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
     await read(COKE);
@@ -238,7 +238,7 @@ describe('ScanSheet · código ya en la alacena', () => {
   it('mientras resuelve un código la cámara sigue montada pero no lee', async () => {
     let finishScan: (value: PantryScanResult) => void = () => {};
     mockBarcode.scan.mockReturnValue(new Promise(resolve => (finishScan = resolve)));
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
 
@@ -252,10 +252,10 @@ describe('ScanSheet · código ya en la alacena', () => {
   it('el mismo código vuelve a sumar después de sacarlo de cuadro', async () => {
     jest.useFakeTimers({ now: 0 });
     mockBarcode.scan.mockResolvedValue({ outcome: 'INCREMENTED', product: MILK });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
-    act(() => jest.advanceTimersByTime(2500));
+    await act(() => jest.advanceTimersByTime(2500));
     await read(COKE);
 
     expect(mockBarcode.scan).toHaveBeenCalledTimes(2);
@@ -264,7 +264,7 @@ describe('ScanSheet · código ya en la alacena', () => {
   it('un código vinculado entre la consulta y el escaneo vuelve a escanear', async () => {
     mockBarcode.scan.mockRejectedValueOnce(NOT_LINKED).mockResolvedValueOnce({ outcome: 'INCREMENTED', product: MILK });
     mockBarcode.lookup.mockResolvedValue({ status: 'IN_PANTRY', barcode: COKE, product: MILK });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
 
@@ -275,7 +275,7 @@ describe('ScanSheet · código ya en la alacena', () => {
   it('si lo desvinculan otra vez entre la consulta y el escaneo abre el alta', async () => {
     mockBarcode.scan.mockRejectedValue(NOT_LINKED);
     mockBarcode.lookup.mockResolvedValue({ status: 'IN_PANTRY', barcode: COKE, product: MILK });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
 
@@ -286,7 +286,7 @@ describe('ScanSheet · código ya en la alacena', () => {
 
 describe('ScanSheet · lecturas que no salen a la red', () => {
   it('ignora una lectura con dígito verificador inválido', async () => {
-    renderSheet();
+    await renderSheet();
 
     await read('7790895000998');
     await read('12345');
@@ -296,7 +296,7 @@ describe('ScanSheet · lecturas que no salen a la red', () => {
   });
 
   it('un código interno del comercio avisa sin consultar', async () => {
-    renderSheet();
+    await renderSheet();
 
     await read('2000000000008');
 
@@ -307,7 +307,7 @@ describe('ScanSheet · lecturas que no salen a la red', () => {
 
   it('un código interno no se lleva el Deshacer del escaneo anterior', async () => {
     mockBarcode.scan.mockResolvedValue({ outcome: 'INCREMENTED', product: MILK });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
     await read('2000000000008');
@@ -319,7 +319,7 @@ describe('ScanSheet · lecturas que no salen a la red', () => {
 
   it('un UPC-A se normaliza a EAN-13 antes de consultar', async () => {
     mockBarcode.scan.mockResolvedValue({ outcome: 'INCREMENTED', product: MILK });
-    renderSheet();
+    await renderSheet();
 
     await read('012345678905', 'upc_a');
 
@@ -334,18 +334,18 @@ describe('ScanSheet · código nuevo', () => {
       .mockRejectedValueOnce(NOT_LINKED)
       .mockResolvedValueOnce({ outcome: 'CREATED', product: product({ name: SUGGESTION.name, barcode: COKE }) });
     mockBarcode.lookup.mockResolvedValue({ status: 'FOUND', barcode: COKE, suggestion: SUGGESTION });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
 
     expect(await screen.findByDisplayValue('Coca Cola Original 2,25 L')).toBeTruthy();
     expect(screen.getByText(/Encontramos el producto en Open Food Facts/)).toBeTruthy();
     expect(screen.getByText(`Código ${COKE}`)).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Ver en Open Food Facts' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Ver en Open Food Facts' }));
     expect(openUrl).toHaveBeenCalledWith(SUGGESTION.sourceUrl);
 
     expect(submitButton().props.accessibilityState.disabled).toBe(false);
-    fireEvent.press(submitButton());
+    await fireEvent.press(submitButton());
 
     await waitFor(() =>
       expect(mockBarcode.scan).toHaveBeenLastCalledWith({
@@ -366,10 +366,10 @@ describe('ScanSheet · código nuevo', () => {
       barcode: COKE,
       suggestion: { ...SUGGESTION, category: null },
     });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
-    fireEvent.press(await screen.findByRole('button', { name: 'Agregar producto' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Agregar producto' }));
 
     expect(await screen.findAllByText('Elegí una categoría')).toHaveLength(2);
     expect(screen.getByText(/Elegí la categoría y revisá los datos/)).toBeTruthy();
@@ -383,20 +383,22 @@ describe('ScanSheet · código nuevo', () => {
       product: product({ name: 'Galletitas', barcode: UNKNOWN }),
     });
     mockBarcode.lookup.mockResolvedValue({ status: 'NOT_FOUND', barcode: UNKNOWN });
-    renderSheet();
+    await renderSheet();
 
     await read(UNKNOWN);
 
     expect(await screen.findByText(`No encontramos el código ${UNKNOWN}. Cargalo y la próxima vez lo reconocemos.`));
     expect(submitButton().props.accessibilityState.disabled).toBe(true);
-    fireEvent.changeText(screen.getByLabelText(/Nombre/), 'Galletitas');
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Categoría: Elegí una categoría' })));
-    fireEvent.changeText(screen.getByLabelText(/Cantidad/), '0');
-    fireEvent.press(submitButton());
+    await fireEvent.changeText(screen.getByLabelText(/Nombre/), 'Galletitas');
+    await act(
+      async () => await fireEvent.press(screen.getByRole('button', { name: 'Categoría: Elegí una categoría' }))
+    );
+    await fireEvent.changeText(screen.getByLabelText(/Cantidad/), '0');
+    await fireEvent.press(submitButton());
     expect(await screen.findByText('Ingresá una cantidad mayor a cero')).toBeTruthy();
 
-    fireEvent.changeText(screen.getByLabelText(/Cantidad/), '2');
-    fireEvent.press(submitButton());
+    await fireEvent.changeText(screen.getByLabelText(/Cantidad/), '2');
+    await fireEvent.press(submitButton());
 
     expect(
       await screen.findByText(`Sumamos ${formatPantryQuantity(2, 'PACKAGES')} a Galletitas y guardamos el código`)
@@ -416,10 +418,10 @@ describe('ScanSheet · código nuevo', () => {
       product: product({ name: SUGGESTION.name, barcode: '7622210449283' }),
     });
     mockBarcode.lookup.mockResolvedValue({ status: 'FOUND', barcode: COKE, suggestion: SUGGESTION });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
-    fireEvent.press(await screen.findByRole('button', { name: 'Agregar producto' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Agregar producto' }));
 
     expect(await screen.findByText(/Ya tenía otro código, así que este no quedó guardado/)).toBeTruthy();
   });
@@ -429,10 +431,10 @@ describe('ScanSheet · código nuevo', () => {
       .mockRejectedValueOnce(NOT_LINKED)
       .mockRejectedValueOnce(new ApiError('La cantidad admite hasta dos decimales', 400));
     mockBarcode.lookup.mockResolvedValue({ status: 'FOUND', barcode: COKE, suggestion: SUGGESTION });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
-    fireEvent.press(await screen.findByRole('button', { name: 'Agregar producto' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Agregar producto' }));
 
     expect(await screen.findByText('La cantidad admite hasta dos decimales')).toBeTruthy();
     expect(screen.getByDisplayValue('Coca Cola Original 2,25 L')).toBeTruthy();
@@ -446,10 +448,10 @@ describe('ScanSheet · código nuevo', () => {
   ])('%s al guardar el alta no deja volver a guardar, porque pudo haber sumado', async (_, error) => {
     mockBarcode.scan.mockRejectedValueOnce(NOT_LINKED).mockRejectedValueOnce(error);
     mockBarcode.lookup.mockResolvedValue({ status: 'FOUND', barcode: COKE, suggestion: SUGGESTION });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
-    fireEvent.press(await screen.findByRole('button', { name: 'Agregar producto' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Agregar producto' }));
 
     expect(
       await screen.findByText('No sabemos si se guardó. Revisá el inventario antes de volver a escanearlo.')
@@ -458,7 +460,7 @@ describe('ScanSheet · código nuevo', () => {
     expect(screen.queryByRole('button', { name: 'Reintentar' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Cargar a mano' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Cerrar' }).props.accessibilityState.disabled).toBe(false);
-    fireEvent.press(screen.getByRole('button', { name: 'Volver a escanear' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Volver a escanear' }));
     expect(screen.getByTestId('camera')).toBeTruthy();
     expect(mockBarcode.scan).toHaveBeenCalledTimes(2);
   });
@@ -469,16 +471,16 @@ describe('ScanSheet · código nuevo', () => {
       .mockRejectedValueOnce(NOT_LINKED)
       .mockResolvedValueOnce({ outcome: 'CREATED', product: product({ name: SUGGESTION.name, barcode: COKE }) });
     mockBarcode.lookup.mockResolvedValue({ status: 'FOUND', barcode: COKE, suggestion: SUGGESTION });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
     await act(async () => jest.advanceTimersByTime(5000));
-    fireEvent.press(screen.getByRole('button', { name: 'Agregar producto' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Agregar producto' }));
     await act(async () => jest.advanceTimersByTime(0));
     expect(screen.getByText(`Agregamos ${SUGGESTION.name}`)).toBeTruthy();
 
     await act(async () => jest.advanceTimersByTime(3000));
-    act(() => mockCamera.props?.onCameraReady?.());
+    await act(() => mockCamera.props?.onCameraReady?.());
     await read(COKE);
     await act(async () => jest.advanceTimersByTime(500));
     await read(COKE);
@@ -489,10 +491,10 @@ describe('ScanSheet · código nuevo', () => {
   it('Volver a escanear descarta el alta y vuelve a la cámara', async () => {
     mockBarcode.scan.mockRejectedValueOnce(NOT_LINKED);
     mockBarcode.lookup.mockResolvedValue({ status: 'NOT_FOUND', barcode: UNKNOWN });
-    renderSheet();
+    await renderSheet();
 
     await read(UNKNOWN);
-    fireEvent.press(await screen.findByRole('button', { name: 'Volver a escanear' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Volver a escanear' }));
 
     expect(screen.getByTestId('camera')).toBeTruthy();
   });
@@ -504,13 +506,13 @@ describe('ScanSheet · errores', () => {
     mockBarcode.lookup
       .mockRejectedValueOnce(new ApiError('El catálogo de productos no está disponible', 503))
       .mockResolvedValueOnce({ status: 'NOT_FOUND', barcode: UNKNOWN });
-    renderSheet();
+    await renderSheet();
 
     await read(UNKNOWN);
 
     expect(await screen.findByText('El catálogo de productos no está disponible')).toBeTruthy();
     expect(screen.queryByText(/No encontramos el código/)).toBeNull();
-    fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
     expect(await screen.findByText(/No encontramos el código/)).toBeTruthy();
     expect(mockBarcode.lookup).toHaveBeenCalledTimes(2);
   });
@@ -521,7 +523,7 @@ describe('ScanSheet · errores', () => {
     ['un 504', new ApiError('El servidor no respondió', 504)],
   ])('%s al escanear no ofrece reintentar ni cargar a mano, porque pudo haber sumado', async (_, error) => {
     mockBarcode.scan.mockRejectedValueOnce(error);
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
 
@@ -531,19 +533,19 @@ describe('ScanSheet · errores', () => {
     expect(screen.queryByRole('button', { name: 'Reintentar' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Cargar a mano' })).toBeNull();
     expect(mockBarcode.lookup).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByRole('button', { name: 'Volver a escanear' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Volver a escanear' }));
     expect(screen.getByTestId('camera')).toBeTruthy();
   });
 
   it('un error de red en la consulta usa el mensaje genérico y Cargar a mano conserva el código', async () => {
     mockBarcode.scan.mockRejectedValueOnce(NOT_LINKED);
     mockBarcode.lookup.mockRejectedValueOnce(new TypeError('Network request failed'));
-    renderSheet();
+    await renderSheet();
 
     await read(UNKNOWN);
 
     expect(await screen.findByText('No se pudo buscar el código')).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Cargar a mano' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Cargar a mano' }));
     expect(screen.getByText(/No pudimos consultar el catálogo/)).toBeTruthy();
     expect(screen.getByText(`Código ${UNKNOWN}`)).toBeTruthy();
   });
@@ -553,21 +555,21 @@ describe('ScanSheet · errores', () => {
     ['un 500 de la API, que revirtió el escaneo', new ApiError('Error interno del servidor', 500)],
   ])('%s al escanear se puede reintentar', async (_, error) => {
     mockBarcode.scan.mockRejectedValueOnce(error).mockResolvedValueOnce({ outcome: 'INCREMENTED', product: MILK });
-    renderSheet();
+    await renderSheet();
 
     await read(COKE);
-    fireEvent.press(await screen.findByRole('button', { name: 'Reintentar' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Reintentar' }));
 
     expect(await screen.findByText(ADDED_ONE_MILK)).toBeTruthy();
   });
 });
 
 describe('ScanSheet · cierre', () => {
-  it('con la hoja cerrándose la cámara deja de leer', () => {
-    const view = renderSheet();
+  it('con la hoja cerrándose la cámara deja de leer', async () => {
+    const view = await renderSheet();
 
     expect(mockCamera.props?.onBarcodeScanned).toBeDefined();
-    view.rerender(<ScanSheet open={false} onOpenChange={jest.fn()} />);
+    await view.rerender(<ScanSheet open={false} onOpenChange={jest.fn()} />);
     expect(mockCamera.props?.onBarcodeScanned).toBeUndefined();
   });
 
@@ -575,10 +577,10 @@ describe('ScanSheet · cierre', () => {
     jest.useFakeTimers();
     let finishScan: (value: PantryScanResult) => void = () => {};
     mockBarcode.scan.mockReturnValue(new Promise(resolve => (finishScan = resolve)));
-    const view = renderSheet();
+    const view = await renderSheet();
 
     await read(COKE);
-    view.rerender(<ScanSheet open={false} onOpenChange={jest.fn()} />);
+    await view.rerender(<ScanSheet open={false} onOpenChange={jest.fn()} />);
     await act(async () => finishScan({ outcome: 'INCREMENTED', product: MILK }));
     expect(notifySuccess).not.toHaveBeenCalled();
     await act(async () => jest.advanceTimersByTime(700));
@@ -590,10 +592,10 @@ describe('ScanSheet · cierre', () => {
     jest.useFakeTimers();
     let finishScan: (value: PantryScanResult) => void = () => {};
     mockBarcode.scan.mockReturnValue(new Promise(resolve => (finishScan = resolve)));
-    const view = renderSheet();
+    const view = await renderSheet();
 
     await read(COKE);
-    view.rerender(<ScanSheet open={false} onOpenChange={jest.fn()} />);
+    await view.rerender(<ScanSheet open={false} onOpenChange={jest.fn()} />);
     await act(async () => jest.advanceTimersByTime(700));
     await act(async () => finishScan({ outcome: 'INCREMENTED', product: MILK }));
 
@@ -605,14 +607,16 @@ describe('ScanSheet · carga a mano', () => {
   it('sin código da de alta con el alta común', async () => {
     jest.mocked(actionSheet).mockResolvedValue('GRAINS');
     mockMutations.createProduct.mockResolvedValue(product({ name: 'Arroz' }));
-    renderSheet();
+    await renderSheet();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Cargar a mano' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Cargar a mano' }));
     expect(submitButton().props.accessibilityState.disabled).toBe(true);
-    fireEvent.changeText(screen.getByLabelText(/Nombre/), 'Arroz');
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Categoría: Elegí una categoría' })));
-    fireEvent.changeText(screen.getByLabelText(/Cantidad/), '1');
-    fireEvent.press(submitButton());
+    await fireEvent.changeText(screen.getByLabelText(/Nombre/), 'Arroz');
+    await act(
+      async () => await fireEvent.press(screen.getByRole('button', { name: 'Categoría: Elegí una categoría' }))
+    );
+    await fireEvent.changeText(screen.getByLabelText(/Cantidad/), '1');
+    await fireEvent.press(submitButton());
 
     expect(await screen.findByText('Agregamos Arroz')).toBeTruthy();
     expect(mockMutations.createProduct).toHaveBeenCalledWith(expect.objectContaining({ name: 'Arroz', quantity: 1 }));

@@ -15,8 +15,8 @@ function focusInputAt(y: number, height = 44) {
   } as never);
 }
 
-function setup() {
-  const hook = renderHook(() => useScrollFocusedInputIntoView());
+async function setup() {
+  const hook = await renderHook(() => useScrollFocusedInputIntoView());
   (hook.result.current.scrollRef as { current: unknown }).current = { scrollTo };
   return hook;
 }
@@ -42,7 +42,7 @@ afterEach(() => {
 
 describe('useScrollFocusedInputIntoView', () => {
   it('al abrirse el teclado scrollea lo justo para que el campo (y el botón que sigue) queden arriba de él', async () => {
-    setup();
+    await setup();
     focusInputAt(1000);
     await showKeyboard(900);
 
@@ -50,8 +50,8 @@ describe('useScrollFocusedInputIntoView', () => {
   });
 
   it('suma el scroll actual al desplazamiento', async () => {
-    const { result } = setup();
-    act(() =>
+    const { result } = await setup();
+    await act(() =>
       result.current.onScroll({ nativeEvent: { contentOffset: { y: 300 } } } as Parameters<
         typeof result.current.onScroll
       >[0])
@@ -63,7 +63,7 @@ describe('useScrollFocusedInputIntoView', () => {
   });
 
   it('no scrollea si el campo ya queda a la vista', async () => {
-    setup();
+    await setup();
     focusInputAt(300);
     await showKeyboard(900);
 
@@ -71,11 +71,11 @@ describe('useScrollFocusedInputIntoView', () => {
   });
 
   it('al pasar al campo siguiente con el teclado abierto vuelve a acomodar', async () => {
-    const { result } = setup();
+    const { result } = await setup();
     focusInputAt(300);
     await showKeyboard(900);
     focusInputAt(1000);
-    act(() => result.current.scrollIntoView());
+    await act(() => result.current.scrollIntoView());
     await act(async () => jest.advanceTimersByTime(50));
 
     expect(scrollTo).toHaveBeenCalledWith({ y: 240, animated: true });
@@ -84,9 +84,9 @@ describe('useScrollFocusedInputIntoView', () => {
   it('si se desmonta antes del frame no mide ni scrollea', async () => {
     const measureInWindow = jest.fn();
     jest.spyOn(TextInput.State, 'currentlyFocusedInput').mockReturnValue({ measureInWindow } as never);
-    const { unmount } = setup();
+    const { unmount } = await setup();
     await act(async () => listeners.keyboardDidShow({ endCoordinates: { screenY: 900 } }));
-    unmount();
+    await unmount();
     await act(async () => jest.advanceTimersByTime(50));
 
     expect(measureInWindow).not.toHaveBeenCalled();
@@ -94,9 +94,9 @@ describe('useScrollFocusedInputIntoView', () => {
   });
 
   it('sin teclado visible no hace nada', async () => {
-    const { result } = setup();
+    const { result } = await setup();
     focusInputAt(1000);
-    act(() => result.current.scrollIntoView());
+    await act(() => result.current.scrollIntoView());
     await act(async () => jest.advanceTimersByTime(50));
 
     expect(scrollTo).not.toHaveBeenCalled();

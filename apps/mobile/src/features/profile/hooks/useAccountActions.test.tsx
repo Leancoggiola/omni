@@ -20,7 +20,7 @@ beforeEach(() => {
 describe('useAccountActions · changePassword', () => {
   it('envía la contraseña actual y la nueva en el PATCH', async () => {
     mockPatch.mockResolvedValue({ message: 'ok' });
-    const { result } = renderHook(() => useAccountActions());
+    const { result } = await renderHook(() => useAccountActions());
 
     await act(async () => {
       await result.current.changePassword({ currentPassword: 'actual-123', newPassword: 'nueva-clave-1' });
@@ -36,7 +36,7 @@ describe('useAccountActions · changePassword', () => {
 describe('useAccountActions · deleteAccount', () => {
   it('borra la cuenta con un DELETE', async () => {
     mockDelete.mockResolvedValue(undefined);
-    const { result } = renderHook(() => useAccountActions());
+    const { result } = await renderHook(() => useAccountActions());
 
     await act(async () => {
       await result.current.deleteAccount();

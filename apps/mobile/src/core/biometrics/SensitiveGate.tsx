@@ -28,8 +28,10 @@ type SensitiveGateProps = {
  * minutos vuelve a pedir biometría; si la biometría se activa con el gate ya montado, recoge el desbloqueo vigente que
  * renueva la activación, sin pedirla de nuevo. Una pantalla que ya está en foco no se cierra sola a los 5 minutos.
  * Esa evaluación se hace durante el render, solo cuando cambia el foco, `enabled` o la época (estado derivado de lo
- * anterior, no un efecto que escribe estado). Un éxito de la biometría solo desbloquea si el desbloqueo sigue vigente
- * al responder: si la app pasó por background durante el prompt, la época capturada ya es vieja y no se guarda.
+ * anterior, no un efecto que escribe estado); `isSensitiveUnlocked()` lee el reloj durante el render y solo es válida
+ * ahí porque se evalúa cuando cambian el foco, `enabled` o la época. Un éxito de la biometría solo desbloquea si el
+ * desbloqueo sigue vigente al responder: si la app pasó por background durante el prompt, la época capturada ya es
+ * vieja y no se guarda.
  *
  * `module` es el módulo que protege (solo pide biometría si está en `SENSITIVE_MODULES`). `onBack` marca una ruta de
  * stack: suma el botón de volver del header a la pantalla bloqueada y el inset inferior de las rutas sin tab bar.

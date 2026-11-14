@@ -30,23 +30,23 @@ beforeEach(() => {
 });
 
 describe('HolidaysCard', () => {
-  it('un error de carga se muestra como ErrorState con Reintentar', () => {
+  it('un error de carga se muestra como ErrorState con Reintentar', async () => {
     mockUseTodayHolidays.mockReturnValue({
       holidays: HOLIDAYS,
       isLoading: false,
       error: new Error('boom'),
       retry: mockRetry,
     });
-    render(<HolidaysCard />);
+    await render(<HolidaysCard />);
 
     expect(screen.getByText('No se pudieron cargar las efemérides de hoy')).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('mientras carga muestra un placeholder accesible, no el estado vacío', () => {
+  it('mientras carga muestra un placeholder accesible, no el estado vacío', async () => {
     mockUseTodayHolidays.mockReturnValue({ holidays: HOLIDAYS, isLoading: true, error: undefined, retry: mockRetry });
-    render(<HolidaysCard />);
+    await render(<HolidaysCard />);
 
     expect(screen.getByLabelText('Cargando efemérides')).toBeTruthy();
     expect(screen.queryByText('Hoy no hay efemérides registradas')).toBeNull();

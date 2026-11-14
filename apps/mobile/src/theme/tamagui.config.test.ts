@@ -1,7 +1,7 @@
 import { SEMANTIC } from '@omni/shared/theme';
 import { defaultConfig } from '@tamagui/config/v5';
 
-import { tamaguiConfig } from './tamagui.config';
+import { kebabKeyPairs, tamaguiConfig } from './tamagui.config';
 
 const themes = tamaguiConfig.themes as unknown as Record<string, Record<string, unknown>>;
 
@@ -13,10 +13,7 @@ function value(theme: string, key: string): unknown {
 
 const baseLight = defaultConfig.themes.light as Record<string, unknown>;
 
-/** Cada clave con guion del theme base de v5 junto a su grafía camelCase (`background-hover` / `backgroundHover`). */
-const KEBAB_PAIRS = Object.keys(baseLight)
-  .map(kebab => [kebab.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()), kebab] as const)
-  .filter(([camel, kebab]) => camel !== kebab && camel in baseLight);
+const KEBAB_PAIRS = kebabKeyPairs(baseLight);
 
 describe.each(['light', 'dark'] as const)('themes propios (%s)', scheme => {
   const s = SEMANTIC[scheme];
@@ -72,6 +69,7 @@ describe.each(['light', 'dark'] as const)('themes propios (%s)', scheme => {
     'las dos grafías de cada clave compuesta coinciden en %s',
     suffix => {
       expect(KEBAB_PAIRS.length).toBeGreaterThan(10);
+      expect(KEBAB_PAIRS).toContainEqual(['backgroundHover', 'background-hover']);
       for (const [camel, kebab] of KEBAB_PAIRS) {
         expect(value(`${scheme}${suffix}`, kebab)).toBe(value(`${scheme}${suffix}`, camel));
       }

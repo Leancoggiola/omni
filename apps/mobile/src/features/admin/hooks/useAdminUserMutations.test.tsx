@@ -24,7 +24,7 @@ beforeEach(() => jest.clearAllMocks());
 describe('useAdminUserMutations', () => {
   it('createUser hace POST a la key de usuarios y devuelve el usuario', async () => {
     mockApi.post.mockResolvedValue({ user: { id: '9' } });
-    const { result } = renderHook(() => useAdminUserMutations(), { wrapper });
+    const { result } = await renderHook(() => useAdminUserMutations(), { wrapper });
 
     let created: unknown;
     await act(async () => {
@@ -41,7 +41,7 @@ describe('useAdminUserMutations', () => {
 
   it('createUser propaga el error de la API', async () => {
     mockApi.post.mockRejectedValue(new Error('Ese usuario ya existe'));
-    const { result } = renderHook(() => useAdminUserMutations(), { wrapper });
+    const { result } = await renderHook(() => useAdminUserMutations(), { wrapper });
 
     await expect(result.current.createUser({ username: 'usuario01', name: 'Ana', password: 'x' })).rejects.toThrow(
       'Ese usuario ya existe'
@@ -50,7 +50,7 @@ describe('useAdminUserMutations', () => {
 
   it('deleteUser hace DELETE del usuario', async () => {
     mockApi.delete.mockResolvedValue(undefined);
-    const { result } = renderHook(() => useAdminUserMutations(), { wrapper });
+    const { result } = await renderHook(() => useAdminUserMutations(), { wrapper });
 
     await act(async () => result.current.deleteUser('7'));
 

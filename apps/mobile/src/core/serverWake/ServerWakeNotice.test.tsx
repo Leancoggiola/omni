@@ -17,18 +17,18 @@ jest.mock('@/shared/api', () => ({
 }));
 
 describe('ServerWakeNotice', () => {
-  it('no muestra nada con el servidor despierto', () => {
-    render(<ServerWakeNotice />);
+  it('no muestra nada con el servidor despierto', async () => {
+    await render(<ServerWakeNotice />);
     expect(screen.queryByTestId('server-wake-notice')).toBeNull();
   });
 
-  it('muestra el aviso mientras despierta y lo quita al terminar', () => {
-    render(<ServerWakeNotice />);
+  it('muestra el aviso mientras despierta y lo quita al terminar', async () => {
+    await render(<ServerWakeNotice />);
 
-    act(() => emit(true));
+    await act(() => emit(true));
     expect(screen.getByText('Despertando el servidor, puede tardar hasta un minuto y medio…')).toBeTruthy();
 
-    act(() => emit(false));
+    await act(() => emit(false));
     expect(screen.queryByTestId('server-wake-notice')).toBeNull();
   });
 });

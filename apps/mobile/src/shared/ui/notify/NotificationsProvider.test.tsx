@@ -28,63 +28,63 @@ const stackBottom = () => screen.getByTestId('notifications-stack').props.bottom
 describe('NotificationsProvider', () => {
   afterEach(() => jest.useRealTimers());
 
-  it('apila los toasts abajo, encima de la tab bar; sin tab bar, sobre el inset inferior', () => {
-    const { rerender } = render(
+  it('apila los toasts abajo, encima de la tab bar; sin tab bar, sobre el inset inferior', async () => {
+    const { rerender } = await render(
       <NotificationsProvider>
         <TabBar height={80} />
       </NotificationsProvider>
     );
     expect(stackBottom()).toBe(80 + SPACING.sm);
 
-    rerender(<NotificationsProvider>{null}</NotificationsProvider>);
+    await rerender(<NotificationsProvider>{null}</NotificationsProvider>);
     expect(stackBottom()).toBe(16 + SPACING.sm);
   });
 
-  it('con el teclado abierto se apoya encima de lo que tapa el teclado', () => {
+  it('con el teclado abierto se apoya encima de lo que tapa el teclado', async () => {
     const listeners: Record<string, (event: unknown) => void> = {};
     jest.spyOn(Keyboard, 'addListener').mockImplementation((name, cb) => {
       listeners[name] = cb as (event: unknown) => void;
       return { remove: jest.fn() } as never;
     });
     jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 411, height: 900, scale: 1, fontScale: 1 });
-    render(
+    await render(
       <NotificationsProvider>
         <TabBar height={80} />
       </NotificationsProvider>
     );
 
-    act(() => listeners.keyboardDidShow?.({ endCoordinates: { screenY: 600, height: 300 } }));
+    await act(() => listeners.keyboardDidShow?.({ endCoordinates: { screenY: 600, height: 300 } }));
     expect(stackBottom()).toBe(300 + SPACING.sm);
 
-    act(() => listeners.keyboardDidHide?.({}));
+    await act(() => listeners.keyboardDidHide?.({}));
     expect(stackBottom()).toBe(80 + SPACING.sm);
     jest.restoreAllMocks();
   });
 
-  it('se cierra solo: el éxito a los 4 s y el error a los 8 s', () => {
+  it('se cierra solo: el éxito a los 4 s y el error a los 8 s', async () => {
     jest.useFakeTimers();
-    render(<NotificationsProvider>{null}</NotificationsProvider>);
-    act(() => {
+    await render(<NotificationsProvider>{null}</NotificationsProvider>);
+    await act(() => {
       notifySuccess('Listo el cambio');
       notifyError('Falló el cambio');
     });
 
-    act(() => jest.advanceTimersByTime(autoCloseMs('success')));
+    await act(() => jest.advanceTimersByTime(autoCloseMs('success')));
     expect(screen.queryByText('Listo el cambio')).toBeNull();
     expect(screen.getByText('Falló el cambio')).toBeTruthy();
 
-    act(() => jest.advanceTimersByTime(autoCloseMs('error') - autoCloseMs('success')));
+    await act(() => jest.advanceTimersByTime(autoCloseMs('error') - autoCloseMs('success')));
     expect(screen.queryByText('Falló el cambio')).toBeNull();
   });
 
-  it('muestra el toast y la X lo cierra', () => {
+  it('muestra el toast y la X lo cierra', async () => {
     jest.useFakeTimers();
-    render(<NotificationsProvider>{null}</NotificationsProvider>);
+    await render(<NotificationsProvider>{null}</NotificationsProvider>);
 
-    act(() => notifySuccess('Agregado a tu lista'));
+    await act(() => notifySuccess('Agregado a tu lista'));
     expect(screen.getByText('Agregado a tu lista')).toBeTruthy();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Cerrar notificación' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Cerrar notificación' }));
     expect(screen.queryByText('Agregado a tu lista')).toBeNull();
   });
 });

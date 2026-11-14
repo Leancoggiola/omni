@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AppState, type AppStateStatus } from 'react-native';
+import { AppState } from 'react-native';
 import { SWRConfig, type Cache, type State, type SWRConfiguration } from 'swr';
 
 import { fetcher } from '@/shared/api';
@@ -13,7 +13,7 @@ import type { FC, PropsWithChildren } from 'react';
  * `background`/`inactive` a `active`. Devuelve la función que desuscribe.
  */
 export function initAppStateFocus(callback: () => void): () => void {
-  let current: AppStateStatus = AppState.currentState;
+  let current: string | null | undefined = AppState.currentState;
   const subscription = AppState.addEventListener('change', next => {
     if (current !== 'active' && next === 'active') callback();
     current = next;

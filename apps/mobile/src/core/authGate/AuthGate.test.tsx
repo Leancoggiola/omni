@@ -46,77 +46,77 @@ beforeEach(() => {
 });
 
 describe('AuthGate', () => {
-  it('muestra el spinner mientras verifica la sesión', () => {
+  it('muestra el spinner mientras verifica la sesión', async () => {
     setAuth({ isLoading: true });
-    render(<AuthGate />);
+    await render(<AuthGate />);
 
     expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
     expect(screen.queryByText('stack')).toBeNull();
   });
 
-  it('sin sesión manda al login', () => {
-    render(<AuthGate />);
+  it('sin sesión manda al login', async () => {
+    await render(<AuthGate />);
     expect(screen.getByText('redirect:/login')).toBeTruthy();
   });
 
-  it('sin sesión y ya en el login muestra el stack', () => {
+  it('sin sesión y ya en el login muestra el stack', async () => {
     mockSegments = ['login'];
-    render(<AuthGate />);
+    await render(<AuthGate />);
     expect(screen.getByText('stack')).toBeTruthy();
   });
 
-  it('con sesión en el login manda a las tabs', () => {
+  it('con sesión en el login manda a las tabs', async () => {
     setAuth({ isAuthenticated: true });
     mockSegments = ['login'];
-    render(<AuthGate />);
+    await render(<AuthGate />);
     expect(screen.getByText('redirect:/(tabs)')).toBeTruthy();
   });
 
-  it('con sesión muestra el stack', () => {
+  it('con sesión muestra el stack', async () => {
     setAuth({ isAuthenticated: true });
-    render(<AuthGate />);
+    await render(<AuthGate />);
     expect(screen.getByText('stack')).toBeTruthy();
   });
 
   describe('bloqueo biométrico', () => {
-    it('con sesión y bloqueado, cualquier ruta redirige al login', () => {
+    it('con sesión y bloqueado, cualquier ruta redirige al login', async () => {
       setAuth({ isAuthenticated: true });
       mockBiometrics.locked = true;
-      render(<AuthGate />);
+      await render(<AuthGate />);
 
       expect(screen.getByText('redirect:/login')).toBeTruthy();
       expect(screen.queryByText('stack')).toBeNull();
     });
 
-    it('con sesión y bloqueado, en el login se queda ahí (no redirige a las tabs)', () => {
+    it('con sesión y bloqueado, en el login se queda ahí (no redirige a las tabs)', async () => {
       setAuth({ isAuthenticated: true });
       mockBiometrics.locked = true;
       mockSegments = ['login'];
-      render(<AuthGate />);
+      await render(<AuthGate />);
 
       expect(screen.getByText('stack')).toBeTruthy();
       expect(screen.queryByText(/redirect:/)).toBeNull();
     });
 
-    it('al desbloquear, el login redirige a las tabs', () => {
+    it('al desbloquear, el login redirige a las tabs', async () => {
       setAuth({ isAuthenticated: true });
       mockSegments = ['login'];
-      render(<AuthGate />);
+      await render(<AuthGate />);
 
       expect(screen.getByText('redirect:/(tabs)')).toBeTruthy();
     });
 
-    it('sin sesión el bloqueo no cambia nada: va al login', () => {
+    it('sin sesión el bloqueo no cambia nada: va al login', async () => {
       mockBiometrics.locked = true;
-      render(<AuthGate />);
+      await render(<AuthGate />);
 
       expect(screen.getByText('redirect:/login')).toBeTruthy();
     });
 
-    it('mientras se lee la preferencia muestra el spinner, sin dejar ver la app', () => {
+    it('mientras se lee la preferencia muestra el spinner, sin dejar ver la app', async () => {
       setAuth({ isAuthenticated: true });
       mockBiometrics.ready = false;
-      render(<AuthGate />);
+      await render(<AuthGate />);
 
       expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
       expect(screen.queryByText('stack')).toBeNull();
@@ -124,20 +124,20 @@ describe('AuthGate', () => {
   });
 
   describe('con token y la sesión sin verificar', () => {
-    it('muestra el ErrorState en vez de mandar al login, y "Reintentar" vuelve a pedir la sesión', () => {
+    it('muestra el ErrorState en vez de mandar al login, y "Reintentar" vuelve a pedir la sesión', async () => {
       setAuth({ isSessionUnverified: true });
-      render(<AuthGate />);
+      await render(<AuthGate />);
 
       expect(screen.getByText(SESSION_ERROR_MESSAGE)).toBeTruthy();
       expect(screen.queryByText('redirect:/login')).toBeNull();
 
-      fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
+      await fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
       expect(mockAuth.retrySession).toHaveBeenCalledTimes(1);
     });
 
-    it('sigue en el ErrorState durante un reintento (no vuelve al spinner) y marca "Reintentar" cargando', () => {
+    it('sigue en el ErrorState durante un reintento (no vuelve al spinner) y marca "Reintentar" cargando', async () => {
       setAuth({ isSessionUnverified: true, isRetryingSession: true, isLoading: true });
-      render(<AuthGate />);
+      await render(<AuthGate />);
 
       expect(screen.getByText(SESSION_ERROR_MESSAGE)).toBeTruthy();
       expect(screen.getByRole('button', { name: 'Reintentar', busy: true })).toBeTruthy();
@@ -145,9 +145,9 @@ describe('AuthGate', () => {
 
     it('"Cerrar sesión" es la salida si la API sigue fallando', async () => {
       setAuth({ isSessionUnverified: true });
-      render(<AuthGate />);
+      await render(<AuthGate />);
 
-      await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' })));
+      await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' })));
 
       expect(mockAuth.logout).toHaveBeenCalledTimes(1);
     });
@@ -155,9 +155,9 @@ describe('AuthGate', () => {
     it('"Cerrar sesión" queda cargando mientras dura el logout', async () => {
       let finish!: () => void;
       setAuth({ isSessionUnverified: true, logout: jest.fn(() => new Promise<void>(resolve => (finish = resolve))) });
-      render(<AuthGate />);
+      await render(<AuthGate />);
 
-      fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' }));
+      await fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' }));
       expect(screen.getByRole('button', { name: 'Cerrar sesión', busy: true })).toBeTruthy();
 
       await act(async () => finish());
@@ -166,17 +166,17 @@ describe('AuthGate', () => {
 
     it('si cerrar sesión falla avisa con notifyError', async () => {
       setAuth({ isSessionUnverified: true, logout: jest.fn().mockRejectedValue(new Error('SecureStore')) });
-      render(<AuthGate />);
+      await render(<AuthGate />);
 
-      await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' })));
+      await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' })));
 
       expect(notifyError).toHaveBeenCalledWith('No se pudo cerrar la sesión');
     });
 
-    it('también en la ruta del login', () => {
+    it('también en la ruta del login', async () => {
       setAuth({ isSessionUnverified: true });
       mockSegments = ['login'];
-      render(<AuthGate />);
+      await render(<AuthGate />);
       expect(screen.getByText(SESSION_ERROR_MESSAGE)).toBeTruthy();
     });
   });

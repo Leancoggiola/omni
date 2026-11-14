@@ -12,15 +12,19 @@ function camelCase(kebab: string) {
 
 /**
  * Los themes v5 de `@tamagui/config` traen cada clave compuesta en dos grafías (`backgroundHover` y
- * `background-hover`) y los componentes de Tamagui 3 leen la segunda. La lista sale del theme base de `config` (toda
- * clave con guion que tenga su grafía camelCase), así que un theme nuevo de v5 no queda fuera. Quien pisa una de las
- * dos tiene que pisar también la otra, o el componente sigue con el gris de la base.
+ * `background-hover`) y los componentes de Tamagui 3 leen la segunda. Devuelve los pares `[camel, kebab]` de `theme`:
+ * toda clave con guion que tenga su grafía camelCase, así que una clave nueva de v5 no queda fuera. Quien pisa una de
+ * las dos tiene que pisar también la otra, o el componente sigue con el gris de la base.
  */
-const KEBAB_KEYS: (readonly [camel: string, kebab: string])[] = Object.keys(config.themes.light)
-  .filter(key => key.includes('-') && camelCase(key) !== key)
-  .map(kebab => [camelCase(kebab), kebab] as const);
+export function kebabKeyPairs(theme: object): (readonly [camel: string, kebab: string])[] {
+  return Object.keys(theme)
+    .filter(key => key.includes('-') && camelCase(key) !== key && camelCase(key) in theme)
+    .map(kebab => [camelCase(kebab), kebab] as const);
+}
 
-/** Copia cada clave compuesta de `KEBAB_KEYS` a su grafía con guiones. */
+const KEBAB_KEYS = kebabKeyPairs(config.themes.light);
+
+/** Copia cada clave compuesta del theme base (`kebabKeyPairs`) a su grafía con guiones. */
 function withKebabKeys<T extends object>(theme: T): T {
   const out: Record<string, unknown> = { ...(theme as Record<string, unknown>) };
   for (const [camel, kebab] of KEBAB_KEYS) {
@@ -100,9 +104,12 @@ function surfaceValues(scheme: 'light' | 'dark') {
   };
 }
 
-/** `Theme` con las claves propias de `surfaceValues`: sin ellas Tamagui rechaza `color="dimmed"` en el tipo. */
 type AppTheme = Theme & Record<keyof ReturnType<typeof surfaceValues>, string>;
 
+/**
+ * Theme base de una escala: el de `@tamagui/config` más las claves propias de `surfaceValues`, que `AppTheme` suma al
+ * tipo (sin ellas Tamagui rechaza `color="dimmed"`).
+ */
 function surfaceTheme(scheme: 'light' | 'dark', base: Theme): AppTheme {
   return withKebabKeys({ ...base, ...surfaceValues(scheme) });
 }
@@ -186,13 +193,8 @@ function inputTheme(scheme: 'light' | 'dark', base: Theme): AppTheme {
   });
 }
 
-/** Existen en runtime, pero el tipo de `config.themes` de @tamagui/config no los declara. */
 const allThemes: Partial<Record<string, Theme>> = config.themes;
 
-/**
- * Montserrat, igual que web. En nativo cada peso es una familia aparte (las carga `app/_layout.tsx`,
- * ver `theme/fonts.ts`): sin este mapeo `fontWeight` no tiene efecto en Android.
- */
 const montserratFace = {
   400: { normal: 'Montserrat' },
   500: { normal: 'MontserratMedium' },
@@ -202,10 +204,6 @@ const montserratFace = {
   900: { normal: 'MontserratBold' },
 };
 
-/**
- * Bricolage Grotesque, la familia `display` de los títulos. Solo están cargados el 700 y el 800 (ver
- * `BRICOLAGE_FACES`); los pesos menores caen en el 700.
- */
 const bricolageFace = {
   400: { normal: 'BricolageGrotesqueBold' },
   500: { normal: 'BricolageGrotesqueBold' },
@@ -221,44 +219,51 @@ function withDefaultSize<F extends typeof config.fonts.body>(font: F): F {
 }
 
 /**
- * Radios y espaciado compartidos con web (`RADIUS` / `SPACING` de `@omni/shared/theme`) van como números, no como
- * tokens de Tamagui. Tamagui 3 no trae driver de animaciones en ningún config: se suma el de React Native, el que
- * usan los `transition` de los Sheet (`lazy`, `medium`). `onlyAllowShorthands` y `allowedStyleValues` van apagados
- * (v5 los trae encendidos): el código usa los nombres largos de RN (`backgroundColor`, `paddingHorizontal`) y
- * colores crudos de `SEMANTIC`. El `4` de la fuente `body` es el tamaño por defecto de todo `Paragraph` (`size` en
- * `true`): se deja en 14 con interlineado 23, como el `$true` de Tamagui 2, en vez de los 17 de v5 en nativo. El
- * Input no recibe `defaultProps` (Tamagui 3 los quitó): el color de placeholder, el cursor y la selección los fija
- * `TextField`.
+ * Arma la config de Tamagui. Radios y espaciado compartidos con web (`RADIUS` / `SPACING` de `@omni/shared/theme`) van
+ * como números, no como tokens de Tamagui. Tamagui 3 no trae driver de animaciones en ningún config: se suma el de
+ * React Native, el que usan los `transition` de los Sheet (`lazy`, `medium`). `onlyAllowShorthands` y
+ * `allowedStyleValues` van apagados (v5 los trae encendidos): el código usa los nombres largos de RN
+ * (`backgroundColor`, `paddingHorizontal`) y colores crudos de `SEMANTIC`. El `4` de la fuente `body` es el tamaño por
+ * defecto de todo `Paragraph` (`size` en `true`): se deja en 14 con interlineado 23, como el `$true` de Tamagui 2, en
+ * vez de los 17 de v5 en nativo. El Input no recibe `defaultProps` (Tamagui 3 los quitó): el color de placeholder, el
+ * cursor y la selección los fija `TextField`.
+ * Fuentes: Montserrat, igual que web; en nativo cada peso es una familia aparte (las carga `app/_layout.tsx`, ver
+ * `theme/fonts.ts`) y sin `montserratFace` `fontWeight` no tiene efecto en Android. `display` es Bricolage Grotesque,
+ * la familia de los títulos: solo están cargados el 700 y el 800 (ver `BRICOLAGE_FACES`) y los pesos menores caen en el
+ * 700. `allThemes` es `config.themes` sin tipar: `light_Input` y compañía existen en runtime, pero el tipo de
+ * `@tamagui/config` no los declara. El resultado se exporta también como `export default`: el compilador de
+ * `@tamagui/metro-plugin` solo encuentra la config así (o como `config`) y, sin eso, la descarta, reintenta en cada
+ * archivo y el bundle de Metro se cuelga.
  */
-export const tamaguiConfig = createTamagui({
-  ...config,
-  animations,
-  settings: { ...config.settings, onlyAllowShorthands: false, allowedStyleValues: false },
-  fonts: {
-    ...config.fonts,
-    body: { ...withDefaultSize(config.fonts.body), family: 'Montserrat', face: montserratFace },
-    heading: { ...config.fonts.heading, family: 'Montserrat', face: montserratFace },
-    display: { ...config.fonts.heading, family: DISPLAY_FONT, face: bricolageFace },
-  },
-  themes: {
-    ...config.themes,
-    light: surfaceTheme('light', config.themes.light),
-    dark: surfaceTheme('dark', config.themes.dark),
-    light_active: primaryTheme('light', config.themes.light_accent, 'fill'),
-    dark_active: primaryTheme('dark', config.themes.dark_accent, 'fill'),
-    light_red: destructiveTheme('light', config.themes.light_red),
-    dark_red: destructiveTheme('dark', config.themes.dark_red),
-    light_Input: inputTheme('light', allThemes.light_Input ?? config.themes.light),
-    dark_Input: inputTheme('dark', allThemes.dark_Input ?? config.themes.dark),
-    light_TextArea: inputTheme('light', allThemes.light_TextArea ?? config.themes.light),
-    dark_TextArea: inputTheme('dark', allThemes.dark_TextArea ?? config.themes.dark),
-  },
-});
+function buildTamaguiConfig() {
+  return createTamagui({
+    ...config,
+    animations,
+    settings: { ...config.settings, onlyAllowShorthands: false, allowedStyleValues: false },
+    fonts: {
+      ...config.fonts,
+      body: { ...withDefaultSize(config.fonts.body), family: 'Montserrat', face: montserratFace },
+      heading: { ...config.fonts.heading, family: 'Montserrat', face: montserratFace },
+      display: { ...config.fonts.heading, family: DISPLAY_FONT, face: bricolageFace },
+    },
+    themes: {
+      ...config.themes,
+      light: surfaceTheme('light', config.themes.light),
+      dark: surfaceTheme('dark', config.themes.dark),
+      light_active: primaryTheme('light', config.themes.light_accent, 'fill'),
+      dark_active: primaryTheme('dark', config.themes.dark_accent, 'fill'),
+      light_red: destructiveTheme('light', config.themes.light_red),
+      dark_red: destructiveTheme('dark', config.themes.dark_red),
+      light_Input: inputTheme('light', allThemes.light_Input ?? config.themes.light),
+      dark_Input: inputTheme('dark', allThemes.dark_Input ?? config.themes.dark),
+      light_TextArea: inputTheme('light', allThemes.light_TextArea ?? config.themes.light),
+      dark_TextArea: inputTheme('dark', allThemes.dark_TextArea ?? config.themes.dark),
+    },
+  });
+}
 
-/**
- * El compilador de `@tamagui/metro-plugin` solo encuentra la config como `export default` (o `config`): sin esto
- * la descarta, reintenta en cada archivo y el bundle de Metro se cuelga.
- */
+export const tamaguiConfig = buildTamaguiConfig();
+
 export default tamaguiConfig;
 
 export type AppConfig = typeof tamaguiConfig;

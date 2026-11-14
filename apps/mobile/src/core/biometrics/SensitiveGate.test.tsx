@@ -33,8 +33,8 @@ jest.mock('./BiometricsContext', () => ({
   }),
 }));
 
-const renderGate = (props: Partial<React.ComponentProps<typeof SensitiveGate>> = {}) =>
-  render(
+const renderGate = async (props: Partial<React.ComponentProps<typeof SensitiveGate>> = {}) =>
+  await render(
     <SensitiveGate module="expenses" {...props}>
       <Text>contenido de gastos</Text>
     </SensitiveGate>
@@ -54,14 +54,14 @@ beforeEach(() => {
 });
 
 describe('SensitiveGate', () => {
-  it('si la biometría se activa con el gate ya montado, recoge el desbloqueo vigente sin pedir otra vez', () => {
+  it('si la biometría se activa con el gate ya montado, recoge el desbloqueo vigente sin pedir otra vez', async () => {
     mockBiometrics.enabled = false;
-    const { rerender } = renderGate();
+    const { rerender } = await renderGate();
     expect(screen.getByText('contenido de gastos')).toBeTruthy();
 
     mockBiometrics.enabled = true;
     mockIsSensitiveUnlocked.mockReturnValue(true);
-    rerender(
+    await rerender(
       <SensitiveGate module="expenses">
         <Text>contenido de gastos</Text>
       </SensitiveGate>
@@ -71,21 +71,21 @@ describe('SensitiveGate', () => {
     expect(screen.queryByText('Módulo protegido')).toBeNull();
   });
 
-  it('al recuperar el foco con el desbloqueo vencido vuelve a taparse; con vigencia sigue abierto', () => {
+  it('al recuperar el foco con el desbloqueo vencido vuelve a taparse; con vigencia sigue abierto', async () => {
     mockIsSensitiveUnlocked.mockReturnValue(true);
     mockFocused = true;
-    const { rerender } = renderGate();
+    const { rerender } = await renderGate();
     expect(screen.getByText('contenido de gastos')).toBeTruthy();
 
     mockFocused = false;
-    rerender(
+    await rerender(
       <SensitiveGate module="expenses">
         <Text>contenido de gastos</Text>
       </SensitiveGate>
     );
     mockIsSensitiveUnlocked.mockReturnValue(false);
     mockFocused = true;
-    rerender(
+    await rerender(
       <SensitiveGate module="expenses">
         <Text>contenido de gastos</Text>
       </SensitiveGate>
@@ -95,8 +95,8 @@ describe('SensitiveGate', () => {
     expect(screen.getByText('Módulo protegido')).toBeTruthy();
   });
 
-  it('en un módulo sensible sin desbloqueo vigente tapa el contenido y ofrece desbloquear', () => {
-    renderGate();
+  it('en un módulo sensible sin desbloqueo vigente tapa el contenido y ofrece desbloquear', async () => {
+    await renderGate();
 
     expect(screen.queryByText('contenido de gastos')).toBeNull();
     expect(screen.getByText('Módulo protegido')).toBeTruthy();
@@ -104,39 +104,39 @@ describe('SensitiveGate', () => {
     expect(screen.getByRole('button', { name: 'Desbloquear con huella' })).toBeTruthy();
   });
 
-  it('adapta los textos al rostro', () => {
+  it('adapta los textos al rostro', async () => {
     Object.assign(mockBiometrics, { kind: 'face', noun: 'rostro' });
-    renderGate();
+    await renderGate();
 
     expect(screen.getByRole('button', { name: 'Desbloquear con rostro' })).toBeTruthy();
     expect(screen.getByText('Verificá tu rostro para ver esta información.')).toBeTruthy();
   });
 
-  it('con un desbloqueo vigente muestra el contenido sin pedir nada', () => {
+  it('con un desbloqueo vigente muestra el contenido sin pedir nada', async () => {
     mockIsSensitiveUnlocked.mockReturnValue(true);
-    renderGate();
+    await renderGate();
 
     expect(screen.getByText('contenido de gastos')).toBeTruthy();
     expect(mockAuthenticateSensitive).not.toHaveBeenCalled();
   });
 
-  it('un módulo que no es sensible pasa derecho', () => {
-    renderGate({ module: 'pantry' });
+  it('un módulo que no es sensible pasa derecho', async () => {
+    await renderGate({ module: 'pantry' });
 
     expect(screen.getByText('contenido de gastos')).toBeTruthy();
   });
 
-  it('sin la biometría activada (o sin biometría en el teléfono) no muestra nada del gate', () => {
+  it('sin la biometría activada (o sin biometría en el teléfono) no muestra nada del gate', async () => {
     mockBiometrics.enabled = false;
-    renderGate();
+    await renderGate();
 
     expect(screen.getByText('contenido de gastos')).toBeTruthy();
     expect(screen.queryByText('Módulo protegido')).toBeNull();
   });
 
   it('al desbloquear con éxito muestra el contenido', async () => {
-    renderGate();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
+    await renderGate();
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
 
     expect(mockAuthenticateSensitive).toHaveBeenCalledTimes(1);
     expect(screen.getByText('contenido de gastos')).toBeTruthy();
@@ -147,8 +147,8 @@ describe('SensitiveGate', () => {
       mockIsSensitiveUnlocked.mockReturnValue(false);
       return 'success';
     });
-    renderGate();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
+    await renderGate();
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
 
     expect(screen.queryByText('contenido de gastos')).toBeNull();
     expect(screen.getByRole('button', { name: 'Desbloquear con huella', busy: false })).toBeTruthy();
@@ -156,8 +156,8 @@ describe('SensitiveGate', () => {
 
   it('si se cancela no avisa nada y queda el botón para reintentar', async () => {
     mockAuthenticateSensitive.mockResolvedValue('cancelled');
-    renderGate();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
+    await renderGate();
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
 
     expect(notifyError).not.toHaveBeenCalled();
     expect(screen.queryByText('contenido de gastos')).toBeNull();
@@ -166,13 +166,13 @@ describe('SensitiveGate', () => {
 
   it('si falla avisa, sigue tapado y se puede reintentar hasta lograrlo', async () => {
     mockAuthenticateSensitive.mockResolvedValueOnce('failed');
-    renderGate();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
+    await renderGate();
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo verificar tu huella. Probá de nuevo.');
     expect(screen.queryByText('contenido de gastos')).toBeNull();
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
     expect(screen.getByText('contenido de gastos')).toBeTruthy();
   });
 
@@ -186,11 +186,11 @@ describe('SensitiveGate', () => {
         };
       })
     );
-    renderGate();
-    fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' }));
+    await renderGate();
+    await fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' }));
 
     expect(screen.getByRole('button', { name: 'Desbloquear con huella', busy: true })).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' }));
     expect(mockAuthenticateSensitive).toHaveBeenCalledTimes(1);
 
     await act(async () => finish('success'));
@@ -198,12 +198,12 @@ describe('SensitiveGate', () => {
   });
 
   it('al volver del background (cambia la época) vuelve a taparse aunque estuviera desbloqueado', async () => {
-    const { rerender } = renderGate();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
+    const { rerender } = await renderGate();
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Desbloquear con huella' })));
     expect(screen.getByText('contenido de gastos')).toBeTruthy();
 
     mockBiometrics.sensitiveEpoch = 1;
-    rerender(
+    await rerender(
       <SensitiveGate module="expenses">
         <Text>contenido de gastos</Text>
       </SensitiveGate>
@@ -213,14 +213,14 @@ describe('SensitiveGate', () => {
     expect(screen.getByRole('button', { name: 'Desbloquear con huella' })).toBeTruthy();
   });
 
-  it('el botón de volver del header solo aparece en rutas de stack y llama a onBack', () => {
+  it('el botón de volver del header solo aparece en rutas de stack y llama a onBack', async () => {
     const onBack = jest.fn();
-    const { unmount } = renderGate();
+    const { unmount } = await renderGate();
     expect(screen.queryByRole('button', { name: 'Volver' })).toBeNull();
-    unmount();
+    await unmount();
 
-    renderGate({ onBack });
-    fireEvent.press(screen.getByRole('button', { name: 'Volver', disabled: false }));
+    await renderGate({ onBack });
+    await fireEvent.press(screen.getByRole('button', { name: 'Volver', disabled: false }));
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 });

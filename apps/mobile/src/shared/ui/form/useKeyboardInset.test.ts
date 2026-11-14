@@ -18,24 +18,24 @@ describe('useKeyboardInset', () => {
     }) as unknown as typeof Keyboard.addListener);
   });
 
-  it('con el teclado cerrado es 0', () => {
-    const { result } = renderHook(() => useKeyboardInset());
+  it('con el teclado cerrado es 0', async () => {
+    const { result } = await renderHook(() => useKeyboardInset());
     expect(result.current).toBe(0);
   });
 
-  it('al abrirse es lo que el teclado le quita a la ventana y al cerrarse vuelve a 0', () => {
-    const { result } = renderHook(() => useKeyboardInset());
+  it('al abrirse es lo que el teclado le quita a la ventana y al cerrarse vuelve a 0', async () => {
+    const { result } = await renderHook(() => useKeyboardInset());
 
-    act(() => listeners.keyboardDidShow({ endCoordinates: { screenY: 600 } }));
+    await act(() => listeners.keyboardDidShow({ endCoordinates: { screenY: 600 } }));
     expect(result.current).toBe(300);
 
-    act(() => listeners.keyboardDidHide({ endCoordinates: { screenY: 900 } }));
+    await act(() => listeners.keyboardDidHide({ endCoordinates: { screenY: 900 } }));
     expect(result.current).toBe(0);
   });
 
-  it('al desmontar quita los dos listeners', () => {
-    const { unmount } = renderHook(() => useKeyboardInset());
-    unmount();
+  it('al desmontar quita los dos listeners', async () => {
+    const { unmount } = await renderHook(() => useKeyboardInset());
+    await unmount();
     expect(remove).toHaveBeenCalledTimes(2);
   });
 });

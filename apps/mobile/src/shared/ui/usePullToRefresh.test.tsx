@@ -18,10 +18,10 @@ describe('usePullToRefresh', () => {
   it('muestra el indicador mientras dura el refresh y lo saca al terminar', async () => {
     const pending = deferred();
     const refresh = jest.fn(() => pending.promise);
-    const { result } = renderHook(() => usePullToRefresh(refresh));
+    const { result } = await renderHook(() => usePullToRefresh(refresh));
     expect(result.current.props.refreshing).toBe(false);
 
-    act(() => result.current.props.onRefresh?.());
+    await act(() => result.current.props.onRefresh?.());
     expect(result.current.props.refreshing).toBe(true);
     expect(refresh).toHaveBeenCalledTimes(1);
 
@@ -32,10 +32,10 @@ describe('usePullToRefresh', () => {
   it('ignora un segundo gesto mientras hay un refresh en curso', async () => {
     const pending = deferred();
     const refresh = jest.fn(() => pending.promise);
-    const { result } = renderHook(() => usePullToRefresh(refresh));
+    const { result } = await renderHook(() => usePullToRefresh(refresh));
 
-    act(() => result.current.props.onRefresh?.());
-    act(() => result.current.props.onRefresh?.());
+    await act(() => result.current.props.onRefresh?.());
+    await act(() => result.current.props.onRefresh?.());
     expect(refresh).toHaveBeenCalledTimes(1);
 
     await act(async () => pending.resolve());
@@ -43,9 +43,9 @@ describe('usePullToRefresh', () => {
 
   it('si el refresh falla no deja el indicador colgado', async () => {
     const pending = deferred();
-    const { result } = renderHook(() => usePullToRefresh(() => pending.promise));
+    const { result } = await renderHook(() => usePullToRefresh(() => pending.promise));
 
-    act(() => result.current.props.onRefresh?.());
+    await act(() => result.current.props.onRefresh?.());
     await act(async () => pending.reject(new TypeError('Network request failed')));
 
     expect(result.current.props.refreshing).toBe(false);
