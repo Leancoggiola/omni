@@ -35,30 +35,31 @@ beforeEach(() => {
 });
 
 describe('MoreScreen', () => {
-  it('los módulos que mobile todavía no tiene salen deshabilitados con el Badge "Próximamente"', () => {
-    render(<MoreScreen />);
+  it('los módulos que mobile todavía no tiene salen deshabilitados con el Badge "Próximamente"', async () => {
+    await render(<MoreScreen />);
 
     expect(screen.getAllByText('Próximamente').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'Gimnasio, próximamente', disabled: true })).toBeTruthy();
   });
 
-  it('Administración está disponible para ADMIN y navega a /admin', () => {
-    render(<MoreScreen />);
+  it('Administración está disponible para ADMIN y navega a /admin', async () => {
+    await render(<MoreScreen />);
 
     expect(screen.queryByRole('button', { name: 'Administración, próximamente' })).toBeNull();
-    fireEvent.press(screen.getByRole('button', { name: 'Administración' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Administración' }));
     expect(mockNavigate).toHaveBeenCalledWith('/admin');
   });
 
-  it('muestra la tarjeta de usuario que lleva a Perfil', () => {
-    render(<MoreScreen />);
+  it('muestra la tarjeta de usuario que lleva a Perfil', async () => {
+    await render(<MoreScreen />);
     expect(screen.getByRole('button', { name: 'Admin Omni. Ver perfil' })).toBeTruthy();
   });
 
-  const pressLogout = () => act(async () => fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' })));
+  const pressLogout = async () =>
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' })));
 
   it('pide confirmación antes de cerrar la sesión', async () => {
-    render(<MoreScreen />);
+    await render(<MoreScreen />);
     await pressLogout();
 
     expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ title: '¿Cerrar sesión?' }));
@@ -68,7 +69,7 @@ describe('MoreScreen', () => {
   it('un segundo toque con la confirmación abierta no abre otra', async () => {
     let answer!: (confirmed: boolean) => void;
     jest.mocked(confirm).mockReturnValue(new Promise<boolean>(resolve => (answer = resolve)));
-    render(<MoreScreen />);
+    await render(<MoreScreen />);
     await pressLogout();
     await pressLogout();
 
@@ -78,7 +79,7 @@ describe('MoreScreen', () => {
 
   it('si se cancela la confirmación no cierra la sesión', async () => {
     jest.mocked(confirm).mockResolvedValue(false);
-    render(<MoreScreen />);
+    await render(<MoreScreen />);
     await pressLogout();
 
     expect(mockLogout).not.toHaveBeenCalled();
@@ -88,7 +89,7 @@ describe('MoreScreen', () => {
   it('"Cerrar sesión" queda ocupado mientras cierra y no se envía dos veces', async () => {
     let finish!: () => void;
     mockLogout.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));
-    render(<MoreScreen />);
+    await render(<MoreScreen />);
     await pressLogout();
 
     expect(screen.getByRole('button', { name: 'Cerrar sesión', busy: true })).toBeTruthy();
@@ -99,7 +100,7 @@ describe('MoreScreen', () => {
 
   it('si falla el cierre de sesión avisa con notifyError y reactiva el botón', async () => {
     mockLogout.mockRejectedValue(new Error('SecureStore no disponible'));
-    render(<MoreScreen />);
+    await render(<MoreScreen />);
     await pressLogout();
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo cerrar la sesión');

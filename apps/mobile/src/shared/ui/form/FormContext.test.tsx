@@ -18,8 +18,8 @@ function focusedLabel() {
 }
 
 describe('FormFields', () => {
-  it('"Siguiente" salta al próximo campo y el último queda con "Listo"', () => {
-    render(
+  it('"Siguiente" salta al próximo campo y el último queda con "Listo"', async () => {
+    await render(
       <FormFields>
         <TextField label="Usuario" />
         <TextField label="Nombre" />
@@ -33,13 +33,13 @@ describe('FormFields', () => {
     expect(screen.getByLabelText('Contraseña')).toHaveProp('returnKeyType', 'done');
     expect(screen.getByLabelText('Contraseña').props.submitBehavior).toBeUndefined();
 
-    fireEvent(screen.getByLabelText('Usuario'), 'submitEditing');
+    await fireEvent(screen.getByLabelText('Usuario'), 'submitEditing');
     expect(focusSpy).toHaveBeenCalledTimes(1);
     expect(focusedLabel()).toBe('Nombre');
   });
 
-  it('saltea los campos deshabilitados', () => {
-    render(
+  it('saltea los campos deshabilitados', async () => {
+    await render(
       <FormFields>
         <TextField label="Nombre" disabled />
         <TextField label="Teléfono" />
@@ -51,13 +51,13 @@ describe('FormFields', () => {
     expect(screen.getByLabelText('Teléfono')).toHaveProp('returnKeyType', 'next');
     expect(screen.getByLabelText('Nacimiento')).toHaveProp('returnKeyType', 'done');
 
-    fireEvent(screen.getByLabelText('Teléfono'), 'submitEditing');
+    await fireEvent(screen.getByLabelText('Teléfono'), 'submitEditing');
     expect(focusedLabel()).toBe('Nacimiento');
   });
 
-  it('un returnKeyType u onSubmitEditing propio tiene prioridad', () => {
+  it('un returnKeyType u onSubmitEditing propio tiene prioridad', async () => {
     const onSubmitEditing = jest.fn();
-    render(
+    await render(
       <FormFields>
         <TextField label="Contraseña" />
         <TextField label="Confirmar" returnKeyType="go" onSubmitEditing={onSubmitEditing} />
@@ -66,14 +66,14 @@ describe('FormFields', () => {
     );
 
     expect(screen.getByLabelText('Confirmar')).toHaveProp('returnKeyType', 'go');
-    fireEvent(screen.getByLabelText('Confirmar'), 'submitEditing');
+    await fireEvent(screen.getByLabelText('Confirmar'), 'submitEditing');
 
     expect(onSubmitEditing).toHaveBeenCalledTimes(1);
     expect(focusSpy).not.toHaveBeenCalled();
   });
 
-  it('fuera de un formulario no cambia el comportamiento del teclado', () => {
-    render(<TextField label="Buscar" />);
+  it('fuera de un formulario no cambia el comportamiento del teclado', async () => {
+    await render(<TextField label="Buscar" />);
 
     expect(screen.getByLabelText('Buscar').props.returnKeyType).toBeUndefined();
     expect(screen.getByLabelText('Buscar').props.submitBehavior).toBeUndefined();
@@ -81,16 +81,16 @@ describe('FormFields', () => {
 });
 
 describe('FormScrollProvider', () => {
-  it('al enfocar un campo pide scrollearlo a la vista, sin pisar el onFocus propio', () => {
+  it('al enfocar un campo pide scrollearlo a la vista, sin pisar el onFocus propio', async () => {
     const scrollIntoView = jest.fn();
     const onFocus = jest.fn();
-    render(
+    await render(
       <FormScrollProvider scrollIntoView={scrollIntoView}>
         <TextField label="Teléfono" onFocus={onFocus} />
       </FormScrollProvider>
     );
 
-    fireEvent(screen.getByLabelText('Teléfono'), 'focus');
+    await fireEvent(screen.getByLabelText('Teléfono'), 'focus');
 
     expect(onFocus).toHaveBeenCalledTimes(1);
     expect(scrollIntoView).toHaveBeenCalledTimes(1);

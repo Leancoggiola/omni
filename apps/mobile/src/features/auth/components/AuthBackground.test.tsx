@@ -36,45 +36,45 @@ describe('AuthBackground', () => {
     jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockReturnValue(new Promise(() => undefined));
   });
 
-  it('anima las tres manchas', () => {
+  it('anima las tres manchas', async () => {
     mockReducedMotion.mockReturnValue(false);
-    render(<AuthBackground />);
+    await render(<AuthBackground />);
     expect(mockWithRepeat).toHaveBeenCalledTimes(3);
   });
 
-  it('al desmontar cancela las tres animaciones (withRepeat infinito)', () => {
+  it('al desmontar cancela las tres animaciones (withRepeat infinito)', async () => {
     mockReducedMotion.mockReturnValue(false);
-    const { unmount } = render(<AuthBackground />);
+    const { unmount } = await render(<AuthBackground />);
     mockCancelAnimation.mockClear();
-    unmount();
+    await unmount();
     expect(mockCancelAnimation).toHaveBeenCalledTimes(3);
   });
 
-  it('con "reducir movimiento" quedan quietas', () => {
+  it('con "reducir movimiento" quedan quietas', async () => {
     mockReducedMotion.mockReturnValue(true);
-    render(<AuthBackground />);
+    await render(<AuthBackground />);
     expect(mockWithRepeat).not.toHaveBeenCalled();
   });
 
-  it('si se activa "reducir movimiento" con el fondo montado, cancela las animaciones', () => {
+  it('si se activa "reducir movimiento" con el fondo montado, cancela las animaciones', async () => {
     mockReducedMotion.mockReturnValue(false);
-    const { unmount } = render(<AuthBackground />);
+    const { unmount } = await render(<AuthBackground />);
     expect(addListener).toHaveBeenCalledWith('reduceMotionChanged', expect.any(Function));
 
     mockCancelAnimation.mockClear();
     const handler = addListener.mock.calls[0][1] as unknown as (enabled: boolean) => void;
     mockWithRepeat.mockClear();
-    act(() => handler(true));
+    await act(() => handler(true));
     expect(mockCancelAnimation).toHaveBeenCalled();
     expect(mockWithRepeat).not.toHaveBeenCalled();
 
-    unmount();
+    await unmount();
     expect(remove).toHaveBeenCalled();
   });
 
-  it('es decorativo: no recibe toques ni lo lee TalkBack', () => {
+  it('es decorativo: no recibe toques ni lo lee TalkBack', async () => {
     mockReducedMotion.mockReturnValue(false);
-    const { toJSON } = render(<AuthBackground />);
+    const { toJSON } = await render(<AuthBackground />);
     const root = toJSON() as { props: Record<string, unknown> };
     expect(root.props.pointerEvents).toBe('none');
     expect(root.props.importantForAccessibility).toBe('no-hide-descendants');

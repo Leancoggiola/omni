@@ -10,6 +10,7 @@ import { deleteItemAsync, getItemAsync, store } from '@/test/secureStoreMock';
 import { AuthProvider, LocalSessionClearError, useAuth } from './AuthContext';
 
 import type { CurrentWeather } from '@omni/shared/weather';
+import { trackSWR } from '@/test/swr';
 
 const WEATHER: CurrentWeather = {
   city: 'Rosario',
@@ -64,8 +65,8 @@ describe('AuthProvider', () => {
 
   const callsTo = (path: string) => fetchMock.mock.calls.filter(([calledUrl]) => calledUrl === url(path));
 
-  const renderAuth = (wrapper: FC<PropsWithChildren> = Wrapper) =>
-    renderHook(
+  const renderAuth = async (wrapper: FC<PropsWithChildren> = Wrapper) =>
+    await renderHook(
       () => {
         const auth = useAuth();
         const { cache, mutate } = useSWRConfig();
@@ -101,7 +102,7 @@ describe('AuthProvider', () => {
   });
 
   it('sin tokens guardados queda sin sesión y no pide el perfil', async () => {
-    const { result } = renderAuth();
+    const { result } = await renderAuth();
 
     await waitFor(() => expect(result.current.auth.isLoading).toBe(false));
 
@@ -111,7 +112,7 @@ describe('AuthProvider', () => {
 
   it('con tokens guardados carga el usuario', async () => {
     await setTokens('access-1', 'refresh-1');
-    const { result } = renderAuth();
+    const { result } = await renderAuth();
 
     await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
 
@@ -121,7 +122,7 @@ describe('AuthProvider', () => {
   it('login guarda el par de tokens en una sola clave y deja al usuario autenticado', async () => {
     routes[API_KEYS.auth.login] = () =>
       jsonResponse({ accessToken: 'access-1', refreshToken: 'refresh-1', user: USER });
-    const { result } = renderAuth();
+    const { result } = await renderAuth();
     await waitFor(() => expect(result.current.auth.isLoading).toBe(false));
 
     await act(() => result.current.auth.login('leo', 'secreto'));
@@ -133,7 +134,7 @@ describe('AuthProvider', () => {
   it('login cachea la sesión con el usuario de la respuesta y no vuelve a pedir el perfil', async () => {
     routes[API_KEYS.auth.login] = () =>
       jsonResponse({ accessToken: 'access-1', refreshToken: 'refresh-1', user: USER });
-    const { result } = renderAuth();
+    const { result } = await renderAuth();
     await waitFor(() => expect(result.current.auth.isLoading).toBe(false));
 
     await act(() => result.current.auth.login('leo', 'secreto'));
@@ -164,7 +165,7 @@ describe('AuthProvider', () => {
     it('con token y la API caída queda sin verificar, sin sesión y con los tokens guardados', async () => {
       goOffline();
       await setTokens('access-1', 'refresh-1');
-      const { result } = renderAuth();
+      const { result } = await renderAuth();
 
       await waitUntilUnverified(result);
 
@@ -175,14 +176,21 @@ describe('AuthProvider', () => {
     it('retrySession vuelve a pedir el perfil y entra cuando la API responde', async () => {
       goOffline();
       await setTokens('access-1', 'refresh-1');
-      const { result } = renderAuth();
+      const { result } = await renderAuth();
       await waitUntilUnverified(result);
 
-      fetchMock.mockImplementation(async (target: string) =>
-        target === url(API_KEYS.auth.profile) ? jsonResponse({ user: USER }) : jsonResponse({}, 404)
-      );
-      act(() => result.current.auth.retrySession());
+      let answerProfile: () => void = () => undefined;
+      const profileAnswered = new Promise<void>(resolve => (answerProfile = resolve));
+      fetchMock.mockImplementation(async (target: string) => {
+        if (target !== url(API_KEYS.auth.profile)) return jsonResponse({}, 404);
+        await profileAnswered;
+        return jsonResponse({ user: USER });
+      });
+      await act(async () => {
+        void result.current.auth.retrySession();
+      });
       expect(result.current.auth.isRetryingSession).toBe(true);
+      await act(async () => answerProfile());
 
       await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
       expect(result.current.auth.isSessionUnverified).toBe(false);
@@ -192,17 +200,17 @@ describe('AuthProvider', () => {
     it('el hook de sesión trae sus propios reintentos: un 500 se reintenta 3 veces y un 404 ninguna', async () => {
       routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'Error' }, 500);
       await setTokens('access-1', 'refresh-1');
-      const failing = renderAuth(BareWrapper);
+      const failing = await renderAuth(BareWrapper);
       await waitFor(() => expect(failing.result.current.auth.isSessionUnverified).toBe(true));
       await act(async () => {
         await jest.advanceTimersByTimeAsync(300_000);
       });
       expect(callsTo(API_KEYS.auth.profile)).toHaveLength(4);
-      failing.unmount();
+      await failing.unmount();
 
       fetchMock.mockClear();
       routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'No existe' }, 404);
-      const missing = renderAuth(BareWrapper);
+      const missing = await renderAuth(BareWrapper);
       await waitFor(() => expect(missing.result.current.auth.error).toBeDefined());
       await act(async () => {
         await jest.advanceTimersByTimeAsync(300_000);
@@ -213,7 +221,7 @@ describe('AuthProvider', () => {
     it('un 4xx que no es 429 tampoco: AuthGate manda al login en vez de quedar en el ErrorState', async () => {
       routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'No existe' }, 404);
       await setTokens('access-1', 'refresh-1');
-      const { result } = renderAuth();
+      const { result } = await renderAuth();
 
       await waitFor(() => expect(result.current.auth.error).toBeDefined());
       expect(result.current.auth.isSessionUnverified).toBe(false);
@@ -223,7 +231,7 @@ describe('AuthProvider', () => {
     it.each([408, 429])('un %i sí queda sin verificar: es transitorio', async status => {
       routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'Transitorio' }, status);
       await setTokens('access-1', 'refresh-1');
-      const { result } = renderAuth();
+      const { result } = await renderAuth();
 
       await waitFor(() => expect(result.current.auth.isSessionUnverified).toBe(true));
     });
@@ -232,7 +240,7 @@ describe('AuthProvider', () => {
       routes[API_KEYS.auth.profile] = () => jsonResponse({ message: 'Usuario no encontrado' }, 401);
       routes[API_KEYS.auth.refresh] = () => jsonResponse({ accessToken: 'access-2', refreshToken: 'refresh-2' });
       await setTokens('access-1', 'refresh-1');
-      const { result } = renderAuth();
+      const { result } = await renderAuth();
 
       await waitFor(() => expect(result.current.auth.error).toBeDefined());
       expect(result.current.auth.isSessionUnverified).toBe(false);
@@ -243,7 +251,7 @@ describe('AuthProvider', () => {
   describe('logout', () => {
     const signIn = async () => {
       await setTokens('access-vencido', 'refresh-1');
-      const hook = renderAuth();
+      const hook = await renderAuth();
       await waitFor(() => expect(hook.result.current.auth.isAuthenticated).toBe(true));
       return hook;
     };
@@ -351,7 +359,7 @@ describe('AuthProvider', () => {
   describe('logoutAll', () => {
     const signIn = async () => {
       await setTokens('access-1', 'refresh-1');
-      const hook = renderAuth();
+      const hook = await renderAuth();
       await waitFor(() => expect(hook.result.current.auth.isAuthenticated).toBe(true));
       return hook;
     };
@@ -399,7 +407,7 @@ describe('AuthProvider', () => {
     routes[API_KEYS.auth.refresh] = () => jsonResponse({ message: 'La sesión ya no es válida' }, 401);
     await setTokens('access-vencido', 'refresh-1');
 
-    const { result } = renderAuth();
+    const { result } = await renderAuth();
 
     await waitFor(async () => expect(await getTokens()).toBeNull());
     await waitFor(() => expect(result.current.auth.isLoading).toBe(false));
@@ -411,7 +419,7 @@ describe('AuthProvider', () => {
     routes[API_KEYS.auth.refresh] = () => jsonResponse({ message: 'Error' }, 500);
     await setTokens('access-vencido', 'refresh-1');
 
-    const { result } = renderAuth();
+    const { result } = await renderAuth();
 
     await waitFor(() => expect(result.current.auth.error).toBeDefined());
     expect(await getTokens()).toEqual({ accessToken: 'access-vencido', refreshToken: 'refresh-1' });
@@ -424,10 +432,10 @@ describe('AuthProvider', () => {
     routes['/api/probe-404'] = () => jsonResponse({ message: 'No existe' }, 404);
     await setTokens('access-1', 'refresh-1');
 
-    const { result } = renderHook(
+    const { result } = await renderHook(
       () => ({
-        throttled: useSWR('/api/probe-429'),
-        missing: useSWR('/api/probe-404'),
+        throttled: trackSWR(useSWR('/api/probe-429')),
+        missing: trackSWR(useSWR('/api/probe-404')),
       }),
       { wrapper: Wrapper }
     );
@@ -445,7 +453,7 @@ describe('AuthProvider', () => {
     await setTokens('access-1', 'refresh-1');
     getItemAsync.mockRejectedValueOnce(new Error('keystore no disponible'));
 
-    const { result } = renderAuth();
+    const { result } = await renderAuth();
     await act(async () => {
       await jest.advanceTimersByTimeAsync(600);
     });
@@ -457,7 +465,7 @@ describe('AuthProvider', () => {
     await setTokens('access-1', 'refresh-1');
     getItemAsync.mockRejectedValue(new Error('keystore no disponible'));
 
-    const { result } = renderAuth();
+    const { result } = await renderAuth();
     await act(async () => {
       await jest.advanceTimersByTimeAsync(2_000);
     });
@@ -470,7 +478,7 @@ describe('AuthProvider', () => {
 
   it('logout cierra la sesión local y avisa del error si SecureStore falla al borrar los tokens', async () => {
     await setTokens('access-1', 'refresh-1');
-    const { result } = renderAuth();
+    const { result } = await renderAuth();
     await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
     deleteItemAsync.mockRejectedValueOnce(new Error('no se pudo borrar'));
 
@@ -484,7 +492,7 @@ describe('AuthProvider', () => {
 
   it('clearSession vacía la caché de SWR para que el próximo usuario no herede datos', async () => {
     await setTokens('access-1', 'refresh-1');
-    const { result } = renderAuth();
+    const { result } = await renderAuth();
     await waitFor(() => expect(result.current.auth.isAuthenticated).toBe(true));
     await act(() => result.current.mutate('/api/otro-dato', { dato: 1 }, { revalidate: false }));
     expect(result.current.cache.get('/api/otro-dato')?.data).toEqual({ dato: 1 });

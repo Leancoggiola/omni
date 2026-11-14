@@ -19,8 +19,9 @@ type ProfilePhotoCardProps = {
 
 /**
  * Foto de perfil: elige una imagen de la galería (JPG, PNG o WebP de hasta 2MB, como la API), la valida y la sube de
- * inmediato; el tacho al lado de "Cambiar foto" (solo con foto, "Quitar foto" para el lector de pantalla) la borra. Mientras hay un request en vuelo ambos botones quedan bloqueados. El selector del
- * sistema no necesita permisos de almacenamiento.
+ * inmediato. El `IconButton` del tacho junto a "Cambiar foto" quita la foto: solo se muestra cuando hay una y su
+ * etiqueta para el lector de pantalla es "Quitar foto". Mientras hay un request en vuelo ambos botones quedan
+ * bloqueados. El selector del sistema no necesita permisos de almacenamiento.
  */
 export function ProfilePhotoCard({ profile, onUpload, onRemove }: ProfilePhotoCardProps) {
   const [busy, setBusy] = useState<'upload' | 'remove' | null>(null);

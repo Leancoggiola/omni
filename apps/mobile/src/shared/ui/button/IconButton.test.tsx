@@ -7,29 +7,29 @@ jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
 
 describe('IconButton', () => {
-  it('es un botón circular que anuncia su label y llama a onPress', () => {
+  it('es un botón circular que anuncia su label y llama a onPress', async () => {
     const onPress = jest.fn();
-    render(<IconButton icon={XIcon} accessibilityLabel="Cerrar" onPress={onPress} />);
+    await render(<IconButton icon={XIcon} accessibilityLabel="Cerrar" onPress={onPress} />);
 
     const button = screen.getByRole('button', { name: 'Cerrar' });
     expect(button).toHaveProp('borderRadius', 9999);
-    fireEvent.press(button);
+    await fireEvent.press(button);
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('la variante glass usa la superficie y el borde glass', () => {
-    render(<IconButton icon={XIcon} variant="glass" accessibilityLabel="Volver" />);
+  it('la variante glass usa la superficie y el borde glass', async () => {
+    await render(<IconButton icon={XIcon} variant="glass" accessibilityLabel="Volver" />);
 
     const button = screen.getByRole('button', { name: 'Volver' });
     expect(button).toHaveProp('backgroundColor', 'surfaceGlass');
     expect(button).toHaveProp('borderColor', 'glassBorder');
   });
 
-  it('deshabilitado no llama a onPress', () => {
+  it('deshabilitado no llama a onPress', async () => {
     const onPress = jest.fn();
-    render(<IconButton icon={XIcon} accessibilityLabel="Cerrar" disabled onPress={onPress} />);
+    await render(<IconButton icon={XIcon} accessibilityLabel="Cerrar" disabled onPress={onPress} />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Cerrar', disabled: true }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Cerrar', disabled: true }));
     expect(onPress).not.toHaveBeenCalled();
   });
 });

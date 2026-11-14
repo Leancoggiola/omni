@@ -31,10 +31,10 @@ afterEach(() => {
 });
 
 describe('HomeScreen', () => {
-  it('es una sola card con el saludo, el nombre y las efemérides adentro, sin ScreenHeader', () => {
+  it('es una sola card con el saludo, el nombre y las efemérides adentro, sin ScreenHeader', async () => {
     jest.useFakeTimers().setSystemTime(new Date(2026, 9, 9, 9, 0));
     mockUseAuth.mockReturnValue({ user: { name: 'Admin Omni' }, isLoading: false });
-    render(<HomeScreen />);
+    await render(<HomeScreen />);
 
     expect(screen.getByText('Buenos días')).toBeTruthy();
     expect(screen.getByRole('header', { name: 'Inicio. Buenos días, Admin Omni' })).toBeTruthy();
@@ -49,17 +49,17 @@ describe('HomeScreen', () => {
     [9, 'Buenos días'],
     [15, 'Buenas tardes'],
     [21, 'Buenas noches'],
-  ])('a las %i h saluda con "%s"', (hour, greeting) => {
+  ])('a las %i h saluda con "%s"', async (hour, greeting) => {
     jest.useFakeTimers().setSystemTime(new Date(2026, 9, 9, hour, 0));
     mockUseAuth.mockReturnValue({ user: { name: 'Admin Omni' }, isLoading: false });
-    render(<HomeScreen />);
+    await render(<HomeScreen />);
 
     expect(screen.getByText(greeting)).toBeTruthy();
   });
 
-  it('mientras carga la sesión muestra un placeholder en lugar del nombre', () => {
+  it('mientras carga la sesión muestra un placeholder en lugar del nombre', async () => {
     mockUseAuth.mockReturnValue({ user: null, isLoading: true });
-    render(<HomeScreen />);
+    await render(<HomeScreen />);
 
     expect(screen.getByLabelText('Cargando tu nombre')).toBeTruthy();
     expect(screen.queryByText('Admin Omni')).toBeNull();

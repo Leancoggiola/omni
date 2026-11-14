@@ -1,6 +1,6 @@
 import { FONT_SIZE, RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef } from 'react';
-import { AccessibilityInfo, type TextInput } from 'react-native';
+import { AccessibilityInfo, type TextInputInstance } from 'react-native';
 import { Input, Paragraph, XStack, YStack, type InputProps } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
@@ -36,12 +36,14 @@ export type TextFieldProps = Omit<InputProps, 'size' | 'disabled'> & {
 
 /**
  * Equivalente de `TextInput` de Mantine: label 14/600 (con `*` si es requerido), ícono izquierdo, alto 44 (52 y fuente
- * de 16 con `size="lg"`) y, debajo del campo, la descripción y el error. Placeholder, cursor y selección (`placeholderTextColor`,
- * `cursorColor`, `selectionColor`) van acá: Tamagui 3 no tiene `defaultProps` en el config. El ícono izquierdo y la acción derecha ocupan un hueco de 40 (48 en `lg`) dentro del
- * campo, que es también su padding lateral (`paddingStart`/`paddingEnd`: el `paddingInline` del `size` de `Input` les gana a `paddingLeft`/`paddingRight`). Dentro de un formulario (`FormSheet`, `FormFields`) "Siguiente" salta solo
- * al próximo campo habilitado y el último queda con "Listo"; un `returnKeyType` u `onSubmitEditing` propio tiene
- * prioridad. Dentro de un ScrollView de formulario (`FormSheet`, `FormScrollView`) el campo enfocado scrollea hasta
- * quedar arriba del teclado.
+ * de 16 con `size="lg"`) y, debajo del campo, la descripción y el error. Placeholder, cursor y selección
+ * (`placeholderTextColor`, `cursorColor`, `selectionColor`) van acá: Tamagui 3 no tiene `defaultProps` en el config. El
+ * ícono izquierdo y la acción derecha ocupan un hueco de 40 (48 en `lg`) dentro del campo, que es también su padding
+ * lateral (`paddingStart`/`paddingEnd`: el `paddingInline` del `size` de `Input` les gana a
+ * `paddingLeft`/`paddingRight`). Dentro de un formulario (`FormSheet`, `FormFields`) "Siguiente" salta solo al próximo
+ * campo habilitado y el último queda con "Listo"; un `returnKeyType` u `onSubmitEditing` propio tiene prioridad. Dentro
+ * de un ScrollView de formulario (`FormSheet`, `FormScrollView`) el campo enfocado scrollea hasta quedar arriba del
+ * teclado.
  */
 export function TextField({
   label,
@@ -68,11 +70,11 @@ export function TextField({
   const a11yLabel = baseLabel && required ? `${baseLabel}, obligatorio` : baseLabel;
   const a11yHint = [error, description, accessibilityHint].filter(Boolean).join('. ') || undefined;
 
-  const inputRef = useRef<TextInput | null>(null);
+  const inputRef = useRef<TextInputInstance | null>(null);
   const field = useFormField(!disabled, () => inputRef.current);
   const autoNext = field.inForm && !onSubmitEditing;
 
-  const setRef = (node: TextInput | null) => {
+  const setRef = (node: TextInputInstance | null) => {
     inputRef.current = node;
     if (typeof ref === 'function') ref(node as never);
     else if (ref) (ref as { current: unknown }).current = node;

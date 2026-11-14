@@ -51,15 +51,17 @@ const focusSpy = jest.spyOn(TextInput.prototype, 'focus');
 type KeyboardListener = (event: { endCoordinates: { screenY: number } }) => void;
 const keyboardListeners: Record<string, KeyboardListener> = {};
 
-const openKeyboard = () => act(() => keyboardListeners.keyboardDidShow({ endCoordinates: { screenY: 556 } }));
-const closeKeyboard = () => act(() => keyboardListeners.keyboardDidHide({ endCoordinates: { screenY: 844 } }));
+const openKeyboard = async () =>
+  await act(() => keyboardListeners.keyboardDidShow({ endCoordinates: { screenY: 556 } }));
+const closeKeyboard = async () =>
+  await act(() => keyboardListeners.keyboardDidHide({ endCoordinates: { screenY: 844 } }));
 
 const renderLogin = async () => {
-  render(<LoginScreen />);
+  await render(<LoginScreen />);
   await screen.findByRole('button', { name: 'Ingresar' });
 };
 
-const submit = () => fireEvent.press(screen.getByRole('button', { name: 'Ingresar' }));
+const submit = async () => await fireEvent.press(screen.getByRole('button', { name: 'Ingresar' }));
 
 let dimensionsSpy: jest.SpyInstance;
 let keyboardSpy: jest.SpyInstance;
@@ -102,7 +104,7 @@ describe('LoginScreen', () => {
 
   it('enviar vacío muestra el error de cada campo y no llama a login', async () => {
     await renderLogin();
-    submit();
+    await submit();
 
     expect(mockLogin).not.toHaveBeenCalled();
     expect(screen.getByText('Debe tener al menos 6 caracteres')).toBeTruthy();
@@ -111,24 +113,24 @@ describe('LoginScreen', () => {
 
   it('un usuario inválido marca solo ese campo y editarlo limpia su error', async () => {
     await renderLogin();
-    fireEvent.changeText(screen.getByLabelText('Usuario'), 'ab');
-    fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-    submit();
+    await fireEvent.changeText(screen.getByLabelText('Usuario'), 'ab');
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+    await submit();
 
     expect(screen.getByText('Debe tener al menos 6 caracteres')).toBeTruthy();
     expect(screen.queryByText('La contraseña es requerida')).toBeNull();
     expect(mockLogin).not.toHaveBeenCalled();
 
-    fireEvent.changeText(screen.getByLabelText('Usuario'), 'abc');
+    await fireEvent.changeText(screen.getByLabelText('Usuario'), 'abc');
     expect(screen.queryByText('Debe tener al menos 6 caracteres')).toBeNull();
   });
 
   it('con datos válidos llama a login con el usuario normalizado (minúsculas, sin espacios)', async () => {
     mockLogin.mockResolvedValue(undefined);
     await renderLogin();
-    fireEvent.changeText(screen.getByLabelText('Usuario'), '  Admin01 ');
-    fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-    await act(async () => submit());
+    await fireEvent.changeText(screen.getByLabelText('Usuario'), '  Admin01 ');
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+    await act(async () => await submit());
 
     expect(mockLogin).toHaveBeenCalledWith('admin01', 'secreto');
     expect(screen.queryByRole('alert')).toBeNull();
@@ -138,13 +140,13 @@ describe('LoginScreen', () => {
     let finish!: () => void;
     mockLogin.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));
     await renderLogin();
-    fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
-    fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-    submit();
+    await fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+    await submit();
 
     expect(screen.getByRole('button', { name: 'Ingresar', busy: true })).toBeTruthy();
-    submit();
-    fireEvent(screen.getByLabelText('Contraseña'), 'submitEditing');
+    await submit();
+    await fireEvent(screen.getByLabelText('Contraseña'), 'submitEditing');
     expect(mockLogin).toHaveBeenCalledTimes(1);
 
     await act(async () => finish());
@@ -155,9 +157,9 @@ describe('LoginScreen', () => {
     let finish!: () => void;
     mockLogin.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));
     await renderLogin();
-    fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
-    fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-    submit();
+    await fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+    await submit();
 
     expect(screen.getByLabelText('Usuario')).toHaveProp('editable', false);
     expect(screen.getByLabelText('Contraseña')).toHaveProp('editable', false);
@@ -176,9 +178,9 @@ describe('LoginScreen', () => {
   it('el error del servidor se muestra en un Banner destructivo', async () => {
     mockLogin.mockRejectedValue(new ApiError('Usuario o contraseña incorrectos', 401));
     await renderLogin();
-    fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
-    fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
-    await act(async () => submit());
+    await fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
+    await act(async () => await submit());
 
     expect(screen.getByRole('alert', { name: 'Usuario o contraseña incorrectos' })).toBeTruthy();
     expect(screen.getByText('Usuario o contraseña incorrectos')).toHaveProp('color', 'destructive');
@@ -187,13 +189,13 @@ describe('LoginScreen', () => {
   it('si la validación local falla, el error del servidor anterior deja de mostrarse', async () => {
     mockLogin.mockRejectedValue(new ApiError('Credenciales inválidas', 401));
     await renderLogin();
-    fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
-    fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
-    await act(async () => submit());
+    await fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
+    await act(async () => await submit());
     expect(screen.getByRole('alert', { name: 'Credenciales inválidas' })).toBeTruthy();
 
-    fireEvent.changeText(screen.getByLabelText('Contraseña'), '');
-    submit();
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), '');
+    await submit();
     expect(screen.queryByRole('alert')).toBeNull();
     expect(screen.getByText('La contraseña es requerida')).toBeTruthy();
   });
@@ -204,9 +206,9 @@ describe('LoginScreen', () => {
   ])('un error que %s cae al mensaje genérico', async (_label, reason) => {
     mockLogin.mockRejectedValue(reason);
     await renderLogin();
-    fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
-    fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
-    await act(async () => submit());
+    await fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
+    await act(async () => await submit());
 
     expect(screen.getByRole('alert', { name: 'Error al iniciar sesión' })).toBeTruthy();
   });
@@ -242,7 +244,7 @@ describe('LoginScreen', () => {
       expect(title()).toHaveProp('fontSize', 32);
       expect(title()).toHaveProp('textAlign', 'center');
 
-      openKeyboard();
+      await openKeyboard();
       expect(title()).toHaveProp('fontSize', 24);
       expect(title()).toHaveProp('textAlign', 'left');
       expect(screen.queryByText('Ingresá a tu cuenta')).toBeNull();
@@ -253,8 +255,8 @@ describe('LoginScreen', () => {
 
     it('al cerrarse vuelve el hero completo y el título de la hoja', async () => {
       await renderLogin();
-      openKeyboard();
-      closeKeyboard();
+      await openKeyboard();
+      await closeKeyboard();
 
       expect(screen.getByRole('header', { name: '¡Te damos la bienvenida a Omni!' })).toHaveProp('fontSize', 32);
       expect(screen.getByRole('header', { name: 'Ingresá a tu cuenta' })).toBeTruthy();
@@ -263,22 +265,22 @@ describe('LoginScreen', () => {
     it('mantiene el error del servidor y la validación por campo en la hoja', async () => {
       mockLogin.mockRejectedValue(new ApiError('Credenciales inválidas', 401));
       await renderLogin();
-      openKeyboard();
-      fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
-      await act(async () => submit());
+      await openKeyboard();
+      await fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
+      await act(async () => await submit());
       expect(screen.getByRole('alert', { name: 'Credenciales inválidas' })).toBeTruthy();
 
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), '');
-      submit();
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), '');
+      await submit();
       expect(screen.getByText('La contraseña es requerida')).toBeTruthy();
     });
 
     it('con usuario recordado compacta el saludo y conserva la contraseña y el enlace', async () => {
       mockGetRememberedUser.mockResolvedValue('admin01');
-      render(<LoginScreen />);
+      await render(<LoginScreen />);
       await screen.findByText('Ingresando como admin01');
-      openKeyboard();
+      await openKeyboard();
 
       expect(screen.getByRole('header', { name: '¡Hola, Admin01!' })).toHaveProp('fontSize', 24);
       expect(screen.getByText('Ingresando como admin01')).toBeTruthy();
@@ -291,9 +293,9 @@ describe('LoginScreen', () => {
   it('Enter en la contraseña envía el formulario', async () => {
     mockLogin.mockResolvedValue(undefined);
     await renderLogin();
-    fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
-    fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-    await act(async () => fireEvent(screen.getByLabelText('Contraseña'), 'submitEditing'));
+    await fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+    await act(async () => await fireEvent(screen.getByLabelText('Contraseña'), 'submitEditing'));
 
     expect(mockLogin).toHaveBeenCalledWith('admin01', 'secreto');
   });
@@ -301,16 +303,16 @@ describe('LoginScreen', () => {
   describe('usuario recordado', () => {
     const renderRemembered = async () => {
       mockGetRememberedUser.mockResolvedValue('admin01');
-      render(<LoginScreen />);
+      await render(<LoginScreen />);
       await screen.findByText('Ingresando como admin01');
     };
 
     it('guarda solo el usuario normalizado tras un login exitoso', async () => {
       mockLogin.mockResolvedValue(undefined);
       await renderLogin();
-      fireEvent.changeText(screen.getByLabelText('Usuario'), '  Admin01 ');
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-      await act(async () => submit());
+      await fireEvent.changeText(screen.getByLabelText('Usuario'), '  Admin01 ');
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => await submit());
 
       expect(mockSetRememberedUser).toHaveBeenCalledTimes(1);
       expect(mockSetRememberedUser).toHaveBeenCalledWith('admin01');
@@ -319,9 +321,9 @@ describe('LoginScreen', () => {
     it('no guarda nada si el login falla', async () => {
       mockLogin.mockRejectedValue(new ApiError('Credenciales inválidas', 401));
       await renderLogin();
-      fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
-      await act(async () => submit());
+      await fireEvent.changeText(screen.getByLabelText('Usuario'), 'admin01');
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
+      await act(async () => await submit());
 
       expect(mockSetRememberedUser).not.toHaveBeenCalled();
     });
@@ -352,15 +354,15 @@ describe('LoginScreen', () => {
     it('ingresa con el usuario recordado y la contraseña escrita', async () => {
       mockLogin.mockResolvedValue(undefined);
       await renderRemembered();
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-      await act(async () => submit());
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => await submit());
 
       expect(mockLogin).toHaveBeenCalledWith('admin01', 'secreto');
     });
 
     it('mantiene la validación de la contraseña y el sondeo del health', async () => {
       await renderRemembered();
-      submit();
+      await submit();
 
       expect(mockLogin).not.toHaveBeenCalled();
       expect(screen.getByText('La contraseña es requerida')).toBeTruthy();
@@ -369,10 +371,10 @@ describe('LoginScreen', () => {
 
     it('si el usuario guardado no es válido, vuelve al formulario completo y muestra el error', async () => {
       mockGetRememberedUser.mockResolvedValue('a');
-      render(<LoginScreen />);
+      await render(<LoginScreen />);
       await screen.findByText('Ingresando como a');
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-      await act(async () => submit());
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => await submit());
 
       expect(mockLogin).not.toHaveBeenCalled();
       expect(mockClearRememberedUser).toHaveBeenCalledTimes(1);
@@ -385,8 +387,8 @@ describe('LoginScreen', () => {
       let finish!: () => void;
       mockLogin.mockReturnValue(new Promise<void>(resolve => (finish = resolve)));
       await renderRemembered();
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-      submit();
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await submit();
 
       expect(screen.getByLabelText('Contraseña')).toHaveProp('editable', false);
       expect(screen.getByRole('button', { name: 'Ingresar con otro usuario', disabled: true })).toBeTruthy();
@@ -396,8 +398,8 @@ describe('LoginScreen', () => {
 
     it('"Ingresar con otro usuario" olvida al usuario y vuelve al formulario completo', async () => {
       await renderRemembered();
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-      await act(async () => fireEvent.press(screen.getByText('Ingresar con otro usuario')));
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => await fireEvent.press(screen.getByText('Ingresar con otro usuario')));
 
       expect(mockClearRememberedUser).toHaveBeenCalledTimes(1);
       expect(screen.getByLabelText('Usuario')).toHaveProp('value', '');
@@ -413,13 +415,13 @@ describe('LoginScreen', () => {
       mockAuth.isAuthenticated = true;
       mockBiometrics.locked = true;
       mockBiometrics.enabled = true;
-      render(<LoginScreen />);
+      await render(<LoginScreen />);
       await screen.findByRole('button', { name: 'Ingresar con huella' });
     };
 
     it('sin bloqueo (biometría desactivada o sin biometría en el teléfono) no muestra nada relacionado', async () => {
       mockGetRememberedUser.mockResolvedValue('admin01');
-      render(<LoginScreen />);
+      await render(<LoginScreen />);
       await screen.findByText('Ingresando como admin01');
 
       expect(screen.queryByText(/Ingresar con (huella|rostro|biometría)/)).toBeNull();
@@ -442,7 +444,7 @@ describe('LoginScreen', () => {
       mockGetRememberedUser.mockResolvedValue('admin01');
       mockAuth.isAuthenticated = true;
       mockBiometrics.locked = true;
-      render(<LoginScreen />);
+      await render(<LoginScreen />);
 
       expect(await screen.findByRole('button', { name: 'Ingresar con rostro' })).toBeTruthy();
       expect(screen.queryByText('Ingresar con huella')).toBeNull();
@@ -451,7 +453,7 @@ describe('LoginScreen', () => {
     it('bloqueado pero sin sesión guardada (después de cerrar sesión) no hay nada que liberar: sin botón', async () => {
       mockGetRememberedUser.mockResolvedValue('admin01');
       mockBiometrics.locked = true;
-      render(<LoginScreen />);
+      await render(<LoginScreen />);
       await screen.findByText('Ingresando como admin01');
 
       expect(screen.queryByText('Ingresar con huella')).toBeNull();
@@ -459,7 +461,7 @@ describe('LoginScreen', () => {
 
     it('al tocarlo pide la biometría y no llama a login ni toca la contraseña', async () => {
       await renderLocked();
-      await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Ingresar con huella' })));
+      await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Ingresar con huella' })));
 
       expect(mockUnlock).toHaveBeenCalledTimes(1);
       expect(mockLogin).not.toHaveBeenCalled();
@@ -469,7 +471,7 @@ describe('LoginScreen', () => {
     it('si se cancela no avisa nada y la contraseña sigue disponible', async () => {
       mockUnlock.mockResolvedValue('cancelled');
       await renderLocked();
-      await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Ingresar con huella' })));
+      await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Ingresar con huella' })));
 
       expect(screen.queryByText(/No se pudo verificar/)).toBeNull();
       expect(screen.getByRole('button', { name: 'Ingresar con huella', busy: false })).toBeTruthy();
@@ -479,7 +481,7 @@ describe('LoginScreen', () => {
     it('si falla avisa, manda el foco a la contraseña y se puede reintentar', async () => {
       mockUnlock.mockResolvedValue('failed');
       await renderLocked();
-      await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Ingresar con huella' })));
+      await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Ingresar con huella' })));
 
       expect(screen.getByText('No se pudo verificar tu huella. Ingresá con tu contraseña.')).toBeTruthy();
       expect(focusSpy).toHaveBeenCalled();
@@ -490,11 +492,11 @@ describe('LoginScreen', () => {
       let finish!: (result: string) => void;
       mockUnlock.mockReturnValue(new Promise(resolve => (finish = resolve)));
       await renderLocked();
-      fireEvent.press(screen.getByRole('button', { name: 'Ingresar con huella' }));
+      await fireEvent.press(screen.getByRole('button', { name: 'Ingresar con huella' }));
 
       expect(screen.getByRole('button', { name: 'Ingresar con huella', busy: true })).toBeTruthy();
       expect(screen.getByRole('button', { name: 'Ingresar con otro usuario', disabled: true })).toBeTruthy();
-      fireEvent.press(screen.getByRole('button', { name: 'Ingresar con huella' }));
+      await fireEvent.press(screen.getByRole('button', { name: 'Ingresar con huella' }));
       expect(mockUnlock).toHaveBeenCalledTimes(1);
 
       await act(async () => finish('cancelled'));
@@ -504,8 +506,8 @@ describe('LoginScreen', () => {
     it('la contraseña es la alternativa: autentica contra el servidor y libera el bloqueo', async () => {
       mockLogin.mockResolvedValue(undefined);
       await renderLocked();
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-      await act(async () => submit());
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => await submit());
 
       expect(mockLogin).toHaveBeenCalledWith('admin01', 'secreto');
       expect(mockMarkUnlocked).toHaveBeenCalledTimes(1);
@@ -515,9 +517,9 @@ describe('LoginScreen', () => {
     it('un login con la contraseña de otro usuario (sin recordado) desactiva la biometría', async () => {
       mockLogin.mockResolvedValue(undefined);
       await renderLocked(null);
-      fireEvent.changeText(screen.getByLabelText('Usuario'), 'otro01');
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-      await act(async () => submit());
+      await fireEvent.changeText(screen.getByLabelText('Usuario'), 'otro01');
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => await submit());
 
       expect(mockLogin).toHaveBeenCalledWith('otro01', 'secreto');
       expect(mockDisableBiometrics).toHaveBeenCalledTimes(1);
@@ -528,13 +530,13 @@ describe('LoginScreen', () => {
       mockLogin.mockResolvedValue(undefined);
       mockGetRememberedUser.mockResolvedValue('admin01');
       mockBiometrics.enabled = true;
-      render(<LoginScreen />);
+      await render(<LoginScreen />);
       await screen.findByText('Ingresando como admin01');
-      await act(async () => fireEvent.press(screen.getByText('Ingresar con otro usuario')));
+      await act(async () => await fireEvent.press(screen.getByText('Ingresar con otro usuario')));
       mockDisableBiometrics.mockClear();
-      fireEvent.changeText(screen.getByLabelText('Usuario'), 'otro01');
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-      await act(async () => submit());
+      await fireEvent.changeText(screen.getByLabelText('Usuario'), 'otro01');
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => await submit());
 
       expect(mockLogin).toHaveBeenCalledWith('otro01', 'secreto');
       expect(mockDisableBiometrics).toHaveBeenCalledTimes(1);
@@ -544,8 +546,8 @@ describe('LoginScreen', () => {
       mockLogin.mockResolvedValue(undefined);
       mockSetRememberedUser.mockRejectedValue(new Error('SecureStore'));
       await renderLocked();
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
-      await act(async () => submit());
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'secreto');
+      await act(async () => await submit());
 
       expect(mockMarkUnlocked).toHaveBeenCalledTimes(1);
       expect(screen.queryByText('Error al iniciar sesión')).toBeNull();
@@ -554,8 +556,8 @@ describe('LoginScreen', () => {
     it('un login con contraseña que falla no libera el bloqueo', async () => {
       mockLogin.mockRejectedValue(new ApiError('Credenciales inválidas', 401));
       await renderLocked();
-      fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
-      await act(async () => submit());
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'mala');
+      await act(async () => await submit());
 
       expect(mockMarkUnlocked).not.toHaveBeenCalled();
       expect(screen.getByText('Credenciales inválidas')).toBeTruthy();
@@ -563,7 +565,7 @@ describe('LoginScreen', () => {
 
     it('"Ingresar con otro usuario" con el bloqueo puesto cierra antes la sesión guardada y desactiva la biometría', async () => {
       await renderLocked();
-      await act(async () => fireEvent.press(screen.getByText('Ingresar con otro usuario')));
+      await act(async () => await fireEvent.press(screen.getByText('Ingresar con otro usuario')));
 
       expect(mockLogout).toHaveBeenCalledTimes(1);
       expect(mockDisableBiometrics).toHaveBeenCalledTimes(1);
@@ -574,7 +576,7 @@ describe('LoginScreen', () => {
     it('si no se pueden borrar los datos locales igual cambia de usuario y avisa', async () => {
       mockLogout.mockRejectedValue(new Error('SecureStore'));
       await renderLocked();
-      await act(async () => fireEvent.press(screen.getByText('Ingresar con otro usuario')));
+      await act(async () => await fireEvent.press(screen.getByText('Ingresar con otro usuario')));
 
       expect(notifyWarning).toHaveBeenCalledWith(
         'No se pudieron borrar los datos de la sesión anterior de este celular.'
@@ -586,7 +588,7 @@ describe('LoginScreen', () => {
     it('si falla desactivar la biometría igual cambia de usuario y avisa', async () => {
       mockDisableBiometrics.mockRejectedValue(new Error('SecureStore'));
       await renderLocked();
-      await act(async () => fireEvent.press(screen.getByText('Ingresar con otro usuario')));
+      await act(async () => await fireEvent.press(screen.getByText('Ingresar con otro usuario')));
 
       expect(notifyWarning).toHaveBeenCalledWith(
         'No se pudo desactivar el ingreso biométrico de este celular. Revisalo en tu perfil.'
@@ -597,9 +599,9 @@ describe('LoginScreen', () => {
 
     it('sin bloqueo, "Ingresar con otro usuario" no cierra ninguna sesión pero igual desactiva la biometría', async () => {
       mockGetRememberedUser.mockResolvedValue('admin01');
-      render(<LoginScreen />);
+      await render(<LoginScreen />);
       await screen.findByText('Ingresando como admin01');
-      await act(async () => fireEvent.press(screen.getByText('Ingresar con otro usuario')));
+      await act(async () => await fireEvent.press(screen.getByText('Ingresar con otro usuario')));
 
       expect(mockLogout).not.toHaveBeenCalled();
       expect(mockDisableBiometrics).toHaveBeenCalledTimes(1);

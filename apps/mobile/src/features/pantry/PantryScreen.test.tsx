@@ -47,25 +47,25 @@ beforeEach(() => {
 });
 
 describe('PantryScreen', () => {
-  it('se engancha a la revalidación al volver a la pestaña', () => {
-    render(<PantryScreen />);
+  it('se engancha a la revalidación al volver a la pestaña', async () => {
+    await render(<PantryScreen />);
 
     expect(mockRevalidateOnFocus).toHaveBeenCalled();
   });
 
-  it('avisa que se actualiza solo únicamente en la lista de un hogar compartido', () => {
-    render(<PantryScreen />);
+  it('avisa que se actualiza solo únicamente en la lista de un hogar compartido', async () => {
+    await render(<PantryScreen />);
 
     expect(screen.queryByText('Se actualiza solo')).toBeNull();
-    fireEvent.press(screen.getByText('Lista de compras'));
+    await fireEvent.press(screen.getByText('Lista de compras'));
     expect(screen.getByText('Se actualiza solo')).toBeTruthy();
   });
 
-  it('sin vincular no muestra el aviso', () => {
+  it('sin vincular no muestra el aviso', async () => {
     mockMembers = 1;
-    render(<PantryScreen />);
+    await render(<PantryScreen />);
 
-    fireEvent.press(screen.getByText('Lista de compras'));
+    await fireEvent.press(screen.getByText('Lista de compras'));
     expect(screen.queryByText('Se actualiza solo')).toBeNull();
   });
 });

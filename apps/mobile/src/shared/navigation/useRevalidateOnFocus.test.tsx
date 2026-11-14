@@ -5,8 +5,8 @@ import { useRevalidateOnFocus } from './useRevalidateOnFocus';
 let mockFocused = true;
 jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockFocused }));
 
-function setup(revalidate: jest.Mock) {
-  return renderHook(() => useRevalidateOnFocus(revalidate));
+async function setup(revalidate: jest.Mock) {
+  return await renderHook(() => useRevalidateOnFocus(revalidate));
 }
 
 describe('useRevalidateOnFocus', () => {
@@ -14,38 +14,38 @@ describe('useRevalidateOnFocus', () => {
     mockFocused = true;
   });
 
-  it('no revalida al montar con foco ni al montar sin foco', () => {
+  it('no revalida al montar con foco ni al montar sin foco', async () => {
     const revalidate = jest.fn().mockResolvedValue(undefined);
-    setup(revalidate);
+    await setup(revalidate);
 
     mockFocused = false;
-    setup(revalidate);
+    await setup(revalidate);
 
     expect(revalidate).not.toHaveBeenCalled();
   });
 
-  it('revalida una vez al recuperar el foco, y no al perderlo ni al volver a renderizar', () => {
+  it('revalida una vez al recuperar el foco, y no al perderlo ni al volver a renderizar', async () => {
     const revalidate = jest.fn().mockResolvedValue(undefined);
-    const { rerender } = setup(revalidate);
+    const { rerender } = await setup(revalidate);
 
     mockFocused = false;
-    rerender({});
+    await rerender({});
     expect(revalidate).not.toHaveBeenCalled();
 
     mockFocused = true;
-    rerender({});
-    rerender({});
+    await rerender({});
+    await rerender({});
     expect(revalidate).toHaveBeenCalledTimes(1);
   });
 
   it('un fallo al revalidar no se propaga', async () => {
     const revalidate = jest.fn().mockRejectedValue(new Error('Sin conexión'));
     mockFocused = false;
-    const { rerender } = setup(revalidate);
+    const { rerender } = await setup(revalidate);
 
     mockFocused = true;
     await act(async () => {
-      rerender({});
+      await rerender({});
     });
 
     expect(revalidate).toHaveBeenCalledTimes(1);

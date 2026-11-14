@@ -7,6 +7,7 @@ import useSWRImmutable from 'swr/immutable';
 import { ApiError } from '@omni/shared/api';
 
 import { initAppStateFocus, SWRProvider } from './SWRProvider';
+import { trackSWR } from '@/test/swr';
 
 type Listener = (state: AppStateStatus) => void;
 
@@ -90,10 +91,10 @@ describe('SWRProvider', () => {
   it('un useSWR revalida al volver a primer plano; uno immutable no', async () => {
     const listFetcher = jest.fn().mockResolvedValue(['a']);
     const profileFetcher = jest.fn().mockResolvedValue({ name: 'Ana' });
-    const { result } = renderHook(
+    const { result } = await renderHook(
       () => ({
-        list: useSWR('/api/lista', listFetcher),
-        profile: useSWRImmutable('/api/perfil', profileFetcher),
+        list: trackSWR(useSWR('/api/lista', listFetcher)),
+        profile: trackSWR(useSWRImmutable('/api/perfil', profileFetcher)),
       }),
       { wrapper: Wrapper }
     );
@@ -108,11 +109,15 @@ describe('SWRProvider', () => {
 
   it('conserva la caché si se vuelve a montar (expo-router remonta el layout raíz al redirigir)', async () => {
     const fetcherMock = jest.fn().mockResolvedValue({ user: 'ana' });
-    const first = renderHook(() => useSWRImmutable('/api/sesion', fetcherMock), { wrapper: SWRProvider });
+    const first = await renderHook(() => trackSWR(useSWRImmutable('/api/sesion', fetcherMock)), {
+      wrapper: SWRProvider,
+    });
     await waitFor(() => expect(first.result.current.data).toEqual({ user: 'ana' }));
-    first.unmount();
+    await first.unmount();
 
-    const second = renderHook(() => useSWRImmutable('/api/sesion', fetcherMock), { wrapper: SWRProvider });
+    const second = await renderHook(() => trackSWR(useSWRImmutable('/api/sesion', fetcherMock)), {
+      wrapper: SWRProvider,
+    });
 
     expect(second.result.current.data).toEqual({ user: 'ana' });
     expect(fetcherMock).toHaveBeenCalledTimes(1);
@@ -129,14 +134,14 @@ describe('SWRProvider', () => {
         <Name />
       </SWRProvider>
     );
-    const { rerender } = render(<Root generation={1} />);
+    const { rerender } = await render(<Root generation={1} />);
     expect(await screen.findByText('Ana')).toBeTruthy();
 
-    rerender(<Root generation={2} />);
+    await rerender(<Root generation={2} />);
     await act(async () => {
       await jest.advanceTimersByTimeAsync(100);
     });
-    rerender(<Root generation={2} />);
+    await rerender(<Root generation={2} />);
 
     expect(screen.getByText('Ana')).toBeTruthy();
     expect(fetcherMock).toHaveBeenCalledTimes(1);
@@ -151,10 +156,10 @@ describe('SWRProvider', () => {
     const missingFetcher = jest.fn(async () => {
       throw new ApiError('No existe', 404);
     });
-    const { result } = renderHook(
+    const { result } = await renderHook(
       () => ({
-        throttled: useSWR('/api/probe-429', throttledFetcher),
-        missing: useSWR('/api/probe-404', missingFetcher),
+        throttled: trackSWR(useSWR('/api/probe-429', throttledFetcher)),
+        missing: trackSWR(useSWR('/api/probe-404', missingFetcher)),
       }),
       { wrapper: Wrapper }
     );

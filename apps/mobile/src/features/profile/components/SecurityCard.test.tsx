@@ -30,39 +30,39 @@ beforeEach(() => {
 });
 
 describe('SecurityCard', () => {
-  it('si el teléfono no tiene biometría no muestra nada', () => {
+  it('si el teléfono no tiene biometría no muestra nada', async () => {
     mockBiometrics.available = false;
-    render(<SecurityCard />);
+    await render(<SecurityCard />);
 
     expect(screen.queryByText('Seguridad')).toBeNull();
     expect(screen.queryByRole('switch')).toBeNull();
   });
 
-  it('muestra el toggle con el texto de huella, apagado', () => {
-    render(<SecurityCard />);
+  it('muestra el toggle con el texto de huella, apagado', async () => {
+    await render(<SecurityCard />);
 
     expect(screen.getByText('Seguridad')).toBeTruthy();
     expect(screen.getByRole('switch', { name: 'Ingresar con huella', checked: false })).toBeTruthy();
   });
 
-  it('adapta los textos al rostro', () => {
+  it('adapta los textos al rostro', async () => {
     mockBiometrics.noun = 'rostro';
-    render(<SecurityCard />);
+    await render(<SecurityCard />);
 
     expect(screen.getByRole('switch', { name: 'Ingresar con rostro' })).toBeTruthy();
     expect(screen.getByText(/Pedir tu rostro al abrir Omni/)).toBeTruthy();
   });
 
-  it('refleja la preferencia activada', () => {
+  it('refleja la preferencia activada', async () => {
     mockBiometrics.enabled = true;
-    render(<SecurityCard />);
+    await render(<SecurityCard />);
 
     expect(screen.getByRole('switch', { name: 'Ingresar con huella', checked: true })).toBeTruthy();
   });
 
   it('activar pide la verificación (enable) y no avisa si sale bien', async () => {
-    render(<SecurityCard />);
-    await act(async () => fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
+    await render(<SecurityCard />);
+    await act(async () => await fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
 
     expect(mockEnable).toHaveBeenCalledTimes(1);
     expect(notifyError).not.toHaveBeenCalled();
@@ -71,8 +71,8 @@ describe('SecurityCard', () => {
   it('muestra el valor nuevo mientras se verifica y vuelve a apagado si se cancela, sin avisar', async () => {
     const pending = deferred<string>();
     mockEnable.mockReturnValue(pending.promise);
-    render(<SecurityCard />);
-    fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' }));
+    await render(<SecurityCard />);
+    await fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' }));
 
     expect(screen.getByRole('switch', { name: 'Ingresar con huella', checked: true })).toBeTruthy();
 
@@ -83,8 +83,8 @@ describe('SecurityCard', () => {
 
   it('si la verificación falla vuelve a apagado y avisa', async () => {
     mockEnable.mockResolvedValue('failed');
-    render(<SecurityCard />);
-    await act(async () => fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
+    await render(<SecurityCard />);
+    await act(async () => await fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo verificar tu huella. No se activó el ingreso.');
     expect(screen.getByRole('switch', { name: 'Ingresar con huella', checked: false })).toBeTruthy();
@@ -93,9 +93,9 @@ describe('SecurityCard', () => {
   it('ignora un segundo toque mientras hay una verificación en vuelo', async () => {
     const pending = deferred<string>();
     mockEnable.mockReturnValue(pending.promise);
-    render(<SecurityCard />);
-    fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' }));
-    fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' }));
+    await render(<SecurityCard />);
+    await fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' }));
+    await fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' }));
 
     expect(mockEnable).toHaveBeenCalledTimes(1);
     await act(async () => pending.resolve('success'));
@@ -103,8 +103,8 @@ describe('SecurityCard', () => {
 
   it('desactivar no pide verificación', async () => {
     mockBiometrics.enabled = true;
-    render(<SecurityCard />);
-    await act(async () => fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
+    await render(<SecurityCard />);
+    await act(async () => await fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
 
     expect(mockDisable).toHaveBeenCalledTimes(1);
     expect(mockEnable).not.toHaveBeenCalled();
@@ -112,8 +112,8 @@ describe('SecurityCard', () => {
 
   it('si no se puede guardar al activar, avisa que no se guardó y el switch vuelve a apagado', async () => {
     mockEnable.mockRejectedValue(new Error('SecureStore'));
-    render(<SecurityCard />);
-    await act(async () => fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
+    await render(<SecurityCard />);
+    await act(async () => await fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo guardar la preferencia');
     expect(screen.getByRole('switch', { name: 'Ingresar con huella', checked: false })).toBeTruthy();
@@ -122,8 +122,8 @@ describe('SecurityCard', () => {
   it('si no se puede guardar al desactivar, vuelve a encendido y avisa', async () => {
     mockBiometrics.enabled = true;
     mockDisable.mockRejectedValue(new Error('SecureStore'));
-    render(<SecurityCard />);
-    await act(async () => fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
+    await render(<SecurityCard />);
+    await act(async () => await fireEvent.press(screen.getByRole('switch', { name: 'Ingresar con huella' })));
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo guardar la preferencia');
     expect(screen.getByRole('switch', { name: 'Ingresar con huella', checked: true })).toBeTruthy();

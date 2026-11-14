@@ -1,23 +1,29 @@
 import { SPACING } from '@omni/shared/theme';
 import { useCallback, useEffect, useRef } from 'react';
-import { Keyboard, TextInput, type NativeScrollEvent, type NativeSyntheticEvent, type ScrollView } from 'react-native';
+import {
+  Keyboard,
+  TextInput,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  type ScrollViewInstance,
+} from 'react-native';
 
-/** Espacio que queda libre entre el campo enfocado y el teclado: deja ver el botón que sigue al campo. */
 const CLEARANCE = SPACING['3xl'] * 2;
 
-/** Lo único que el hook le pide al scroll: el `ScrollView` de RN y el de Tamagui (`Sheet.ScrollView`) lo cumplen. */
 type ScrollTarget = { scrollTo: (options: { y: number; animated: boolean }) => void };
 
 /**
  * Mantiene visible el campo enfocado de un `ScrollView` con teclado. En Android edge-to-edge la ventana
  * no se redimensiona, así que ni el teclado al abrirse ni "Siguiente" entre campos hacen scrollear el
  * formulario: el campo queda tapado. `KeyboardAvoidingView` solo achica el área; este hook hace el scroll.
- * `T` es el tipo del ref del scroll (el `ScrollView` de RN por defecto).
+ * Deja libre un espacio (`CLEARANCE`) entre el campo enfocado y el teclado, para ver el botón que sigue al campo.
+ * `T` es el tipo del ref del scroll (el `ScrollViewInstance` de RN por defecto): lo único que se le pide es
+ * `scrollTo`, que cumplen tanto el `ScrollView` de RN como el de Tamagui (`Sheet.ScrollView`).
  *
  * Uso: `<ScrollView ref={scrollRef} onScroll={onScroll} scrollEventThrottle={16}>` y, en los campos que
  * reciben el foco con el teclado ya abierto, `onFocus={scrollIntoView}`.
  */
-export function useScrollFocusedInputIntoView<T extends ScrollTarget = ScrollView>() {
+export function useScrollFocusedInputIntoView<T extends ScrollTarget = ScrollViewInstance>() {
   const scrollRef = useRef<T>(null);
   const offsetY = useRef(0);
   const keyboardTop = useRef<number | null>(null);

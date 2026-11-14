@@ -22,14 +22,14 @@ function Probe() {
   return <Text>{current.colorScheme}</Text>;
 }
 
-function renderWith(profileTheme: ProfileTheme | null) {
+async function renderWith(profileTheme: ProfileTheme | null) {
   const tree = (theme: ProfileTheme | null) => (
     <ColorSchemeProvider profileTheme={theme}>
       <Probe />
     </ColorSchemeProvider>
   );
-  const view = render(tree(profileTheme));
-  return { rerenderWith: (theme: ProfileTheme | null) => view.rerender(tree(theme)) };
+  const view = await render(tree(profileTheme));
+  return { rerenderWith: async (theme: ProfileTheme | null) => await view.rerender(tree(theme)) };
 }
 
 describe('ColorSchemeProvider', () => {
@@ -37,43 +37,43 @@ describe('ColorSchemeProvider', () => {
     mockSystemScheme = 'light';
   });
 
-  it('sin sesión o con tema auto sigue el esquema del sistema', () => {
+  it('sin sesión o con tema auto sigue el esquema del sistema', async () => {
     mockSystemScheme = 'dark';
-    const { rerenderWith } = renderWith(null);
+    const { rerenderWith } = await renderWith(null);
     expect(screen.getByText('dark')).toBeTruthy();
 
-    rerenderWith('auto');
+    await rerenderWith('auto');
     expect(screen.getByText('dark')).toBeTruthy();
   });
 
-  it('con tema light o dark usa el del perfil', () => {
+  it('con tema light o dark usa el del perfil', async () => {
     mockSystemScheme = 'light';
-    renderWith('dark');
+    await renderWith('dark');
     expect(screen.getByText('dark')).toBeTruthy();
   });
 
-  it('el override del toggle pisa al perfil y se descarta al quedar sin sesión', () => {
-    const { rerenderWith } = renderWith('light');
-    act(() => control.toggle());
+  it('el override del toggle pisa al perfil y se descarta al quedar sin sesión', async () => {
+    const { rerenderWith } = await renderWith('light');
+    await act(() => control.toggle());
     expect(screen.getByText('dark')).toBeTruthy();
 
-    rerenderWith(null);
+    await rerenderWith(null);
     expect(screen.getByText('light')).toBeTruthy();
   });
 
-  it('el override descartado al quedar sin sesión no vuelve al iniciar otra', () => {
-    const { rerenderWith } = renderWith('light');
-    act(() => control.toggle());
+  it('el override descartado al quedar sin sesión no vuelve al iniciar otra', async () => {
+    const { rerenderWith } = await renderWith('light');
+    await act(() => control.toggle());
     expect(screen.getByText('dark')).toBeTruthy();
 
-    rerenderWith(null);
-    rerenderWith('light');
+    await rerenderWith(null);
+    await rerenderWith('light');
     expect(screen.getByText('light')).toBeTruthy();
   });
 
-  it('useColorSchemeControl fuera del provider tira un error', () => {
+  it('useColorSchemeControl fuera del provider tira un error', async () => {
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => render(<Probe />)).toThrow('ColorSchemeProvider');
+    await expect(render(<Probe />)).rejects.toThrow('ColorSchemeProvider');
     spy.mockRestore();
   });
 });

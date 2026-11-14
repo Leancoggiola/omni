@@ -2,7 +2,7 @@ import { loginSchema } from '@omni/shared/auth';
 import { ignoreError } from '@omni/shared/common';
 import { RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef, useState } from 'react';
-import { Image, ScrollView, type TextInput } from 'react-native';
+import { Image, ScrollView, type TextInputInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Paragraph, XStack, YStack, type TamaguiElement } from 'tamagui';
 
@@ -231,12 +231,12 @@ export function LoginScreen() {
   useEffect(() => {
     if (remembered === null && focusUsername.current) {
       focusUsername.current = false;
-      (usernameRef.current as TextInput | null)?.focus();
+      (usernameRef.current as TextInputInstance | null)?.focus();
     }
   }, [remembered]);
 
   useEffect(() => {
-    if (error && !loading && !unlocking) (passwordRef.current as TextInput | null)?.focus();
+    if (error && !loading && !unlocking) (passwordRef.current as TextInputInstance | null)?.focus();
   }, [error, loading, unlocking]);
 
   const onSubmit = async () => {
@@ -362,7 +362,7 @@ export function LoginScreen() {
                         returnKeyType="next"
                         enterKeyHint="next"
                         submitBehavior="submit"
-                        onSubmitEditing={() => (passwordRef.current as TextInput | null)?.focus()}
+                        onSubmitEditing={() => (passwordRef.current as TextInputInstance | null)?.focus()}
                       />
                     )}
                     <PasswordField

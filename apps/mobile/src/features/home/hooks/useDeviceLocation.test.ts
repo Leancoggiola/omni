@@ -26,10 +26,12 @@ beforeEach(() => {
 describe('useDeviceLocation', () => {
   it('con permiso redondea la posición a dos decimales', async () => {
     mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(true));
-    mocked.getCurrentPositionAsync.mockResolvedValue(position(-34.603722, -58.381592));
+    let resolvePosition: (value: ReturnType<typeof position>) => void = () => undefined;
+    mocked.getCurrentPositionAsync.mockReturnValue(new Promise(resolve => (resolvePosition = resolve)) as never);
 
-    const { result } = renderHook(() => useDeviceLocation());
+    const { result } = await renderHook(() => useDeviceLocation());
     expect(result.current.location).toEqual({ status: 'locating' });
+    await act(async () => resolvePosition(position(-34.603722, -58.381592)));
 
     await waitFor(() =>
       expect(result.current.location).toEqual({
@@ -44,7 +46,7 @@ describe('useDeviceLocation', () => {
     mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(true));
     mocked.getLastKnownPositionAsync.mockResolvedValue(position(-32.944, -60.65));
 
-    const { result } = renderHook(() => useDeviceLocation());
+    const { result } = await renderHook(() => useDeviceLocation());
 
     await waitFor(() => expect(result.current.location.status).toBe('granted'));
     expect(mocked.getCurrentPositionAsync).not.toHaveBeenCalled();
@@ -53,7 +55,7 @@ describe('useDeviceLocation', () => {
   it('con el permiso negado queda unavailable y no pide la posición', async () => {
     mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(false));
 
-    const { result } = renderHook(() => useDeviceLocation());
+    const { result } = await renderHook(() => useDeviceLocation());
 
     await waitFor(() => expect(result.current.location).toEqual({ status: 'unavailable', canAskAgain: true }));
     expect(mocked.getCurrentPositionAsync).not.toHaveBeenCalled();
@@ -63,7 +65,7 @@ describe('useDeviceLocation', () => {
     mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(true));
     mocked.getCurrentPositionAsync.mockRejectedValue(new Error('Location services are disabled'));
 
-    const { result } = renderHook(() => useDeviceLocation());
+    const { result } = await renderHook(() => useDeviceLocation());
 
     await waitFor(() => expect(result.current.location.status).toBe('unavailable'));
   });
@@ -73,7 +75,7 @@ describe('useDeviceLocation', () => {
     try {
       mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(true));
       mocked.getCurrentPositionAsync.mockReturnValue(new Promise(() => {}));
-      const { result } = renderHook(() => useDeviceLocation());
+      const { result } = await renderHook(() => useDeviceLocation());
       await act(async () => {});
       expect(result.current.location).toEqual({ status: 'locating' });
 
@@ -89,12 +91,12 @@ describe('useDeviceLocation', () => {
 
   it('request vuelve a pedir el permiso', async () => {
     mocked.requestForegroundPermissionsAsync.mockResolvedValueOnce(permission(false));
-    const { result } = renderHook(() => useDeviceLocation());
+    const { result } = await renderHook(() => useDeviceLocation());
     await waitFor(() => expect(result.current.location.status).toBe('unavailable'));
     mocked.requestForegroundPermissionsAsync.mockResolvedValueOnce(permission(true));
     mocked.getCurrentPositionAsync.mockResolvedValue(position(10.126, 20.004));
 
-    act(() => result.current.request());
+    await act(() => result.current.request());
 
     await waitFor(() =>
       expect(result.current.location).toEqual({ status: 'granted', coordinates: { latitude: 10.13, longitude: 20 } })
@@ -104,10 +106,10 @@ describe('useDeviceLocation', () => {
   it('si el sistema ya no deja preguntar, request abre los ajustes en vez de pedir de nuevo', async () => {
     const openSettings = jest.spyOn(Linking, 'openSettings').mockResolvedValue();
     mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(false, false));
-    const { result } = renderHook(() => useDeviceLocation());
+    const { result } = await renderHook(() => useDeviceLocation());
     await waitFor(() => expect(result.current.location).toEqual({ status: 'unavailable', canAskAgain: false }));
 
-    act(() => result.current.request());
+    await act(() => result.current.request());
 
     expect(openSettings).toHaveBeenCalledTimes(1);
     expect(mocked.requestForegroundPermissionsAsync).toHaveBeenCalledTimes(1);
@@ -124,12 +126,12 @@ describe('useDeviceLocation', () => {
       return { remove };
     }) as unknown as typeof AppState.addEventListener);
     mocked.requestForegroundPermissionsAsync.mockResolvedValueOnce(permission(false, false));
-    const { result } = renderHook(() => useDeviceLocation());
+    const { result } = await renderHook(() => useDeviceLocation());
     await waitFor(() => expect(result.current.location).toEqual({ status: 'unavailable', canAskAgain: false }));
     mocked.requestForegroundPermissionsAsync.mockResolvedValueOnce(permission(true));
     mocked.getCurrentPositionAsync.mockResolvedValue(position(-34.603722, -58.381592));
 
-    act(() => onChange('active'));
+    await act(() => onChange('active'));
 
     await waitFor(() =>
       expect(result.current.location).toEqual({
@@ -143,7 +145,7 @@ describe('useDeviceLocation', () => {
   it('si todavía se puede preguntar, no reintenta solo al volver a primer plano', async () => {
     const addEventListener = jest.spyOn(AppState, 'addEventListener');
     mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(false, true));
-    const { result } = renderHook(() => useDeviceLocation());
+    const { result } = await renderHook(() => useDeviceLocation());
     await waitFor(() => expect(result.current.location).toEqual({ status: 'unavailable', canAskAgain: true }));
 
     expect(addEventListener).not.toHaveBeenCalled();

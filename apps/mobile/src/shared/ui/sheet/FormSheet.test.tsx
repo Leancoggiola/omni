@@ -1,9 +1,10 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { Modal, Text } from 'react-native';
+import { Text } from 'react-native';
 
 import { FormSheet } from './FormSheet';
 import { SHEET_EXIT_MS } from './useSheetQueue';
 
+import { getByHostType, queryAllByHostType } from '@/test/hostQueries';
 import { mockSheet } from '@/test/tamaguiMock';
 
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
@@ -13,10 +14,10 @@ jest.mock(
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default
 );
 
-function renderSheet(props: { open?: boolean; busy?: boolean } = {}) {
+async function renderSheet(props: { open?: boolean; busy?: boolean } = {}) {
   const onOpenChange = jest.fn();
   const onClosed = jest.fn();
-  const view = render(
+  const view = await render(
     <FormSheet open title="Ingresar código" onOpenChange={onOpenChange} onClosed={onClosed} {...props}>
       <Text>Contenido</Text>
     </FormSheet>
@@ -28,88 +29,88 @@ beforeEach(() => jest.useFakeTimers());
 afterEach(() => jest.useRealTimers());
 
 describe('FormSheet', () => {
-  it('muestra el título y el contenido', () => {
-    renderSheet();
+  it('muestra el título y el contenido', async () => {
+    await renderSheet();
 
     expect(screen.getByText('Ingresar código')).toBeTruthy();
     expect(screen.getByText('Contenido')).toBeTruthy();
   });
 
-  it('no se puede arrastrar: un toque no la desplaza ni la achica', () => {
-    renderSheet();
+  it('no se puede arrastrar: un toque no la desplaza ni la achica', async () => {
+    await renderSheet();
 
     expect(mockSheet.props?.disableDrag).toBe(true);
   });
 
-  it('el botón de cerrar y Atrás piden cerrar', () => {
-    const { onOpenChange } = renderSheet();
+  it('el botón de cerrar y Atrás piden cerrar', async () => {
+    const { onOpenChange } = await renderSheet();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Cerrar' }));
-    act(() => screen.UNSAFE_getByType(Modal).props.onRequestClose());
+    await fireEvent.press(screen.getByRole('button', { name: 'Cerrar' }));
+    await act(() => getByHostType('Modal').props.onRequestClose());
 
     expect(onOpenChange).toHaveBeenCalledTimes(2);
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('con una operación en curso no se puede cerrar', () => {
-    const { onOpenChange } = renderSheet({ busy: true });
+  it('con una operación en curso no se puede cerrar', async () => {
+    const { onOpenChange } = await renderSheet({ busy: true });
 
-    act(() => screen.UNSAFE_getByType(Modal).props.onRequestClose());
+    await act(() => getByHostType('Modal').props.onRequestClose());
 
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
-  it('al cerrar oculta el Modal y avisa onClosed recién tras la salida', () => {
-    const { onClosed, view } = renderSheet();
+  it('al cerrar oculta el Modal y avisa onClosed recién tras la salida', async () => {
+    const { onClosed, view } = await renderSheet();
 
-    view.rerender(
+    await view.rerender(
       <FormSheet open={false} title="Ingresar código" onOpenChange={jest.fn()} onClosed={onClosed}>
         <Text>Contenido</Text>
       </FormSheet>
     );
     expect(onClosed).not.toHaveBeenCalled();
-    expect(screen.UNSAFE_getByType(Modal).props.visible).toBe(true);
+    expect(getByHostType('Modal')).toHaveProp('visible', true);
 
-    act(() => jest.advanceTimersByTime(SHEET_EXIT_MS));
+    await act(() => jest.advanceTimersByTime(SHEET_EXIT_MS));
 
     expect(onClosed).toHaveBeenCalledTimes(1);
-    expect(screen.UNSAFE_getByType(Modal).props.visible).toBe(false);
+    expect(queryAllByHostType('Modal')).toHaveLength(0);
   });
 
-  it('onClosed llega una sola vez aunque el padre lo pase nuevo en cada render', () => {
+  it('onClosed llega una sola vez aunque el padre lo pase nuevo en cada render', async () => {
     const calls = jest.fn();
-    const view = render(
+    const view = await render(
       <FormSheet open title="Ingresar código" onOpenChange={jest.fn()} onClosed={() => calls()}>
         <Text>Contenido</Text>
       </FormSheet>
     );
-    const rerenderClosed = () =>
-      view.rerender(
+    const rerenderClosed = async () =>
+      await view.rerender(
         <FormSheet open={false} title="Ingresar código" onOpenChange={jest.fn()} onClosed={() => calls()}>
           <Text>Contenido</Text>
         </FormSheet>
       );
 
-    rerenderClosed();
-    act(() => jest.advanceTimersByTime(SHEET_EXIT_MS - 100));
-    rerenderClosed();
-    act(() => jest.advanceTimersByTime(100));
-    rerenderClosed();
-    act(() => jest.advanceTimersByTime(SHEET_EXIT_MS * 2));
+    await rerenderClosed();
+    await act(() => jest.advanceTimersByTime(SHEET_EXIT_MS - 100));
+    await rerenderClosed();
+    await act(() => jest.advanceTimersByTime(100));
+    await rerenderClosed();
+    await act(() => jest.advanceTimersByTime(SHEET_EXIT_MS * 2));
 
     expect(calls).toHaveBeenCalledTimes(1);
   });
 
-  it('si nunca se abrió no avisa onClosed', () => {
-    const { onClosed } = renderSheet({ open: false });
+  it('si nunca se abrió no avisa onClosed', async () => {
+    const { onClosed } = await renderSheet({ open: false });
 
-    act(() => jest.advanceTimersByTime(SHEET_EXIT_MS * 2));
+    await act(() => jest.advanceTimersByTime(SHEET_EXIT_MS * 2));
 
     expect(onClosed).not.toHaveBeenCalled();
   });
 
-  it('el teclado no mueve la hoja: la hoja no usa moveOnKeyboardChange', () => {
-    renderSheet();
+  it('el teclado no mueve la hoja: la hoja no usa moveOnKeyboardChange', async () => {
+    await renderSheet();
 
     expect(mockSheet.props).not.toHaveProperty('moveOnKeyboardChange');
   });

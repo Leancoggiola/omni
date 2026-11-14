@@ -30,8 +30,8 @@ const onAccept = jest.fn();
 const onJoined = jest.fn();
 const onClosed = jest.fn();
 
-function renderSheet() {
-  render(
+async function renderSheet() {
+  await render(
     <JoinHouseholdSheet
       open
       onOpenChange={onOpenChange}
@@ -44,8 +44,8 @@ function renderSheet() {
 }
 
 async function typeCodeAndReview(code = 'k7m2-qx4p') {
-  fireEvent.changeText(screen.getByLabelText('Código de invitación'), code);
-  await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Revisar invitación' })));
+  await fireEvent.changeText(screen.getByLabelText('Código de invitación'), code);
+  await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Revisar invitación' })));
 }
 
 beforeEach(() => {
@@ -55,23 +55,23 @@ beforeEach(() => {
 });
 
 describe('JoinHouseholdSheet', () => {
-  it('no deja revisar un código incompleto', () => {
-    renderSheet();
-    fireEvent.changeText(screen.getByLabelText('Código de invitación'), 'K7M2');
+  it('no deja revisar un código incompleto', async () => {
+    await renderSheet();
+    await fireEvent.changeText(screen.getByLabelText('Código de invitación'), 'K7M2');
 
     expect(screen.getByRole('button', { name: 'Revisar invitación' }).props.accessibilityState?.disabled).toBe(true);
     expect(screen.queryByText(/Se lee como/)).toBeNull();
   });
 
-  it('normaliza lo que se escribe y muestra cómo se lee', () => {
-    renderSheet();
-    fireEvent.changeText(screen.getByLabelText('Código de invitación'), 'k7m2-qx4p');
+  it('normaliza lo que se escribe y muestra cómo se lee', async () => {
+    await renderSheet();
+    await fireEvent.changeText(screen.getByLabelText('Código de invitación'), 'k7m2-qx4p');
 
     expect(screen.getByText('Se lee como K7M2 QX4P')).toBeTruthy();
   });
 
   it('revisa con el código normalizado y muestra lo que aporta y los repetidos', async () => {
-    renderSheet();
+    await renderSheet();
     await typeCodeAndReview();
 
     expect(onPreview).toHaveBeenCalledWith('K7M2QX4P');
@@ -84,7 +84,7 @@ describe('JoinHouseholdSheet', () => {
 
   it('sin repetidos no muestra la sección de descartados', async () => {
     onPreview.mockResolvedValue({ ...PREVIEW, conflicts: { media: [], pantry: [] } });
-    renderSheet();
+    await renderSheet();
     await typeCodeAndReview();
 
     expect(screen.getByText('Revisá y unite')).toBeTruthy();
@@ -93,18 +93,18 @@ describe('JoinHouseholdSheet', () => {
 
   it('escribir en el campo descarta el error anterior', async () => {
     onPreview.mockRejectedValue(new ApiError('Código inválido', 404));
-    renderSheet();
+    await renderSheet();
     await typeCodeAndReview('K7M2QX4Z');
     expect(screen.getByText(/no es válido o ya venció/)).toBeTruthy();
 
-    fireEvent.changeText(screen.getByLabelText('Código de invitación'), 'K7M2QX4');
+    await fireEvent.changeText(screen.getByLabelText('Código de invitación'), 'K7M2QX4');
 
     expect(screen.queryByText(/no es válido o ya venció/)).toBeNull();
   });
 
   it('un 404 muestra el mensaje único de código inválido', async () => {
     onPreview.mockRejectedValue(new ApiError('Código inválido', 404));
-    renderSheet();
+    await renderSheet();
     await typeCodeAndReview('K7M2QX4Z');
 
     expect(screen.getByText('Este código no es válido o ya venció. Pedile a tu pareja uno nuevo.')).toBeTruthy();
@@ -112,7 +112,7 @@ describe('JoinHouseholdSheet', () => {
 
   it('un 429 muestra el mensaje genérico', async () => {
     onPreview.mockRejectedValue(new ApiError('Demasiados intentos', 429));
-    renderSheet();
+    await renderSheet();
     await typeCodeAndReview();
 
     expect(screen.getByText(/Probaste muchas veces seguidas/)).toBeTruthy();
@@ -120,16 +120,16 @@ describe('JoinHouseholdSheet', () => {
 
   it('un 409 muestra el texto de la API', async () => {
     onPreview.mockRejectedValue(new ApiError('Ese hogar ya tiene el máximo de integrantes', 409));
-    renderSheet();
+    await renderSheet();
     await typeCodeAndReview();
 
     expect(screen.getByText('Ese hogar ya tiene el máximo de integrantes')).toBeTruthy();
   });
 
   it('aceptar manda el mismo código, avisa quién invitó y cierra', async () => {
-    renderSheet();
+    await renderSheet();
     await typeCodeAndReview();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Unirme al hogar de Lucía' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Unirme al hogar de Lucía' })));
 
     await waitFor(() => expect(onAccept).toHaveBeenCalledWith('K7M2QX4P'));
     expect(onJoined).toHaveBeenCalledWith('Lucía');
@@ -138,9 +138,9 @@ describe('JoinHouseholdSheet', () => {
 
   it('si aceptar falla queda en la vista previa con el error y no cierra', async () => {
     onAccept.mockRejectedValue(new ApiError('Tu hogar cambió mientras se procesaba la unión', 409));
-    renderSheet();
+    await renderSheet();
     await typeCodeAndReview();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Unirme al hogar de Lucía' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Unirme al hogar de Lucía' })));
 
     expect(screen.getByText('Tu hogar cambió mientras se procesaba la unión')).toBeTruthy();
     expect(onJoined).not.toHaveBeenCalled();

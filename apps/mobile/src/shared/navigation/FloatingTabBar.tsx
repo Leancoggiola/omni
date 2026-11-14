@@ -17,7 +17,7 @@ const ICON_SIZE = 22;
  * ícono) y le pasa su alto, con la distancia al borde, a las notificaciones para apilarlas encima. Solo mientras las
  * tabs tienen el foco: Perfil se abre encima en el stack y las tabs siguen montadas, pero ahí no hay tab bar a la vista.
  */
-export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function FloatingTabBar({ state, descriptors, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorSchemeControl();
   const colors = useSemanticColors();
@@ -58,10 +58,10 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
           const title = options.title ?? route.name;
 
           const onPress = () => {
-            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+            const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+            if (!focused && !event.defaultPrevented) navigateToTab(route.key);
           };
-          const onLongPress = () => navigation.emit({ type: 'tabLongPress', target: route.key });
+          const onLongPress = () => emitter.emit({ type: 'tabLongPress', target: route.key });
 
           return (
             <YStack

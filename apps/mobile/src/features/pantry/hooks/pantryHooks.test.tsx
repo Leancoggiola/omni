@@ -53,7 +53,7 @@ afterEach(() => jest.useRealTimers());
 describe('usePantryProducts', () => {
   it('trae todas las páginas y las junta en una sola lista', async () => {
     mockFetcher.mockResolvedValueOnce(page([1, 2], 150)).mockResolvedValueOnce(page([3], 150));
-    const { result } = renderHook(() => usePantryProducts(), { wrapper: wrapperWith(mockFetcher) });
+    const { result } = await renderHook(() => usePantryProducts(), { wrapper: wrapperWith(mockFetcher) });
 
     await waitFor(() => expect(result.current.products).toHaveLength(3));
     expect(mockFetcher).toHaveBeenNthCalledWith(1, `${API_KEYS.pantry.products}?limit=100`);
@@ -62,7 +62,7 @@ describe('usePantryProducts', () => {
 
   it('expone el error del fetch', async () => {
     mockFetcher.mockRejectedValue(new Error('Sin conexión'));
-    const { result } = renderHook(() => usePantryProducts(), { wrapper: wrapperWith(mockFetcher) });
+    const { result } = await renderHook(() => usePantryProducts(), { wrapper: wrapperWith(mockFetcher) });
 
     await waitFor(() => expect(result.current.error).toEqual(new Error('Sin conexión')));
   });
@@ -70,7 +70,7 @@ describe('usePantryProducts', () => {
   it('refresca cada PANTRY_LIST_REFRESH_MS solo con la pantalla enfocada', async () => {
     jest.useFakeTimers({ advanceTimers: true });
     mockFetcher.mockResolvedValue(page([1], 1));
-    const { result, rerender } = renderHook(() => usePantryProducts(), { wrapper: wrapperWith(mockFetcher) });
+    const { result, rerender } = await renderHook(() => usePantryProducts(), { wrapper: wrapperWith(mockFetcher) });
     await waitFor(() => expect(result.current.products).toHaveLength(1));
 
     await act(async () => {
@@ -79,7 +79,7 @@ describe('usePantryProducts', () => {
     await waitFor(() => expect(mockFetcher.mock.calls.length).toBeGreaterThan(1));
 
     mockFocused = false;
-    rerender({});
+    await rerender({});
     const calls = mockFetcher.mock.calls.length;
     await act(async () => {
       await jest.advanceTimersByTimeAsync(PANTRY_LIST_REFRESH_MS * 3);
@@ -96,8 +96,8 @@ describe('usePantrySummary y useShoppingList', () => {
         Promise.resolve(key.endsWith('summary') ? { totalProducts: 3 } : [listItem()])
       );
     const wrapper = wrapperWith(fetcher);
-    const summary = renderHook(() => usePantrySummary(), { wrapper });
-    const list = renderHook(() => useShoppingList(), { wrapper });
+    const summary = await renderHook(() => usePantrySummary(), { wrapper });
+    const list = await renderHook(() => useShoppingList(), { wrapper });
 
     await waitFor(() => expect(summary.result.current.summary).toEqual({ totalProducts: 3 }));
     await waitFor(() => expect(list.result.current.items).toHaveLength(1));
@@ -110,13 +110,13 @@ describe('usePantrySuggestions', () => {
   it('sin texto no pide nada y con texto busca con debounce', async () => {
     jest.useFakeTimers({ advanceTimers: true });
     const fetcher = jest.fn().mockResolvedValue([{ id: 'p1', name: 'Leche', category: 'DAIRY', unit: 'UNITS' }]);
-    const { result, rerender } = renderHook(({ q }: { q: string }) => usePantrySuggestions(q), {
+    const { result, rerender } = await renderHook(({ q }: { q: string }) => usePantrySuggestions(q), {
       wrapper: wrapperWith(fetcher),
       initialProps: { q: '  ' },
     });
     expect(fetcher).not.toHaveBeenCalled();
 
-    rerender({ q: 'lec' });
+    await rerender({ q: 'lec' });
     await act(async () => {
       await jest.advanceTimersByTimeAsync(300);
     });
@@ -127,9 +127,9 @@ describe('usePantrySuggestions', () => {
 });
 
 describe('mutaciones', () => {
-  function mutationsWithCache() {
+  async function mutationsWithCache() {
     const fetcher = jest.fn().mockResolvedValue([]);
-    const hook = renderHook(
+    const hook = await renderHook(
       () => ({
         products: useShoppingList(),
         summary: usePantrySummary(),
@@ -143,7 +143,7 @@ describe('mutaciones', () => {
 
   it('crear un producto revalida las keys de la alacena con el filtro', async () => {
     mockApi.post.mockResolvedValue(product());
-    const { fetcher, hook } = mutationsWithCache();
+    const { fetcher, hook } = await mutationsWithCache();
     await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
 
     await act(async () => {
@@ -164,7 +164,7 @@ describe('mutaciones', () => {
   it('actualizar y eliminar un producto pegan a su ruta', async () => {
     mockApi.patch.mockResolvedValue(product());
     mockApi.delete.mockResolvedValue(undefined);
-    const { hook } = mutationsWithCache();
+    const { hook } = await mutationsWithCache();
 
     await act(async () => {
       await hook.result.current.updateProduct('p1', { quantity: 3 });
@@ -179,7 +179,7 @@ describe('mutaciones', () => {
     mockApi.post.mockResolvedValue(listItem());
     mockApi.patch.mockResolvedValue({ item: listItem(), product: product() });
     mockApi.delete.mockResolvedValue(undefined);
-    const { hook } = mutationsWithCache();
+    const { hook } = await mutationsWithCache();
 
     await act(async () => {
       await hook.result.current.generate();

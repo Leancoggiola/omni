@@ -38,11 +38,16 @@ function bar(index: number) {
       },
     ])
   );
-  return { state: { index, routes }, descriptors, navigation: { navigate, emit } } as unknown as BottomTabBarProps;
+  return {
+    state: { index, routes },
+    descriptors,
+    emitter: { emit },
+    navigateToTab: navigate,
+  } as unknown as BottomTabBarProps;
 }
 
-const layout = (height: number) =>
-  fireEvent(screen.getByTestId('floating-tab-bar'), 'layout', { nativeEvent: { layout: { height } } });
+const layout = async (height: number) =>
+  await fireEvent(screen.getByTestId('floating-tab-bar'), 'layout', { nativeEvent: { layout: { height } } });
 
 beforeEach(() => {
   mockSetOffset.mockClear();
@@ -52,54 +57,54 @@ beforeEach(() => {
 });
 
 describe('FloatingTabBar', () => {
-  it('muestra una tab por ruta con su ícono y etiqueta, y marca la activa', () => {
-    render(<FloatingTabBar {...bar(0)} />);
+  it('muestra una tab por ruta con su ícono y etiqueta, y marca la activa', async () => {
+    await render(<FloatingTabBar {...bar(0)} />);
 
     expect(screen.getByRole('tab', { name: 'Inicio', selected: true })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Media', selected: false })).toBeTruthy();
     expect(screen.getByText('ícono activo')).toBeTruthy();
   });
 
-  it('tocar otra tab emite tabPress y navega; tocar la activa no navega', () => {
-    render(<FloatingTabBar {...bar(0)} />);
+  it('tocar otra tab emite tabPress y navega; tocar la activa no navega', async () => {
+    await render(<FloatingTabBar {...bar(0)} />);
 
-    fireEvent.press(screen.getByRole('tab', { name: 'Media' }));
+    await fireEvent.press(screen.getByRole('tab', { name: 'Media' }));
     expect(emit).toHaveBeenCalledWith({ type: 'tabPress', target: 'media-key', canPreventDefault: true });
-    expect(navigate).toHaveBeenCalledWith('media', undefined);
+    expect(navigate).toHaveBeenCalledWith('media-key');
 
     navigate.mockClear();
-    fireEvent.press(screen.getByRole('tab', { name: 'Inicio' }));
+    await fireEvent.press(screen.getByRole('tab', { name: 'Inicio' }));
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('no navega si alguien frena el tabPress', () => {
+  it('no navega si alguien frena el tabPress', async () => {
     emit.mockReturnValue({ defaultPrevented: true });
-    render(<FloatingTabBar {...bar(0)} />);
+    await render(<FloatingTabBar {...bar(0)} />);
 
-    fireEvent.press(screen.getByRole('tab', { name: 'Media' }));
+    await fireEvent.press(screen.getByRole('tab', { name: 'Media' }));
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('informa a las notificaciones su alto con la distancia al borde y lo libera al desmontarse', () => {
-    const { unmount } = render(<FloatingTabBar {...bar(0)} />);
+  it('informa a las notificaciones su alto con la distancia al borde y lo libera al desmontarse', async () => {
+    const { unmount } = await render(<FloatingTabBar {...bar(0)} />);
 
-    layout(72);
+    await layout(72);
     expect(mockSetOffset).toHaveBeenLastCalledWith(72 + 24);
 
-    unmount();
+    await unmount();
     expect(mockSetOffset).toHaveBeenLastCalledWith(0);
   });
 
-  it('sin foco (Perfil encima de las tabs) informa 0', () => {
-    const { rerender } = render(<FloatingTabBar {...bar(0)} />);
-    layout(72);
+  it('sin foco (Perfil encima de las tabs) informa 0', async () => {
+    const { rerender } = await render(<FloatingTabBar {...bar(0)} />);
+    await layout(72);
 
     mockFocused = false;
-    rerender(<FloatingTabBar {...bar(0)} />);
+    await rerender(<FloatingTabBar {...bar(0)} />);
     expect(mockSetOffset).toHaveBeenLastCalledWith(0);
 
     mockFocused = true;
-    rerender(<FloatingTabBar {...bar(0)} />);
+    await rerender(<FloatingTabBar {...bar(0)} />);
     expect(mockSetOffset).toHaveBeenLastCalledWith(96);
   });
 });

@@ -3,24 +3,15 @@ import { BackHandler } from 'react-native';
 
 import type { SheetTransitionEvent } from 'tamagui';
 
-/**
- * Duración de la salida de un Sheet (`transition="medium"`). Tamagui no siempre llama a
- * `onTransition` al cerrar: los sheets que esperan el cierre usan este tiempo fijo.
- */
 export const SHEET_EXIT_MS = 600;
 
-/** Request de un sheet imperativo (`confirm()`, `actionSheet()`): la promesa se resuelve con `resolve`. */
 export type SheetRequest<T> = { resolve: (value: T) => void };
 
 export type SheetQueue<T, R extends SheetRequest<T>> = {
-  /** `open` del Sheet. */
   open: boolean;
-  /** Contenido a mostrar: no vuelve a null al cerrar, así el sheet no se vacía durante la animación de salida. */
   shown: R | null;
-  /** Resuelve la request actual (una sola vez) y cierra. */
   close: (result: T) => void;
   onOpenChange: (open: boolean) => void;
-  /** `onTransition` del Sheet: el fin de la salida habilita la próxima request. */
   onTransition: (event: SheetTransitionEvent) => void;
 };
 
@@ -49,11 +40,18 @@ function queueReducer<R>(state: QueueState<R>, action: QueueAction<R>): QueueSta
 }
 
 /**
- * Cola de un sheet imperativo: muestra las requests de a una, cancela con `cancelValue` al cerrar
+ * Cola de un sheet imperativo (`confirm()`, `actionSheet()`): cada `SheetRequest` resuelve su promesa con `resolve`.
+ * Muestra las requests de a una, cancela con `cancelValue` al cerrar
  * por overlay, gesto o Atrás, y resuelve las pendientes si el provider se desmonta. Registra el
  * handler una sola vez: `register` y `cancelValue` se leen de refs, así que pasarlos inline no
  * resuelve ni re-registra nada en cada render. La promoción de la próxima request sale del reducer, no de un
  * efecto, y `currentRef` se baja al cerrar para que un segundo cierre en el mismo tick no resuelva dos veces.
+ *
+ * Devuelve `open` (el `open` del Sheet), `shown` (el contenido a mostrar: no vuelve a null al cerrar, así el sheet no
+ * se vacía durante la animación de salida), `close` (resuelve la request actual una sola vez y cierra), `onOpenChange`
+ * y `onTransition` (el `onTransition` del Sheet: el fin de la salida habilita la próxima request). Tamagui no siempre
+ * llama a `onTransition` al cerrar: los sheets que esperan el cierre usan `SHEET_EXIT_MS`, la duración de la salida
+ * de un Sheet con `transition="medium"`.
  */
 export function useSheetQueue<T, R extends SheetRequest<T>>(
   register: (handler: (request: R) => void) => () => void,

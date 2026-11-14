@@ -17,11 +17,11 @@ describe('tabBarBottomOffset', () => {
 });
 
 describe('useTabBarClearance', () => {
-  it('reserva el alto de la barra, su distancia al borde y 16 de aire', () => {
+  it('reserva el alto de la barra, su distancia al borde y 16 de aire', async () => {
     mockInsetBottom = 0;
-    expect(renderHook(() => useTabBarClearance()).result.current).toBe(72 + 24 + 16);
+    expect((await renderHook(() => useTabBarClearance())).result.current).toBe(72 + 24 + 16);
 
     mockInsetBottom = 48;
-    expect(renderHook(() => useTabBarClearance()).result.current).toBe(72 + 48 + 16);
+    expect((await renderHook(() => useTabBarClearance())).result.current).toBe(72 + 48 + 16);
   });
 });

@@ -32,16 +32,19 @@ function wrapperWith(fetcher: jest.Mock) {
 describe('useItemEditor', () => {
   it('resuelve a quien editó con el hogar y la sesión', async () => {
     const fetcher = jest.fn().mockResolvedValue(HOUSEHOLD);
-    const { result } = renderHook(() => useItemEditor('u1', 'u2'), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useItemEditor('u1', 'u2'), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current).toMatchObject({ kind: 'member', name: 'Lucía' }));
   });
 
   it('no devuelve editor si editó quien lo creó', async () => {
     const fetcher = jest.fn().mockResolvedValue(HOUSEHOLD);
-    const { result } = renderHook(() => ({ editor: useItemEditor('u1', 'u1'), household: useHousehold().household }), {
-      wrapper: wrapperWith(fetcher),
-    });
+    const { result } = await renderHook(
+      () => ({ editor: useItemEditor('u1', 'u1'), household: useHousehold().household }),
+      {
+        wrapper: wrapperWith(fetcher),
+      }
+    );
 
     await waitFor(() => expect(result.current.household).toBeTruthy());
     expect(result.current.editor).toBeUndefined();

@@ -6,29 +6,29 @@ jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
 
 describe('StatusPill', () => {
-  it('es una pill de 28 de alto con los tokens de cada estado', () => {
-    const { rerender } = render(<StatusPill status="to_watch" />);
+  it('es una pill de 28 de alto con los tokens de cada estado', async () => {
+    const { rerender } = await render(<StatusPill status="to_watch" />);
     const pill = () => screen.getByLabelText(/^Estado:/);
 
     expect(pill()).toHaveProp('height', 28);
     expect(pill()).toHaveProp('backgroundColor', 'disabledSurface');
     expect(pill()).toHaveProp('borderColor', 'borderSubtle');
 
-    rerender(<StatusPill status="watching" />);
+    await rerender(<StatusPill status="watching" />);
     expect(pill()).toHaveProp('backgroundColor', 'accentSurface');
 
-    rerender(<StatusPill status="watched" />);
+    await rerender(<StatusPill status="watched" />);
     expect(pill()).toHaveProp('backgroundColor', 'successSurface');
   });
 
-  it('con onPress es un botón que abre el selector; sin onPress es solo texto', () => {
+  it('con onPress es un botón que abre el selector; sin onPress es solo texto', async () => {
     const onPress = jest.fn();
-    const { rerender } = render(<StatusPill status="watching" onPress={onPress} />);
+    const { rerender } = await render(<StatusPill status="watching" onPress={onPress} />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Estado: Viendo. Cambiar estado' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Estado: Viendo. Cambiar estado' }));
     expect(onPress).toHaveBeenCalledTimes(1);
 
-    rerender(<StatusPill status="watching" />);
+    await rerender(<StatusPill status="watching" />);
     expect(screen.queryByRole('button')).toBeNull();
     expect(screen.getByLabelText('Estado: Viendo')).toBeTruthy();
   });

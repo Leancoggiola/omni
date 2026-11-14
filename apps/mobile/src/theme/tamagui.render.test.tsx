@@ -27,20 +27,20 @@ const pressEvent = {
 };
 
 /** Tamagui 3 en nativo no escucha `onPressIn`: el toque entra por el sistema de responder de RN. */
-function pressIn(testID: string) {
-  act(() => {
-    fireEvent(screen.getByTestId(testID), 'responderGrant', pressEvent);
+async function pressIn(testID: string) {
+  await act(async () => {
+    await fireEvent(screen.getByTestId(testID), 'responderGrant', pressEvent);
   });
 }
 
-function pressOut(testID: string) {
-  act(() => {
-    fireEvent(screen.getByTestId(testID), 'responderRelease', pressEvent);
+async function pressOut(testID: string) {
+  await act(async () => {
+    await fireEvent(screen.getByTestId(testID), 'responderRelease', pressEvent);
   });
 }
 
-function renderLight(children: React.ReactNode) {
-  return render(
+async function renderLight(children: React.ReactNode) {
+  return await render(
     <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
       {children}
     </TamaguiProvider>
@@ -48,8 +48,8 @@ function renderLight(children: React.ReactNode) {
 }
 
 describe('Tamagui 3 con el config de la app (render real, sin mock)', () => {
-  it('resuelve los valores planos: tokens propios, lineHeight en px y la familia display', () => {
-    renderLight(
+  it('resuelve los valores planos: tokens propios, lineHeight en px y la familia display', async () => {
+    await renderLight(
       <Paragraph testID="p" color="dimmed" lineHeight="20px" fontSize={14} fontFamily="display">
         hola
       </Paragraph>
@@ -63,8 +63,8 @@ describe('Tamagui 3 con el config de la app (render real, sin mock)', () => {
     });
   });
 
-  it('un Paragraph sin tamaño sale en Montserrat de 14 con interlineado 23, como el $true de Tamagui 2', () => {
-    renderLight(
+  it('un Paragraph sin tamaño sale en Montserrat de 14 con interlineado 23, como el $true de Tamagui 2', async () => {
+    await renderLight(
       <>
         <Paragraph testID="plain">hola</Paragraph>
         <Paragraph testID="sized" fontSize={13}>
@@ -77,14 +77,14 @@ describe('Tamagui 3 con el config de la app (render real, sin mock)', () => {
     expect(styleOf('sized')).toMatchObject({ fontSize: 13, lineHeight: 23 });
   });
 
-  it('`theme="active"` trae el relleno de marca', () => {
-    renderLight(<XStack testID="x" theme="active" backgroundColor="background" />);
+  it('`theme="active"` trae el relleno de marca', async () => {
+    await renderLight(<XStack testID="x" theme="active" backgroundColor="background" />);
 
     expect(styleOf('x').backgroundColor).toBe(s.primaryFill);
   });
 
-  it('el Switch apagado usa la pista border-subtle, encendido el relleno de marca, y el thumb es siempre blanco', () => {
-    renderLight(
+  it('el Switch apagado usa la pista border-subtle, encendido el relleno de marca, y el thumb es siempre blanco', async () => {
+    await renderLight(
       <>
         <Switch testID="off" size="xl" activeTheme="active" checked={false} onCheckedChange={() => undefined}>
           <Switch.Thumb testID="thumbOff" activeStyle={{ backgroundColor: s.white }} />
@@ -101,8 +101,8 @@ describe('Tamagui 3 con el config de la app (render real, sin mock)', () => {
     expect(styleOf('thumbOn').backgroundColor).toBe(s.white);
   });
 
-  it('el Input toma los colores del theme Input y los tokens de placeholder, cursor y selección', () => {
-    renderLight(
+  it('el Input toma los colores del theme Input y los tokens de placeholder, cursor y selección', async () => {
+    await renderLight(
       <Input testID="i" placeholderTextColor="placeholder-color" cursorColor="primary" selectionColor="primary" />
     );
 
@@ -113,8 +113,8 @@ describe('Tamagui 3 con el config de la app (render real, sin mock)', () => {
     expect(styleOf('i')).toMatchObject({ backgroundColor: s.card, borderTopColor: s.border });
   });
 
-  it('el Sheet con Container y Background monta su contenido y el scrim de `SheetOverlay` con el driver de animaciones de la app', () => {
-    renderLight(
+  it('el Sheet con Container y Background monta su contenido y el scrim de `SheetOverlay` con el driver de animaciones de la app', async () => {
+    await renderLight(
       <Sheet open onOpenChange={() => undefined} snapPointsMode="fit" disableDrag transition="medium">
         <SheetOverlay testID="scrim" />
         <Sheet.Container padding={8}>
@@ -129,41 +129,43 @@ describe('Tamagui 3 con el config de la app (render real, sin mock)', () => {
     expect(styleOf('scrim').backgroundColor).toBe('rgba(0, 0, 0, 0.69)');
   });
 
-  it('la cláusula `press:` de un color cambia el fondo al presionar y vuelve al soltar', () => {
-    renderLight(<YStack testID="y" onPress={() => undefined} backgroundColor="background press:background-press" />);
+  it('la cláusula `press:` de un color cambia el fondo al presionar y vuelve al soltar', async () => {
+    await renderLight(
+      <YStack testID="y" onPress={() => undefined} backgroundColor="background press:background-press" />
+    );
 
     expect(styleOf('y').backgroundColor).toBe(s.body);
-    pressIn('y');
+    await pressIn('y');
     expect(styleOf('y').backgroundColor).toBe(s.border);
-    pressOut('y');
+    await pressOut('y');
     expect(styleOf('y').backgroundColor).toBe(s.body);
   });
 
-  it('la cláusula `press:` de la opacidad baja a 0.7 al presionar', () => {
-    renderLight(<YStack testID="y" onPress={() => undefined} opacity="press:0.7" />);
+  it('la cláusula `press:` de la opacidad baja a 0.7 al presionar', async () => {
+    await renderLight(<YStack testID="y" onPress={() => undefined} opacity="press:0.7" />);
 
     expect(styleOf('y').opacity).toBeUndefined();
-    pressIn('y');
+    await pressIn('y');
     expect(styleOf('y').opacity).toBe(0.7);
-    pressOut('y');
+    await pressOut('y');
     expect(styleOf('y').opacity).toBeUndefined();
   });
 
-  it('la cláusula `focus:` del borde de un Input pasa de border-color a primary al enfocar', () => {
-    renderLight(<Input testID="i" borderWidth={1} borderColor="border-color focus:primary" />);
+  it('la cláusula `focus:` del borde de un Input pasa de border-color a primary al enfocar', async () => {
+    await renderLight(<Input testID="i" borderWidth={1} borderColor="border-color focus:primary" />);
 
     expect(styleOf('i').borderTopColor).toBe(s.border);
-    act(() => {
-      fireEvent(screen.getByTestId('i'), 'focus');
+    await act(async () => {
+      await fireEvent(screen.getByTestId('i'), 'focus');
     });
     expect(styleOf('i').borderTopColor).toBe(s.primary);
-    act(() => {
-      fireEvent(screen.getByTestId('i'), 'blur');
+    await act(async () => {
+      await fireEvent(screen.getByTestId('i'), 'blur');
     });
     expect(styleOf('i').borderTopColor).toBe(s.border);
   });
-  it('paddingStart/paddingEnd del Input les ganan al paddingInline del size (hueco del ícono de TextField)', () => {
-    renderLight(<Input testID="i" paddingStart={40} paddingEnd={12} />);
+  it('paddingStart/paddingEnd del Input les ganan al paddingInline del size (hueco del ícono de TextField)', async () => {
+    await renderLight(<Input testID="i" paddingStart={40} paddingEnd={12} />);
 
     expect(styleOf('i')).toMatchObject({ paddingStart: 40, paddingEnd: 12 });
   });

@@ -38,7 +38,7 @@ describe('useHouseholdActions', () => {
   it('createInvite devuelve el código recién generado', async () => {
     const invite = { id: 'i1', code: 'K7M2QX4P', expiresAt: '2026-11-02T14:30:00.000Z' };
     mockPost.mockResolvedValue(invite);
-    const { result } = renderHook(() => useHouseholdActions(), { wrapper });
+    const { result } = await renderHook(() => useHouseholdActions(), { wrapper });
 
     await expect(result.current.createInvite()).resolves.toEqual(invite);
 
@@ -47,7 +47,7 @@ describe('useHouseholdActions', () => {
 
   it('revokeInvite llama al DELETE de la invitación', async () => {
     mockDelete.mockResolvedValue(undefined);
-    const { result } = renderHook(() => useHouseholdActions(), { wrapper });
+    const { result } = await renderHook(() => useHouseholdActions(), { wrapper });
 
     await act(() => result.current.revokeInvite());
 
@@ -56,7 +56,7 @@ describe('useHouseholdActions', () => {
 
   it('previewInvite manda el código sin tocar caches', async () => {
     mockPost.mockResolvedValue({ inviter: { name: 'Lucía' } });
-    const { result } = renderHook(() => useHouseholdActions(), { wrapper });
+    const { result } = await renderHook(() => useHouseholdActions(), { wrapper });
 
     await result.current.previewInvite('K7M2QX4P');
 
@@ -66,7 +66,7 @@ describe('useHouseholdActions', () => {
 
   it('acceptInvite invalida la lista de media', async () => {
     mockPost.mockResolvedValue({});
-    const { result } = renderHook(() => useActionsAndMediaList(), { wrapper });
+    const { result } = await renderHook(() => useActionsAndMediaList(), { wrapper });
     await waitFor(() => expect(result.current.media).toEqual([]));
     mockFetcher.mockClear();
 
@@ -78,7 +78,7 @@ describe('useHouseholdActions', () => {
 
   it('leaveHousehold invalida la lista de media', async () => {
     mockPost.mockResolvedValue({});
-    const { result } = renderHook(() => useActionsAndMediaList(), { wrapper });
+    const { result } = await renderHook(() => useActionsAndMediaList(), { wrapper });
     await waitFor(() => expect(result.current.media).toEqual([]));
     mockFetcher.mockClear();
 
@@ -90,7 +90,7 @@ describe('useHouseholdActions', () => {
 
   it('si el POST falla no invalida nada y propaga el error', async () => {
     mockPost.mockRejectedValue(new Error('x'));
-    const { result } = renderHook(() => useActionsAndMediaList(), { wrapper });
+    const { result } = await renderHook(() => useActionsAndMediaList(), { wrapper });
     await waitFor(() => expect(result.current.media).toEqual([]));
     mockFetcher.mockClear();
 
