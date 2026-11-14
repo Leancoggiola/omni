@@ -103,6 +103,18 @@ describe('ProfilePhotoCard', () => {
     expect(notifySuccess).toHaveBeenCalledWith('Foto de perfil eliminada');
   });
 
+  it('mientras quita la foto bloquea el tacho y "Cambiar foto"', async () => {
+    let resolve: () => void = () => undefined;
+    onRemove.mockReturnValue(new Promise<void>(r => (resolve = r)));
+    renderCard(WITH_PHOTO);
+    await press('Quitar foto');
+
+    expect(screen.getByRole('button', { name: 'Quitar foto' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Cambiar foto' })).toBeDisabled();
+    await act(async () => resolve());
+    expect(screen.getByRole('button', { name: 'Quitar foto' })).toBeEnabled();
+  });
+
   it('si quitar la foto falla avisa con notifyError', async () => {
     onRemove.mockRejectedValue(new Error('boom'));
     renderCard(WITH_PHOTO);
