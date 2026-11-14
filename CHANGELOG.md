@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/Leancoggiola/omni/compare/v1.4.4...v1.5.0) (2026-11-14)
+
+
+### Bug Fixes
+
+* **#298:** La foto de perfil se sube también con expo/fetch ([631dcfc](https://github.com/Leancoggiola/omni/commit/631dcfcc29e2da090375528fe7e61963e2641e0d)), closes [#298](https://github.com/Leancoggiola/omni/issues/298)
+
+
+### Features
+
+* **release:** Lleva a producción Expo SDK 58 y Tamagui 3 en mobile ([#313](https://github.com/Leancoggiola/omni/issues/313)) ([9a771a4](https://github.com/Leancoggiola/omni/commit/9a771a42603bbfad337b75796f643ed9ddf75aba))
+
 ## [1.4.4](https://github.com/Leancoggiola/omni/compare/v1.4.3...v1.4.4) (2026-11-13)
 
 
