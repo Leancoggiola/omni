@@ -5,43 +5,43 @@ import { AuthorTag } from './AuthorTag';
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 
 describe('AuthorTag', () => {
-  it('muestra iniciales y nombre del otro integrante', () => {
-    render(<AuthorTag author={{ kind: 'member', name: 'Lucía Fernández', avatarUrl: null }} />);
+  it('muestra iniciales y nombre del otro integrante', async () => {
+    await render(<AuthorTag author={{ kind: 'member', name: 'Lucía Fernández', avatarUrl: null }} />);
 
     expect(screen.getByLabelText('Agregado por Lucía Fernández')).toBeTruthy();
     expect(screen.getByText('LF')).toBeTruthy();
   });
 
-  it('dice "Vos" para la propia sesión', () => {
-    render(<AuthorTag author={{ kind: 'self', name: 'Leandro Coggiola', avatarUrl: null }} />);
+  it('dice "Vos" para la propia sesión', async () => {
+    await render(<AuthorTag author={{ kind: 'self', name: 'Leandro Coggiola', avatarUrl: null }} />);
 
     expect(screen.getByLabelText('Agregado por Vos')).toBeTruthy();
     expect(screen.getByText('Vos')).toBeTruthy();
   });
 
-  it('la cuenta eliminada es un avatar neutro con "?"', () => {
-    render(<AuthorTag author={{ kind: 'deleted', name: 'Cuenta eliminada', avatarUrl: null }} />);
+  it('la cuenta eliminada es un avatar neutro con "?"', async () => {
+    await render(<AuthorTag author={{ kind: 'deleted', name: 'Cuenta eliminada', avatarUrl: null }} />);
 
     expect(screen.getByText('?')).toBeTruthy();
     expect(screen.getByText('Cuenta eliminada')).toBeTruthy();
   });
 
-  it('sin nombre queda solo el avatar con su label accesible', () => {
-    render(<AuthorTag author={{ kind: 'member', name: 'Lucía Fernández', avatarUrl: null }} showName={false} />);
+  it('sin nombre queda solo el avatar con su label accesible', async () => {
+    await render(<AuthorTag author={{ kind: 'member', name: 'Lucía Fernández', avatarUrl: null }} showName={false} />);
 
     expect(screen.getByLabelText('Agregado por Lucía Fernández')).toBeTruthy();
     expect(screen.queryByText('Lucía Fernández')).toBeNull();
   });
 
-  it('nombra la acción en el label accesible sin mostrarla por defecto', () => {
-    render(<AuthorTag author={{ kind: 'member', name: 'Lucía', avatarUrl: null }} actionLabel="Editado por" />);
+  it('nombra la acción en el label accesible sin mostrarla por defecto', async () => {
+    await render(<AuthorTag author={{ kind: 'member', name: 'Lucía', avatarUrl: null }} actionLabel="Editado por" />);
 
     expect(screen.getByLabelText('Editado por Lucía')).toBeTruthy();
     expect(screen.getByText('Lucía')).toBeTruthy();
   });
 
-  it('con showActionLabel muestra la acción delante del nombre', () => {
-    render(
+  it('con showActionLabel muestra la acción delante del nombre', async () => {
+    await render(
       <AuthorTag
         author={{ kind: 'self', name: 'Leandro', avatarUrl: null }}
         actionLabel="Editado por"

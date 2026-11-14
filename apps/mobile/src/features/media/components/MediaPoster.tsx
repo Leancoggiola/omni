@@ -25,7 +25,7 @@ export function MediaPoster({ posterPath, width }: MediaPosterProps) {
         width={width}
         height={height}
         borderRadius={RADIUS.sm}
-        backgroundColor="$dimmedSurface"
+        backgroundColor="dimmedSurface"
         alignItems="center"
         justifyContent="center"
         accessibilityElementsHidden

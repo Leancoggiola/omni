@@ -3,6 +3,7 @@ import { Modal } from 'react-native';
 import { Sheet } from 'tamagui';
 
 import { SheetFrame } from './SheetFrame';
+import { SheetOverlay } from './SheetOverlay';
 import { SHEET_EXIT_MS } from './useSheetQueue';
 
 import type { SheetQueue, SheetRequest } from './useSheetQueue';
@@ -50,14 +51,14 @@ export function QueuedSheet<T, R extends SheetRequest<T>>({ queue, children }: Q
       <Sheet
         open={queue.open}
         onOpenChange={queue.onOpenChange}
-        onAnimationComplete={queue.onAnimationComplete}
+        onTransition={queue.onTransition}
         snapPointsMode="fit"
         disableDrag
         dismissOnSnapToBottom
         zIndex={100_000}
         transition="medium"
       >
-        <Sheet.Overlay transition="lazy" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }} />
+        <SheetOverlay />
         <SheetFrame>{children}</SheetFrame>
       </Sheet>
     </Modal>

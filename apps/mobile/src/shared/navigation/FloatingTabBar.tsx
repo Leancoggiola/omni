@@ -1,5 +1,5 @@
-import { type BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useIsFocused } from '@react-navigation/native';
+import { type BottomTabBarProps } from 'expo-router/js-tabs';
+import { useIsFocused } from 'expo-router/react-navigation';
 import { RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,8 +16,10 @@ const ICON_SIZE = 22;
  * y a 24 del inferior. Pinta el ícono y la etiqueta que cada tab declara en sus `options` (la pill activa va en el
  * ícono) y le pasa su alto, con la distancia al borde, a las notificaciones para apilarlas encima. Solo mientras las
  * tabs tienen el foco: Perfil se abre encima en el stack y las tabs siguen montadas, pero ahí no hay tab bar a la vista.
+ * Tocar una tab emite `tabPress` y, si nadie lo frena, navega con `navigateToTab(route.key)`, como la `BottomTabBar` de
+ * expo-router: no pasa params, y ninguna tab lee params (si alguna empieza a hacerlo, van en su href o con defaults).
  */
-export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function FloatingTabBar({ state, descriptors, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorSchemeControl();
   const colors = useSemanticColors();
@@ -44,12 +46,12 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
         height={SIZE.tabBar}
         borderRadius={RADIUS.full}
         borderWidth={1}
-        borderColor="$glassBorder"
-        backgroundColor="$surfaceGlass"
+        borderColor="glassBorder"
+        backgroundColor="surfaceGlass"
         alignItems="center"
         justifyContent="space-around"
-        accessibilityRole="tablist"
         {...glassElevation('float', colorScheme)}
+        accessibilityRole="tablist"
       >
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -58,10 +60,10 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
           const title = options.title ?? route.name;
 
           const onPress = () => {
-            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+            const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+            if (!focused && !event.defaultPrevented) navigateToTab(route.key);
           };
-          const onLongPress = () => navigation.emit({ type: 'tabLongPress', target: route.key });
+          const onLongPress = () => emitter.emit({ type: 'tabLongPress', target: route.key });
 
           return (
             <YStack

@@ -1,9 +1,9 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { Modal } from 'react-native';
 
 import { ApiError } from '@omni/shared/api';
 
 import { SHEET_EXIT_MS } from '@/shared/ui';
+import { getByHostType, queryAllByHostType } from '@/test/hostQueries';
 import { mockSheet } from '@/test/tamaguiMock';
 
 import { AddMediaSheet } from './AddMediaSheet';
@@ -32,12 +32,12 @@ const RESULTS: TmdbMediaResult[] = [
 const EXISTING = new Set(['movie-693134']);
 const mockRetry = jest.fn();
 
-function renderSheet(onSubmit = jest.fn().mockResolvedValue(undefined)) {
+async function renderSheet(onSubmit = jest.fn().mockResolvedValue(undefined)) {
   const onOpenChange = jest.fn();
   const onClosed = jest.fn();
   const props = { onOpenChange, onClosed, existingTmdbIds: EXISTING, onSubmit };
-  const view = render(<AddMediaSheet open {...props} />);
-  const close = () => view.rerender(<AddMediaSheet open={false} {...props} />);
+  const view = await render(<AddMediaSheet open {...props} />);
+  const close = async () => await view.rerender(<AddMediaSheet open={false} {...props} />);
   return { onSubmit, onOpenChange, onClosed, close };
 }
 
@@ -53,17 +53,17 @@ beforeEach(() => {
 });
 
 /** El cierre con Atrás llega como `onRequestClose` del Modal. */
-const pressBack = () => act(() => screen.UNSAFE_getByType(Modal).props.onRequestClose());
+const pressBack = async () => await act(() => getByHostType('Modal').props.onRequestClose());
 
 describe('AddMediaSheet', () => {
-  it('con menos de 2 caracteres pide seguir escribiendo', () => {
+  it('con menos de 2 caracteres pide seguir escribiendo', async () => {
     mockSearch.mockReturnValue({ results: [], error: undefined, isLoading: false, tooShort: true, retry: mockRetry });
-    renderSheet();
+    await renderSheet();
 
     expect(screen.getByText('Escribí al menos 2 caracteres')).toBeTruthy();
   });
 
-  it('un error de búsqueda se muestra con ErrorState y Reintentar vuelve a buscar', () => {
+  it('un error de búsqueda se muestra con ErrorState y Reintentar vuelve a buscar', async () => {
     mockSearch.mockReturnValue({
       results: [],
       error: new Error('503'),
@@ -71,14 +71,14 @@ describe('AddMediaSheet', () => {
       tooShort: false,
       retry: mockRetry,
     });
-    renderSheet();
+    await renderSheet();
 
     expect(screen.getByText('No se pudo buscar en TMDB')).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
     expect(mockRetry).toHaveBeenCalled();
   });
 
-  it('con una búsqueda nueva en curso, los resultados anteriores siguen con el spinner', () => {
+  it('con una búsqueda nueva en curso, los resultados anteriores siguen con el spinner', async () => {
     mockSearch.mockReturnValue({
       results: RESULTS,
       error: undefined,
@@ -86,23 +86,23 @@ describe('AddMediaSheet', () => {
       tooShort: false,
       retry: mockRetry,
     });
-    renderSheet();
+    await renderSheet();
 
     expect(screen.getByTestId('spinner')).toBeTruthy();
     expect(screen.getByRole('radio', { name: 'Dune, Película' })).toBeTruthy();
   });
 
-  it('no se puede arrastrar: un toque no la desplaza ni la achica', () => {
-    renderSheet();
+  it('no se puede arrastrar: un toque no la desplaza ni la achica', async () => {
+    await renderSheet();
 
     expect(mockSheet.props?.disableDrag).toBe(true);
   });
 
-  it('"Cerrar" y Atrás cierran el sheet', () => {
-    const { onOpenChange } = renderSheet();
+  it('"Cerrar" y Atrás cierran el sheet', async () => {
+    const { onOpenChange } = await renderSheet();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Cerrar' }));
-    pressBack();
+    await fireEvent.press(screen.getByRole('button', { name: 'Cerrar' }));
+    await pressBack();
     expect(onOpenChange).toHaveBeenNthCalledWith(1, false);
     expect(onOpenChange).toHaveBeenNthCalledWith(2, false);
   });
@@ -110,24 +110,24 @@ describe('AddMediaSheet', () => {
   it('mientras envía no se cierra ni reenvía con un doble toque', async () => {
     let finish!: () => void;
     const onSubmit = jest.fn(() => new Promise<void>(resolve => (finish = resolve)));
-    const { onOpenChange } = renderSheet(onSubmit);
+    const { onOpenChange } = await renderSheet(onSubmit);
 
-    fireEvent.press(screen.getByRole('radio', { name: 'Dune, Película' }));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Dune, Película' }));
     const add = screen.getByRole('button', { name: 'Agregar' });
-    fireEvent.press(add);
-    fireEvent.press(add);
-    pressBack();
+    await fireEvent.press(add);
+    await fireEvent.press(add);
+    await pressBack();
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onOpenChange).not.toHaveBeenCalled();
 
     await act(async () => finish());
     expect(onOpenChange).toHaveBeenCalledWith(false);
-    fireEvent.press(screen.getByRole('button', { name: 'Agregar' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Agregar' }));
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it('los que ya están en la lista salen deshabilitados y "Agregar" espera una selección', () => {
-    renderSheet();
+  it('los que ya están en la lista salen deshabilitados y "Agregar" espera una selección', async () => {
+    await renderSheet();
 
     expect(screen.getByRole('radio', { name: 'Dune: Part Two, Película, ya en tu lista' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Agregar' })).toBeDisabled();
@@ -135,42 +135,42 @@ describe('AddMediaSheet', () => {
 
   it('elegir resultado y estado, y "Agregar" llama a onSubmit, cierra y avisa al ocultar el Modal', async () => {
     jest.useFakeTimers();
-    const { onSubmit, onOpenChange, onClosed, close } = renderSheet();
+    const { onSubmit, onOpenChange, onClosed, close } = await renderSheet();
 
-    fireEvent.press(screen.getByRole('radio', { name: 'Dune: Prophecy, Serie' }));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Dune: Prophecy, Serie' }));
     expect(screen.getByRole('radio', { name: 'Dune: Prophecy, Serie' })).toBeChecked();
-    fireEvent.press(screen.getByRole('radio', { name: 'Viendo' }));
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Viendo' }));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));
 
     expect(onSubmit).toHaveBeenCalledWith(90228, 'tv', 'watching');
     expect(onOpenChange).toHaveBeenCalledWith(false);
 
-    close();
+    await close();
     expect(onClosed).not.toHaveBeenCalled();
-    act(() => jest.advanceTimersByTime(SHEET_EXIT_MS));
+    await act(() => jest.advanceTimersByTime(SHEET_EXIT_MS));
     expect(onClosed).toHaveBeenCalledTimes(1);
-    expect(screen.UNSAFE_getByType(Modal).props.visible).toBe(false);
+    expect(queryAllByHostType('Modal')).toHaveLength(0);
     jest.useRealTimers();
   });
 
   it('si falla, el error queda en el sheet y no se cierra', async () => {
-    const { onOpenChange, onClosed } = renderSheet(
+    const { onOpenChange, onClosed } = await renderSheet(
       jest.fn().mockRejectedValue(new ApiError('Ya está en tu lista', 409))
     );
 
-    fireEvent.press(screen.getByRole('radio', { name: 'Dune, Película' }));
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Dune, Película' }));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));
 
     expect(screen.getByText('Ya está en tu lista')).toBeTruthy();
     expect(onOpenChange).not.toHaveBeenCalled();
     expect(onClosed).not.toHaveBeenCalled();
   });
 
-  it('editar la búsqueda descarta la selección', () => {
-    renderSheet();
+  it('editar la búsqueda descarta la selección', async () => {
+    await renderSheet();
 
-    fireEvent.press(screen.getByRole('radio', { name: 'Dune, Película' }));
-    fireEvent.changeText(screen.getByLabelText('Título, obligatorio'), 'Dune 2');
+    await fireEvent.press(screen.getByRole('radio', { name: 'Dune, Película' }));
+    await fireEvent.changeText(screen.getByLabelText('Título, obligatorio'), 'Dune 2');
     expect(screen.getByRole('button', { name: 'Agregar' })).toBeDisabled();
   });
 });

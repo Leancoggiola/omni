@@ -16,7 +16,7 @@ describe('useAdminUsers', () => {
   it('trae los usuarios de API_KEYS.admin.users', async () => {
     const users = [{ id: '1', username: 'admin', name: 'Admin', email: null, role: 'ADMIN', createdAt: '' }];
     const fetcher = jest.fn().mockResolvedValue({ users });
-    const { result } = renderHook(() => useAdminUsers(), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useAdminUsers(), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current.users).toEqual(users));
     expect(fetcher).toHaveBeenCalledWith('/api/admin/users');
@@ -24,7 +24,7 @@ describe('useAdminUsers', () => {
 
   it('expone el error', async () => {
     const fetcher = jest.fn().mockRejectedValue(new Error('Sin conexión'));
-    const { result } = renderHook(() => useAdminUsers(), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useAdminUsers(), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current.error).toEqual(new Error('Sin conexión')));
     expect(result.current.users).toEqual([]);

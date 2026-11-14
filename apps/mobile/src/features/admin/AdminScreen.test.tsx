@@ -1,8 +1,8 @@
 import { ApiError } from '@omni/shared/api';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { RefreshControl } from 'react-native';
+import { act, fireEvent, render, screen, userEvent } from '@testing-library/react-native';
 
 import { confirm, notifyError, notifySuccess, SHEET_EXIT_MS } from '@/shared/ui';
+import { getByHostType } from '@/test/hostQueries';
 
 import { AdminScreen } from './AdminScreen';
 
@@ -63,16 +63,16 @@ beforeEach(() => {
 });
 
 describe('AdminScreen', () => {
-  it('un USER es redirigido a Inicio', () => {
+  it('un USER es redirigido a Inicio', async () => {
     mockRole = 'USER';
-    render(<AdminScreen />);
+    await render(<AdminScreen />);
 
     expect(screen.getByText('redirect:/')).toBeTruthy();
     expect(screen.queryByText('Administración')).toBeNull();
   });
 
-  it('lista los usuarios con rol, alta y contador', () => {
-    render(<AdminScreen />);
+  it('lista los usuarios con rol, alta y contador', async () => {
+    await render(<AdminScreen />);
 
     expect(screen.getByText('2 usuarios')).toBeTruthy();
     expect(screen.getByText('@usuario01')).toBeTruthy();
@@ -83,54 +83,54 @@ describe('AdminScreen', () => {
     expect(screen.getAllByText(' · Alta 07/03/2026')).toHaveLength(2);
   });
 
-  it('el tacho solo aparece para USER', () => {
-    render(<AdminScreen />);
+  it('el tacho solo aparece para USER', async () => {
+    await render(<AdminScreen />);
 
     expect(screen.getByLabelText('Eliminar usuario01')).toBeTruthy();
     expect(screen.queryByLabelText('Eliminar admin')).toBeNull();
   });
 
-  it('con un solo usuario el contador va en singular', () => {
+  it('con un solo usuario el contador va en singular', async () => {
     setUsers([ADMIN]);
-    render(<AdminScreen />);
+    await render(<AdminScreen />);
     expect(screen.getByText('1 usuario')).toBeTruthy();
   });
 
-  it('sin usuarios muestra el estado vacío', () => {
+  it('sin usuarios muestra el estado vacío', async () => {
     setUsers([]);
-    render(<AdminScreen />);
+    await render(<AdminScreen />);
     expect(screen.getByText('Todavía no hay usuarios')).toBeTruthy();
   });
 
-  it('con error muestra ErrorState y reintenta', () => {
+  it('con error muestra ErrorState y reintenta', async () => {
     const mutate = jest.fn();
     setUsers([], { error: new Error('x'), mutate });
-    render(<AdminScreen />);
+    await render(<AdminScreen />);
 
     expect(screen.getByText('No se pudieron cargar los usuarios')).toBeTruthy();
     expect(screen.queryByText('Todavía no hay usuarios')).toBeNull();
-    fireEvent.press(screen.getByRole('button', { name: /Reintentar/ }));
+    await fireEvent.press(screen.getByRole('button', { name: /Reintentar/ }));
     expect(mutate).toHaveBeenCalled();
   });
 
-  it('cargando muestra el estado de carga', () => {
+  it('cargando muestra el estado de carga', async () => {
     setUsers([], { isLoading: true });
-    render(<AdminScreen />);
+    await render(<AdminScreen />);
     expect(screen.getAllByLabelText('Cargando').length).toBeGreaterThan(0);
   });
 
   it('tirar para actualizar revalida', async () => {
     const mutate = jest.fn().mockResolvedValue(undefined);
     setUsers([ADMIN], { mutate });
-    render(<AdminScreen />);
+    await render(<AdminScreen />);
 
-    await act(async () => screen.UNSAFE_getByType(RefreshControl).props.onRefresh());
+    await userEvent.setup().pullToRefresh(getByHostType('RCTScrollView'));
     expect(mutate).toHaveBeenCalled();
   });
 
   it('eliminar confirma con el texto de web y avisa', async () => {
-    render(<AdminScreen />);
-    await act(async () => fireEvent.press(screen.getByLabelText('Eliminar usuario01')));
+    await render(<AdminScreen />);
+    await act(async () => await fireEvent.press(screen.getByLabelText('Eliminar usuario01')));
 
     expect(confirm).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -145,35 +145,35 @@ describe('AdminScreen', () => {
 
   it('si se cancela no elimina', async () => {
     jest.mocked(confirm).mockResolvedValue(false);
-    render(<AdminScreen />);
-    await act(async () => fireEvent.press(screen.getByLabelText('Eliminar usuario01')));
+    await render(<AdminScreen />);
+    await act(async () => await fireEvent.press(screen.getByLabelText('Eliminar usuario01')));
 
     expect(mockMutations.deleteUser).not.toHaveBeenCalled();
   });
 
   it('si falla eliminar avisa con notifyError', async () => {
     mockMutations.deleteUser.mockRejectedValue(new ApiError('No se puede', 409));
-    render(<AdminScreen />);
-    await act(async () => fireEvent.press(screen.getByLabelText('Eliminar usuario01')));
+    await render(<AdminScreen />);
+    await act(async () => await fireEvent.press(screen.getByLabelText('Eliminar usuario01')));
 
     expect(notifyError).toHaveBeenCalledWith('No se puede');
   });
 
   it('crear usuario: valida, envía, cierra y avisa', async () => {
     jest.useFakeTimers();
-    render(<AdminScreen />);
-    fireEvent.press(screen.getByRole('button', { name: 'Crear usuario' }));
+    await render(<AdminScreen />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Crear usuario' }));
 
-    fireEvent.changeText(screen.getByLabelText('Usuario, obligatorio'), 'abc');
-    await act(async () => fireEvent.press(screen.getAllByRole('button', { name: 'Crear usuario' }).at(-1)!));
+    await fireEvent.changeText(screen.getByLabelText('Usuario, obligatorio'), 'abc');
+    await act(async () => await fireEvent.press(screen.getAllByRole('button', { name: 'Crear usuario' }).at(-1)!));
     expect(screen.getByText('Debe tener al menos 6 caracteres')).toBeTruthy();
     expect(mockMutations.createUser).not.toHaveBeenCalled();
 
-    fireEvent.changeText(screen.getByLabelText('Usuario, obligatorio'), 'nuevo01');
-    fireEvent.changeText(screen.getByLabelText('Nombre, obligatorio'), 'Nuevo Usuario');
-    fireEvent.changeText(screen.getByLabelText('Contraseña inicial, obligatorio'), 'password123');
-    fireEvent.changeText(screen.getByLabelText('Confirmar contraseña, obligatorio'), 'password123');
-    await act(async () => fireEvent.press(screen.getAllByRole('button', { name: 'Crear usuario' }).at(-1)!));
+    await fireEvent.changeText(screen.getByLabelText('Usuario, obligatorio'), 'nuevo01');
+    await fireEvent.changeText(screen.getByLabelText('Nombre, obligatorio'), 'Nuevo Usuario');
+    await fireEvent.changeText(screen.getByLabelText('Contraseña inicial, obligatorio'), 'password123');
+    await fireEvent.changeText(screen.getByLabelText('Confirmar contraseña, obligatorio'), 'password123');
+    await act(async () => await fireEvent.press(screen.getAllByRole('button', { name: 'Crear usuario' }).at(-1)!));
 
     expect(mockMutations.createUser).toHaveBeenCalledWith({
       username: 'nuevo01',
@@ -189,13 +189,13 @@ describe('AdminScreen', () => {
 
   it('un usuario duplicado se muestra en un Banner y no cierra', async () => {
     mockMutations.createUser.mockRejectedValue(new ApiError('El usuario ya existe', 409));
-    render(<AdminScreen />);
-    fireEvent.press(screen.getByRole('button', { name: 'Crear usuario' }));
-    fireEvent.changeText(screen.getByLabelText('Usuario, obligatorio'), 'usuario01');
-    fireEvent.changeText(screen.getByLabelText('Nombre, obligatorio'), 'Otra Ana');
-    fireEvent.changeText(screen.getByLabelText('Contraseña inicial, obligatorio'), 'password123');
-    fireEvent.changeText(screen.getByLabelText('Confirmar contraseña, obligatorio'), 'password123');
-    await act(async () => fireEvent.press(screen.getAllByRole('button', { name: 'Crear usuario' }).at(-1)!));
+    await render(<AdminScreen />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Crear usuario' }));
+    await fireEvent.changeText(screen.getByLabelText('Usuario, obligatorio'), 'usuario01');
+    await fireEvent.changeText(screen.getByLabelText('Nombre, obligatorio'), 'Otra Ana');
+    await fireEvent.changeText(screen.getByLabelText('Contraseña inicial, obligatorio'), 'password123');
+    await fireEvent.changeText(screen.getByLabelText('Confirmar contraseña, obligatorio'), 'password123');
+    await act(async () => await fireEvent.press(screen.getAllByRole('button', { name: 'Crear usuario' }).at(-1)!));
 
     expect(screen.getByText('El usuario ya existe')).toBeTruthy();
     expect(notifySuccess).not.toHaveBeenCalled();

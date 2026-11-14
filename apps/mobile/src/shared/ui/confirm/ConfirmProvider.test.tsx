@@ -59,17 +59,17 @@ function enqueueSpy(title: string) {
 }
 
 /** Deja correr los `.then` de las promesas resueltas. */
-const flush = () => act(async () => {});
+const flush = async () => await act(async () => {});
 
-function closeAnimationDone() {
-  act(() => sheet().onAnimationComplete({ open: false }));
+async function closeAnimationDone() {
+  await act(() => sheet().onTransition({ phase: 'end', cause: 'close', position: 0, finished: true }));
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.useFakeTimers();
   mockSheet.props = null;
   mockConfirm.handler = null;
-  render(
+  await render(
     <ConfirmProvider>
       <></>
     </ConfirmProvider>
@@ -84,7 +84,7 @@ describe('ConfirmProvider', () => {
   it('muestra dos confirm() seguidos de a uno', async () => {
     let first!: ReturnType<typeof track>;
     let second!: ReturnType<typeof track>;
-    act(() => {
+    await act(() => {
       first = track({ title: 'Primera' });
       second = track({ title: 'Segunda' });
     });
@@ -93,23 +93,23 @@ describe('ConfirmProvider', () => {
     expect(screen.getByText('Primera')).toBeTruthy();
     expect(screen.queryByText('Segunda')).toBeNull();
 
-    fireEvent.press(screen.getByText('Confirmar'));
+    await fireEvent.press(screen.getByText('Confirmar'));
     await flush();
     expect(first.result).toBe(true);
     expect(sheet().open).toBe(false);
     expect(screen.queryByText('Segunda')).toBeNull();
 
-    closeAnimationDone();
+    await closeAnimationDone();
     expect(sheet().open).toBe(true);
     expect(screen.getByText('Segunda')).toBeTruthy();
 
-    fireEvent.press(screen.getByText('Cancelar'));
+    await fireEvent.press(screen.getByText('Cancelar'));
     await flush();
     expect(second.result).toBe(false);
   });
 
-  it('sin labels usa Confirmar y Cancelar', () => {
-    act(() => {
+  it('sin labels usa Confirmar y Cancelar', async () => {
+    await act(() => {
       track({ title: 'Borrar' });
     });
     expect(screen.getByRole('button', { name: 'Confirmar' })).toBeTruthy();
@@ -119,14 +119,14 @@ describe('ConfirmProvider', () => {
   it('el botón Atrás de Android cancela (resuelve false) y no navega', async () => {
     const addListener = jest.spyOn(BackHandler, 'addEventListener');
     let state!: ReturnType<typeof track>;
-    act(() => {
+    await act(() => {
       state = track({ title: 'Borrar' });
     });
 
     const handler = addListener.mock.calls.at(-1)?.[1];
     let handled: boolean | null | undefined;
-    act(() => {
-      handled = handler?.();
+    await act(() => {
+      handled = handler?.({ type: 'hardwareBackPress', timeStamp: 0 });
     });
     await flush();
     expect(handled).toBe(true);
@@ -134,8 +134,8 @@ describe('ConfirmProvider', () => {
     addListener.mockRestore();
   });
 
-  it('usa los labels personalizados', () => {
-    act(() => {
+  it('usa los labels personalizados', async () => {
+    await act(() => {
       track({ title: 'Borrar', confirmLabel: 'Borrar', cancelLabel: 'Volver' });
     });
     expect(screen.getByRole('button', { name: 'Borrar' })).toBeTruthy();
@@ -145,56 +145,74 @@ describe('ConfirmProvider', () => {
   it('cerrar por overlay resuelve false y avanza la cola', async () => {
     let first!: ReturnType<typeof track>;
     let second!: ReturnType<typeof track>;
-    act(() => {
+    await act(() => {
       first = track({ title: 'Primera' });
       second = track({ title: 'Segunda' });
     });
 
-    act(() => sheet().onOpenChange(false));
+    await act(() => sheet().onOpenChange(false));
     await flush();
     expect(first.result).toBe(false);
 
-    closeAnimationDone();
+    await closeAnimationDone();
     expect(sheet().open).toBe(true);
     expect(screen.getByText('Segunda')).toBeTruthy();
     expect(second.result).toBeUndefined();
   });
 
-  it('botón y onOpenChange(false) en el mismo tick resuelven una sola vez', () => {
+  it('botón y onOpenChange(false) en el mismo tick resuelven una sola vez', async () => {
     let first!: jest.Mock;
     let second!: jest.Mock;
-    act(() => {
+    await act(() => {
       first = enqueueSpy('Primera');
       second = enqueueSpy('Segunda');
     });
 
-    act(() => {
-      fireEvent.press(screen.getByText('Confirmar'));
+    await act(async () => {
+      await fireEvent.press(screen.getByText('Confirmar'));
       sheet().onOpenChange(false);
     });
     expect(first).toHaveBeenCalledTimes(1);
     expect(first).toHaveBeenCalledWith(true);
 
-    closeAnimationDone();
+    await closeAnimationDone();
     expect(sheet().open).toBe(true);
     expect(screen.getByText('Segunda')).toBeTruthy();
     expect(second).not.toHaveBeenCalled();
   });
 
-  it('si onAnimationComplete no llega, el fallback de 600 ms destraba la cola', () => {
-    act(() => {
+  it('si onTransition no llega, el fallback de 600 ms destraba la cola', async () => {
+    await act(() => {
       track({ title: 'Primera' });
       track({ title: 'Segunda' });
     });
 
-    act(() => sheet().onOpenChange(false));
+    await act(() => sheet().onOpenChange(false));
     expect(sheet().open).toBe(false);
 
-    act(() => jest.advanceTimersByTime(599));
+    await act(() => jest.advanceTimersByTime(599));
     expect(sheet().open).toBe(false);
     expect(screen.queryByText('Segunda')).toBeNull();
 
-    act(() => jest.advanceTimersByTime(1));
+    await act(() => jest.advanceTimersByTime(1));
+    expect(sheet().open).toBe(true);
+    expect(screen.getByText('Segunda')).toBeTruthy();
+  });
+
+  it('solo el fin de la salida avanza la cola: ni la apertura ni un cierre interrumpido', async () => {
+    await act(() => {
+      track({ title: 'Primera' });
+      track({ title: 'Segunda' });
+    });
+    await act(() => sheet().onOpenChange(false));
+
+    await act(() => sheet().onTransition({ phase: 'start', cause: 'close', position: 0 }));
+    await act(() => sheet().onTransition({ phase: 'end', cause: 'open', position: 0, finished: true }));
+    await act(() => sheet().onTransition({ phase: 'end', cause: 'close', position: 0, finished: false }));
+    expect(sheet().open).toBe(false);
+    expect(screen.queryByText('Segunda')).toBeNull();
+
+    await closeAnimationDone();
     expect(sheet().open).toBe(true);
     expect(screen.getByText('Segunda')).toBeTruthy();
   });
@@ -202,12 +220,12 @@ describe('ConfirmProvider', () => {
   it('resuelve false las requests abiertas si el provider se desmonta', async () => {
     let first!: ReturnType<typeof track>;
     let second!: ReturnType<typeof track>;
-    act(() => {
+    await act(() => {
       first = track({ title: 'Primera' });
       second = track({ title: 'Segunda' });
     });
 
-    screen.unmount();
+    await screen.unmount();
     await flush();
     expect(first.result).toBe(false);
     expect(second.result).toBe(false);
@@ -216,7 +234,7 @@ describe('ConfirmProvider', () => {
 
 describe('confirm', () => {
   it('sin ConfirmProvider montado resuelve false y avisa en dev (mismo criterio que notify*)', async () => {
-    screen.unmount();
+    await screen.unmount();
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     await expect(confirm({ title: 'Sin provider', description: '' })).resolves.toBe(false);
     expect(warn).toHaveBeenCalledWith(expect.stringMatching(/ConfirmProvider/));

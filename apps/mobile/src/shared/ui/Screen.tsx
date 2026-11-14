@@ -33,7 +33,7 @@ export function Screen({ children, insetBottom = false }: ScreenProps) {
   return (
     <YStack
       flex={1}
-      backgroundColor="$background"
+      backgroundColor="background"
       paddingHorizontal={SPACING.md}
       paddingTop={insets.top + SPACING.md}
       paddingBottom={insetBottom ? insets.bottom : tabBarClearance}

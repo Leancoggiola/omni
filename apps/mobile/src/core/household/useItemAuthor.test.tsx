@@ -37,7 +37,7 @@ describe('useItemAuthor', () => {
 
   it('pide el hogar de /api/household y resuelve al integrante', async () => {
     const fetcher = jest.fn().mockResolvedValue(HOUSEHOLD);
-    const { result } = renderHook(() => useItemAuthor('u2'), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useItemAuthor('u2'), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current).toEqual({ kind: 'member', name: 'Lucía', avatarUrl: null }));
     expect(fetcher).toHaveBeenCalledWith('/api/household');
@@ -45,14 +45,14 @@ describe('useItemAuthor', () => {
 
   it('reconoce a la propia sesión por su username', async () => {
     const fetcher = jest.fn().mockResolvedValue(HOUSEHOLD);
-    const { result } = renderHook(() => useItemAuthor('u1'), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useItemAuthor('u1'), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current?.kind).toBe('self'));
   });
 
   it('un createdById nulo es una cuenta eliminada', async () => {
     const fetcher = jest.fn().mockResolvedValue(HOUSEHOLD);
-    const { result } = renderHook(() => useItemAuthor(null), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useItemAuthor(null), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current?.kind).toBe('deleted'));
   });
@@ -60,7 +60,7 @@ describe('useItemAuthor', () => {
   it('sin la sesión cargada no hay autor: no se puede distinguir "Vos" de la pareja', async () => {
     mockSignedIn = false;
     const fetcher = jest.fn().mockResolvedValue(HOUSEHOLD);
-    const { result } = renderHook(() => useItemAuthor('u1'), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useItemAuthor('u1'), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(fetcher).toHaveBeenCalled());
     expect(result.current).toBeUndefined();
@@ -68,7 +68,7 @@ describe('useItemAuthor', () => {
 
   it('si el hogar falla no hay autor', async () => {
     const fetcher = jest.fn().mockRejectedValue(new Error('x'));
-    const { result } = renderHook(() => useItemAuthor('u2'), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useItemAuthor('u2'), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(fetcher).toHaveBeenCalled());
     expect(result.current).toBeUndefined();

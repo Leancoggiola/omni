@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { SWRConfig } from 'swr';
 
 import { useWatchingMedia } from './useWatchingMedia';
@@ -9,7 +9,7 @@ import type { MediaItem } from '@omni/shared/media';
 import type { ReactNode } from 'react';
 
 let mockFocused = true;
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
+jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockFocused }));
 jest.mock('@/shared/api', () => jest.requireActual('@/shared/api/keys'));
 
 const media = (id: string, status: MediaItem['status'], updatedAt: string): MediaItem => ({
@@ -48,11 +48,13 @@ describe('useWatchingMedia', () => {
   });
 
   it('pide la lista y devuelve hasta 3 ítems en "Viendo", los más recientes primero', async () => {
-    const fetcher = jest.fn().mockResolvedValue(LIST);
-    const { result } = renderHook(() => useWatchingMedia(), { wrapper: wrapperWith(fetcher) });
+    let resolveList: (value: typeof LIST) => void = () => undefined;
+    const fetcher = jest.fn().mockReturnValue(new Promise(resolve => (resolveList = resolve)));
+    const { result } = await renderHook(() => useWatchingMedia(), { wrapper: wrapperWith(fetcher) });
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.items).toEqual([]);
+    await act(async () => resolveList(LIST));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(fetcher).toHaveBeenCalledWith('/api/media/list');
@@ -61,7 +63,7 @@ describe('useWatchingMedia', () => {
 
   it('expone el error y no lo disfraza de lista vacía', async () => {
     const fetcher = jest.fn().mockRejectedValue(new Error('boom'));
-    const { result } = renderHook(() => useWatchingMedia(), {
+    const { result } = await renderHook(() => useWatchingMedia(), {
       wrapper: ({ children }: { children: ReactNode }) => (
         <SWRConfig value={{ provider: () => new Map(), fetcher, shouldRetryOnError: false }}>{children}</SWRConfig>
       ),
@@ -74,11 +76,11 @@ describe('useWatchingMedia', () => {
   it('refresca la lista cada MEDIA_LIST_REFRESH_MS solo con la pantalla enfocada', async () => {
     jest.useFakeTimers();
     const fetcher = jest.fn().mockResolvedValue(LIST);
-    const { rerender } = renderHook(() => useWatchingMedia(), { wrapper: wrapperWith(fetcher) });
+    const { rerender } = await renderHook(() => useWatchingMedia(), { wrapper: wrapperWith(fetcher) });
     await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
 
     mockFocused = false;
-    rerender({});
+    await rerender({});
     await jest.advanceTimersByTimeAsync(MEDIA_LIST_REFRESH_MS * 2);
     expect(fetcher).toHaveBeenCalledTimes(1);
   });

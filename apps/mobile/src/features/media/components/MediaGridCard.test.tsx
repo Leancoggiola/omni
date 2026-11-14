@@ -22,18 +22,18 @@ const ITEM: MediaItem = {
   updatedAt: '',
 };
 
-function renderCard() {
+async function renderCard() {
   const onStatusPress = jest.fn();
   const onDeletePress = jest.fn();
-  render(<MediaGridCard item={ITEM} onStatusPress={onStatusPress} onDeletePress={onDeletePress} />);
+  await render(<MediaGridCard item={ITEM} onStatusPress={onStatusPress} onDeletePress={onDeletePress} />);
   return { onStatusPress, onDeletePress };
 }
 
 describe('MediaGridCard', () => {
   beforeEach(() => mockAuthor.mockReset());
 
-  it('muestra título, badge de tipo, pill de estado y tacho con el nombre del ítem', () => {
-    renderCard();
+  it('muestra título, badge de tipo, pill de estado y tacho con el nombre del ítem', async () => {
+    await renderCard();
 
     expect(screen.getByText('The Bear')).toBeTruthy();
     expect(screen.getByText('Serie')).toBeTruthy();
@@ -41,24 +41,24 @@ describe('MediaGridCard', () => {
     expect(screen.getByRole('button', { name: 'Eliminar The Bear' })).toBeTruthy();
   });
 
-  it('la pill y el tacho llaman a sus handlers con el ítem', () => {
-    const { onStatusPress, onDeletePress } = renderCard();
+  it('la pill y el tacho llaman a sus handlers con el ítem', async () => {
+    const { onStatusPress, onDeletePress } = await renderCard();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Estado de The Bear: Viendo. Cambiar estado' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Eliminar The Bear' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Estado de The Bear: Viendo. Cambiar estado' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Eliminar The Bear' }));
 
     expect(onStatusPress).toHaveBeenCalledWith(ITEM);
     expect(onDeletePress).toHaveBeenCalledWith(ITEM);
   });
 
-  it('muestra el autor solo si el ítem es compartido', () => {
-    renderCard();
+  it('muestra el autor solo si el ítem es compartido', async () => {
+    await renderCard();
     expect(screen.queryByLabelText(/Agregado por/)).toBeNull();
   });
 
-  it('con autor resuelto muestra el AuthorTag', () => {
+  it('con autor resuelto muestra el AuthorTag', async () => {
     mockAuthor.mockReturnValue({ kind: 'self', name: 'Leandro', avatarUrl: null });
-    renderCard();
+    await renderCard();
     expect(screen.getByLabelText('Agregado por Vos')).toBeTruthy();
   });
 });

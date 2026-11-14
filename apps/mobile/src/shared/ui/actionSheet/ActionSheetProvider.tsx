@@ -37,7 +37,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
         <YStack gap={SPACING.xs}>
           <DisplayTitle size="md">{request?.title ?? ''}</DisplayTitle>
           {request?.description ? (
-            <Paragraph fontSize={FONT_SIZE.lg} color="$dimmed">
+            <Paragraph fontSize={FONT_SIZE.lg} color="dimmed">
               {request.description}
             </Paragraph>
           ) : null}
@@ -55,8 +55,8 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
                   gap={SPACING.sm}
                   alignItems="center"
                   borderBottomWidth={index < request.options.length - 1 ? 1 : 0}
-                  borderBottomColor="$hairline"
-                  pressStyle={{ backgroundColor: '$hover' }}
+                  borderBottomColor="hairline"
+                  backgroundColor="press:hover"
                   onPress={() => queue.close(option.value)}
                   accessible
                   accessibilityRole="menuitem"
@@ -68,7 +68,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
                     flex={1}
                     fontSize={FONT_SIZE.lg}
                     fontWeight={selected ? '600' : '400'}
-                    color={selected ? '$primary' : '$color'}
+                    color={selected ? 'primary' : 'color'}
                   >
                     {option.label}
                   </Paragraph>

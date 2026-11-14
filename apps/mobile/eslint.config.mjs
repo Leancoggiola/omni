@@ -3,9 +3,10 @@ import expoConfig from 'eslint-config-expo/flat.js';
 import { defineConfig } from 'eslint/config';
 import { join } from 'node:path';
 
-const SPINNER_MESSAGE = 'Usar Spinner de @/shared/ui: trae el color de marca (Tamagui no le aplica defaultProps).';
+const SPINNER_MESSAGE = 'Usar Spinner de @/shared/ui: trae el color de marca (el de Tamagui no lo tiene por defecto).';
 const SPINNER_PATHS = [
   { name: 'tamagui', importNames: ['Spinner'], message: SPINNER_MESSAGE },
+  { name: 'tamagui/spinner', message: SPINNER_MESSAGE },
   { name: '@tamagui/spinner', message: SPINNER_MESSAGE },
 ];
 
@@ -15,10 +16,13 @@ const INPUT_MESSAGE = 'Usar TextField / PasswordField de @/shared/ui (label, err
 const SWITCH_MESSAGE = 'Usar Switch de @/shared/ui (thumb y fila con label).';
 const RAW_CONTROLS_PATHS = [
   { name: 'tamagui', importNames: ['Button'], message: BUTTON_MESSAGE },
+  { name: 'tamagui/button', message: BUTTON_MESSAGE },
   { name: '@tamagui/button', message: BUTTON_MESSAGE },
   { name: 'tamagui', importNames: ['Input'], message: INPUT_MESSAGE },
+  { name: 'tamagui/input', message: INPUT_MESSAGE },
   { name: '@tamagui/input', message: INPUT_MESSAGE },
   { name: 'tamagui', importNames: ['Switch'], message: SWITCH_MESSAGE },
+  { name: 'tamagui/switch', message: SWITCH_MESSAGE },
   { name: '@tamagui/switch', message: SWITCH_MESSAGE },
 ];
 
@@ -80,7 +84,7 @@ export default defineConfig([
     rules: { 'no-restricted-syntax': ['error', ...ALERT_SELECTORS] },
   },
   {
-    files: ['*.test.js'],
+    files: ['*.test.js', 'jest.setup.js'],
     languageOptions: { globals: JEST_GLOBALS },
   },
   {

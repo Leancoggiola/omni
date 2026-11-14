@@ -33,9 +33,9 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   return (
     <XStack
-      backgroundColor="$surfaceGlass"
+      backgroundColor="surfaceGlass"
       borderWidth={1}
-      borderColor="$glassBorder"
+      borderColor="glassBorder"
       borderRadius={RADIUS.full}
       padding={TRACK_PADDING}
       gap={TRACK_PADDING}
@@ -54,9 +54,9 @@ export function SegmentedControl<T extends string>({
             borderRadius={RADIUS.full}
             alignItems="center"
             justifyContent="center"
-            backgroundColor={active ? '$primarySurface' : 'transparent'}
+            backgroundColor={active ? 'primarySurface' : 'transparent'}
+            opacity="press:0.7"
             onPress={disabled || active ? undefined : () => onChange(item.value)}
-            pressStyle={{ opacity: 0.7 }}
             accessible
             accessibilityRole="radio"
             accessibilityLabel={item.label}
@@ -65,7 +65,7 @@ export function SegmentedControl<T extends string>({
             <Paragraph
               fontSize={FONT_SIZE.md}
               fontWeight={active ? '700' : '600'}
-              color={active ? '$primary' : '$dimmed'}
+              color={active ? 'primary' : 'dimmed'}
               numberOfLines={1}
             >
               {item.label}

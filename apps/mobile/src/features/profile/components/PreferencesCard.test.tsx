@@ -30,10 +30,10 @@ beforeEach(() => {
 describe('PreferencesCard', () => {
   it('tras guardar con éxito conserva el valor nuevo cuando el padre ya lo refleja', async () => {
     const onChange = jest.fn().mockResolvedValue(undefined);
-    const { rerender } = render(<PreferencesCard values={VALUES} onChange={onChange} />);
+    const { rerender } = await render(<PreferencesCard values={VALUES} onChange={onChange} />);
 
-    await act(async () => fireEvent.press(screen.getByRole('radio', { name: 'Oscuro' })));
-    rerender(<PreferencesCard values={{ ...VALUES, theme: 'dark' }} onChange={onChange} />);
+    await act(async () => await fireEvent.press(screen.getByRole('radio', { name: 'Oscuro' })));
+    await rerender(<PreferencesCard values={{ ...VALUES, theme: 'dark' }} onChange={onChange} />);
 
     expect(onChange).toHaveBeenCalledWith({ theme: 'dark' });
     expect(screen.getByRole('radio', { name: 'Oscuro', checked: true })).toBeTruthy();
@@ -41,9 +41,9 @@ describe('PreferencesCard', () => {
 
   it('si el padre no llega a reflejar el valor, la card vuelve al anterior (no inventa un guardado)', async () => {
     const onChange = jest.fn().mockResolvedValue(undefined);
-    render(<PreferencesCard values={VALUES} onChange={onChange} />);
+    await render(<PreferencesCard values={VALUES} onChange={onChange} />);
 
-    await act(async () => fireEvent.press(screen.getByRole('radio', { name: 'Oscuro' })));
+    await act(async () => await fireEvent.press(screen.getByRole('radio', { name: 'Oscuro' })));
 
     expect(screen.getByRole('radio', { name: 'Claro', checked: true })).toBeTruthy();
   });
@@ -52,10 +52,10 @@ describe('PreferencesCard', () => {
     const theme = deferred();
     const notifications = deferred();
     const onChange = jest.fn().mockReturnValueOnce(theme.promise).mockReturnValueOnce(notifications.promise);
-    render(<PreferencesCard values={VALUES} onChange={onChange} />);
+    await render(<PreferencesCard values={VALUES} onChange={onChange} />);
 
-    fireEvent.press(screen.getByRole('radio', { name: 'Oscuro' }));
-    fireEvent.press(screen.getByRole('switch', { name: 'Notificaciones' }));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Oscuro' }));
+    await fireEvent.press(screen.getByRole('switch', { name: 'Notificaciones' }));
 
     expect(onChange).toHaveBeenCalledTimes(2);
     expect(onChange).toHaveBeenNthCalledWith(1, { theme: 'dark' });

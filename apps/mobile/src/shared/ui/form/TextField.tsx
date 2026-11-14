@@ -1,6 +1,6 @@
 import { FONT_SIZE, RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef } from 'react';
-import { AccessibilityInfo, type TextInput } from 'react-native';
+import { AccessibilityInfo, type TextInputInstance } from 'react-native';
 import { Input, Paragraph, XStack, YStack, type InputProps } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
@@ -36,12 +36,14 @@ export type TextFieldProps = Omit<InputProps, 'size' | 'disabled'> & {
 
 /**
  * Equivalente de `TextInput` de Mantine: label 14/600 (con `*` si es requerido), ícono izquierdo, alto 44 (52 y fuente
- * de 16 con `size="lg"`) y, debajo del campo, la descripción y el error. Placeholder, cursor y selección vienen de
- * `defaultProps` del config. El ícono izquierdo y la acción derecha ocupan un hueco de 40 (48 en `lg`) dentro del
- * campo, que es también su padding lateral. Dentro de un formulario (`FormSheet`, `FormFields`) "Siguiente" salta solo
- * al próximo campo habilitado y el último queda con "Listo"; un `returnKeyType` u `onSubmitEditing` propio tiene
- * prioridad. Dentro de un ScrollView de formulario (`FormSheet`, `FormScrollView`) el campo enfocado scrollea hasta
- * quedar arriba del teclado.
+ * de 16 con `size="lg"`) y, debajo del campo, la descripción y el error. Placeholder, cursor y selección
+ * (`placeholderTextColor`, `cursorColor`, `selectionColor`) van acá: Tamagui 3 no tiene `defaultProps` en el config. El
+ * ícono izquierdo y la acción derecha ocupan un hueco de 40 (48 en `lg`) dentro del campo, que es también su padding
+ * lateral (`paddingStart`/`paddingEnd`: el `paddingInline` del `size` de `Input` les gana a
+ * `paddingLeft`/`paddingRight`). Dentro de un formulario (`FormSheet`, `FormFields`) "Siguiente" salta solo al próximo
+ * campo habilitado y el último queda con "Listo"; un `returnKeyType` u `onSubmitEditing` propio tiene prioridad. Dentro
+ * de un ScrollView de formulario (`FormSheet`, `FormScrollView`) el campo enfocado scrollea hasta quedar arriba del
+ * teclado.
  */
 export function TextField({
   label,
@@ -68,15 +70,18 @@ export function TextField({
   const a11yLabel = baseLabel && required ? `${baseLabel}, obligatorio` : baseLabel;
   const a11yHint = [error, description, accessibilityHint].filter(Boolean).join('. ') || undefined;
 
-  const inputRef = useRef<TextInput | null>(null);
+  const inputRef = useRef<TextInputInstance | null>(null);
   const field = useFormField(!disabled, () => inputRef.current);
   const autoNext = field.inForm && !onSubmitEditing;
 
-  const setRef = (node: TextInput | null) => {
+  const setRef = (node: TextInputInstance | null) => {
     inputRef.current = node;
     if (typeof ref === 'function') ref(node as never);
     else if (ref) (ref as { current: unknown }).current = node;
   };
+
+  const borderBase = error ? 'destructive' : disabled ? 'transparent' : 'border-color';
+  const borderFocus = error ? 'destructive' : 'primary';
 
   const previousError = useRef(error);
   useEffect(() => {
@@ -90,7 +95,7 @@ export function TextField({
         <Paragraph fontSize={FONT_SIZE.md} fontWeight="600">
           {label}
           {required ? (
-            <Paragraph color="$destructive" fontSize={FONT_SIZE.md} fontWeight="600">
+            <Paragraph color="destructive" fontSize={FONT_SIZE.md} fontWeight="600">
               {' *'}
             </Paragraph>
           ) : null}
@@ -103,13 +108,15 @@ export function TextField({
           height={metrics.height}
           borderRadius={RADIUS.md}
           borderWidth={1}
-          borderColor={error ? '$destructive' : disabled ? 'transparent' : '$borderColor'}
-          focusStyle={{ borderColor: error ? '$destructive' : '$primary' }}
-          backgroundColor={disabled ? '$disabledSurface' : '$background'}
-          color={disabled ? '$dimmed' : '$color'}
+          borderColor={`${borderBase} focus:${borderFocus}`}
+          backgroundColor={disabled ? 'disabledSurface' : 'background'}
+          color={disabled ? 'dimmed' : 'color'}
+          placeholderTextColor="placeholder-color"
+          cursorColor="primary"
+          selectionColor="primary"
           fontSize={metrics.fontSize}
-          paddingLeft={LeftIcon ? metrics.section : SPACING.sm}
-          paddingRight={rightSection ? metrics.section : SPACING.sm}
+          paddingStart={LeftIcon ? metrics.section : SPACING.sm}
+          paddingEnd={rightSection ? metrics.section : SPACING.sm}
           disabled={disabled}
           accessibilityLabel={a11yLabel}
           accessibilityHint={a11yHint}
@@ -143,12 +150,12 @@ export function TextField({
         ) : null}
       </XStack>
       {description ? (
-        <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
           {description}
         </Paragraph>
       ) : null}
       {error ? (
-        <Paragraph color="$destructive" fontSize={FONT_SIZE.sm}>
+        <Paragraph color="destructive" fontSize={FONT_SIZE.sm}>
           {error}
         </Paragraph>
       ) : null}

@@ -20,8 +20,8 @@ type Value = (typeof DATA)[number]['value'];
 describe('Select', () => {
   beforeEach(() => mockActionSheet.mockReset());
 
-  it('muestra el valor actual y lo anuncia con el nombre del campo', () => {
-    render(<Select<Value> data={DATA} value="movie" onChange={jest.fn()} accessibilityLabel="Tipo" />);
+  it('muestra el valor actual y lo anuncia con el nombre del campo', async () => {
+    await render(<Select<Value> data={DATA} value="movie" onChange={jest.fn()} accessibilityLabel="Tipo" />);
 
     expect(screen.getByText('Películas')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Tipo: Películas' })).toBeTruthy();
@@ -30,9 +30,9 @@ describe('Select', () => {
   it('abre el actionSheet con las opciones y la actual, y avisa la elegida', async () => {
     mockActionSheet.mockResolvedValue('tv');
     const onChange = jest.fn();
-    render(<Select<Value> data={DATA} value="all" onChange={onChange} accessibilityLabel="Tipo" />);
+    await render(<Select<Value> data={DATA} value="all" onChange={onChange} accessibilityLabel="Tipo" />);
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Tipo: Todos' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Tipo: Todos' })));
 
     expect(mockActionSheet).toHaveBeenCalledWith({ title: 'Tipo', options: DATA, value: 'all' });
     expect(onChange).toHaveBeenCalledWith('tv');
@@ -40,13 +40,13 @@ describe('Select', () => {
 
   it('cancelar o elegir la misma opción no llama a onChange', async () => {
     const onChange = jest.fn();
-    render(<Select<Value> data={DATA} value="all" onChange={onChange} accessibilityLabel="Tipo" />);
+    await render(<Select<Value> data={DATA} value="all" onChange={onChange} accessibilityLabel="Tipo" />);
     const trigger = screen.getByRole('button', { name: 'Tipo: Todos' });
 
     mockActionSheet.mockResolvedValueOnce(null);
-    await act(async () => fireEvent.press(trigger));
+    await act(async () => await fireEvent.press(trigger));
     mockActionSheet.mockResolvedValueOnce('all');
-    await act(async () => fireEvent.press(trigger));
+    await act(async () => await fireEvent.press(trigger));
 
     expect(onChange).not.toHaveBeenCalled();
   });

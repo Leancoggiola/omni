@@ -26,12 +26,12 @@ let appStateListener: ((state: AppStateStatus) => void) | undefined;
 const removeListener = jest.fn();
 
 const renderBiometrics = async () => {
-  const hook = renderHook(() => useBiometrics(), { wrapper: BiometricsProvider });
+  const hook = await renderHook(() => useBiometrics(), { wrapper: BiometricsProvider });
   await waitFor(() => expect(hook.result.current.ready).toBe(true));
   return hook;
 };
 
-const goTo = (state: AppStateStatus) => act(() => appStateListener?.(state));
+const goTo = async (state: AppStateStatus) => await act(() => appStateListener?.(state));
 
 beforeEach(() => {
   store.clear();
@@ -122,15 +122,15 @@ describe('BiometricsProvider · disponibilidad', () => {
 
   it('desuscribe el listener de AppState al desmontar', async () => {
     const { unmount } = await renderBiometrics();
-    unmount();
+    await unmount();
 
     expect(removeListener).toHaveBeenCalledTimes(1);
   });
 
-  it('useBiometrics fuera del provider lanza un error claro', () => {
+  it('useBiometrics fuera del provider lanza un error claro', async () => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    expect(() => renderHook(() => useBiometrics())).toThrow(
+    await expect(renderHook(() => useBiometrics())).rejects.toThrow(
       'useBiometrics debe usarse dentro de un BiometricsProvider'
     );
   });
@@ -234,7 +234,7 @@ describe('BiometricsProvider · bloqueo de arranque', () => {
     store.set(PREFERENCE_KEY, '1');
     const { result } = await renderBiometrics();
 
-    act(() => result.current.markUnlocked());
+    await act(() => result.current.markUnlocked());
 
     expect(result.current.locked).toBe(false);
     expect(authenticateAsync).not.toHaveBeenCalled();
@@ -246,7 +246,7 @@ describe('BiometricsProvider · bloqueo de arranque', () => {
     await act(async () => {
       await first.result.current.unlock();
     });
-    first.unmount();
+    await first.unmount();
 
     const { result } = await renderBiometrics();
 
@@ -256,8 +256,8 @@ describe('BiometricsProvider · bloqueo de arranque', () => {
   it('después de un login con contraseña, el provider montado de nuevo no vuelve a bloquear', async () => {
     store.set(PREFERENCE_KEY, '1');
     const first = await renderBiometrics();
-    act(() => first.result.current.markUnlocked());
-    first.unmount();
+    await act(() => first.result.current.markUnlocked());
+    await first.unmount();
 
     const { result } = await renderBiometrics();
 
@@ -271,7 +271,7 @@ describe('BiometricsProvider · bloqueo de arranque', () => {
     await act(async () => {
       await first.result.current.unlock();
     });
-    first.unmount();
+    await first.unmount();
 
     const { result } = await renderBiometrics();
 
@@ -286,7 +286,7 @@ describe('BiometricsProvider · bloqueo de arranque', () => {
 
     let first!: Promise<string>;
     let second!: Promise<string>;
-    act(() => {
+    await act(() => {
       first = result.current.unlock();
       second = result.current.unlock();
     });
@@ -307,7 +307,7 @@ describe('BiometricsProvider · bloqueo de arranque', () => {
 
     let sensitive!: Promise<string>;
     let unlocking!: Promise<string>;
-    act(() => {
+    await act(() => {
       sensitive = result.current.authenticateSensitive();
       unlocking = result.current.unlock();
     });
@@ -347,7 +347,7 @@ describe('BiometricsProvider · activar y desactivar', () => {
     await act(async () => {
       await first.result.current.enable();
     });
-    first.unmount();
+    await first.unmount();
 
     const { result } = await renderBiometrics();
 
@@ -437,7 +437,7 @@ describe('BiometricsProvider · módulos sensibles', () => {
     const { result } = await renderBiometrics();
 
     let pendingResult!: Promise<string>;
-    act(() => {
+    await act(() => {
       pendingResult = result.current.authenticateSensitive();
     });
     await goTo('background');
@@ -513,7 +513,7 @@ describe('BiometricsProvider · módulos sensibles', () => {
 
   it('un login con contraseña también cuenta como desbloqueo', async () => {
     const { result } = await renderBiometrics();
-    act(() => result.current.markUnlocked());
+    await act(() => result.current.markUnlocked());
 
     expect(result.current.isSensitiveUnlocked()).toBe(true);
   });

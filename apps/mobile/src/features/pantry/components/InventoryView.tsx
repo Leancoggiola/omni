@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { DEFAULT_PANTRY_FILTERS, filterPantryProducts, hasActivePantryFilters } from '@omni/shared/pantry';
 import { SPACING } from '@omni/shared/theme';
 import { BarcodeIcon, MagnifyingGlassIcon, PackageIcon, PlusIcon } from 'phosphor-react-native';

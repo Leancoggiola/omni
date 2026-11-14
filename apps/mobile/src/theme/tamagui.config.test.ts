@@ -1,8 +1,7 @@
 import { SEMANTIC } from '@omni/shared/theme';
+import { defaultConfig } from '@tamagui/config/v5';
 
-import { config } from '@tamagui/config';
-
-import { COMPONENT_THEMES, tamaguiConfig } from './tamagui.config';
+import { kebabKeyPairs, tamaguiConfig } from './tamagui.config';
 
 const themes = tamaguiConfig.themes as unknown as Record<string, Record<string, unknown>>;
 
@@ -12,51 +11,43 @@ function value(theme: string, key: string): unknown {
   return v && typeof v === 'object' && 'val' in v ? (v as { val: unknown }).val : v;
 }
 
-describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', scheme => {
+const baseLight = defaultConfig.themes.light as Record<string, unknown>;
+
+const KEBAB_PAIRS = kebabKeyPairs(baseLight);
+
+describe.each(['light', 'dark'] as const)('themes propios (%s)', scheme => {
   const s = SEMANTIC[scheme];
 
   it.each([
-    ['Button', 'background', s.card],
-    ['active_Button', 'background', s.primaryFill],
-    ['active_Button', 'color', s.onPrimaryFill],
-    ['active_Button', 'backgroundHover', s.primaryFillHover],
-    ['active_Button', 'backgroundPress', s.primaryFillPress],
-    ['red_Button', 'background', s.destructiveFill],
-    ['red_Button', 'color', s.onDestructive],
-    ['Switch', 'background', s.borderSubtle],
-    ['active_Switch', 'background', s.primaryFill],
-    ['Switch', 'backgroundActive', s.primaryFill],
-    ['SwitchThumb', 'background', s.white],
-    ['active_SwitchThumb', 'background', s.white],
-    ['SliderTrackActive', 'background', s.primary],
-    ['ProgressIndicator', 'background', s.primary],
-    ['Card', 'background', s.card],
-    ['ListItem', 'color', s.text],
-    ['Checkbox', 'borderColor', s.border],
-    ['RadioGroupItem', 'borderColor', s.border],
-    ['SliderTrack', 'background', s.border],
-    ['SliderThumb', 'background', s.primary],
-    ['TooltipArrow', 'borderColor', s.border],
-    ['DrawerFrame', 'background', s.body],
-    ['Progress', 'background', s.border],
-    ['TooltipContent', 'background', s.card],
-    ['red_Switch', 'background', s.destructiveFill],
-    ['blue_Button', 'background', s.card],
-    ['Button', 'primary', s.primary],
-    ['active_Button', 'dimmed', s.dimmed],
+    ['active', 'background', s.primaryFill],
+    ['active', 'color', s.onPrimaryFill],
+    ['active', 'backgroundHover', s.primaryFillHover],
+    ['active', 'backgroundPress', s.primaryFillPress],
+    ['active', 'background-press', s.primaryFillPress],
+    ['active', 'disabledSurface', s.disabledSurface],
+    ['active', 'onAccentFill', s.onAccentFill],
+    ['red', 'background', s.destructiveFill],
+    ['red', 'color', s.onDestructive],
+    ['red', 'primarySurface', s.primarySurface],
     ['Input', 'background', s.card],
+    ['Input', 'border-color', s.border],
+    ['Input', 'border-color-focus', s.primary],
+    ['Input', 'placeholder-color', s.placeholder],
     ['Input', 'disabledSurface', s.disabledSurface],
     ['Input', 'destructive', s.destructive],
     ['Input', 'primary', s.primary],
-    ['active', 'disabledSurface', s.disabledSurface],
-    ['red', 'primarySurface', s.primarySurface],
-    ['alt1', 'destructiveBorder', s.destructiveBorder],
-    ['active', 'background', s.primaryFill],
-    ['active', 'color', s.onPrimaryFill],
-    ['red', 'color', s.onDestructive],
-    ['active', 'onAccentFill', s.onAccentFill],
-  ])('%s: %s resuelve a SEMANTIC', (component, key, expected) => {
-    expect(value(`${scheme}_${component}`, key)).toBe(expected);
+    ['TextArea', 'background', s.card],
+    ['TextArea', 'placeholder-color', s.placeholder],
+  ])('%s: %s resuelve a SEMANTIC', (name, key, expected) => {
+    expect(value(`${scheme}_${name}`, key)).toBe(expected);
+  });
+
+  it('el theme base pisa las dos grafías de cada color y la pista del Switch apagado', () => {
+    expect(value(scheme, 'background')).toBe(s.body);
+    expect(value(scheme, 'border-color')).toBe(s.border);
+    expect(value(scheme, 'background-press')).toBe(s.border);
+    expect(value(scheme, 'color-4')).toBe(s.borderSubtle);
+    expect(value(scheme, 'color-5')).toBe(s.borderSubtle);
   });
 
   it.each([
@@ -74,24 +65,20 @@ describe.each(['light', 'dark'] as const)('sub-themes de componentes (%s)', sche
     expect(value(`${scheme}_active`, key)).toBe(expected);
   });
 
-  it('toda variante de COMPONENT_THEMES se reconstruye (ninguna conserva el valor de @tamagui/config)', () => {
-    const originals = config.themes as unknown as Record<string, Record<string, unknown>>;
-    const names = Object.keys(originals).filter(
-      name => name.startsWith(`${scheme}_`) && COMPONENT_THEMES.includes(name.split('_').pop() ?? '')
-    );
-    expect(names.length).toBeGreaterThan(0);
-    const untouched = names.filter(name => value(name, 'background') === originals[name].background);
-    expect(untouched).toEqual([]);
-  });
+  it.each(['', '_active', '_red', '_Input', '_TextArea'])(
+    'las dos grafías de cada clave compuesta coinciden en %s',
+    suffix => {
+      expect(KEBAB_PAIRS.length).toBeGreaterThan(10);
+      expect(KEBAB_PAIRS).toContainEqual(['backgroundHover', 'background-hover']);
+      for (const [camel, kebab] of KEBAB_PAIRS) {
+        expect(value(`${scheme}${suffix}`, kebab)).toBe(value(`${scheme}${suffix}`, camel));
+      }
+    }
+  );
 
-  it('el theme _red pone el texto de onDestructive sobre destructiveFill', () => {
+  it('el theme red pone el texto de onDestructive sobre destructiveFill', () => {
     expect(value(`${scheme}_red`, 'background')).toBe(s.destructiveFill);
     expect(value(`${scheme}_red`, 'color')).toBe(s.onDestructive);
-  });
-
-  it('las variantes _red de Slider y Progress activos van en destructivo', () => {
-    expect(value(`${scheme}_red_SliderTrackActive`, 'background')).toBe(s.destructiveFill);
-    expect(value(`${scheme}_red_ProgressIndicator`, 'background')).toBe(s.destructiveFill);
   });
 });
 
@@ -104,5 +91,12 @@ describe('fuentes de display', () => {
     expect(display.family).toBe('Bricolage Grotesque');
     expect(display.face[700].normal).toBe('BricolageGrotesqueBold');
     expect(display.face[800].normal).toBe('BricolageGrotesqueExtraBold');
+  });
+});
+
+describe('animaciones', () => {
+  it('registra el driver de React Native con los presets que usan los Sheet', () => {
+    const animations = tamaguiConfig.animations as unknown as { animations: Record<string, unknown> };
+    expect(Object.keys(animations.animations)).toEqual(expect.arrayContaining(['lazy', 'medium']));
   });
 });

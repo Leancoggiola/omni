@@ -23,7 +23,7 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
       <QueuedSheet queue={queue}>
         <YStack gap={SPACING.xs}>
           <DisplayTitle size="md">{request?.title ?? ''}</DisplayTitle>
-          <Paragraph fontSize={FONT_SIZE.lg} lineHeight={LINE_HEIGHT.xl} color="$dimmed">
+          <Paragraph fontSize={FONT_SIZE.lg} lineHeight={`${LINE_HEIGHT.xl}px`} color="dimmed">
             {request?.description}
           </Paragraph>
         </YStack>

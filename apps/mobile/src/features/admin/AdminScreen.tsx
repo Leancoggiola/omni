@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { Redirect, useRouter } from 'expo-router';
 import { GearIcon, UserPlusIcon, UsersIcon } from 'phosphor-react-native';
@@ -126,7 +125,7 @@ function AdminUsersScreen() {
             </Title>
             {!error && !isLoading ? (
               <Paragraph
-                color="$dimmed"
+                color="dimmed"
                 fontSize={FONT_SIZE.sm}
               >{`${users.length} ${users.length === 1 ? 'usuario' : 'usuarios'}`}</Paragraph>
             ) : null}

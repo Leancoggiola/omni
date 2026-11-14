@@ -1,9 +1,8 @@
-// tamagui-ignore
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router/react-navigation';
 import { NAV_REGISTRY, type NavKey } from '@omni/shared/navigation';
 import { SPACING } from '@omni/shared/theme';
 import { LockKeyIcon } from 'phosphor-react-native';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Paragraph, YStack } from 'tamagui';
 
 import { Button, EmptyState, notifyError, Screen, ScreenHeader } from '@/shared/ui';
@@ -28,24 +27,32 @@ type SensitiveGateProps = {
  * background, y al recuperar el foco (las pantallas de las tabs quedan montadas): al volver a un módulo pasados los 5
  * minutos vuelve a pedir biometría; si la biometría se activa con el gate ya montado, recoge el desbloqueo vigente que
  * renueva la activación, sin pedirla de nuevo. Una pantalla que ya está en foco no se cierra sola a los 5 minutos.
+ * Esa evaluación se hace durante el render, solo cuando cambia el foco, `enabled` o la época (estado derivado de lo
+ * anterior, no un efecto que escribe estado); `isSensitiveUnlocked()` lee el reloj durante el render y solo es válida
+ * ahí porque se evalúa cuando cambian el foco, `enabled` o la época. Un éxito de la biometría solo desbloquea si el
+ * desbloqueo sigue vigente al responder: si la app pasó por background durante el prompt, la época capturada ya es
+ * vieja y no se guarda.
  *
  * `module` es el módulo que protege (solo pide biometría si está en `SENSITIVE_MODULES`). `onBack` marca una ruta de
  * stack: suma el botón de volver del header a la pantalla bloqueada y el inset inferior de las rutas sin tab bar.
  */
 export function SensitiveGate({ module, onBack, children }: SensitiveGateProps) {
   const { enabled, kind, noun, isSensitiveUnlocked, authenticateSensitive, sensitiveEpoch } = useBiometrics();
+  const isFocused = useIsFocused();
   const [unlockedEpoch, setUnlockedEpoch] = useState<number | null>(() =>
     isSensitiveUnlocked() ? sensitiveEpoch : null
   );
+  const [synced, setSynced] = useState({ isFocused, enabled, sensitiveEpoch });
   const [busy, setBusy] = useState(false);
-  const isFocused = useIsFocused();
 
-  useEffect(() => {
-    if (!isFocused) return;
-    const fresh = isSensitiveUnlocked();
-    if (unlockedEpoch !== null && !fresh) setUnlockedEpoch(null);
-    else if (enabled && unlockedEpoch === null && fresh) setUnlockedEpoch(sensitiveEpoch);
-  }, [isFocused, enabled, unlockedEpoch, sensitiveEpoch, isSensitiveUnlocked]);
+  if (synced.isFocused !== isFocused || synced.enabled !== enabled || synced.sensitiveEpoch !== sensitiveEpoch) {
+    setSynced({ isFocused, enabled, sensitiveEpoch });
+    if (isFocused) {
+      const fresh = isSensitiveUnlocked();
+      if (unlockedEpoch !== null && !fresh) setUnlockedEpoch(null);
+      else if (enabled && unlockedEpoch === null && fresh) setUnlockedEpoch(sensitiveEpoch);
+    }
+  }
 
   if (!enabled || !isSensitiveModule(module) || unlockedEpoch === sensitiveEpoch) return <>{children}</>;
 
@@ -54,7 +61,7 @@ export function SensitiveGate({ module, onBack, children }: SensitiveGateProps) 
     setBusy(true);
     try {
       const result = await authenticateSensitive();
-      if (result === 'success') setUnlockedEpoch(sensitiveEpoch);
+      if (result === 'success' && isSensitiveUnlocked()) setUnlockedEpoch(sensitiveEpoch);
       else if (result === 'failed') notifyError(`No se pudo verificar tu ${noun}. Probá de nuevo.`);
     } finally {
       setBusy(false);
@@ -69,7 +76,7 @@ export function SensitiveGate({ module, onBack, children }: SensitiveGateProps) 
         title="Módulo protegido"
         action={
           <YStack alignSelf="stretch" gap={SPACING.md}>
-            <Paragraph color="$dimmed" textAlign="center">
+            <Paragraph color="dimmed" textAlign="center">
               {`Verificá tu ${noun} para ver esta información.`}
             </Paragraph>
             <Button fullWidth size="lg" leftSection={biometricIcon(kind)} loading={busy} onPress={() => void unlock()}>

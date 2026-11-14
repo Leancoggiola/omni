@@ -32,7 +32,7 @@ export function AuthGate() {
 
   if (isSessionUnverified) {
     return (
-      <YStack flex={1} justifyContent="center" padding={SPACING.md} gap={SPACING.md} backgroundColor="$background">
+      <YStack flex={1} justifyContent="center" padding={SPACING.md} gap={SPACING.md} backgroundColor="background">
         <ErrorState message={SESSION_ERROR_MESSAGE} onRetry={retrySession} retrying={isRetryingSession} />
         <Button
           fullWidth

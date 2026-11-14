@@ -9,7 +9,7 @@ import type { ComponentProps, ReactNode } from 'react';
 
 const GRABBER = { width: 40, height: 4 } as const;
 
-type SheetFrameProps = Omit<ComponentProps<typeof Sheet.Frame>, 'children'> & {
+type SheetFrameProps = Omit<ComponentProps<typeof Sheet.Container>, 'children'> & {
   children: ReactNode;
   keyboardInset?: number;
 };
@@ -26,27 +26,29 @@ export function SheetFrame({ children, gap = SPACING.md, keyboardInset = 0, ...p
   const { colorScheme } = useColorSchemeControl();
 
   return (
-    <Sheet.Frame
-      backgroundColor="$backgroundStrong"
-      borderTopLeftRadius={RADIUS['2xl']}
-      borderTopRightRadius={RADIUS['2xl']}
+    <Sheet.Container
       paddingTop={SPACING.sm}
       paddingHorizontal={SPACING.lg}
       paddingBottom={keyboardInset > 0 ? keyboardInset + SPACING.md : SPACING.xl + insets.bottom}
       gap={gap}
-      {...themedElevation('sheet', colorScheme)}
       {...props}
     >
+      <Sheet.Background
+        backgroundColor="backgroundStrong"
+        borderTopLeftRadius={RADIUS['2xl']}
+        borderTopRightRadius={RADIUS['2xl']}
+        {...themedElevation('sheet', colorScheme)}
+      />
       <YStack
         alignSelf="center"
         width={GRABBER.width}
         height={GRABBER.height}
         borderRadius={RADIUS.full}
-        backgroundColor="$track"
+        backgroundColor="track"
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       />
       {children}
-    </Sheet.Frame>
+    </Sheet.Container>
   );
 }

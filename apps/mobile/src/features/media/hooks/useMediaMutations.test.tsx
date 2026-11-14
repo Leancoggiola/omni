@@ -10,7 +10,7 @@ import type { ReactNode } from 'react';
 const mockApi = { post: jest.fn(), patch: jest.fn(), delete: jest.fn() };
 
 let mockFocused = true;
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
+jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockFocused }));
 jest.mock('@/shared/api', () => ({
   ...jest.requireActual('@/shared/api/keys'),
   api: {
@@ -51,7 +51,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 async function renderList() {
-  const hook = renderHook(() => ({ list: useMyMediaList(), ...useMediaMutations() }), { wrapper });
+  const hook = await renderHook(() => ({ list: useMyMediaList(), ...useMediaMutations() }), { wrapper });
   await waitFor(() => expect(hook.result.current.list.data).toHaveLength(2));
   return hook;
 }
@@ -77,10 +77,10 @@ describe('useMediaMutations', () => {
 
     let a!: Promise<void>;
     let b!: Promise<void>;
-    act(() => {
+    await act(() => {
       a = result.current.updateStatus('1', 'watching');
     });
-    act(() => {
+    await act(() => {
       b = result.current.updateStatus('2', 'watched');
     });
     expect(statuses(result.current.list.data)).toEqual(['1:watching', '2:watched']);
@@ -112,7 +112,7 @@ describe('useMediaMutations', () => {
     const { result } = await renderList();
 
     let removal!: Promise<void>;
-    act(() => {
+    await act(() => {
       removal = result.current.removeFromList('1');
     });
     expect(statuses(result.current.list.data)).toEqual(['2:to_watch']);

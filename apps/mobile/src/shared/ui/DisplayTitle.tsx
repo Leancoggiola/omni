@@ -34,9 +34,9 @@ function lastWordIndex(text: string, accent: string): number {
 export function DisplayTitle({ children, size = 'lg', accent, header = true, ...props }: DisplayTitleProps) {
   const { fontSize, lineHeight, fontWeight, letterSpacing } = DISPLAY[size];
   const style = {
-    fontFamily: '$display',
+    fontFamily: 'display',
     fontSize,
-    lineHeight,
+    lineHeight: `${lineHeight}px`,
     fontWeight: String(fontWeight) as ParagraphProps['fontWeight'],
     letterSpacing,
     textTransform: 'none',
@@ -44,13 +44,13 @@ export function DisplayTitle({ children, size = 'lg', accent, header = true, ...
   const at = accent ? lastWordIndex(children, accent) : -1;
 
   return (
-    <Paragraph color="$color" accessibilityRole={header ? 'header' : undefined} {...style} {...props}>
+    <Paragraph color="color" accessibilityRole={header ? 'header' : undefined} {...style} {...props}>
       {at < 0 || !accent ? (
         children
       ) : (
         <>
           {children.slice(0, at)}
-          <Paragraph color="$primary" {...style} letterSpacing={DISPLAY.accent.letterSpacing}>
+          <Paragraph color="primary" {...style} letterSpacing={DISPLAY.accent.letterSpacing}>
             {accent}
           </Paragraph>
           {children.slice(at + accent.length)}

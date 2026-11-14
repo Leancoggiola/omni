@@ -15,7 +15,7 @@ const mockSaveLastWeather = jest.fn();
 const mockIsFocused = jest.fn();
 
 jest.mock('swr', () => ({ __esModule: true, default: (...args: unknown[]) => mockUseSWR(...args) }));
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockIsFocused() }));
+jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockIsFocused() }));
 jest.mock('@/core/auth', () => ({ useAuth: () => ({ user: { username: 'maria' } }) }));
 jest.mock('@/shared/api', () => ({
   api: { post: (...args: unknown[]) => mockPost(...args) },
@@ -57,35 +57,35 @@ beforeEach(() => {
 });
 
 describe('useCurrentWeather', () => {
-  it('sin permiso no llama a la API: la key es null y el estado "no-location"', () => {
+  it('sin permiso no llama a la API: la key es null y el estado "no-location"', async () => {
     mockUseDeviceLocation.mockReturnValue({
       location: { status: 'unavailable', canAskAgain: true },
       request: jest.fn(),
     });
-    const { result } = renderHook(() => useCurrentWeather());
+    const { result } = await renderHook(() => useCurrentWeather());
     expect(mockUseSWR.mock.calls[0]?.[0]).toBeNull();
     expect(result.current.state).toBe('no-location');
     expect(result.current.canAskLocationAgain).toBe(true);
   });
 
-  it('avisa si el sistema ya no deja preguntar el permiso', () => {
+  it('avisa si el sistema ya no deja preguntar el permiso', async () => {
     mockUseDeviceLocation.mockReturnValue({
       location: { status: 'unavailable', canAskAgain: false },
       request: jest.fn(),
     });
-    const { result } = renderHook(() => useCurrentWeather());
+    const { result } = await renderHook(() => useCurrentWeather());
     expect(result.current.canAskLocationAgain).toBe(false);
   });
 
-  it('mientras busca la posición está cargando y no llama a la API', () => {
+  it('mientras busca la posición está cargando y no llama a la API', async () => {
     mockUseDeviceLocation.mockReturnValue({ location: { status: 'locating' }, request: jest.fn() });
-    const { result } = renderHook(() => useCurrentWeather());
+    const { result } = await renderHook(() => useCurrentWeather());
     expect(mockUseSWR.mock.calls[0]?.[0]).toBeNull();
     expect(result.current.state).toBe('loading');
   });
 
   it('la key lleva las coordenadas y el fetcher las manda en el body, no en la URL', async () => {
-    renderHook(() => useCurrentWeather());
+    await renderHook(() => useCurrentWeather());
     const [key, fetcher, options] = mockUseSWR.mock.calls[0] ?? [];
     expect(key).toEqual(['/api/weather/current', -34.6, -58.38]);
     await fetcher(key);
@@ -93,15 +93,15 @@ describe('useCurrentWeather', () => {
     expect(options).toMatchObject({ refreshInterval: WEATHER_REFRESH_MS });
   });
 
-  it('con la pantalla fuera de foco no se refresca', () => {
+  it('con la pantalla fuera de foco no se refresca', async () => {
     mockIsFocused.mockReturnValue(false);
-    renderHook(() => useCurrentWeather());
+    await renderHook(() => useCurrentWeather());
     expect(mockUseSWR.mock.calls[0]?.[2]).toMatchObject({ refreshInterval: 0 });
   });
 
   it('con datos está "ready" y los guarda como respaldo', async () => {
     mockUseSWR.mockReturnValue(swrState({ data: WEATHER }));
-    const { result } = renderHook(() => useCurrentWeather());
+    const { result } = await renderHook(() => useCurrentWeather());
     expect(result.current.state).toBe('ready');
     expect(result.current.weather).toEqual(WEATHER);
     await waitFor(() => expect(mockSaveLastWeather).toHaveBeenCalledWith('maria', WEATHER));
@@ -111,14 +111,14 @@ describe('useCurrentWeather', () => {
     const saved = { ...WEATHER, stale: true };
     mockReadLastWeather.mockResolvedValue(saved);
     mockUseSWR.mockReturnValue(swrState({ error: new Error('x') }));
-    const { result } = renderHook(() => useCurrentWeather());
+    const { result } = await renderHook(() => useCurrentWeather());
     await waitFor(() => expect(result.current.state).toBe('ready'));
     expect(result.current.weather).toEqual(saved);
   });
 
-  it('si la API falla y no hay respaldo, es un error', () => {
+  it('si la API falla y no hay respaldo, es un error', async () => {
     mockUseSWR.mockReturnValue(swrState({ error: new Error('x') }));
-    const { result } = renderHook(() => useCurrentWeather());
+    const { result } = await renderHook(() => useCurrentWeather());
     expect(result.current.state).toBe('error');
     expect(result.current.weather).toBeNull();
   });

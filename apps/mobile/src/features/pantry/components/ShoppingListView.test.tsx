@@ -1,8 +1,9 @@
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { RefreshControl, Text } from 'react-native';
+import { act, fireEvent, render, screen, userEvent } from '@testing-library/react-native';
+import { Text } from 'react-native';
 
 import { actionSheet } from '@/shared/ui/actionSheet/actionSheet';
 import { confirm, notifyError, notifySuccess } from '@/shared/ui';
+import { getByHostType } from '@/test/hostQueries';
 
 import { listItem, product } from '../fixtures';
 import { ShoppingListView } from './ShoppingListView';
@@ -60,14 +61,14 @@ const LINKED = listItem({
 const FREE = listItem({ id: 'i2' });
 const DONE = listItem({ id: 'i3', name: 'Fideos', checked: true });
 
-function renderView(list: Record<string, unknown> = { items: [LINKED, FREE, DONE] }, lowStockCount = 0) {
+async function renderView(list: Record<string, unknown> = { items: [LINKED, FREE, DONE] }, lowStockCount = 0) {
   const retry = jest.fn().mockResolvedValue(undefined);
   mockList.mockReturnValue({ error: undefined, isLoading: false, mutate: retry, ...list });
   mockSummary.mockReturnValue({
     summary: { totalProducts: 3, expiringSoonCount: 0, lowStockCount, shoppingListCount: 2 },
   });
   mockProducts.mockReturnValue({ products: [product()] });
-  render(<ShoppingListView header={<Text>Encabezado</Text>} />);
+  await render(<ShoppingListView header={<Text>Encabezado</Text>} />);
   return { retry };
 }
 
@@ -77,8 +78,8 @@ beforeEach(() => {
 });
 
 describe('ShoppingListView', () => {
-  it('separa "Por comprar" y "Comprados" y muestra origen, stock y autor', () => {
-    renderView();
+  it('separa "Por comprar" y "Comprados" y muestra origen, stock y autor', async () => {
+    await renderView();
 
     expect(screen.getByText('Por comprar')).toBeTruthy();
     expect(screen.getByText('Auto')).toBeTruthy();
@@ -88,54 +89,56 @@ describe('ShoppingListView', () => {
     expect(screen.getByText('Fideos')).toBeTruthy();
   });
 
-  it('un ítem editado por otra persona muestra "Editado por" además del autor', () => {
-    renderView({ items: [listItem({ updatedById: 'u2' })] });
+  it('un ítem editado por otra persona muestra "Editado por" además del autor', async () => {
+    await renderView({ items: [listItem({ updatedById: 'u2' })] });
 
     expect(screen.getByLabelText('Agregado por Ana')).toBeTruthy();
     expect(screen.getByText('Editado por Vos')).toBeTruthy();
   });
 
-  it('el error sin datos se muestra y Reintentar revalida', () => {
-    const { retry } = renderView({ items: undefined, error: new Error('500') });
+  it('el error sin datos se muestra y Reintentar revalida', async () => {
+    const { retry } = await renderView({ items: undefined, error: new Error('500') });
 
     expect(screen.getByText('No se pudo cargar tu lista de compras')).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
     expect(retry).toHaveBeenCalled();
   });
 
-  it('un error de revalidación con ítems en caché conserva la lista', () => {
-    renderView({ items: [LINKED], error: new Error('500') });
+  it('un error de revalidación con ítems en caché conserva la lista', async () => {
+    await renderView({ items: [LINKED], error: new Error('500') });
 
     expect(screen.queryByText('No se pudo cargar tu lista de compras')).toBeNull();
     expect(screen.getByText('No se pudo actualizar la lista. Tirá para reintentar.')).toBeTruthy();
     expect(screen.getByText('Leche entera')).toBeTruthy();
   });
 
-  it('mientras carga muestra skeleton y no el vacío', () => {
-    renderView({ items: undefined, isLoading: true });
+  it('mientras carga muestra skeleton y no el vacío', async () => {
+    await renderView({ items: undefined, isLoading: true });
 
     expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
     expect(screen.queryByText('Tu lista está vacía')).toBeNull();
   });
 
-  it('lista vacía: muestra el vacío', () => {
-    renderView({ items: [] });
+  it('lista vacía: muestra el vacío', async () => {
+    await renderView({ items: [] });
 
     expect(screen.getByText('Tu lista está vacía')).toBeTruthy();
   });
 
   it('tirar para actualizar revalida la lista', async () => {
-    const { retry } = renderView();
+    const { retry } = await renderView();
 
-    await act(async () => screen.UNSAFE_getByType(RefreshControl).props.onRefresh());
+    await userEvent.setup().pullToRefresh(getByHostType('RCTScrollView'));
 
     expect(retry).toHaveBeenCalledTimes(1);
   });
 
   it('un ítem vinculado se compra al instante', async () => {
-    renderView();
+    await renderView();
 
-    await act(async () => fireEvent.press(screen.getByRole('checkbox', { name: 'Marcar Leche entera como comprado' })));
+    await act(
+      async () => await fireEvent.press(screen.getByRole('checkbox', { name: 'Marcar Leche entera como comprado' }))
+    );
 
     expect(mockMutations.completeItem).toHaveBeenCalledWith('i1');
     expect(notifySuccess).toHaveBeenCalledWith('Marcado como comprado');
@@ -144,14 +147,16 @@ describe('ShoppingListView', () => {
   it('un ítem libre pide categoría y compra con la cantidad', async () => {
     jest.useFakeTimers();
     jest.mocked(actionSheet).mockResolvedValue('GRAINS');
-    renderView();
+    await renderView();
 
-    fireEvent.press(screen.getByRole('checkbox', { name: 'Marcar Café molido como comprado' }));
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Marcar Café molido como comprado' }));
     const confirmButton = () => screen.getByRole('button', { name: 'Marcar como comprado' });
     expect(confirmButton().props.accessibilityState.disabled).toBe(true);
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Categoría: Elegí una categoría' })));
-    fireEvent.changeText(screen.getByLabelText(/Cantidad comprada/), '2');
-    await act(async () => fireEvent.press(confirmButton()));
+    await act(
+      async () => await fireEvent.press(screen.getByRole('button', { name: 'Categoría: Elegí una categoría' }))
+    );
+    await fireEvent.changeText(screen.getByLabelText(/Cantidad comprada/), '2');
+    await act(async () => await fireEvent.press(confirmButton()));
     await act(async () => {
       jest.advanceTimersByTime(700);
     });
@@ -163,15 +168,17 @@ describe('ShoppingListView', () => {
 
   it('destildar un comprado, quitar con confirmación y limpiar comprados', async () => {
     jest.mocked(confirm).mockResolvedValue(true);
-    renderView();
+    await renderView();
 
-    await act(async () => fireEvent.press(screen.getByRole('checkbox', { name: 'Destildar Fideos' })));
+    await act(async () => await fireEvent.press(screen.getByRole('checkbox', { name: 'Destildar Fideos' })));
     expect(mockMutations.uncheckItem).toHaveBeenCalledWith('i3');
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Quitar Café molido de la lista' })));
+    await act(
+      async () => await fireEvent.press(screen.getByRole('button', { name: 'Quitar Café molido de la lista' }))
+    );
     expect(mockMutations.removeItem).toHaveBeenCalledWith('i2');
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Limpiar comprados' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Limpiar comprados' })));
     expect(mockMutations.clearChecked).toHaveBeenCalled();
     expect(notifySuccess).toHaveBeenCalledWith('Comprados limpiados');
   });
@@ -179,21 +186,23 @@ describe('ShoppingListView', () => {
   it('si quitar falla avisa el error', async () => {
     jest.mocked(confirm).mockResolvedValue(true);
     mockMutations.removeItem.mockRejectedValue(new Error('x'));
-    renderView();
+    await renderView();
 
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Quitar Café molido de la lista' })));
+    await act(
+      async () => await fireEvent.press(screen.getByRole('button', { name: 'Quitar Café molido de la lista' }))
+    );
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo quitar el ítem');
   });
 
   it('editar la cantidad guarda solo si cambió', async () => {
     jest.useFakeTimers();
-    renderView();
+    await renderView();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Editar Café molido' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Editar Café molido' }));
     expect(screen.getByRole('button', { name: 'Guardar' }).props.accessibilityState.disabled).toBe(true);
-    fireEvent.changeText(screen.getByLabelText(/Cantidad a comprar/), '4');
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Guardar' })));
+    await fireEvent.changeText(screen.getByLabelText(/Cantidad a comprar/), '4');
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Guardar' })));
     await act(async () => {
       jest.advanceTimersByTime(700);
     });
@@ -204,12 +213,12 @@ describe('ShoppingListView', () => {
 
   it('con bajo stock ofrece generar y muestra la vista previa', async () => {
     jest.useFakeTimers();
-    renderView(undefined, 1);
+    await renderView(undefined, 1);
 
     expect(screen.getByText('1 producto con bajo stock.', { exact: false })).toBeTruthy();
-    fireEvent.press(screen.getByRole('button', { name: 'Generar desde bajo stock' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Generar desde bajo stock' }));
     expect(screen.getByText('En alacena: 1 paquete · mínimo 2')).toBeTruthy();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Generar lista' })));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Generar lista' })));
     await act(async () => {
       jest.advanceTimersByTime(700);
     });
@@ -221,12 +230,12 @@ describe('ShoppingListView', () => {
 
   it('agregar a la lista: una sugerencia vincula el producto', async () => {
     jest.useFakeTimers();
-    renderView();
+    await renderView();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Agregar a la lista' }));
-    fireEvent.changeText(screen.getByLabelText('Producto'), 'Lec');
-    fireEvent.press(screen.getByRole('button', { name: 'Usar Leche entera' }));
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));
+    await fireEvent.press(screen.getByRole('button', { name: 'Agregar a la lista' }));
+    await fireEvent.changeText(screen.getByLabelText('Producto'), 'Lec');
+    await fireEvent.press(screen.getByRole('button', { name: 'Usar Leche entera' }));
+    await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Agregar' })));
     await act(async () => {
       jest.advanceTimersByTime(700);
     });

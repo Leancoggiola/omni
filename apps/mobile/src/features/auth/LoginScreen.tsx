@@ -1,9 +1,8 @@
-// tamagui-ignore
 import { loginSchema } from '@omni/shared/auth';
 import { ignoreError } from '@omni/shared/common';
 import { RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef, useState } from 'react';
-import { Image, ScrollView, type TextInput } from 'react-native';
+import { Image, ScrollView, type TextInputInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Paragraph, XStack, YStack, type TamaguiElement } from 'tamagui';
 
@@ -61,16 +60,16 @@ function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { us
         alignItems="center"
         justifyContent="center"
         borderWidth={1}
-        borderColor="$borderSubtle"
-        backgroundColor="$backgroundStrong"
-        accessible={false}
+        borderColor="borderSubtle"
+        backgroundColor="backgroundStrong"
         {...themedElevation('card', colorScheme)}
+        accessible={false}
       >
         <Paragraph
-          fontFamily="$display"
+          fontFamily="display"
           fontSize={compact ? COMPACT_INITIAL_FONT_SIZE : INITIAL_FONT_SIZE}
           fontWeight="800"
-          color="$primary"
+          color="primary"
         >
           {username.charAt(0).toUpperCase()}
         </Paragraph>
@@ -79,7 +78,7 @@ function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { us
         <DisplayTitle size={compact ? 'md' : 'lg'} textAlign={compact ? 'left' : 'center'}>
           {`¡Hola, ${greetingName}!`}
         </DisplayTitle>
-        <Paragraph color="$dimmed" fontSize={14} lineHeight={20} numberOfLines={1}>
+        <Paragraph color="dimmed" fontSize={14} lineHeight="20px" numberOfLines={1}>
           {`Ingresando como ${username}`}
         </Paragraph>
       </YStack>
@@ -107,8 +106,8 @@ function DefaultHeader({ colorScheme, compact }: HeaderProps) {
         padding={compact ? SPACING['3xs'] : SPACING['2xs']}
         borderRadius={compact ? RADIUS.md : RADIUS.xl}
         borderWidth={1}
-        borderColor="$borderSubtle"
-        backgroundColor="$backgroundStrong"
+        borderColor="borderSubtle"
+        backgroundColor="backgroundStrong"
         overflow="hidden"
         {...themedElevation('card', colorScheme)}
       >
@@ -125,11 +124,11 @@ function DefaultHeader({ colorScheme, compact }: HeaderProps) {
 function OrDivider() {
   return (
     <XStack alignItems="center" gap={SPACING.sm}>
-      <YStack flex={1} height={1} backgroundColor="$borderSubtle" />
-      <Paragraph color="$dimmed" fontSize={14} lineHeight={20}>
+      <YStack flex={1} height={1} backgroundColor="borderSubtle" />
+      <Paragraph color="dimmed" fontSize={14} lineHeight="20px">
         o
       </Paragraph>
-      <YStack flex={1} height={1} backgroundColor="$borderSubtle" />
+      <YStack flex={1} height={1} backgroundColor="borderSubtle" />
     </XStack>
   );
 }
@@ -232,12 +231,12 @@ export function LoginScreen() {
   useEffect(() => {
     if (remembered === null && focusUsername.current) {
       focusUsername.current = false;
-      (usernameRef.current as TextInput | null)?.focus();
+      (usernameRef.current as TextInputInstance | null)?.focus();
     }
   }, [remembered]);
 
   useEffect(() => {
-    if (error && !loading && !unlocking) (passwordRef.current as TextInput | null)?.focus();
+    if (error && !loading && !unlocking) (passwordRef.current as TextInputInstance | null)?.focus();
   }, [error, loading, unlocking]);
 
   const onSubmit = async () => {
@@ -293,7 +292,7 @@ export function LoginScreen() {
   };
 
   return (
-    <YStack flex={1} backgroundColor="$background">
+    <YStack flex={1} backgroundColor="background">
       <AuthBackground />
       <YStack flex={1} paddingBottom={keyboardInset}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
@@ -313,7 +312,7 @@ export function LoginScreen() {
           </YStack>
 
           <YStack
-            backgroundColor="$backgroundStrong"
+            backgroundColor="backgroundStrong"
             borderTopLeftRadius={RADIUS['2xl']}
             borderTopRightRadius={RADIUS['2xl']}
             paddingHorizontal={SPACING.xl}
@@ -363,7 +362,7 @@ export function LoginScreen() {
                         returnKeyType="next"
                         enterKeyHint="next"
                         submitBehavior="submit"
-                        onSubmitEditing={() => (passwordRef.current as TextInput | null)?.focus()}
+                        onSubmitEditing={() => (passwordRef.current as TextInputInstance | null)?.focus()}
                       />
                     )}
                     <PasswordField

@@ -12,38 +12,38 @@ const STATUSES = [
 ] as const;
 
 describe('SegmentedControl', () => {
-  it('marca el valor actual y cambia al tocar otro', () => {
+  it('marca el valor actual y cambia al tocar otro', async () => {
     const onChange = jest.fn();
-    render(<SegmentedControl data={STATUSES} value="all" onChange={onChange} accessibilityLabel="Estado" />);
+    await render(<SegmentedControl data={STATUSES} value="all" onChange={onChange} accessibilityLabel="Estado" />);
 
     expect(screen.getByRole('radio', { name: 'Todos', checked: true })).toBeTruthy();
     expect(screen.getByRole('radio', { name: 'Vista', checked: false })).toBeTruthy();
 
-    fireEvent.press(screen.getByRole('radio', { name: 'Vista' }));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Vista' }));
     expect(onChange).toHaveBeenCalledWith('watched');
   });
 
-  it('tocar el activo no vuelve a avisar', () => {
+  it('tocar el activo no vuelve a avisar', async () => {
     const onChange = jest.fn();
-    render(<SegmentedControl data={STATUSES} value="all" onChange={onChange} />);
+    await render(<SegmentedControl data={STATUSES} value="all" onChange={onChange} />);
 
-    fireEvent.press(screen.getByRole('radio', { name: 'Todos' }));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Todos' }));
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('acepta strings como data, igual que Mantine', () => {
+  it('acepta strings como data, igual que Mantine', async () => {
     const onChange = jest.fn();
-    render(<SegmentedControl data={['Claro', 'Oscuro', 'Sistema']} value="Claro" onChange={onChange} />);
+    await render(<SegmentedControl data={['Claro', 'Oscuro', 'Sistema']} value="Claro" onChange={onChange} />);
 
-    fireEvent.press(screen.getByRole('radio', { name: 'Sistema' }));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Sistema' }));
     expect(onChange).toHaveBeenCalledWith('Sistema');
   });
 
-  it('deshabilitado no cambia', () => {
+  it('deshabilitado no cambia', async () => {
     const onChange = jest.fn();
-    render(<SegmentedControl data={STATUSES} value="all" onChange={onChange} disabled />);
+    await render(<SegmentedControl data={STATUSES} value="all" onChange={onChange} disabled />);
 
-    fireEvent.press(screen.getByRole('radio', { name: 'Vista', disabled: true }));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Vista', disabled: true }));
     expect(onChange).not.toHaveBeenCalled();
   });
 });

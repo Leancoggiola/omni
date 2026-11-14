@@ -18,54 +18,54 @@ describe('useHolidayCarousel', () => {
     jest.useRealTimers();
   });
 
-  it('con varios ítems avanza solo y vuelve al primero', () => {
+  it('con varios ítems avanza solo y vuelve al primero', async () => {
     const items = ['a', 'b'];
-    const { result } = renderHook(() => useHolidayCarousel(items, 1000));
+    const { result } = await renderHook(() => useHolidayCarousel(items, 1000));
 
     expect(result.current.isAutoPlaying).toBe(true);
-    act(() => {
+    await act(() => {
       jest.advanceTimersByTime(1000);
     });
     expect(result.current.currentItem).toBe('b');
-    act(() => {
+    await act(() => {
       jest.advanceTimersByTime(1000);
     });
     expect(result.current.currentItem).toBe('a');
   });
 
-  it('con un solo ítem no avanza', () => {
+  it('con un solo ítem no avanza', async () => {
     const items = ['a'];
-    const { result } = renderHook(() => useHolidayCarousel(items, 1000));
+    const { result } = await renderHook(() => useHolidayCarousel(items, 1000));
 
-    act(() => {
+    await act(() => {
       jest.advanceTimersByTime(5000);
     });
     expect(result.current.isAutoPlaying).toBe(false);
     expect(result.current.currentItem).toBe('a');
   });
 
-  it('con "reducir movimiento" no avanza solo, pero next sí', () => {
+  it('con "reducir movimiento" no avanza solo, pero next sí', async () => {
     mockReduceMotion.mockReturnValue(true);
     const items = ['a', 'b'];
-    const { result } = renderHook(() => useHolidayCarousel(items, 1000));
+    const { result } = await renderHook(() => useHolidayCarousel(items, 1000));
 
-    act(() => {
+    await act(() => {
       jest.advanceTimersByTime(5000);
     });
     expect(result.current.isAutoPlaying).toBe(false);
     expect(result.current.currentItem).toBe('a');
 
-    act(() => result.current.next());
+    await act(() => result.current.next());
     expect(result.current.currentItem).toBe('b');
   });
 
-  it('frena si "reducir movimiento" se activa con la pantalla abierta', () => {
+  it('frena si "reducir movimiento" se activa con la pantalla abierta', async () => {
     const items = ['a', 'b'];
-    const { result, rerender } = renderHook(() => useHolidayCarousel(items, 1000));
+    const { result, rerender } = await renderHook(() => useHolidayCarousel(items, 1000));
 
     mockReduceMotion.mockReturnValue(true);
-    rerender({});
-    act(() => {
+    await rerender({});
+    await act(() => {
       jest.advanceTimersByTime(5000);
     });
 

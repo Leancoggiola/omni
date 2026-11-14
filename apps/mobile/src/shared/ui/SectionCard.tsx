@@ -25,9 +25,9 @@ export function SectionCard({ title, subtitle, children, compact = false }: Sect
 
   return (
     <YStack
-      backgroundColor="$surfaceGlass"
+      backgroundColor="surfaceGlass"
       borderWidth={1}
-      borderColor="$glassBorder"
+      borderColor="glassBorder"
       borderRadius={RADIUS.xl}
       paddingHorizontal={compact ? SPACING.md : SPACING.lg}
       paddingVertical={compact ? SPACING['2xs'] : SPACING.lg}
@@ -40,7 +40,7 @@ export function SectionCard({ title, subtitle, children, compact = false }: Sect
             {title}
           </Title>
           {subtitle ? (
-            <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm}>
+            <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
               {subtitle}
             </Paragraph>
           ) : null}

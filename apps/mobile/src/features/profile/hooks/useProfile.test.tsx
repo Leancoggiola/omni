@@ -5,16 +5,31 @@ import useSWRImmutable from 'swr/immutable';
 import { api } from '@/shared/api';
 import { API_KEYS } from '@/shared/api/keys';
 
+import { AVATAR_READ_ERROR } from '../utils/profilePhoto';
 import { useProfile } from './useProfile';
 
 import type { ProfileResponse } from '@omni/shared/auth';
 import type { UserPreferences, UserProfile } from '@omni/shared/users';
 import type { PropsWithChildren } from 'react';
+import { trackSWR } from '@/test/swr';
 
 jest.mock('@/shared/api', () => ({
   api: { patch: jest.fn(), put: jest.fn(), delete: jest.fn() },
   API_KEYS: jest.requireActual('@/shared/api/keys').API_KEYS,
 }));
+
+let mockFileExists = true;
+
+jest.mock('expo-file-system', () => ({
+  File: function File(this: { uri: string; exists: boolean }, uri: string) {
+    this.uri = uri;
+    this.exists = mockFileExists;
+  },
+}));
+
+beforeEach(() => {
+  mockFileExists = true;
+});
 
 const mockPatch = jest.mocked(api.patch);
 const mockPut = jest.mocked(api.put);
@@ -55,7 +70,7 @@ const SESSION: ProfileResponse = {
 };
 
 /** Cache aislado por test, con el perfil y la sesión ya cargados (como tras el primer fetch) y un fetcher que falla. */
-function setup() {
+async function setup() {
   const failingFetcher = jest.fn().mockRejectedValue(new Error('sin red'));
   const cache = new Map<string, unknown>([
     [API_KEYS.users.profile, { data: { user: PROFILE } }],
@@ -64,8 +79,8 @@ function setup() {
   const wrapper = ({ children }: PropsWithChildren) => (
     <SWRConfig value={{ provider: () => cache as never, fetcher: failingFetcher }}>{children}</SWRConfig>
   );
-  const hook = renderHook(
-    () => ({ profile: useProfile(), session: useSWRImmutable<ProfileResponse>(API_KEYS.auth.profile) }),
+  const hook = await renderHook(
+    () => ({ profile: useProfile(), session: trackSWR(useSWRImmutable<ProfileResponse>(API_KEYS.auth.profile)) }),
     { wrapper }
   );
   return { ...hook, failingFetcher };
@@ -78,7 +93,7 @@ beforeEach(() => {
 describe('useProfile · updatePreferences', () => {
   it('escribe la preferencia guardada en el cache aunque la revalidación fallaría', async () => {
     mockPatch.mockResolvedValue({ preferences: { ...PREFERENCES, notifications: true } });
-    const { result, failingFetcher } = setup();
+    const { result, failingFetcher } = await setup();
 
     await act(async () => {
       await result.current.profile.updatePreferences({ notifications: true });
@@ -91,7 +106,7 @@ describe('useProfile · updatePreferences', () => {
 
   it('con un cambio de tema también actualiza el tema de la sesión', async () => {
     mockPatch.mockResolvedValue({ preferences: { ...PREFERENCES, theme: 'dark' } });
-    const { result } = setup();
+    const { result } = await setup();
 
     await act(async () => {
       await result.current.profile.updatePreferences({ theme: 'dark' });
@@ -106,7 +121,7 @@ describe('useProfile · updatePreferences', () => {
     mockPatch
       .mockImplementationOnce(() => new Promise(resolve => (finishTheme = resolve as typeof finishTheme)))
       .mockResolvedValueOnce({ preferences: { ...PREFERENCES, notifications: true } });
-    const { result } = setup();
+    const { result } = await setup();
 
     await act(async () => {
       const theme = result.current.profile.updatePreferences({ theme: 'dark' });
@@ -120,7 +135,7 @@ describe('useProfile · updatePreferences', () => {
 
   it('sin cambio de tema no toca la sesión', async () => {
     mockPatch.mockResolvedValue({ preferences: { ...PREFERENCES, notifications: true } });
-    const { result } = setup();
+    const { result } = await setup();
 
     await act(async () => {
       await result.current.profile.updatePreferences({ notifications: true });
@@ -131,7 +146,7 @@ describe('useProfile · updatePreferences', () => {
 
   it('si el PATCH falla rechaza y deja el cache como estaba', async () => {
     mockPatch.mockRejectedValue(new Error('No hay red'));
-    const { result } = setup();
+    const { result } = await setup();
 
     await act(async () => {
       await expect(result.current.profile.updatePreferences({ notifications: true })).rejects.toThrow('No hay red');
@@ -144,7 +159,7 @@ describe('useProfile · updatePreferences', () => {
 describe('useProfile · updateProfile', () => {
   it('guarda el teléfono y sincroniza la sesión', async () => {
     mockPatch.mockResolvedValue({ user: { ...PROFILE, phone: '456' } });
-    const { result } = setup();
+    const { result } = await setup();
 
     await act(async () => {
       await result.current.profile.updateProfile({ phone: '456' });
@@ -160,7 +175,7 @@ describe('useProfile · foto de perfil', () => {
 
   it('uploadAvatar hace PUT con el FormData y actualiza perfil y sesión sin revalidar', async () => {
     mockPut.mockResolvedValue({ user: { ...PROFILE, avatarUrl: URL } });
-    const { result, failingFetcher } = setup();
+    const { result, failingFetcher } = await setup();
 
     await act(async () => {
       await result.current.profile.uploadAvatar({ uri: 'file:///a.png', mimeType: 'image/png', fileName: 'a.png' });
@@ -175,7 +190,7 @@ describe('useProfile · foto de perfil', () => {
   it('removeAvatar hace DELETE y deja avatarUrl en null', async () => {
     mockPut.mockResolvedValue({ user: { ...PROFILE, avatarUrl: URL } });
     mockDelete.mockResolvedValue({ user: PROFILE });
-    const { result } = setup();
+    const { result } = await setup();
 
     await act(async () => {
       await result.current.profile.uploadAvatar({ uri: 'file:///a.png' });
@@ -189,12 +204,24 @@ describe('useProfile · foto de perfil', () => {
 
   it('si el PUT falla rechaza y no toca el perfil', async () => {
     mockPut.mockRejectedValue(new Error('413'));
-    const { result } = setup();
+    const { result } = await setup();
 
     await act(async () => {
       await expect(result.current.profile.uploadAvatar({ uri: 'file:///a.png' })).rejects.toThrow('413');
     });
 
+    expect(result.current.profile.profile?.avatarUrl).toBeNull();
+  });
+
+  it('si no se puede leer el archivo rechaza con AVATAR_READ_ERROR y no hace el PUT', async () => {
+    mockFileExists = false;
+    const { result } = await setup();
+
+    await act(async () => {
+      await expect(result.current.profile.uploadAvatar({ uri: 'file:///a.png' })).rejects.toThrow(AVATAR_READ_ERROR);
+    });
+
+    expect(mockPut).not.toHaveBeenCalled();
     expect(result.current.profile.profile?.avatarUrl).toBeNull();
   });
 });

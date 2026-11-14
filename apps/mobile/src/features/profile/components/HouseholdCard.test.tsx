@@ -56,7 +56,8 @@ function show(household: HouseholdInfo | null, extra: Record<string, unknown> = 
   mockHousehold.mockReturnValue({ household, isLoading: false, error: undefined, mutate, ...extra });
 }
 
-const press = (name: string) => act(async () => fireEvent.press(screen.getByRole('button', { name })));
+const press = async (name: string) =>
+  await act(async () => await fireEvent.press(screen.getByRole('button', { name })));
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -66,9 +67,9 @@ beforeEach(() => {
 });
 
 describe('HouseholdCard', () => {
-  it('solo: ofrece invitar o ingresar un código', () => {
+  it('solo: ofrece invitar o ingresar un código', async () => {
     show(SOLO);
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     expect(screen.getByText('Todavía estás solo')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Invitar a mi pareja' })).toBeTruthy();
@@ -82,7 +83,7 @@ describe('HouseholdCard', () => {
       code: 'K7M2QX4P',
       expiresAt: new Date(Date.now() + 48 * 3_600_000).toISOString(),
     });
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     await press('Invitar a mi pareja');
 
@@ -92,7 +93,7 @@ describe('HouseholdCard', () => {
   it('si no se puede generar la invitación avisa con notifyError', async () => {
     show(SOLO);
     mockActions.createInvite.mockRejectedValue(new Error('x'));
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     await press('Invitar a mi pareja');
 
@@ -101,7 +102,7 @@ describe('HouseholdCard', () => {
 
   it('pendiente: aclara que el código no se vuelve a mostrar y permite revocar', async () => {
     show(PENDING);
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     expect(screen.getByText(/no podemos volver a mostrar el código/)).toBeTruthy();
 
@@ -114,7 +115,7 @@ describe('HouseholdCard', () => {
   it('pendiente: generar un código nuevo pide confirmación y no genera si se cancela', async () => {
     show(PENDING);
     jest.mocked(confirm).mockResolvedValue(false);
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     await press('Generar un código nuevo');
 
@@ -122,9 +123,9 @@ describe('HouseholdCard', () => {
     expect(mockActions.createInvite).not.toHaveBeenCalled();
   });
 
-  it('vinculado: lista a los dos, marca "vos" y no ofrece "Tengo un código"', () => {
+  it('vinculado: lista a los dos, marca "vos" y no ofrece "Tengo un código"', async () => {
     show(LINKED);
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     expect(screen.getByText('Lucía')).toBeTruthy();
     expect(screen.getByText('Leandro (vos)')).toBeTruthy();
@@ -132,9 +133,9 @@ describe('HouseholdCard', () => {
     expect(screen.queryByRole('button', { name: 'Tengo un código' })).toBeNull();
   });
 
-  it('vinculado: la propia persona va primero', () => {
+  it('vinculado: la propia persona va primero', async () => {
     show(LINKED);
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     const names = screen.getAllByText(/^(Leandro \(vos\)|Lucía)$/).map(node => node.props.children);
     expect(names).toEqual(['Leandro (vos)', 'Lucía']);
@@ -142,20 +143,20 @@ describe('HouseholdCard', () => {
 
   it('vinculado: el aviso de push se descarta y no vuelve en la sesión', async () => {
     show(LINKED);
-    const { unmount } = render(<HouseholdCard />);
+    const { unmount } = await render(<HouseholdCard />);
     expect(screen.getByText(/No hay notificaciones push/)).toBeTruthy();
 
     await press('Entendido');
     expect(screen.queryByText(/No hay notificaciones push/)).toBeNull();
 
-    unmount();
-    render(<HouseholdCard />);
+    await unmount();
+    await render(<HouseholdCard />);
     expect(screen.queryByText(/No hay notificaciones push/)).toBeNull();
   });
 
   it('desvincular confirma y recién ahí llama a la API', async () => {
     show(LINKED);
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     await press('Desvincular');
 
@@ -166,7 +167,7 @@ describe('HouseholdCard', () => {
   it('desvincular cancelado no llama a la API', async () => {
     show(LINKED);
     jest.mocked(confirm).mockResolvedValue(false);
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     await press('Desvincular');
 
@@ -176,7 +177,7 @@ describe('HouseholdCard', () => {
   it('si desvincular falla avisa con notifyError', async () => {
     show(LINKED);
     mockActions.leaveHousehold.mockRejectedValue(new Error('x'));
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     await press('Desvincular');
 
@@ -185,16 +186,16 @@ describe('HouseholdCard', () => {
 
   it('con error de carga muestra el ErrorState y reintenta', async () => {
     show(null, { error: new Error('x') });
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     await press('Reintentar');
 
     expect(mutate).toHaveBeenCalledTimes(1);
   });
 
-  it('mientras carga muestra el estado de carga', () => {
+  it('mientras carga muestra el estado de carga', async () => {
     show(null, { isLoading: true });
-    render(<HouseholdCard />);
+    await render(<HouseholdCard />);
 
     expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
   });

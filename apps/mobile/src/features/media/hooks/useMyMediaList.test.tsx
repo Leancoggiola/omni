@@ -9,7 +9,7 @@ import type { MediaItem } from '@omni/shared/media';
 import type { ReactNode } from 'react';
 
 let mockFocused = true;
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => mockFocused }));
+jest.mock('expo-router/react-navigation', () => ({ useIsFocused: () => mockFocused }));
 jest.mock('@/shared/api', () => jest.requireActual('@/shared/api/keys'));
 jest.mock('@/shared/navigation', () => jest.requireActual('@/shared/navigation/useRevalidateOnFocus'));
 
@@ -44,7 +44,7 @@ describe('useMyMediaList', () => {
 
   it('trae la lista completa de una sola key', async () => {
     const fetcher = jest.fn().mockResolvedValue(LIST);
-    const { result } = renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current.data).toEqual(LIST));
     expect(fetcher).toHaveBeenCalledWith('/api/media/list');
@@ -52,7 +52,7 @@ describe('useMyMediaList', () => {
 
   it('expone el error del fetch', async () => {
     const fetcher = jest.fn().mockRejectedValue(new Error('Sin conexión'));
-    const { result } = renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current.error).toEqual(new Error('Sin conexión')));
   });
@@ -64,7 +64,7 @@ describe('useMyMediaList', () => {
       .fn()
       .mockResolvedValueOnce(LIST)
       .mockResolvedValue([...LIST, other]);
-    const { result } = renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current.data).toEqual(LIST));
     await act(async () => {
@@ -79,7 +79,7 @@ describe('useMyMediaList', () => {
     jest.useFakeTimers({ advanceTimers: true });
     mockFocused = false;
     const fetcher = jest.fn().mockResolvedValue(LIST);
-    const { result } = renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current.data).toEqual(LIST));
     await act(async () => {
@@ -91,7 +91,7 @@ describe('useMyMediaList', () => {
 
   it('al montar pide la lista una sola vez', async () => {
     const fetcher = jest.fn().mockResolvedValue(LIST);
-    const { result } = renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
+    const { result } = await renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
 
     await waitFor(() => expect(result.current.data).toEqual(LIST));
     expect(fetcher).toHaveBeenCalledTimes(1);
@@ -103,15 +103,15 @@ describe('useMyMediaList', () => {
       .fn()
       .mockResolvedValueOnce(LIST)
       .mockResolvedValue([...LIST, other]);
-    const { result, rerender } = renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
+    const { result, rerender } = await renderHook(() => useMyMediaList(), { wrapper: wrapperWith(fetcher) });
     await waitFor(() => expect(result.current.data).toEqual(LIST));
 
     mockFocused = false;
-    rerender({});
+    await rerender({});
     expect(fetcher).toHaveBeenCalledTimes(1);
 
     mockFocused = true;
-    rerender({});
+    await rerender({});
 
     await waitFor(() => expect(result.current.data).toHaveLength(2));
     expect(fetcher).toHaveBeenCalledTimes(2);

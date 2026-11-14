@@ -1,4 +1,4 @@
-import { type BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { type BottomTabBarProps } from 'expo-router/js-tabs';
 import { FONT_SIZE } from '@omni/shared/theme';
 import { MOBILE_TAB_KEYS, NAV_REGISTRY } from '@omni/shared/navigation';
 import { Tabs } from 'expo-router';
@@ -15,8 +15,19 @@ const PILL = { width: 56, height: 32 } as const;
 const ICON_SIZE = 22;
 const LABEL_MAX_FONT_SCALE = 1.3;
 
+/**
+ * Color del tab: primary activo, dimmed inactivo, el mismo que arma `FloatingTabBar`. Se resuelve acá y no con el
+ * `color` que recibe el callback de `tabBarIcon` / `tabBarLabel`, que expo-router tipa como `ColorValue`.
+ */
+function useTabColor(focused: boolean): string {
+  const colors = useSemanticColors();
+  return focused ? colors.primary : colors.dimmed;
+}
+
 /** El alto de la tab bar es fijo: con la fuente del sistema al máximo la etiqueta se pasaría del ancho de su tab. */
-function TabLabel({ label, focused, color }: { label: string; focused: boolean; color: string }) {
+function TabLabel({ label, focused }: { label: string; focused: boolean }) {
+  const color = useTabColor(focused);
+
   return (
     <Paragraph
       fontSize={FONT_SIZE.sm}
@@ -34,8 +45,9 @@ function TabLabel({ label, focused, color }: { label: string; focused: boolean; 
  * aparte que solo cambia de opacidad: si cambiaba el fondo de la misma vista, Android la dibujaba cuadrada después
  * de cambiar de tab.
  */
-function TabIcon({ icon: IconComponent, focused, color }: { icon: Icon; focused: boolean; color: string }) {
+function TabIcon({ icon: IconComponent, focused }: { icon: Icon; focused: boolean }) {
   const colors = useSemanticColors();
+  const color = useTabColor(focused);
 
   return (
     <View style={styles.pillSlot}>
@@ -48,12 +60,8 @@ function TabIcon({ icon: IconComponent, focused, color }: { icon: Icon; focused:
 function tabOptions(label: string, icon: Icon) {
   return {
     title: label,
-    tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
-      <TabIcon icon={icon} focused={focused} color={color} />
-    ),
-    tabBarLabel: ({ focused, color }: { focused: boolean; color: string }) => (
-      <TabLabel label={label} focused={focused} color={color} />
-    ),
+    tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon={icon} focused={focused} />,
+    tabBarLabel: ({ focused }: { focused: boolean }) => <TabLabel label={label} focused={focused} />,
   };
 }
 
@@ -81,5 +89,5 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   pillSlot: { width: PILL.width, height: PILL.height, alignItems: 'center', justifyContent: 'center' },
-  pill: { ...StyleSheet.absoluteFillObject, borderRadius: PILL.height / 2 },
+  pill: { ...StyleSheet.absoluteFill, borderRadius: PILL.height / 2 },
 });

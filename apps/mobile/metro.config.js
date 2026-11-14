@@ -1,4 +1,5 @@
 const { getDefaultConfig } = require('expo/metro-config');
+const { withTamagui } = require('@tamagui/metro-plugin');
 
 const config = getDefaultConfig(__dirname);
 
@@ -15,4 +16,4 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 
 config.resolver.useWatchman = !/[\\/]\.claude[\\/]worktrees[\\/]/.test(__dirname);
 
-module.exports = config;
+module.exports = withTamagui(config);

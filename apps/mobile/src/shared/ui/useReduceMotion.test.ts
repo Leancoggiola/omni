@@ -25,11 +25,11 @@ describe('useReduceMotion', () => {
     isEnabled.mockReset();
   });
 
-  it('arranca con el valor de Reanimated', () => {
+  it('arranca con el valor de Reanimated', async () => {
     mockReducedMotion.mockReturnValue(true);
     isEnabled.mockReturnValue(new Promise(() => undefined));
 
-    const { result } = renderHook(() => useReduceMotion());
+    const { result } = await renderHook(() => useReduceMotion());
 
     expect(result.current).toBe(true);
   });
@@ -38,7 +38,7 @@ describe('useReduceMotion', () => {
     mockReducedMotion.mockReturnValue(false);
     isEnabled.mockResolvedValue(true);
 
-    const { result } = renderHook(() => useReduceMotion());
+    const { result } = await renderHook(() => useReduceMotion());
 
     await waitFor(() => expect(result.current).toBe(true));
   });
@@ -47,13 +47,13 @@ describe('useReduceMotion', () => {
     mockReducedMotion.mockReturnValue(false);
     let resolveInitial!: (enabled: boolean) => void;
     isEnabled.mockReturnValue(new Promise<boolean>(resolve => (resolveInitial = resolve)));
-    const { result, unmount } = renderHook(() => useReduceMotion());
+    const { result, unmount } = await renderHook(() => useReduceMotion());
 
-    act(() => onChange(true));
+    await act(() => onChange(true));
     await act(async () => resolveInitial(false));
 
     expect(result.current).toBe(true);
-    unmount();
+    await unmount();
     expect(remove).toHaveBeenCalledTimes(1);
   });
 });

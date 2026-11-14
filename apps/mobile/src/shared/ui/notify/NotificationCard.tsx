@@ -37,9 +37,9 @@ export function NotificationCard({ variant, title, message, onClose }: Notificat
 
   return (
     <XStack
-      backgroundColor="$backgroundStrong"
+      backgroundColor="backgroundStrong"
       borderWidth={1}
-      borderColor="$hairline"
+      borderColor="hairline"
       borderRadius={RADIUS.lg}
       paddingVertical={SPACING.sm}
       paddingLeft={SPACING.md}
@@ -61,10 +61,10 @@ export function NotificationCard({ variant, title, message, onClose }: Notificat
         <IconComponent size={ICON_SIZE} color={colors[accent]} weight="fill" />
       </YStack>
       <YStack flex={1}>
-        <Paragraph fontSize={FONT_SIZE.md} lineHeight={20} fontWeight="700">
+        <Paragraph fontSize={FONT_SIZE.md} lineHeight="20px" fontWeight="700">
           {title}
         </Paragraph>
-        <Paragraph fontSize={FONT_SIZE.sm} lineHeight={LINE_HEIGHT.md} color="$dimmed">
+        <Paragraph fontSize={FONT_SIZE.sm} lineHeight={`${LINE_HEIGHT.md}px`} color="dimmed">
           {message}
         </Paragraph>
       </YStack>

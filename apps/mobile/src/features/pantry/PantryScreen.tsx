@@ -1,4 +1,3 @@
-// tamagui-ignore
 import { SPACING } from '@omni/shared/theme';
 import { useState } from 'react';
 import { YStack } from 'tamagui';

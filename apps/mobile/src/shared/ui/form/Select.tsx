@@ -46,16 +46,15 @@ export function Select<T extends string>({ data, value, onChange, accessibilityL
       paddingHorizontal={SPACING.sm}
       borderRadius={RADIUS.md}
       borderWidth={1}
-      borderColor="$borderColor"
-      backgroundColor="$background"
+      borderColor="border-color press:primary"
+      backgroundColor="background"
       onPress={() => void open()}
-      pressStyle={{ borderColor: '$primary' }}
       accessible
       accessibilityRole="button"
       accessibilityLabel={`${accessibilityLabel}: ${current}`}
       accessibilityHint="Abre las opciones"
     >
-      <Paragraph flex={1} numberOfLines={1} fontSize={FONT_SIZE.md} color="$color">
+      <Paragraph flex={1} numberOfLines={1} fontSize={FONT_SIZE.md} color="color">
         {current}
       </Paragraph>
       <CaretUpDownIcon size={16} color={colors.dimmed} />

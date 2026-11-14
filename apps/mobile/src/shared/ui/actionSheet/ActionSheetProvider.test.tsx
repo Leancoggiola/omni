@@ -25,9 +25,9 @@ function sheet(): SheetProps {
 }
 
 /** Abre un `actionSheet()` real y deja registrado con qué valor se resolvió. */
-function open(title = 'Cambiar estado') {
+async function open(title = 'Cambiar estado') {
   const state: { result: string | null | undefined } = { result: undefined };
-  act(() => {
+  await act(() => {
     void actionSheet({ title, options: STATUS_OPTIONS, value: 'watching' }).then(result => {
       state.result = result;
     });
@@ -35,12 +35,12 @@ function open(title = 'Cambiar estado') {
   return state;
 }
 
-const flush = () => act(async () => {});
+const flush = async () => await act(async () => {});
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.useFakeTimers();
   mockSheet.props = null;
-  render(
+  await render(
     <ActionSheetProvider>
       <></>
     </ActionSheetProvider>
@@ -52,8 +52,8 @@ afterEach(() => {
 });
 
 describe('ActionSheetProvider', () => {
-  it('muestra el título, las opciones y marca la actual', () => {
-    open();
+  it('muestra el título, las opciones y marca la actual', async () => {
+    await open();
 
     expect(sheet().open).toBe(true);
     expect(screen.getByText('Cambiar estado')).toBeTruthy();
@@ -62,38 +62,38 @@ describe('ActionSheetProvider', () => {
   });
 
   it('elegir una opción resuelve su value y cierra', async () => {
-    const state = open();
+    const state = await open();
 
-    fireEvent.press(screen.getByRole('menuitem', { name: 'Vista' }));
+    await fireEvent.press(screen.getByRole('menuitem', { name: 'Vista' }));
     await flush();
     expect(state.result).toBe('watched');
     expect(sheet().open).toBe(false);
   });
 
   it('"Cancelar" resuelve null', async () => {
-    const state = open();
+    const state = await open();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Cancelar' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Cancelar' }));
     await flush();
     expect(state.result).toBeNull();
   });
 
   it('cerrar por overlay o gesto resuelve null', async () => {
-    const state = open();
+    const state = await open();
 
-    act(() => sheet().onOpenChange(false));
+    await act(() => sheet().onOpenChange(false));
     await flush();
     expect(state.result).toBeNull();
   });
 
   it('el botón Atrás de Android cancela (resuelve null) y no navega', async () => {
     const addListener = jest.spyOn(BackHandler, 'addEventListener');
-    const state = open();
+    const state = await open();
 
     const handler = addListener.mock.calls.at(-1)?.[1];
     let handled: boolean | null | undefined;
-    act(() => {
-      handled = handler?.();
+    await act(() => {
+      handled = handler?.({ type: 'hardwareBackPress', timeStamp: 0 });
     });
     await flush();
     expect(handled).toBe(true);
@@ -102,23 +102,23 @@ describe('ActionSheetProvider', () => {
   });
 
   it('si el provider se desmonta con un actionSheet() abierto, resuelve null', async () => {
-    const state = open();
+    const state = await open();
 
-    screen.unmount();
+    await screen.unmount();
     await flush();
     expect(state.result).toBeNull();
   });
 
   it('dos pedidos seguidos se muestran de a uno', async () => {
-    const first = open('Primero');
-    const second = open('Segundo');
+    const first = await open('Primero');
+    const second = await open('Segundo');
     expect(screen.queryByText('Segundo')).toBeNull();
 
-    fireEvent.press(screen.getByRole('menuitem', { name: 'Pendiente' }));
+    await fireEvent.press(screen.getByRole('menuitem', { name: 'Pendiente' }));
     await flush();
     expect(first.result).toBe('to_watch');
 
-    act(() => sheet().onAnimationComplete({ open: false }));
+    await act(() => sheet().onTransition({ phase: 'end', cause: 'close', position: 0, finished: true }));
     expect(screen.getByText('Segundo')).toBeTruthy();
     expect(second.result).toBeUndefined();
   });
@@ -126,27 +126,27 @@ describe('ActionSheetProvider', () => {
 
 describe('actionSheet', () => {
   it('sin ActionSheetProvider resuelve null y avisa en dev', async () => {
-    screen.unmount();
+    await screen.unmount();
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     await expect(actionSheet({ title: 'Sin provider', options: STATUS_OPTIONS })).resolves.toBeNull();
     expect(warn).toHaveBeenCalledWith(expect.stringMatching(/ActionSheetProvider/));
     warn.mockRestore();
   });
 
-  it('avisa en dev si las opciones repiten value, y no avisa si son únicas', () => {
+  it('avisa en dev si las opciones repiten value, y no avisa si son únicas', async () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     const reactError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const repeated = [
       { value: 'a', label: 'Uno' },
       { value: 'a', label: 'Otro' },
     ];
-    act(() => {
+    await act(() => {
       void actionSheet({ title: 'Repetidas', options: repeated });
     });
     expect(warn).toHaveBeenCalledWith(expect.stringMatching(/Repetidas.*values repetidos/));
 
     warn.mockClear();
-    act(() => {
+    await act(() => {
       void actionSheet({ title: 'Únicas', options: STATUS_OPTIONS });
     });
     expect(warn).not.toHaveBeenCalled();

@@ -20,9 +20,10 @@ const onRemove = jest.fn();
 const PROFILE: { name: string; avatarUrl: string | null } = { name: 'Admin Omni', avatarUrl: null };
 const WITH_PHOTO = { name: 'Admin Omni', avatarUrl: 'https://cdn.test/a.webp' };
 
-const renderCard = (profile = PROFILE) =>
-  render(<ProfilePhotoCard profile={profile} onUpload={onUpload} onRemove={onRemove} />);
-const press = async (name: string) => act(async () => fireEvent.press(screen.getByRole('button', { name })));
+const renderCard = async (profile = PROFILE) =>
+  await render(<ProfilePhotoCard profile={profile} onUpload={onUpload} onRemove={onRemove} />);
+const press = async (name: string) =>
+  await act(async () => await fireEvent.press(screen.getByRole('button', { name })));
 const asset = (overrides: Record<string, unknown> = {}) =>
   ({
     canceled: false,
@@ -36,8 +37,8 @@ beforeEach(() => {
 });
 
 describe('ProfilePhotoCard', () => {
-  it('muestra el título, la ayuda y las iniciales sin foto, sin botón de quitar', () => {
-    renderCard();
+  it('muestra el título, la ayuda y las iniciales sin foto, sin botón de quitar', async () => {
+    await renderCard();
 
     expect(screen.getByText('Foto de perfil')).toBeTruthy();
     expect(screen.getByText('JPG, PNG o WebP (máx. 2MB)')).toBeTruthy();
@@ -47,7 +48,7 @@ describe('ProfilePhotoCard', () => {
 
   it('con una imagen válida la sube y avisa', async () => {
     launch.mockResolvedValue(asset());
-    renderCard();
+    await renderCard();
     await press('Cambiar foto');
 
     expect(onUpload).toHaveBeenCalledWith(expect.objectContaining({ uri: 'file:///foto.png', mimeType: 'image/png' }));
@@ -58,7 +59,7 @@ describe('ProfilePhotoCard', () => {
   it('si la subida falla avisa con notifyError', async () => {
     launch.mockResolvedValue(asset());
     onUpload.mockRejectedValue(new Error('boom'));
-    renderCard();
+    await renderCard();
     await press('Cambiar foto');
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo subir la foto');
@@ -67,7 +68,7 @@ describe('ProfilePhotoCard', () => {
 
   it('si el usuario cancela no sube nada', async () => {
     launch.mockResolvedValue({ canceled: true, assets: null });
-    renderCard();
+    await renderCard();
     await press('Cambiar foto');
 
     expect(onUpload).not.toHaveBeenCalled();
@@ -75,7 +76,7 @@ describe('ProfilePhotoCard', () => {
   });
 
   it('rechaza tipos no admitidos y archivos de más de 2MB sin subir', async () => {
-    renderCard();
+    await renderCard();
 
     launch.mockResolvedValueOnce(asset({ mimeType: 'image/gif' }));
     await press('Cambiar foto');
@@ -89,23 +90,35 @@ describe('ProfilePhotoCard', () => {
 
   it('si el selector falla avisa con notifyError', async () => {
     launch.mockRejectedValue(new Error('boom'));
-    renderCard();
+    await renderCard();
     await press('Cambiar foto');
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo abrir la galería');
   });
 
   it('con foto permite quitarla y avisa', async () => {
-    renderCard(WITH_PHOTO);
+    await renderCard(WITH_PHOTO);
     await press('Quitar foto');
 
     expect(onRemove).toHaveBeenCalled();
     expect(notifySuccess).toHaveBeenCalledWith('Foto de perfil eliminada');
   });
 
+  it('mientras quita la foto bloquea el tacho y "Cambiar foto"', async () => {
+    let resolve: () => void = () => undefined;
+    onRemove.mockReturnValue(new Promise<void>(r => (resolve = r)));
+    await renderCard(WITH_PHOTO);
+    await press('Quitar foto');
+
+    expect(screen.getByRole('button', { name: 'Quitar foto' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Cambiar foto' })).toBeDisabled();
+    await act(async () => resolve());
+    expect(screen.getByRole('button', { name: 'Quitar foto' })).toBeEnabled();
+  });
+
   it('si quitar la foto falla avisa con notifyError', async () => {
     onRemove.mockRejectedValue(new Error('boom'));
-    renderCard(WITH_PHOTO);
+    await renderCard(WITH_PHOTO);
     await press('Quitar foto');
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo quitar la foto');

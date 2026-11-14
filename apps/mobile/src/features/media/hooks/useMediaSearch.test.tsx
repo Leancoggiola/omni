@@ -29,13 +29,13 @@ describe('useMediaSearch', () => {
 
   it('con menos de 2 caracteres no busca; al escribir, carga durante el debounce y después trae resultados', async () => {
     jest.useFakeTimers();
-    const { result, rerender } = renderHook(({ q }: { q: string }) => useMediaSearch(q), {
+    const { result, rerender } = await renderHook(({ q }: { q: string }) => useMediaSearch(q), {
       wrapper,
       initialProps: { q: 'd' },
     });
     expect(result.current).toMatchObject({ tooShort: true, isLoading: false, results: [] });
 
-    rerender({ q: 'du' });
+    await rerender({ q: 'du' });
     expect(result.current).toMatchObject({ tooShort: false, isLoading: true });
     expect(fetcher).not.toHaveBeenCalled();
 

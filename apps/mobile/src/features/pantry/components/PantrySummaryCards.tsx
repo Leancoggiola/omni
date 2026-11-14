@@ -28,19 +28,19 @@ function StatCard({ value, label, pressed = false, onPress, accessibilityLabel }
       padding={SPACING.sm}
       borderRadius={RADIUS.lg}
       borderWidth={pressed ? 2 : 1}
-      borderColor={pressed ? '$primary' : '$glassBorder'}
-      backgroundColor="$surfaceGlass"
+      borderColor={pressed ? 'primary' : 'glassBorder'}
+      backgroundColor="surfaceGlass"
+      opacity={onPress ? 'press:0.7' : undefined}
       onPress={onPress}
-      pressStyle={onPress ? { opacity: 0.7 } : undefined}
       accessible
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityLabel={accessibilityLabel}
       accessibilityState={onPress ? { selected: pressed } : undefined}
     >
-      <Paragraph fontSize={STAT_FONT_SIZE} lineHeight={STAT_FONT_SIZE} fontWeight="800">
+      <Paragraph fontSize={STAT_FONT_SIZE} lineHeight={`${STAT_FONT_SIZE}px`} fontWeight="800">
         {value}
       </Paragraph>
-      <Paragraph color="$dimmed" fontSize={FONT_SIZE.sm} numberOfLines={2}>
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={2}>
         {label}
       </Paragraph>
     </YStack>
