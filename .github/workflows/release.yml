@@ -352,17 +352,17 @@ jobs:
             exit 1
           fi
 
-          cp "$APK" "$RUNNER_TEMP/omni-$TAG.apk"
-          echo "APK_FILE=$RUNNER_TEMP/omni-$TAG.apk" >> "$GITHUB_ENV"
+          # Desde SDK 58 el release sale con R8: el mapping viaja con el APK para poder leer sus stack traces de Java/Kotlin.
+          MAPPING=apps/mobile/android/app/build/outputs/mapping/release/mapping.txt
+          if [ ! -s "$MAPPING" ]; then
+            echo "::error::Falta el mapping.txt de R8 ($MAPPING): sin él no se pueden leer los crashes de este APK."
+            exit 1
+          fi
 
-      # Desde SDK 58 el release sale con R8: sin el mapping de este build no se pueden leer los stack traces de Java/Kotlin.
-      # Va antes de publicar: si falta el mapping, el job frena sin dejar un release creado en omni-apk.
-      - uses: actions/upload-artifact@v7
-        with:
-          name: omni-${{ env.TAG }}-r8-mapping
-          path: apps/mobile/android/app/build/outputs/mapping/release/mapping.txt
-          if-no-files-found: error
-          retention-days: 90
+          cp "$APK" "$RUNNER_TEMP/omni-$TAG.apk"
+          cp "$MAPPING" "$RUNNER_TEMP/omni-$TAG-r8-mapping.txt"
+          echo "APK_FILE=$RUNNER_TEMP/omni-$TAG.apk" >> "$GITHUB_ENV"
+          echo "MAPPING_FILE=$RUNNER_TEMP/omni-$TAG-r8-mapping.txt" >> "$GITHUB_ENV"
 
       - name: Publish to omni-apk
         if: env.PUBLISH_APK == 'true'
@@ -373,7 +373,7 @@ jobs:
             echo "::error::Ya existe el release $TAG en $APK_REPO. Borralo o corré el dispatch con upload_apk=false."
             exit 1
           fi
-          gh release create "$TAG" "$APK_FILE" \
+          gh release create "$TAG" "$APK_FILE" "$MAPPING_FILE" \
             --repo "$APK_REPO" \
             --title "Omni $TAG" \
             --notes "APK de Omni $TAG. Cambios: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG"
@@ -382,7 +382,9 @@ jobs:
         if: env.PUBLISH_APK != 'true'
         with:
           name: omni-${{ env.TAG }}-apk
-          path: ${{ env.APK_FILE }}
+          path: |
+            ${{ env.APK_FILE }}
+            ${{ env.MAPPING_FILE }}
           if-no-files-found: error
           retention-days: 7
 
