@@ -49,7 +49,7 @@ flowchart TD
 | `release`      | semantic-release; calcula `sha`, `tag`, `prev_tag`, `version`, `mobile_changed`.                                                                                                                            |
 | `deploy-api`   | POST al deploy hook de Render y polling a `/api/health` hasta que el commit publicado sea el sha o un descendiente suyo (`git merge-base --is-ancestor`; timeout 20 min). Las migraciones corren al inicio. |
 | `deploy-web`   | Tras la API: `vercel pull/build/deploy --prod`. Smoke: `/api/health/ready` 200 con el sha nuevo y `/profile` 200.                                                                                           |
-| `build-apk`    | Solo si cambió `apps/mobile` o `packages/shared` (o dispatch con `build_apk`). Publica en `omni-apk` o deja artifact de 7 días.                                                                             |
+| `build-apk`    | Solo si cambió `apps/mobile` o `packages/shared` (o dispatch con `build_apk`). Publica en `omni-apk` o deja artifact de 7 días. Siempre sube el `mapping.txt` de R8 como artifact de 90 días.               |
 | `sync-develop` | Back-merge de `main` a `develop`.                                                                                                                                                                           |
 
 Solo `feat`, `fix`, `perf` o `BREAKING CHANGE` generan release. `backup.yml` es independiente (ver [Backups](#backups)).
@@ -200,7 +200,7 @@ El día 1 de cada mes 08:00 UTC (o con `workflow_dispatch` y `restore_test=true`
 
 1. GitHub → Actions → **Release & Deploy** → **Run workflow** sobre `main`.
 2. `redeploy=true`: deploya API y web desde el HEAD de `main`, sin release.
-3. `build_apk=true`: buildea el APK del último tag. Con `upload_apk=false` queda como artifact de 7 días. Si el release ya existe en `omni-apk`, el job falla en vez de pisarlo.
+3. `build_apk=true`: buildea el APK del último tag (con R8 desde SDK 58; el `mapping.txt` queda como artifact `omni-vX.Y.Z-r8-mapping` de 90 días, y es lo que traduce un stack trace de Java/Kotlin de ese APK con `retrace`). Con `upload_apk=false` queda como artifact de 7 días. Si el release ya existe en `omni-apk`, el job falla en vez de pisarlo.
 4. Solo la API: `curl -s "$RENDER_DEPLOY_HOOK_PROD"`.
 
 ### Docker local

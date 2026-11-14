@@ -16,6 +16,8 @@ const ICON_SIZE = 22;
  * y a 24 del inferior. Pinta el ícono y la etiqueta que cada tab declara en sus `options` (la pill activa va en el
  * ícono) y le pasa su alto, con la distancia al borde, a las notificaciones para apilarlas encima. Solo mientras las
  * tabs tienen el foco: Perfil se abre encima en el stack y las tabs siguen montadas, pero ahí no hay tab bar a la vista.
+ * Tocar una tab emite `tabPress` y, si nadie lo frena, navega con `navigateToTab(route.key)`, como la `BottomTabBar` de
+ * expo-router: no pasa params, y ninguna tab lee params (si alguna empieza a hacerlo, van en su href o con defaults).
  */
 export function FloatingTabBar({ state, descriptors, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
