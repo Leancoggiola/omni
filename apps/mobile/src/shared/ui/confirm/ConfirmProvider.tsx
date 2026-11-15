@@ -11,7 +11,7 @@ import { registerConfirmHandler, type ConfirmRequest } from './confirm';
 
 /**
  * Confirmaciones en una hoja inferior de v2 (título en `display`). Botones apilados a lo ancho: confirmar arriba
- * (filled) y cancelar abajo (outline), ver "Botones de acción" en `apps/mobile/CLAUDE.md`.
+ * (filled) y cancelar abajo (outline).
  */
 export function ConfirmProvider({ children }: PropsWithChildren) {
   const queue = useSheetQueue<boolean, ConfirmRequest>(registerConfirmHandler, false);
