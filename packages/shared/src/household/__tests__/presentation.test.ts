@@ -16,7 +16,7 @@ import {
 import type { HouseholdMemberInfo } from '../types';
 
 const members: HouseholdMemberInfo[] = [
-  { userId: 'u1', name: 'Leandro', username: 'leo', avatarUrl: null, joinedAt: '2026-03-12T00:00:00.000Z' },
+  { userId: 'u1', name: 'Mateo', username: 'leo', avatarUrl: null, joinedAt: '2026-03-12T00:00:00.000Z' },
   {
     userId: 'u2',
     name: 'Lucía',
@@ -28,7 +28,7 @@ const members: HouseholdMemberInfo[] = [
 
 describe('resolveItemAuthor', () => {
   it('marca como propio al integrante cuyo username es el de la sesión', () => {
-    expect(resolveItemAuthor(members, 'u1', 'leo')).toEqual({ kind: 'self', name: 'Leandro', avatarUrl: null });
+    expect(resolveItemAuthor(members, 'u1', 'leo')).toEqual({ kind: 'self', name: 'Mateo', avatarUrl: null });
   });
 
   it('devuelve al otro integrante con su avatar', () => {

@@ -497,7 +497,7 @@ describe('split-expenses routes (integration)', () => {
     });
 
     it('POST /gatherings usa el nombre del usuario sin espacios sobrantes', async () => {
-      const spaced = await createUser({ username: 'spaced-owner', name: '  Lean Coggiola  ' });
+      const spaced = await createUser({ username: 'spaced-owner', name: '  Ana Gomez  ' });
 
       const res = await request(app)
         .post('/api/split-expenses/gatherings')
@@ -505,7 +505,7 @@ describe('split-expenses routes (integration)', () => {
         .send({ name: 'Asado', date: '2026-08-10', participants: [{ name: 'Ana' }] });
 
       expect(res.status).toBe(201);
-      expect(res.body.participants[0]).toMatchObject({ displayName: 'Lean Coggiola', isSelf: true });
+      expect(res.body.participants[0]).toMatchObject({ displayName: 'Ana Gomez', isSelf: true });
     });
 
     it('POST /gatherings suma al usuario también cuando los participantes son amigos', async () => {

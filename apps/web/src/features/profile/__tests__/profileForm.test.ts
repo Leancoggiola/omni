@@ -8,7 +8,7 @@ const baseProfile: UserProfile = {
   id: '1',
   username: 'lean',
   name: 'Lean Jose',
-  email: 'hallowed013@gmail.com',
+  email: 'user@example.com',
   role: 'USER',
   avatarUrl: null,
   phone: null,

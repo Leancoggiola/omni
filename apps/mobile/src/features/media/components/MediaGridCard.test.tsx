@@ -57,7 +57,7 @@ describe('MediaGridCard', () => {
   });
 
   it('con autor resuelto muestra el AuthorTag', async () => {
-    mockAuthor.mockReturnValue({ kind: 'self', name: 'Leandro', avatarUrl: null });
+    mockAuthor.mockReturnValue({ kind: 'self', name: 'Mateo', avatarUrl: null });
     await renderCard();
     expect(screen.getByLabelText('Agregado por Vos')).toBeTruthy();
   });

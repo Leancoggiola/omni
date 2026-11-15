@@ -46,7 +46,7 @@ const detail: GatheringDetail = {
   participants: [
     {
       id: 'p0',
-      displayName: 'Leandro',
+      displayName: 'Mateo',
       friendId: null,
       alias: null,
       totalPaid: 90,
@@ -61,7 +61,7 @@ const detail: GatheringDetail = {
     {
       id: 'e1',
       participantId: 'p0',
-      participantName: 'Leandro',
+      participantName: 'Mateo',
       amount: 90,
       description: 'Carne',
       sharedWith: [],
@@ -69,8 +69,8 @@ const detail: GatheringDetail = {
     },
   ],
   settlements: [
-    { fromParticipantId: 'p1', fromName: 'Ana', toParticipantId: 'p0', toName: 'Leandro', amount: 30 },
-    { fromParticipantId: 'p2', fromName: 'Beto', toParticipantId: 'p0', toName: 'Leandro', amount: 30 },
+    { fromParticipantId: 'p1', fromName: 'Ana', toParticipantId: 'p0', toName: 'Mateo', amount: 30 },
+    { fromParticipantId: 'p2', fromName: 'Beto', toParticipantId: 'p0', toName: 'Mateo', amount: 30 },
   ],
 };
 

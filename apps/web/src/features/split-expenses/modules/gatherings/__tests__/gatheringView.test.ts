@@ -79,13 +79,13 @@ describe('formatSignedBalance', () => {
 
 describe('participantLabel y participantTones', () => {
   it('el propio es "Vos" y el resto conserva su nombre', () => {
-    expect(participantLabel(participant('p0', 'Leandro', true))).toBe('Vos');
+    expect(participantLabel(participant('p0', 'Mateo', true))).toBe('Vos');
     expect(participantLabel(participant('p1', 'Ana'))).toBe('Ana');
   });
 
   it('el propio queda sin tono y el resto rota en orden', () => {
     const tones = participantTones([
-      participant('p0', 'Leandro', true),
+      participant('p0', 'Mateo', true),
       participant('p1', 'Ana'),
       participant('p2', 'Beto'),
     ]);
@@ -140,17 +140,17 @@ describe('groupExpensesByDay', () => {
 
 describe('describeSettlement', () => {
   it('nombra "Vos" al origen propio y "vos" al destino propio', () => {
-    const participants = [participant('p0', 'Leandro', true), participant('p1', 'Ana')];
+    const participants = [participant('p0', 'Mateo', true), participant('p1', 'Ana')];
 
     expect(
       describeSettlement(
-        { fromParticipantId: 'p1', fromName: 'Ana', toParticipantId: 'p0', toName: 'Leandro', amount: 5 },
+        { fromParticipantId: 'p1', fromName: 'Ana', toParticipantId: 'p0', toName: 'Mateo', amount: 5 },
         participants
       )
     ).toEqual({ from: 'Ana', to: 'vos' });
     expect(
       describeSettlement(
-        { fromParticipantId: 'p0', fromName: 'Leandro', toParticipantId: 'p1', toName: 'Ana', amount: 5 },
+        { fromParticipantId: 'p0', fromName: 'Mateo', toParticipantId: 'p1', toName: 'Ana', amount: 5 },
         participants
       )
     ).toEqual({ from: 'Vos', to: 'Ana' });

@@ -2,7 +2,7 @@ import { getInitials } from './UserAvatar.utils';
 
 describe('getInitials', () => {
   it.each([
-    ['Leandro Coggiola', 'LC'],
+    ['Ana Gomez', 'AG'],
     ['Admin', 'AD'],
     ['ana', 'AN'],
     ['J', 'J'],
