@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { THEME } from '../config';
 import { cssVariablesResolver, variantResolver } from '../css-variables';
 
-import { contrastRatio, SEMANTIC, WCAG_AA_TEXT } from '@omni/shared/theme';
+import { contrastRatio, SEMANTIC, semanticLight, WCAG_AA_TEXT } from '@omni/shared/theme';
 
 const theme = mergeMantineTheme(DEFAULT_THEME, THEME);
 const resolved = cssVariablesResolver(theme);
@@ -20,17 +20,23 @@ function filled(color: string, scheme: 'light' | 'dark') {
 }
 
 describe.each(['light', 'dark'] as const)('contraste de los filled (%s)', scheme => {
-  it.each(['brand', 'terracotta', 'sage', 'destructive', 'success', 'brand.6'])('%s llega a AA', color => {
-    const { background, text } = filled(color, scheme);
-    expect(contrastRatio(background, text)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
-  });
+  it.each(['brand', 'terracotta', 'sage', 'destructive', 'success', 'info', 'warning', 'error', 'brand.6'])(
+    '%s llega a AA',
+    color => {
+      const { background, text } = filled(color, scheme);
+      expect(contrastRatio(background, text)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+    }
+  );
 
-  it.each(['brand', 'terracotta', 'sage', 'destructive', 'success'])('el hover de %s también llega a AA', color => {
-    const { text } = filled(color, scheme);
-    const vars: Record<string, string | undefined> = resolved[scheme];
-    const hover = vars[`--mantine-color-${color}-filled-hover`] ?? '';
-    expect(contrastRatio(hover, text)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
-  });
+  it.each(['brand', 'terracotta', 'sage', 'destructive', 'success', 'info', 'warning', 'error'])(
+    'el hover de %s también llega a AA',
+    color => {
+      const { text } = filled(color, scheme);
+      const vars: Record<string, string | undefined> = resolved[scheme];
+      const hover = vars[`--mantine-color-${color}-filled-hover`] ?? '';
+      expect(contrastRatio(hover, text)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+    }
+  );
 
   it('el Button de marca coincide con el de mobile (SEMANTIC), hover incluido', () => {
     expect(filled('brand', scheme)).toEqual({
@@ -39,6 +45,30 @@ describe.each(['light', 'dark'] as const)('contraste de los filled (%s)', scheme
     });
     const vars: Record<string, string | undefined> = resolved[scheme];
     expect(vars['--mantine-color-brand-filled-hover']).toBe(SEMANTIC[scheme].primaryFillHover);
+  });
+});
+
+/**
+ * El texto de estado en claro (`-light-color`, el que usa Mantine en `light` y `outline`) llega a AA sobre el
+ * wash de su estado y sobre el canvas, y coincide con el token semántico que usa mobile.
+ */
+describe('contraste del texto de estado en claro', () => {
+  const vars: Record<string, string | undefined> = resolved.light;
+
+  it.each([
+    ['info', 'surfaces-info-light', 'text-info'],
+    ['warning', 'surfaces-warning-light', 'text-warning'],
+    ['error', 'surfaces-error-light', 'text-error'],
+    ['destructive', 'surfaces-error-light', 'text-destructive'],
+  ] as const)('%s sobre su wash y el canvas llega a AA', (color, wash, text) => {
+    const tone = theme.colors[color]?.[9] ?? '';
+    expect(tone).toBe(semanticLight[`--mantine-color-${text}`]);
+    expect(contrastRatio(tone, vars[`--mantine-color-${wash}`] ?? '')).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+    expect(contrastRatio(tone, SEMANTIC.light.body)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+  });
+
+  it('el relleno destructivo sigue en RED[7], como destructiveFill de mobile', () => {
+    expect(filled('destructive', 'light').background).toBe(SEMANTIC.light.destructiveFill);
   });
 });
 
