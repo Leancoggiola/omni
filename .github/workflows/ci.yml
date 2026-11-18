@@ -81,6 +81,11 @@ jobs:
       #   que llega por los peers de @tamagui/config; @tamagui/metro-plugin es
       #   devDependency y no entra en --prod); no está en api ni en web. También llega por
       #   semantic-release.
+      # - CVE-2026-112366 (picomatch, ReDoS): sin versión parcheada upstream
+      #   (todas las <=4.0.7 están afectadas), así que no hay override posible.
+      #   Llega por las toolchains de lint y de build (typescript-eslint,
+      #   lint-staged, Expo/Metro), que solo evalúan globs del propio repo, nunca
+      #   entrada de usuarios.
       # node-forge se fija con un override en pnpm-workspace.yaml (>=1.4.1).
       # Revisar las excepciones cuando salga un parche.
       - name: Excepciones solo en mobile (bloqueante)
