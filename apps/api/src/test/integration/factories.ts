@@ -153,7 +153,7 @@ export async function createGatheringExpense(
 }
 
 export interface CreateGymPlanOptions {
-  name?: string | null;
+  name?: string;
   status?: 'ACTIVE' | 'ARCHIVED';
 }
 
@@ -163,35 +163,62 @@ export async function createGymPlan(userId: string, options: CreateGymPlanOption
     data: {
       id,
       userId,
-      name: options.name === undefined ? `Plan ${id}` : options.name,
+      name: options.name ?? `Plan ${id}`,
       status: options.status ?? 'ACTIVE',
       archivedAt: options.status === 'ARCHIVED' ? new Date('2026-02-01T00:00:00.000Z') : null,
     },
   });
 }
 
+export type GymWeekdayValue = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+
 export interface CreateGymExerciseOptions {
-  dayLabel?: string;
+  weekday?: GymWeekdayValue;
   name?: string;
   sets?: number | null;
   reps?: string;
   currentWeightKg?: number | null;
 }
 
+/**
+ * Agrega un ejercicio al día del plan y devuelve la fila del plan (`id`, `dayId`, `exerciseId`). Reutiliza el día y la
+ * variante del catálogo si ya existen, igual que la API (nombre en minúsculas, repeticiones sin espacios).
+ */
 export async function createGymExercise(planId: string, options: CreateGymExerciseOptions = {}) {
-  const label = options.dayLabel ?? 'Lunes';
-  const day =
-    (await prisma.gymPlanDay.findFirst({ where: { planId, label } })) ??
-    (await prisma.gymPlanDay.create({ data: { id: nextId('day'), planId, label } }));
+  const plan = await prisma.gymPlan.findUniqueOrThrow({ where: { id: planId } });
+  const weekday = options.weekday ?? 'MONDAY';
+  const name = options.name ?? 'Sentadilla';
+  const sets = options.sets === undefined ? 4 : options.sets;
+  const reps = options.reps ?? '6';
+  const key = {
+    nameNormalized: name.trim().toLowerCase(),
+    sets,
+    repsNormalized: reps.replace(/\s+/g, '').toLowerCase(),
+  };
 
-  return prisma.gymExercise.create({
+  const day =
+    (await prisma.gymPlanDay.findFirst({ where: { planId, weekday } })) ??
+    (await prisma.gymPlanDay.create({ data: { id: nextId('day'), planId, weekday } }));
+  const catalog =
+    (await prisma.gymExercise.findFirst({ where: { userId: plan.userId, ...key } })) ??
+    (await prisma.gymExercise.create({
+      data: {
+        id: nextId('catalog'),
+        userId: plan.userId,
+        name,
+        reps,
+        currentWeightKg: options.currentWeightKg ?? null,
+        ...key,
+      },
+    }));
+  const maxOrder = await prisma.gymPlanExercise.aggregate({ where: { dayId: day.id }, _max: { sortOrder: true } });
+
+  return prisma.gymPlanExercise.create({
     data: {
       id: nextId('exercise'),
       dayId: day.id,
-      name: options.name ?? 'Sentadilla',
-      sets: options.sets ?? 4,
-      reps: options.reps ?? '6',
-      currentWeightKg: options.currentWeightKg ?? null,
+      exerciseId: catalog.id,
+      sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
     },
   });
 }

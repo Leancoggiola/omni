@@ -52,6 +52,7 @@ model User {
   createdHouseholdInvites  HouseholdInvite[]        @relation("InviteCreatedBy")
   usedHouseholdInvites     HouseholdInvite[]        @relation("InviteUsedBy")
   gymPlans                 GymPlan[]
+  gymExercises             GymExercise[]
   splitFriends             SplitFriend[]
   gatherings               Gathering[]
   personalExpenses         PersonalExpense[]
@@ -142,11 +143,22 @@ enum GymPlanStatus {
   ARCHIVED
 }
 
+/// Orden de declaración = orden de los días en el plan (Postgres ordena los enums así).
+enum GymWeekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
 model GymPlan {
   id         String        @id @default(cuid())
   userId     String
   user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name       String?
+  name       String
   status     GymPlanStatus @default(ACTIVE)
   archivedAt DateTime?
   createdAt  DateTime      @default(now())
@@ -157,29 +169,62 @@ model GymPlan {
 }
 
 model GymPlanDay {
-  id        String        @id @default(cuid())
+  id        String            @id @default(cuid())
   planId    String
-  plan      GymPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
-  label     String
-  sortOrder Int           @default(0)
-  exercises GymExercise[]
+  plan      GymPlan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  weekday   GymWeekday
+  exercises GymPlanExercise[]
 
-  @@unique([planId, label])
+  @@unique([planId, weekday])
 }
 
+/// Catálogo del usuario: cada fila es una variante (nombre + series + repeticiones) con su peso e historial, compartida
+/// por todos los planes que la usan. La unicidad con `sets` nulo la cubre un índice parcial escrito a mano en la
+/// migración `20261117120000_gym_catalog_weekdays_history` (Prisma no modela índices parciales).
 model GymExercise {
-  id              String     @id @default(cuid())
-  dayId           String
-  day             GymPlanDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  id              String                   @id @default(cuid())
+  userId          String
+  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name            String
+  nameNormalized  String
   sets            Int?
   reps            String
-  currentWeightKg Decimal?   @db.Decimal(8, 2)
-  sortOrder       Int        @default(0)
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  repsNormalized  String
+  currentWeightKg Decimal?                 @db.Decimal(8, 2)
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  planExercises   GymPlanExercise[]
+  weightEntries   GymExerciseWeightEntry[]
 
-  @@index([dayId])
+  @@unique([userId, nameNormalized, sets, repsNormalized])
+}
+
+/// Un ejercicio dentro de un día del plan: apunta a la variante del catálogo y guarda solo su posición.
+model GymPlanExercise {
+  id         String      @id @default(cuid())
+  dayId      String
+  day        GymPlanDay  @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   GymExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  sortOrder  Int         @default(0)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([dayId, exerciseId])
+  @@index([exerciseId])
+}
+
+/// Historial de peso de una variante, con las series y repeticiones que tenía al registrarlo.
+model GymExerciseWeightEntry {
+  id         String      @id @default(cuid())
+  exerciseId String
+  exercise   GymExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  weightKg   Decimal     @db.Decimal(8, 2)
+  sets       Int?
+  reps       String
+  recordedAt DateTime    @default(now())
+
+  @@index([exerciseId, recordedAt])
 }
 
 enum PantryUnit {

@@ -54,11 +54,12 @@ pnpm prisma migrate status
 
 Prisma no modela los índices parciales ni los `CHECK`: se escriben a mano en la migración y no aparecen en `schema.prisma`. `prisma migrate diff` los ignora, así que no generan drift.
 
-| Objeto                                                    | Migración                                      | Para qué                                                               |
-| --------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------- |
-| `PantryShoppingListItem_pantryProductId_auto_pending_key` | `20261017120000_lifestyle_consistency`         | A lo sumo un ítem AUTO pendiente por producto (`generateShoppingList`) |
-| `ExpenseReminder_anchorDay_check`                         | `20261017120000_lifestyle_consistency`         | `anchorDay` entre 1 y 31                                               |
-| `GatheringParticipant_gatheringId_isSelf_key`             | `20261106120000_gathering_participant_is_self` | A lo sumo un participante propio ("Vos") por juntada                   |
+| Objeto                                                         | Migración                                      | Para qué                                                               |
+| -------------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------- |
+| `PantryShoppingListItem_pantryProductId_auto_pending_key`      | `20261017120000_lifestyle_consistency`         | A lo sumo un ítem AUTO pendiente por producto (`generateShoppingList`) |
+| `ExpenseReminder_anchorDay_check`                              | `20261017120000_lifestyle_consistency`         | `anchorDay` entre 1 y 31                                               |
+| `GatheringParticipant_gatheringId_isSelf_key`                  | `20261106120000_gathering_participant_is_self` | A lo sumo un participante propio ("Vos") por juntada                   |
+| `GymExercise_userId_nameNormalized_repsNormalized_no_sets_key` | `20261117120000_gym_catalog_weekdays_history`  | Unicidad de las variantes del catálogo sin series (`sets` nulo)        |
 
 Si una migración futura toca esas tablas, revisá el SQL generado: no debe borrarlos.
 

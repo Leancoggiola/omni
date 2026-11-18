@@ -143,7 +143,7 @@ describe('enteros de Postgres', () => {
   });
 
   it('acota las series de un ejercicio', () => {
-    const exercise = { planId: 'p1', dayLabel: 'Lunes', name: 'Sentadilla', reps: '10' };
+    const exercise = { planId: 'p1', weekday: 'MONDAY', name: 'Sentadilla', reps: '10' };
     expect(addGymExerciseSchema.safeParse({ ...exercise, sets: 4 }).success).toBe(true);
     expect(addGymExerciseSchema.safeParse({ ...exercise, sets: 3e9 }).success).toBe(false);
   });
