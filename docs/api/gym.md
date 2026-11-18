@@ -37,6 +37,7 @@ Compartir la variante significa que **nombre, series, repeticiones y peso son lo
 - **Agregar un ejercicio** reutiliza la variante del catálogo si existe (con su peso e historial) o la crea. La misma variante dos veces en el mismo día responde 409 `El ejercicio ya está en ese día`; en otro día del plan está permitido y comparte todo.
 - **Editar un ejercicio** (`name`, `sets`, `reps`) edita la variante en todos los planes. Si queda igual a otra variante existente responde 409 `Ya existe un ejercicio con ese nombre, series y repeticiones`; no se fusionan. `weekday` mueve solo esa fila al final del día indicado.
 - **Reordenar** recibe la lista completa de ids del día. Si no coincide exactamente con los ejercicios actuales (falta uno, sobra uno o es de otro día) responde 409; ids repetidos son 400.
+- **Concurrencia.** Toda escritura del gimnasio corre en una transacción que primero toma un lock por usuario (`lockGymUser`, `pg_advisory_xact_lock` con clave `gym:<userId>`) y recién entonces relee y valida el plan, así que dos pedidos del mismo usuario se serializan y el segundo ve el estado ya confirmado del primero (archivado, día vaciado, variante renombrada). Usuarios distintos no se bloquean entre sí.
 - **Borrar** un plan, un día o un ejercicio borra también las variantes del catálogo que ya no usa ningún plan (archivados incluidos), con su historial. Una variante que otro plan sigue usando se conserva.
 
 ## Historial de peso

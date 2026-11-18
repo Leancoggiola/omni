@@ -47,7 +47,6 @@ export const updateGymDaySchema = z
 
 export type UpdateGymDayPayload = z.infer<typeof updateGymDaySchema>;
 
-/** El orden completo de los ejercicios del día: tiene que nombrar a todos, una sola vez cada uno. */
 export const reorderGymDayExercisesSchema = z
   .object({
     exerciseIds: z
@@ -70,7 +69,6 @@ export const addGymExerciseSchema = z.object({
 
 export type AddGymExercisePayload = z.infer<typeof addGymExerciseSchema>;
 
-/** `name`, `sets` y `reps` cambian la variante del catálogo (en todos los planes); `weekday` mueve solo esta fila. */
 export const updateGymExerciseSchema = z
   .object({
     name: gymExerciseNameSchema.optional(),
@@ -88,12 +86,10 @@ export const updateGymExerciseWeightSchema = z.object({
 
 export type UpdateGymExerciseWeightPayload = z.infer<typeof updateGymExerciseWeightSchema>;
 
-/** Historial de peso, del más nuevo al más viejo. */
 export const listGymWeightHistorySchema = paginationSchema;
 
 export type ListGymWeightHistoryParams = z.infer<typeof listGymWeightHistorySchema>;
 
-/** Sin `q` lista el catálogo completo (hasta `limit`), ordenado por nombre. */
 export const suggestGymCatalogSchema = z.object({
   q: z.string().trim().min(1).max(SEARCH_QUERY_MAX_LENGTH).optional(),
   limit: z.coerce.number().int().min(1).max(GYM_CATALOG_MAX_LIMIT).default(GYM_CATALOG_DEFAULT_LIMIT),

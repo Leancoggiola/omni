@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 
 import { prisma } from '../../common/db';
+import { basePrisma, clearPrismaOverride } from '../../common/db/prisma';
 import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
 import { createGymExercise, createGymPlan, createUser, toJwtUser } from '../../test/integration/factories';
@@ -1239,6 +1241,56 @@ describe('gym routes (integration)', () => {
       const res = await request(app).get('/api/gym/exercises/catalog?limit=21').set('Authorization', auth);
 
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe('concurrency', () => {
+    it('agregar un ejercicio mientras se borra el último del día no pierde el nuevo', async () => {
+      clearPrismaOverride();
+      const id = `gym-race-${randomUUID()}`;
+      const owner = await basePrisma.user.create({
+        data: { id, username: id, name: 'Test User', password: 'sin-uso', role: 'USER' },
+      });
+      const ownerAuth = authHeader(toJwtUser(owner));
+
+      try {
+        for (let round = 0; round < 8; round += 1) {
+          const plan = await basePrisma.gymPlan.create({ data: { userId: id, name: `Plan ${round}` } });
+          const day = await basePrisma.gymPlanDay.create({ data: { planId: plan.id, weekday: 'MONDAY' } });
+          const catalog = await basePrisma.gymExercise.create({
+            data: {
+              userId: id,
+              name: 'Sentadilla',
+              nameNormalized: 'sentadilla',
+              sets: 4,
+              reps: '6',
+              repsNormalized: '6',
+            },
+          });
+          const row = await basePrisma.gymPlanExercise.create({
+            data: { dayId: day.id, exerciseId: catalog.id, sortOrder: 0 },
+          });
+
+          const [removed, added] = await Promise.all([
+            request(app).delete(`/api/gym/exercises/${row.id}`).set('Authorization', ownerAuth),
+            request(app)
+              .post('/api/gym/exercises')
+              .set('Authorization', ownerAuth)
+              .send({ planId: plan.id, weekday: 'MONDAY', name: 'Remo', sets: 3, reps: '10' }),
+          ]);
+
+          expect(removed.status).toBe(204);
+          expect(added.status).toBe(201);
+          const stored = await basePrisma.gymPlanExercise.findMany({
+            where: { day: { planId: plan.id } },
+            include: { exercise: true },
+          });
+          expect(stored.map(item => item.exercise.name)).toEqual(['Remo']);
+          await basePrisma.gymExercise.deleteMany({ where: { userId: id } });
+        }
+      } finally {
+        await basePrisma.user.delete({ where: { id } });
+      }
     });
   });
 });

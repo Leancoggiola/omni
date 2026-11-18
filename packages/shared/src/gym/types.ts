@@ -1,10 +1,5 @@
 import type { GymPlanStatus, GymWeekday } from './constants';
 
-/**
- * Un ejercicio dentro de un día del plan. `id` es el de esa fila del plan (el que usan las rutas `/exercises/:id`);
- * `catalogId` es la variante del catálogo (nombre + series + repeticiones) que comparte peso e historial con los demás
- * planes que la usan.
- */
 export interface GymExercise {
   id: string;
   catalogId: string;
@@ -40,7 +35,6 @@ export interface GymPlanSummary {
   exerciseCount: number;
 }
 
-/** Una variante del catálogo del usuario: "Sentadilla 4×12" y "Sentadilla 3×8" son dos entradas distintas. */
 export interface GymCatalogExercise {
   id: string;
   name: string;
@@ -49,7 +43,6 @@ export interface GymCatalogExercise {
   currentWeightKg: number | null;
 }
 
-/** Un peso registrado, con las series y repeticiones que tenía la variante en ese momento. */
 export interface GymWeightEntry {
   id: string;
   weightKg: number;
