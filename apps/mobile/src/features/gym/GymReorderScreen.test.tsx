@@ -56,6 +56,20 @@ beforeEach(() => {
 });
 
 describe('GymReorderScreen', () => {
+  it('si el día cambia mientras se ordena avisa antes de guardar y no deja guardar', async () => {
+    const { rerender } = await render(<GymReorderScreen />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Bajar Sentadilla' }));
+    expect(saveButton().props.accessibilityState.disabled).toBe(false);
+
+    mockPlan = planDetail({
+      days: [day({ id: 'd1', weekday: 'MONDAY', exercises: [MONDAY.exercises[0]!, MONDAY.exercises[2]!] })],
+    });
+    await rerender(<GymReorderScreen />);
+
+    expect(screen.getByText(/El día cambió mientras lo ordenabas/)).toBeTruthy();
+    expect(saveButton().props.accessibilityState.disabled).toBe(true);
+  });
+
   it('sin plan o día en la ruta lo dice en vez de quedarse cargando', async () => {
     mockParams = {};
     mockPlan = undefined;

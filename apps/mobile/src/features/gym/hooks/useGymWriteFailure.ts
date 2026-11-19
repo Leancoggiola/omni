@@ -16,9 +16,9 @@ export type GymFailure = { status: 'closed'; notice: string } | { status: 'error
  * pedir el plan y el listado; otro 409 es un conflicto de formulario y la red u otro error dejan la hoja abierta (ambos
  * `error`, con el mensaje de la API o el `fallback` de la acción).
  */
-export function useGymWriteFailure(planId: string) {
+export function useGymWriteFailure(planId: string | null) {
   const { mutate } = useSWRConfig();
-  const planKey = API_KEYS.gym.plan(planId);
+  const planKey = planId ? API_KEYS.gym.plan(planId) : null;
 
   const refreshList = useCallback(
     () => mutate((key: unknown) => isGymKey(key) && key !== planKey).catch(() => undefined),
@@ -31,11 +31,14 @@ export function useGymWriteFailure(planId: string) {
       const status = err instanceof ApiError ? err.status : 0;
 
       if (status === 404) {
-        await Promise.all([mutate(planKey).catch(() => undefined), refreshList()]);
+        await Promise.all([planKey ? mutate(planKey).catch(() => undefined) : undefined, refreshList()]);
         return { status: 'closed', notice: message };
       }
       if (status === 409) {
-        const [fresh] = await Promise.all([mutate<GymPlanDetail>(planKey).catch(() => undefined), refreshList()]);
+        const [fresh] = await Promise.all([
+          planKey ? mutate<GymPlanDetail>(planKey).catch(() => undefined) : undefined,
+          refreshList(),
+        ]);
         if (fresh?.status === 'ARCHIVED') return { status: 'closed', notice: message };
         return { status: 'error', message, conflict: true };
       }

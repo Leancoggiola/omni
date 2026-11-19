@@ -58,7 +58,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
                   alignItems="center"
                   borderBottomWidth={index < request.options.length - 1 ? 1 : 0}
                   borderBottomColor="hairline"
-                  backgroundColor="press:hover"
+                  backgroundColor={option.disabled ? undefined : 'press:hover'}
                   opacity={option.disabled ? 0.4 : 1}
                   onPress={option.disabled ? undefined : () => queue.close(option.value)}
                   accessible

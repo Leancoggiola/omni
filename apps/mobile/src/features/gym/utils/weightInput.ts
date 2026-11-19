@@ -2,10 +2,13 @@ import { AMOUNT_MAX_8_2 } from '@omni/shared/common';
 
 import { formatWeight } from './gymFormat';
 
-/** El número que escribió la persona (coma o punto decimal): `null` si el campo está vacío o no es un número. */
+/**
+ * El número que escribió la persona (coma o punto decimal, hasta 2 decimales): `null` si el campo está vacío o no es
+ * un peso (`0x1A`, `1e3` y `0,004` no lo son).
+ */
 export function parseWeightInput(value: string): number | null {
   const trimmed = value.trim().replace(',', '.');
-  if (trimmed === '') return null;
+  if (!/^-?(\d+(\.\d{0,2})?|\.\d{1,2})$/.test(trimmed)) return null;
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : null;
 }

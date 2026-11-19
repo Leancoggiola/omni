@@ -53,6 +53,8 @@ export function GymReorderScreen() {
   const byId = new Map(day?.exercises.map(exercise => [exercise.id, exercise]));
   const rows = ids.map(id => byId.get(id)).filter((exercise): exercise is GymExercise => exercise !== undefined);
   const changed = order !== null && order.join() !== serverIds.join();
+  const outOfSync = order !== null && (order.length !== serverIds.length || order.some(id => !serverIds.includes(id)));
+  const conflict = stale ?? (outOfSync ? 'El día cambió mientras lo ordenabas' : null);
   const label = day ? GYM_WEEKDAY_LABELS[day.weekday] : null;
 
   const move = (index: number, direction: -1 | 1) => setOrder(moveItem(ids, index, direction));
@@ -73,7 +75,7 @@ export function GymReorderScreen() {
   };
 
   const handleSave = async () => {
-    if (!day || !changed || stale !== null || savingRef.current) return;
+    if (!day || !changed || conflict !== null || savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
     try {
@@ -114,9 +116,9 @@ export function GymReorderScreen() {
     if (!day || !label) return <EmptyState icon={NAV_ICONS.gym} title="Este día ya no tiene ejercicios" />;
     return (
       <>
-        {stale === null ? null : (
+        {conflict === null ? null : (
           <YStack gap={SPACING.xs}>
-            <GymErrorBanner message={stale} help="Recargá el día para ver la lista actual y volvé a ordenar." />
+            <GymErrorBanner message={conflict} help="Recargá el día para ver la lista actual y volvé a ordenar." />
             <Button variant="outline" color="destructive" loading={reloading} onPress={() => void handleReload()}>
               Recargar el día
             </Button>
@@ -168,7 +170,7 @@ export function GymReorderScreen() {
             fullWidth
             size="lg"
             loading={saving}
-            disabled={!changed || stale !== null}
+            disabled={!changed || conflict !== null}
             onPress={() => void handleSave()}
           >
             Guardar orden

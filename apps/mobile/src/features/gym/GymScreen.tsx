@@ -134,7 +134,7 @@ export function GymScreen() {
   const planId = resolvePlanId(lastPlanId, plans);
   const { plan, error: planError, mutate: retryPlan } = useGymPlan(planId ?? null);
   const mutations = useGymMutations();
-  const handleFailure = useGymWriteFailure(planId ?? '');
+  const handleFailure = useGymWriteFailure(planId ?? null);
   const notice = useSheetNotice();
   const retry = useCallback(() => Promise.all([retryPlans(), retryPlan()]), [retryPlans, retryPlan]);
   const refreshControl = usePullToRefresh(retry);

@@ -15,7 +15,8 @@ describe('weekdayOfDate', () => {
 describe('peso escrito', () => {
   it('interpreta la coma decimal y redondea a 2 decimales', () => {
     expect(parseWeightInput('62,5')).toBe(62.5);
-    expect(parseWeightInput('62.504')).toBe(62.5);
+    expect(parseWeightInput('62.50')).toBe(62.5);
+    expect(parseWeightInput('62.504')).toBeNull();
     expect(parseWeightInput('')).toBeNull();
     expect(parseWeightInput('abc')).toBeNull();
   });
@@ -25,6 +26,10 @@ describe('peso escrito', () => {
     expect(weightInputError('')).toBeNull();
     expect(weightInputError('-2,5')).toBe('El peso no puede ser negativo');
     expect(weightInputError('abc')).toBe('Ingresá un número');
+    expect(weightInputError('0x1A')).toBe('Ingresá un número');
+    expect(weightInputError('1e3')).toBe('Ingresá un número');
+    expect(weightInputError('0,004')).toBe('Ingresá un número');
+    expect(weightInputError('62,')).toBeNull();
     expect(weightInputError('1000000')).toBe('El peso máximo es 999.999,99 kg');
   });
 });
