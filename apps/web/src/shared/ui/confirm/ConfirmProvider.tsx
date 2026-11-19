@@ -6,7 +6,7 @@ import { registerConfirmHandler } from './confirm';
 import type { ConfirmRequest } from './types';
 
 /**
- * Modal de confirmación global. Resuelve la promesa del pedido fuera del updater de `setQueue` y mantiene el
+ * Modal de confirmación global; el foco inicial queda en Cancelar, para que Enter no confirme una acción destructiva por descuido. Resuelve la promesa del pedido fuera del updater de `setQueue` y mantiene el
  * último pedido mostrado mientras dura la animación de cierre, para que el contenido no se vacíe antes de tiempo.
  */
 export const ConfirmProvider: FC<{ children: ReactNode }> = ({ children }) => {
@@ -36,7 +36,7 @@ export const ConfirmProvider: FC<{ children: ReactNode }> = ({ children }) => {
           {content?.description}
         </Text>
         <Group justify="flex-end" gap="sm">
-          <Button variant="outline" onClick={() => close(false)}>
+          <Button variant="outline" data-autofocus onClick={() => close(false)}>
             {content?.cancelLabel}
           </Button>
           <Button color={content?.destructive === false ? 'brand' : 'destructive'} onClick={() => close(true)}>

@@ -1,11 +1,10 @@
 import { FC } from 'react';
 import { ActionIcon, Alert, Avatar, Menu, Paper, Text, Title } from '@mantine/core';
 
-import { useDisplayStyles } from '@/shared/ui';
+import { Overline, useDisplayStyles } from '@/shared/ui';
 
 import { formatGatheringWeekday, groupExpensesByDay, participantTones } from '../../utils/gatheringView';
 import { MoneyAmount } from '../MoneyAmount';
-import { Overline } from '../Overline';
 import { ParticipantAvatar } from '../ParticipantAvatar';
 import { ExpenseComposer } from './ExpenseComposer';
 import { FeedBubble } from './FeedBubble';

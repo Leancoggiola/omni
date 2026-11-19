@@ -5,7 +5,7 @@ import { renderWithProviders } from '@/__tests__/helpers';
 import { confirm } from '../confirm';
 import { ConfirmProvider } from '../ConfirmProvider';
 
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 
 const renderProvider = () => renderWithProviders(<ConfirmProvider>contenido</ConfirmProvider>);
 
@@ -24,6 +24,19 @@ describe('ConfirmProvider', () => {
       result = confirm({ title: 'Eliminar', description: '¿Seguro?', confirmLabel: 'Sí', cancelLabel: 'No' });
     });
     fireEvent.click(await screen.findByRole('button', { name: 'No' }));
+    await expect(result).resolves.toBe(false);
+  });
+
+  it('el foco inicial queda en Cancelar y Escape cancela', async () => {
+    renderProvider();
+
+    let result!: Promise<boolean>;
+    act(() => {
+      result = confirm({ title: 'Eliminar', description: '¿Seguro?', confirmLabel: 'Sí', cancelLabel: 'No' });
+    });
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'No' })).toHaveFocus());
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
     await expect(result).resolves.toBe(false);
   });
 
