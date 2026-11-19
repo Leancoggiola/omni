@@ -170,7 +170,7 @@ export function GymScreen() {
   };
 
   const runSheetWrite = async (
-    action: () => Promise<void>,
+    action: () => Promise<unknown>,
     fallback: string,
     success: string
   ): Promise<GymSubmitResult> => {
@@ -185,7 +185,7 @@ export function GymScreen() {
     }
   };
 
-  const runPlainWrite = async (action: () => Promise<void>, fallback: string, success: string) => {
+  const runPlainWrite = async (action: () => Promise<unknown>, fallback: string, success: string) => {
     try {
       await action();
       notifySuccess(success);
@@ -200,9 +200,7 @@ export function GymScreen() {
   const handleAdd = async (exercise: Omit<AddGymExercisePayload, 'planId'>): Promise<GymSubmitResult> => {
     if (!planId) return { status: 'closed' };
     return runSheetWrite(
-      async () => {
-        await mutations.addExercise({ ...exercise, planId });
-      },
+      () => mutations.addExercise({ ...exercise, planId }),
       'No se pudo agregar el ejercicio',
       'Ejercicio agregado'
     );
@@ -210,36 +208,24 @@ export function GymScreen() {
 
   const handleEdit = (exerciseId: string, payload: UpdateGymExercisePayload) =>
     runSheetWrite(
-      async () => {
-        await mutations.updateExercise(exerciseId, payload);
-      },
+      () => mutations.updateExercise(exerciseId, payload),
       'No se pudo guardar el ejercicio',
       'Ejercicio actualizado'
     );
 
   const handleMove = (exerciseId: string, weekday: GymWeekday) =>
     runSheetWrite(
-      async () => {
-        await mutations.updateExercise(exerciseId, { weekday });
-      },
+      () => mutations.updateExercise(exerciseId, { weekday }),
       'No se pudo mover el ejercicio',
       'Ejercicio movido'
     );
 
   const handleChangeDay = (dayId: string, weekday: GymWeekday) =>
-    runSheetWrite(
-      async () => {
-        await mutations.changeDay(dayId, weekday);
-      },
-      'No se pudo cambiar el día',
-      'Día cambiado'
-    );
+    runSheetWrite(() => mutations.changeDay(dayId, weekday), 'No se pudo cambiar el día', 'Día cambiado');
 
   const handleWeight = (exerciseId: string, weightKg: number | null) =>
     runSheetWrite(
-      async () => {
-        await mutations.updateWeight(exerciseId, weightKg);
-      },
+      () => mutations.updateWeight(exerciseId, weightKg),
       weightKg === null ? 'No se pudo quitar el peso' : 'No se pudo guardar el peso',
       weightKg === null ? 'Peso quitado' : 'Peso guardado'
     );

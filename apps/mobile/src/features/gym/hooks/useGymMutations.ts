@@ -19,7 +19,9 @@ import type {
  * resúmenes y el catálogo. Todas tiran si la API responde error (409 de plan archivado, ejercicio repetido, orden
  * desactualizado…); el mensaje viene de la API. `deletePlan` no revalida el detalle del plan borrado (daría 404);
  * `reorderDay` recibe la lista completa del día en el orden nuevo (si no coincide con la de la API, 409); `updateWeight`
- * con `null` borra el peso, y el historial (`useGymWeightHistory`) lo revalida quien lo muestra.
+ * con `null` borra el peso, y el historial (`useGymWeightHistory`) lo revalida quien lo muestra. El `mutate` con filtro
+ * no alcanza a las keys de `useSWRInfinite` (el historial y `useGymPlansPaged`): "Tus planes" se actualiza al montarse la
+ * pantalla, no tras una escritura con ella montada.
  */
 export function useGymMutations() {
   const { mutate } = useSWRConfig();
