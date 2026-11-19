@@ -117,6 +117,16 @@ describe('GymPlanView', () => {
       expect(mocks.plan.mutate).toHaveBeenCalled();
     });
 
+    it('si falla una revalidación con el plan cargado lo sigue mostrando con un aviso y reintento', async () => {
+      mocks.plan = { ...mocks.plan, error: new Error('x') };
+      renderView();
+
+      expect(screen.getByRole('region', { name: 'Lunes' })).toBeInTheDocument();
+      expect(screen.getByText('No se pudo actualizar tu plan')).toBeInTheDocument();
+      await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+      expect(mocks.plan.mutate).toHaveBeenCalled();
+    });
+
     it('un 404 muestra "Plan no encontrado" con "Ver mis planes" y sin "Reintentar"', async () => {
       mocks.plan = { ...mocks.plan, plan: undefined, error: new ApiError('Plan no encontrado', 404) };
       const props = renderView();

@@ -119,6 +119,16 @@ describe('GymPage', () => {
     expect(mocks.plans.mutate).toHaveBeenCalled();
   });
 
+  it('si falla una revalidación con planes ya cargados los sigue mostrando con un aviso y reintento', async () => {
+    mocks.plans = { ...mocks.plans, error: new Error('x') };
+    renderPage();
+
+    expect(shown()).toHaveTextContent('a1');
+    expect(screen.getByText('No se pudieron actualizar tus planes')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(mocks.plans.mutate).toHaveBeenCalled();
+  });
+
   it('sin planes ofrece crear el primero, con "Nuevo plan" como única acción de la cabecera', async () => {
     mocks.plans = { ...mocks.plans, plans: [] };
     mocks.mutations.createPlan.mockResolvedValue(planDetail({ id: 'nuevo', days: [] }));

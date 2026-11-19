@@ -17,6 +17,12 @@ import type {
  * Escrituras sobre los ejercicios de un plan. El detalle del plan se actualiza con lo que devuelve la API y después
  * se revalida el resto del gimnasio: el peso y las variantes son compartidos con otros planes, y también el catálogo
  * y los historiales. Los errores se propagan tal cual para que la UI los muestre.
+ *
+ * `updateExercise` manda nombre, series y repeticiones de la variante (se ve en todos los planes que la usan);
+ * `moveExercise` manda solo el día (la fila va al final del elegido y el de origen se borra si queda vacío);
+ * `updateWeight` con `null` quita el peso (la API no registra nada en el historial); `deleteExercise` vuelve a
+ * pedir el plan entero, porque si era el último del día la API borra el día; `reorderDay` guarda el orden del día
+ * completo y la lista tiene que nombrar exactamente a los ejercicios actuales.
  */
 export function useGymExerciseMutations(planId: string) {
   const { mutate } = useSWRConfig();
@@ -41,21 +47,18 @@ export function useGymExerciseMutations(planId: string) {
     [storePlan]
   );
 
-  /** Editar manda nombre, series y repeticiones de la variante: se ve en todos los planes que la usan. */
   const updateExercise = useCallback(
     async (exerciseId: string, payload: UpdateGymExercisePayload) =>
       storePlan(await api.patch<GymPlanDetail>(SWR_KEYS.gym.exercise(exerciseId), payload)),
     [storePlan]
   );
 
-  /** Mover manda solo el día: la fila va al final del elegido y el de origen se borra si queda vacío. */
   const moveExercise = useCallback(
     async (exerciseId: string, weekday: GymWeekday) =>
       storePlan(await api.patch<GymPlanDetail>(SWR_KEYS.gym.exercise(exerciseId), { weekday })),
     [storePlan]
   );
 
-  /** `null` quita el peso (la API no registra nada en el historial). */
   const updateWeight = useCallback(
     async (exerciseId: string, weightKg: number | null) => {
       const exercise = await api.patch<GymExercise>(SWR_KEYS.gym.exerciseWeight(exerciseId), { weightKg });
@@ -68,7 +71,6 @@ export function useGymExerciseMutations(planId: string) {
     [mutate, planKey, revalidateOthers]
   );
 
-  /** Saca el ejercicio del día; si era el último, la API borra el día, así que se vuelve a pedir el plan entero. */
   const deleteExercise = useCallback(
     async (exerciseId: string) => {
       await api.delete(SWR_KEYS.gym.exercise(exerciseId));
@@ -77,7 +79,6 @@ export function useGymExerciseMutations(planId: string) {
     [mutate]
   );
 
-  /** Guarda el orden del día completo; la lista tiene que nombrar exactamente a los ejercicios actuales del día. */
   const reorderDay = useCallback(
     async (dayId: string, exerciseIds: string[]) =>
       storePlan(await api.put<GymPlanDetail>(SWR_KEYS.gym.dayExercisesOrder(dayId), { exerciseIds })),

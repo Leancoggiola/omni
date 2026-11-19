@@ -9,7 +9,8 @@ import type { CreateGymPlanPayload, GymPlanDetail, UpdateGymPlanPayload } from '
 
 /**
  * Alta, renombre, archivo y baja de planes. Las que devuelven el plan lo guardan en su key (sin otro GET) y
- * revalidan el resto de las keys del gimnasio (el listado cambia de nombre, estado o contadores).
+ * revalidan el resto de las keys del gimnasio (el listado cambia de nombre, estado o contadores). `deletePlan` no
+ * revalida el detalle del plan borrado (daría 404) y sí el resto (el catálogo pierde las variantes huérfanas).
  */
 export function useGymPlanMutations() {
   const { mutate } = useSWRConfig();
@@ -45,7 +46,6 @@ export function useGymPlanMutations() {
     [storePlan]
   );
 
-  /** No revalida el detalle del plan borrado (daría 404); el resto sí (el catálogo pierde las variantes huérfanas). */
   const deletePlan = useCallback(
     async (planId: string) => {
       await api.delete(SWR_KEYS.gym.plan(planId));

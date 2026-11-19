@@ -36,6 +36,12 @@ type PlanModalMode = 'create' | 'rename';
  * Gimnasio: el plan elegido vive en `?plan=` para poder enlazarlo y se recuerda en el dispositivo; sin plan en la URL
  * (o si ya no existe) se abre el último visto y, si no, el primero del estado elegido, que por defecto es el del plan
  * de la URL o "Activos". Las acciones del plan (nuevo, renombrar, archivar, eliminar) viven en la cabecera.
+ *
+ * Si falla una revalidación con datos ya cargados, se muestran igual y arriba un aviso con "Reintentar".
+ * Crear o renombrar avisa los errores con un toast y deja el modal abierto (un 409 o un 404 al renombrar lo cierra).
+ * Archivar o desarchivar no pide confirmación (se revierte): el plan queda abierto y el filtro pasa a su nuevo
+ * estado, y mientras dura el pedido queda fijado como elegido aunque el listado todavía lo traiga con el estado
+ * viejo, para que la vista no salte a otro plan ni a un estado vacío.
  */
 export const GymPage: FC = () => {
   const { user } = useAuth();
@@ -88,7 +94,6 @@ export const GymPage: FC = () => {
     });
   const closePlanModal = () => setPlanModal(current => ({ ...current, opened: false }));
 
-  /** Crea o renombra. Si falla avisa con un toast y deja el modal abierto; un 409 o un 404 al renombrar lo cierra. */
   const handlePlanName = async (name: string): Promise<GymSubmitResult> => {
     const target = planModal.target;
     try {
@@ -114,11 +119,6 @@ export const GymPage: FC = () => {
     }
   };
 
-  /**
-   * Archivar o desarchivar no pide confirmación (se revierte): el plan queda abierto y el filtro pasa a su nuevo
-   * estado. Mientras dura el pedido el plan queda fijado como elegido, aunque el listado todavía lo traiga con el
-   * estado viejo, para que la vista no salte a otro plan ni a un estado vacío.
-   */
   const handleToggleArchive = async () => {
     if (!selected || archiving) return;
     const archive = selected.status === 'ACTIVE';
@@ -248,6 +248,7 @@ export const GymPage: FC = () => {
         onToggleArchive={() => void handleToggleArchive()}
         onDelete={() => void handleDeletePlan()}
       />
+      {error && plans && <ErrorState message="No se pudieron actualizar tus planes" onRetry={() => retry()} />}
       {renderContent()}
       <PlanNameModal
         opened={planModal.opened}

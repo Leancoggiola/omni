@@ -61,6 +61,10 @@ interface GymPlanViewProps {
  * archivado" y sin acciones de escritura. Una escritura que falla se resuelve acá: 409 por archivado cierra el
  * modal y deja el plan en solo lectura, otros 409 son un aviso dentro del formulario, un 404 vuelve a pedir el plan.
  * El error de carga se muestra con reintento (o "Plan no encontrado" ante un 404), nunca como plan vacío.
+ *
+ * Cada escritura corre con `runWrite`: si sale bien avisa y cierra; si falla, `handleFailure` decide: un 409 de
+ * formulario vuelve como `conflict` (aviso dentro del formulario) salvo que `asNotice` pida un toast, archivado o
+ * inexistente cierran, y la red deja el formulario abierto (ya se avisó con un toast).
  */
 export const GymPlanView: FC<GymPlanViewProps> = ({
   planId,
@@ -88,11 +92,6 @@ export const GymPlanView: FC<GymPlanViewProps> = ({
   }, []);
   const closeDialog = useCallback(() => setDialogOpened(false), []);
 
-  /**
-   * Corre una escritura. Si sale bien avisa y cierra; si falla, `handleFailure` decide: un 409 de formulario vuelve
-   * como `conflict` (aviso dentro del formulario) salvo que `asNotice` pida un toast, archivado o inexistente cierran,
-   * y la red deja el formulario abierto (ya se avisó con un toast).
-   */
   const runWrite = useCallback(
     async (
       action: () => Promise<void>,
@@ -312,6 +311,7 @@ export const GymPlanView: FC<GymPlanViewProps> = ({
 
   return (
     <Stack gap="lg">
+      {error && <ErrorState message="No se pudo actualizar tu plan" onRetry={() => retry()} />}
       {readOnly && (
         <Alert color="warning" icon={<ArchiveIcon size="1.25rem" />} title="Plan archivado">
           Solo podés mirarlo. Para editarlo, desarchivalo.

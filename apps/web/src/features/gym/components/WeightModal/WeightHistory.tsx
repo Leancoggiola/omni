@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Button, Group, Loader, Stack, Table, Text } from '@mantine/core';
+import { Button, Group, Stack, Table, Text } from '@mantine/core';
 
 import { ErrorState, LoadingState, Overline } from '@/shared/ui';
 
@@ -35,7 +35,7 @@ const WeightHistoryPage: FC<WeightHistoryPageProps> = ({ exerciseId, page, hasNe
     return (
       <Table.Tr>
         <Table.Td colSpan={3} ta="center">
-          <Loader size="sm" role="status" aria-label="Cargando" />
+          <LoadingState size="sm" py="none" />
         </Table.Td>
       </Table.Tr>
     );
