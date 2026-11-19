@@ -6,9 +6,9 @@ import { renderWithProviders } from '@/__tests__/helpers';
 import { ApiError } from '@/shared/api';
 
 import { GymPage } from '../gym.page';
-import { planDetail, planSummary } from './fixtures';
+import { day, planDetail, planSummary } from './fixtures';
 
-import type { GymPlanSummary } from '@omni/shared/gym';
+import type { GymPlanDetail, GymPlanSummary } from '@omni/shared/gym';
 import type { ReactNode } from 'react';
 
 import { screen, waitFor, within } from '@testing-library/react';
@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
     error: undefined as unknown,
     mutate: vi.fn(),
   },
+  openPlan: { plan: undefined as GymPlanDetail | undefined },
   mutations: {
     createPlan: vi.fn(),
     renamePlan: vi.fn(),
@@ -34,6 +35,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/core/auth', () => ({ useAuth: () => ({ user: { username: 'ana' } }) }));
+vi.mock('../hooks/useGymPlan', () => ({ useGymPlan: () => mocks.openPlan }));
 vi.mock('../hooks/useGymPlans', () => ({ useGymPlans: () => mocks.plans }));
 vi.mock('../hooks/useGymPlanMutations', () => ({ useGymPlanMutations: () => mocks.mutations }));
 vi.mock('../components/GymPlanView', () => ({
@@ -104,6 +106,7 @@ describe('GymPage', () => {
     vi.clearAllMocks();
     localStorage.clear();
     mocks.plans = { plans: PLANS, isLoading: false, error: undefined, mutate: vi.fn() };
+    mocks.openPlan = { plan: planDetail({ days: [day({ id: 'd1' })] }) };
     Object.values(mocks.mutations).forEach(fn => fn.mockResolvedValue(planDetail()));
   });
 
@@ -352,6 +355,15 @@ describe('GymPage', () => {
 
     await waitFor(() => expect(mocks.confirm).toHaveBeenCalled());
     expect(mocks.mutations.deletePlan).not.toHaveBeenCalled();
+  });
+
+  it('si el día en modo orden ya no existe en el plan la cabecera no queda bloqueada', async () => {
+    mocks.openPlan = { plan: planDetail({ days: [] }) };
+    renderPage();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Simular orden' }));
+
+    expect(screen.getByRole('button', { name: 'Nuevo plan' })).toBeEnabled();
   });
 
   it('en modo orden la cabecera queda deshabilitada pero el selector de plan no', async () => {

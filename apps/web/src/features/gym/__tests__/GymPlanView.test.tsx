@@ -401,8 +401,17 @@ describe('GymPlanView', () => {
   });
 
   describe('ordenar', () => {
-    it('si el día en modo orden ya no existe sale del modo orden', async () => {
-      const props = renderView({ orderingDayId: 'dia-que-no-existe' });
+    it('recargar el día sale del modo orden si el día ya no existe', async () => {
+      mocks.exercises.reorderDay.mockRejectedValue(
+        new ApiError('La lista no coincide con los ejercicios del día', 409)
+      );
+      mocks.failure.mockResolvedValue('conflict' satisfies GymWriteFailure);
+      mocks.plan.mutate.mockResolvedValue(planDetail({ days: [] }));
+      const props = renderView({ orderingDayId: 'd1' });
+
+      await userEvent.click(screen.getByRole('button', { name: 'Bajar Sentadilla' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar orden' }));
+      await userEvent.click(await screen.findByRole('button', { name: 'Recargar el día' }));
 
       await waitFor(() => expect(props.onOrderingDayChange).toHaveBeenCalledWith(null));
     });

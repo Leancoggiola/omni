@@ -18,6 +18,7 @@ import { GymHeader } from './components/GymHeader';
 import { GymPlanToolbar } from './components/GymPlanToolbar';
 import { GymPlanView } from './components/GymPlanView';
 import { PlanNameModal } from './components/PlanNameModal';
+import { useGymPlan } from './hooks/useGymPlan';
 import { useGymPlanMutations } from './hooks/useGymPlanMutations';
 import { useGymPlans } from './hooks/useGymPlans';
 import { deletePlanCopy } from './utils/gymMessages';
@@ -59,6 +60,8 @@ export const GymPage: FC = () => {
   const visiblePlans = plans?.filter(plan => plan.status === status) ?? [];
   const selected = visiblePlans.find(plan => plan.id === planParam) ?? visiblePlans[0] ?? null;
   const selectedId = selected?.id;
+  const { plan: openPlan } = useGymPlan(selectedId);
+  const activeOrderingId = openPlan?.days.some(day => day.id === orderingDayId) ? orderingDayId : null;
 
   useEffect(() => {
     if (selectedId && username) saveLastGymPlan(username, selectedId);
@@ -216,7 +219,7 @@ export const GymPage: FC = () => {
         planId={selected.id}
         toolbar={toolbar}
         addWeekday={addWeekday}
-        orderingDayId={orderingDayId}
+        orderingDayId={activeOrderingId}
         onAddWeekdayChange={setAddWeekday}
         onOrderingDayChange={setOrderingDayId}
         onShowPlans={handleShowPlans}
@@ -229,7 +232,7 @@ export const GymPage: FC = () => {
       <GymHeader
         planStatus={selected?.status ?? null}
         archiving={archiving}
-        disabled={orderingDayId !== null || deleting}
+        disabled={activeOrderingId !== null || deleting}
         onCreatePlan={() => openPlanModal('create')}
         onAddExercise={() => setAddWeekday(weekdayOfDate())}
         onRename={() => openPlanModal('rename')}

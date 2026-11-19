@@ -1,4 +1,4 @@
-import { FC, ReactNode, useCallback, useEffect, useState } from 'react';
+import { FC, ReactNode, useCallback, useState } from 'react';
 import { Alert, Button, SimpleGrid, Stack } from '@mantine/core';
 
 import {
@@ -82,17 +82,6 @@ export const GymPlanView: FC<GymPlanViewProps> = ({
   const { changeDay, deleteDay } = useGymDayMutations(planId);
   const handleFailure = useGymWriteFailure(planId);
   const readOnly = plan?.status === 'ARCHIVED';
-  const orderingGone = orderingDayId !== null && plan !== undefined && !plan.days.some(day => day.id === orderingDayId);
-
-  useEffect(() => {
-    if (orderingGone) onOrderingDayChange(null);
-  }, [orderingGone, onOrderingDayChange]);
-
-  const withoutPlan = plan === undefined;
-  useEffect(() => {
-    if (withoutPlan && addWeekday !== null) onAddWeekdayChange(null);
-  }, [withoutPlan, addWeekday, onAddWeekdayChange]);
-
   const openDialog = useCallback((next: Dialog) => {
     setDialog(next);
     setDialogOpened(true);
@@ -123,11 +112,12 @@ export const GymPlanView: FC<GymPlanViewProps> = ({
         }
         if (failure === 'other') return { status: 'failed' };
         onAddWeekdayChange(null);
+        onOrderingDayChange(null);
         options.close?.();
         return { status: 'done' };
       }
     },
-    [handleFailure, onAddWeekdayChange]
+    [handleFailure, onAddWeekdayChange, onOrderingDayChange]
   );
 
   const findDay = useCallback(
@@ -271,9 +261,20 @@ export const GymPlanView: FC<GymPlanViewProps> = ({
   };
 
   const handleReloadDay = async () => {
-    await retry();
+    const fresh = await retry();
+    if (!fresh?.days.some(day => day.id === orderingDayId)) onOrderingDayChange(null);
     setReorderKey(key => key + 1);
   };
+
+  const addModal = !readOnly && (
+    <AddExerciseModal
+      opened={addWeekday !== null}
+      onClose={() => onAddWeekdayChange(null)}
+      planId={planId}
+      weekday={addWeekday ?? weekdayOfDate()}
+      onSubmit={handleAdd}
+    />
+  );
 
   if (error && (!plan || (error instanceof ApiError && error.status === 404))) {
     const notFound = error instanceof ApiError && error.status === 404;
@@ -294,6 +295,7 @@ export const GymPlanView: FC<GymPlanViewProps> = ({
         ) : (
           <ErrorState message="No se pudo cargar tu plan" onRetry={() => retry()} />
         )}
+        {addModal}
       </Stack>
     );
   }
@@ -303,6 +305,7 @@ export const GymPlanView: FC<GymPlanViewProps> = ({
         <GymSummaryCards stats={undefined} />
         {toolbar}
         <LoadingState variant="skeleton" rows={4} />
+        {addModal}
       </Stack>
     );
   }
@@ -386,15 +389,7 @@ export const GymPlanView: FC<GymPlanViewProps> = ({
         onClose={closeDialog}
         onSubmit={handleChangeDaySubmit}
       />
-      {!readOnly && (
-        <AddExerciseModal
-          opened={addWeekday !== null}
-          onClose={() => onAddWeekdayChange(null)}
-          planId={plan.id}
-          weekday={addWeekday ?? weekdayOfDate()}
-          onSubmit={handleAdd}
-        />
-      )}
+      {addModal}
     </Stack>
   );
 };
