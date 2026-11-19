@@ -16,9 +16,10 @@ jest.mock(
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default
 );
 const mockBack = jest.fn();
+let mockParams: { planId?: string; dayId?: string } = { planId: 'p1', dayId: 'd1' };
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn() }),
-  useLocalSearchParams: () => ({ planId: 'p1', dayId: 'd1' }),
+  useLocalSearchParams: () => mockParams,
 }));
 jest.mock('@/shared/ui', () => ({
   ...jest.requireActual('@/shared/ui'),
@@ -48,12 +49,23 @@ const saveButton = () => screen.getByRole('button', { name: 'Guardar orden' });
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockParams = { planId: 'p1', dayId: 'd1' };
   mockPlan = planDetail({ days: [MONDAY] });
   mockReorderDay.mockResolvedValue(planDetail());
   mockRevalidatePlan.mockResolvedValue(undefined);
 });
 
 describe('GymReorderScreen', () => {
+  it('sin plan o día en la ruta lo dice en vez de quedarse cargando', async () => {
+    mockParams = {};
+    mockPlan = undefined;
+
+    await render(<GymReorderScreen />);
+
+    expect(screen.getByText('No encontramos el día')).toBeTruthy();
+    expect(screen.queryByRole('progressbar', { name: 'Cargando' })).toBeNull();
+  });
+
   it('titula con el día, deshabilita las flechas de los extremos y Guardar sin cambios', async () => {
     await render(<GymReorderScreen />);
 

@@ -488,6 +488,10 @@ export function GymScreen() {
 
   const showFab = Boolean(plan) && !readOnly;
   const weightSheet = sheet?.kind === 'weight' ? sheet : null;
+  const weightExercise = weightSheet
+    ? (plan?.days.flatMap(day => day.exercises).find(exercise => exercise.id === weightSheet.exercise.id) ??
+      weightSheet.exercise)
+    : null;
   const editSheet = sheet?.kind === 'edit' ? sheet : null;
   const moveSheet = sheet?.kind === 'move' ? sheet : null;
   const changeDaySheet = sheet?.kind === 'changeDay' ? sheet : null;
@@ -545,7 +549,7 @@ export function GymScreen() {
           key={`weight-${weightSheet.key}`}
           open={sheetOpen}
           onOpenChange={setSheetOpen}
-          exercise={weightSheet.exercise}
+          exercise={weightExercise ?? weightSheet.exercise}
           weekday={weightSheet.weekday}
           readOnly={readOnly}
           onSave={weightKg => handleWeight(weightSheet.exercise.id, weightKg)}

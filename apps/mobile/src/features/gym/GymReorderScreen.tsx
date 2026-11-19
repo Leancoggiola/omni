@@ -100,6 +100,15 @@ export function GymReorderScreen() {
 
   const renderBody = () => {
     if (error && !plan) return <ErrorState message="No se pudo cargar el plan" onRetry={() => void mutate()} />;
+    if (!planId || !dayId) {
+      return (
+        <EmptyState
+          icon={NAV_ICONS.gym}
+          title="No encontramos el día"
+          description="Volvé al gimnasio y elegí el día que querés ordenar."
+        />
+      );
+    }
     if (!plan) return <LoadingState variant="skeleton" rows={3} />;
     if (plan.status === 'ARCHIVED') return <EmptyState icon={NAV_ICONS.gym} title="El plan está archivado" />;
     if (!day || !label) return <EmptyState icon={NAV_ICONS.gym} title="Este día ya no tiene ejercicios" />;
