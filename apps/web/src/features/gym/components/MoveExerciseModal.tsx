@@ -3,6 +3,7 @@ import { Box, Button, Group, Modal, Select, Stack, Text } from '@mantine/core';
 
 import { useGymSubmit } from '../hooks/useGymSubmit';
 import { formatSetsAndReps, formatWeightKg } from '../utils/gymFormat';
+import { isGymWeekday } from '../utils/gymGuards';
 import { ExerciseTile } from './ExerciseTile';
 import { GymFormBanner } from './GymFormBanner';
 
@@ -61,7 +62,7 @@ const MoveExerciseForm: FC<MoveExerciseFormProps> = ({ target, loading, conflict
           allowDeselect={false}
           data={data}
           value={weekday}
-          onChange={value => setWeekday(value as GymWeekday | null)}
+          onChange={value => setWeekday(isGymWeekday(value) ? value : null)}
         />
         <Text size="xs" c="dimmed">
           {`Va al final del día elegido y solo cambia en este plan. Los días que ya tienen este ejercicio no se pueden elegir. Si el ${originLabel} se queda sin ejercicios, se borra.`}

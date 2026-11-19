@@ -2,24 +2,25 @@ import { FC } from 'react';
 import { Box, Button, Group, Modal, Stack, TextInput } from '@mantine/core';
 import { schemaResolver, useForm } from '@mantine/form';
 
+import { useGymSubmit } from '../hooks/useGymSubmit';
 import { planFormSchema } from '../utils/planForm';
 
+import type { GymSubmitResult } from '../utils/gymSubmit';
 import type { PlanFormValues } from '../utils/planForm';
 
 import { GYM_PLAN_NAME_MAX } from '@omni/shared/gym';
 
 interface PlanNameModalProps {
   opened: boolean;
-  loading: boolean;
   onClose: () => void;
   initialName?: string;
-  onSubmit: (name: string) => Promise<void>;
+  onSubmit: (name: string) => Promise<GymSubmitResult>;
 }
 
 interface PlanNameFormProps {
   initialName?: string;
   loading: boolean;
-  onSubmit: (name: string) => Promise<void>;
+  onSubmit: (values: PlanFormValues) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -31,13 +32,8 @@ const PlanNameForm: FC<PlanNameFormProps> = ({ initialName, loading, onSubmit, o
   });
   const renaming = initialName !== undefined;
 
-  const handleSubmit = async (values: PlanFormValues) => {
-    if (loading) return;
-    await onSubmit(values.name.trim());
-  };
-
   return (
-    <Box component="form" noValidate onSubmit={form.onSubmit(handleSubmit)}>
+    <Box component="form" noValidate onSubmit={form.onSubmit(onSubmit)}>
       <Stack gap="md">
         <TextInput
           label="Nombre"
@@ -63,9 +59,11 @@ const PlanNameForm: FC<PlanNameFormProps> = ({ initialName, loading, onSubmit, o
 
 /**
  * Modal con el nombre del plan, para crearlo ("Nuevo plan") o renombrarlo. `onSubmit` avisa los errores por su
- * cuenta (toast) y deja el modal abierto si lanza.
+ * cuenta (toast) y devuelve `failed` para dejar el modal abierto; el guard contra el doble envío es de `useGymSubmit`.
  */
-export const PlanNameModal: FC<PlanNameModalProps> = ({ opened, loading, onClose, initialName, onSubmit }) => {
+export const PlanNameModal: FC<PlanNameModalProps> = ({ opened, onClose, initialName, onSubmit }) => {
+  const { loading, submit } = useGymSubmit<PlanFormValues>(values => onSubmit(values.name.trim()));
+
   const handleClose = () => {
     if (!loading) onClose();
   };
@@ -79,7 +77,7 @@ export const PlanNameModal: FC<PlanNameModalProps> = ({ opened, loading, onClose
       closeOnClickOutside={!loading}
       closeOnEscape={!loading}
     >
-      <PlanNameForm initialName={initialName} loading={loading} onSubmit={onSubmit} onCancel={handleClose} />
+      <PlanNameForm initialName={initialName} loading={loading} onSubmit={submit} onCancel={handleClose} />
     </Modal>
   );
 };

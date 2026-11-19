@@ -1,6 +1,8 @@
 import { FC } from 'react';
 import { Group, Paper, SegmentedControl, Select } from '@mantine/core';
 
+import { isGymPlanStatus } from '../utils/gymGuards';
+
 import type { GymPlanStatus, GymPlanSummary } from '@omni/shared/gym';
 
 const STATUS_OPTIONS = [
@@ -35,7 +37,7 @@ export const GymPlanToolbar: FC<GymPlanToolbarProps> = ({ plans, selected, statu
         aria-label="Estado de los planes"
         data={STATUS_OPTIONS}
         value={status}
-        onChange={value => onStatusChange(value as GymPlanStatus)}
+        onChange={value => isGymPlanStatus(value) && onStatusChange(value)}
       />
     </Group>
   </Paper>

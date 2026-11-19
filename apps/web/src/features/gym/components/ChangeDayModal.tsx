@@ -2,6 +2,7 @@ import { FC, useState } from 'react';
 import { Box, Button, Group, Modal, Select, Stack, Text } from '@mantine/core';
 
 import { useGymSubmit } from '../hooks/useGymSubmit';
+import { isGymWeekday } from '../utils/gymGuards';
 import { GymFormBanner } from './GymFormBanner';
 
 import type { GymSubmitResult } from '../utils/gymSubmit';
@@ -57,7 +58,7 @@ const ChangeDayForm: FC<ChangeDayFormProps> = ({ target, loading, conflict, onSu
           allowDeselect={false}
           data={data}
           value={weekday}
-          onChange={value => value && setWeekday(value as GymWeekday)}
+          onChange={value => isGymWeekday(value) && setWeekday(value)}
         />
         <Text size="xs" c="dimmed">
           Los días que ya tienen ejercicios no se pueden elegir. Los ejercicios se mueven todos juntos.

@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from 'react';
+import { FC, useRef, useState } from 'react';
 import { ActionIcon, Button, Group, Stack, Text, VisuallyHidden } from '@mantine/core';
 
 import { formatSetsAndReps } from '../../utils/gymFormat';
@@ -20,11 +20,6 @@ interface DayReorderListProps {
   onReload: () => Promise<void>;
 }
 
-interface FocusTarget {
-  id: string;
-  direction: 'up' | 'down';
-}
-
 /**
  * Modo orden de un día: flechas subir y bajar por fila (sin arrastrar), Cancelar y Guardar orden. Se guarda el día
  * completo. Tras mover una fila el foco queda en su botón y se anuncia su posición ("Sentadilla, posición 2 de 3").
@@ -37,25 +32,18 @@ export const DayReorderList: FC<DayReorderListProps> = ({ exercises, dayLabel, o
   const [reloading, setReloading] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [announcement, setAnnouncement] = useState('');
-  const [focusTarget, setFocusTarget] = useState<FocusTarget | null>(null);
-  const buttons = useRef(new Map<string, HTMLButtonElement>());
+  const pendingFocus = useRef<string | null>(null);
 
   const byId = new Map(exercises.map(exercise => [exercise.id, exercise]));
   const initial = exercises.map(exercise => exercise.id);
   const dirty = ids.some((id, index) => id !== initial[index]);
-
-  useEffect(() => {
-    if (!focusTarget) return;
-    buttons.current.get(`${focusTarget.id}:${focusTarget.direction}`)?.focus();
-    setFocusTarget(null);
-  }, [focusTarget]);
 
   const move = (id: string, direction: 'up' | 'down') => {
     const index = ids.indexOf(id);
     const target = direction === 'up' ? index - 1 : index + 1;
     if (target < 0 || target >= ids.length || saving || conflict) return;
     setIds(moveItem(ids, index, target));
-    setFocusTarget({ id, direction });
+    pendingFocus.current = `${id}:${direction}`;
     setAnnouncement(`${byId.get(id)?.name}, posición ${target + 1} de ${ids.length}`);
   };
 
@@ -80,8 +68,10 @@ export const DayReorderList: FC<DayReorderListProps> = ({ exercises, dayLabel, o
   };
 
   const setButton = (key: string) => (node: HTMLButtonElement | null) => {
-    if (node) buttons.current.set(key, node);
-    else buttons.current.delete(key);
+    if (node && pendingFocus.current === key) {
+      pendingFocus.current = null;
+      node.focus();
+    }
   };
 
   return (

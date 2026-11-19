@@ -20,7 +20,8 @@ export type GymWriteFailure = 'archived' | 'notFound' | 'conflict' | 'other';
 /**
  * Clasifica el error de una escritura sobre un plan y hace lo que corresponde sin comparar textos: avisa con el
  * mensaje de la API (o el `fallback` de la acción) salvo en los conflictos de formulario, y vuelve a pedir el plan
- * ante un 404 o un 409 (y el listado, para que la cabecera tome el estado nuevo). Si tras un 409 el plan vuelve archivado, no era un conflicto de formulario.
+ * ante un 404 o un 409 (y el listado, para que la cabecera tome el estado nuevo). Si tras un 409 el plan
+ * vuelve archivado, no era un conflicto de formulario.
  */
 export function useGymWriteFailure(planId: string) {
   const { mutate } = useSWRConfig();

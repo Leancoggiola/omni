@@ -45,7 +45,7 @@ const WeightContent: FC<WeightContentProps> = ({ exercise, readOnly, onClose, on
     onBusyChange(true);
     try {
       const result = await onSave(exercise, weightKg);
-      if (result.status === 'done') onClose();
+      if (result.status === 'done' || result.status === 'closed') onClose();
     } finally {
       setSaving(null);
       onBusyChange(false);

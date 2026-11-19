@@ -24,6 +24,7 @@ import { useGymPlans } from './hooks/useGymPlans';
 import { deletePlanCopy } from './utils/gymMessages';
 import { weekdayOfDate } from './utils/gymWeekday';
 
+import type { GymSubmitResult } from './utils/gymSubmit';
 import type { GymPlanStatus, GymWeekday } from '@omni/shared/gym';
 
 import { ApiError } from '@omni/shared/api';
@@ -48,13 +49,13 @@ export const GymPage: FC = () => {
     target: null,
   });
   const [deleting, setDeleting] = useState(false);
-  const [planSaving, setPlanSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
 
   const { plans, isLoading, error, mutate: retry } = useGymPlans();
   const { createPlan, renamePlan, archivePlan, unarchivePlan, deletePlan } = useGymPlanMutations();
 
-  const planParam = params.get('plan') ?? (username ? readLastGymPlan(username) : null);
+  const [lastPlan] = useState(() => (username ? readLastGymPlan(username) : null));
+  const planParam = params.get('plan') ?? lastPlan;
   const fromParam = plans?.find(plan => plan.id === planParam);
   const status: GymPlanStatus = statusChoice ?? fromParam?.status ?? 'ACTIVE';
   const visiblePlans = plans?.filter(plan => plan.status === status) ?? [];
@@ -84,11 +85,9 @@ export const GymPage: FC = () => {
     });
   const closePlanModal = () => setPlanModal(current => ({ ...current, opened: false }));
 
-  /** Crea o renombra. Si falla avisa con un toast y deja el modal abierto; un 409 al renombrar (se archivó) lo cierra. */
-  const handlePlanName = async (name: string) => {
+  /** Crea o renombra. Si falla avisa con un toast y deja el modal abierto; un 409 o un 404 al renombrar lo cierra. */
+  const handlePlanName = async (name: string): Promise<GymSubmitResult> => {
     const target = planModal.target;
-    const renaming = target !== null;
-    setPlanSaving(true);
     try {
       if (target) {
         await renamePlan(target.planId, { name });
@@ -100,12 +99,15 @@ export const GymPage: FC = () => {
         notifySuccess('Plan creado');
       }
       closePlanModal();
+      return { status: 'done' };
     } catch (err) {
-      notifyError(getErrorMessage(err, renaming ? 'No se pudo renombrar el plan' : 'No se pudo crear el plan'));
+      notifyError(getErrorMessage(err, target ? 'No se pudo renombrar el plan' : 'No se pudo crear el plan'));
       void retry();
-      if (renaming && err instanceof ApiError && (err.status === 409 || err.status === 404)) closePlanModal();
-    } finally {
-      setPlanSaving(false);
+      if (target && err instanceof ApiError && (err.status === 409 || err.status === 404)) {
+        closePlanModal();
+        return { status: 'closed' };
+      }
+      return { status: 'failed' };
     }
   };
 
@@ -242,7 +244,6 @@ export const GymPage: FC = () => {
       {renderContent()}
       <PlanNameModal
         opened={planModal.opened}
-        loading={planSaving}
         onClose={closePlanModal}
         initialName={planModal.target?.name}
         onSubmit={handlePlanName}

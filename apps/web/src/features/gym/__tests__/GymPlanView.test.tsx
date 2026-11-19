@@ -442,6 +442,18 @@ describe('GymPlanView', () => {
       expect(props.onOrderingDayChange).toHaveBeenCalledWith(null);
     });
 
+    it('si el plan ya no admite el cambio no avisa "Orden guardado" y sale del modo orden', async () => {
+      mocks.exercises.reorderDay.mockRejectedValue(new ApiError('El plan está archivado', 409));
+      mocks.failure.mockResolvedValue('archived' satisfies GymWriteFailure);
+      const props = renderView({ orderingDayId: 'd1' });
+
+      await userEvent.click(screen.getByRole('button', { name: 'Bajar Sentadilla' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar orden' }));
+
+      await waitFor(() => expect(props.onOrderingDayChange).toHaveBeenCalledWith(null));
+      expect(mocks.notifySuccess).not.toHaveBeenCalledWith('Orden guardado');
+    });
+
     it('un 409 muestra el aviso de lista desactualizada y "Recargar el día" vuelve a pedir el plan', async () => {
       mocks.exercises.reorderDay.mockRejectedValue(
         new ApiError('La lista no coincide con los ejercicios del día', 409)

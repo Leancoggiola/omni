@@ -114,7 +114,7 @@ export const GymPlanView: FC<GymPlanViewProps> = ({
         onAddWeekdayChange(null);
         onOrderingDayChange(null);
         options.close?.();
-        return { status: 'done' };
+        return { status: 'closed' };
       }
     },
     [handleFailure, onAddWeekdayChange, onOrderingDayChange]
@@ -257,7 +257,7 @@ export const GymPlanView: FC<GymPlanViewProps> = ({
     );
     if (result.status === 'conflict') return 'conflict';
     if (result.status === 'failed') return 'failed';
-    return 'saved';
+    return result.status === 'closed' ? 'closed' : 'saved';
   };
 
   const handleReloadDay = async () => {

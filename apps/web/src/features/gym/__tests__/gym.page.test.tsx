@@ -147,6 +147,22 @@ describe('GymPage', () => {
     expect(within(dialog).getByText('6/120')).toBeInTheDocument();
   });
 
+  it('un doble envío del nombre crea el plan una sola vez', async () => {
+    mocks.mutations.createPlan.mockImplementation(
+      () => new Promise(resolve => setTimeout(() => resolve(planDetail({ id: 'nuevo' })), 50))
+    );
+    renderPage();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Nuevo plan' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Nuevo plan' });
+    const input = within(dialog).getByRole('textbox', { name: /Nombre/ });
+    await userEvent.type(input, 'Fuerza');
+    await userEvent.dblClick(within(dialog).getByRole('button', { name: 'Crear plan' }));
+
+    await waitFor(() => expect(mocks.notifySuccess).toHaveBeenCalledWith('Plan creado'));
+    expect(mocks.mutations.createPlan).toHaveBeenCalledTimes(1);
+  });
+
   it('un nombre vacío muestra "Ponele un nombre al plan" sin llamar a la API', async () => {
     renderPage();
 
