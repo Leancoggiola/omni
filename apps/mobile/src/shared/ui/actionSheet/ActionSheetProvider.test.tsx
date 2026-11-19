@@ -153,4 +153,26 @@ describe('actionSheet', () => {
     warn.mockRestore();
     reactError.mockRestore();
   });
+
+  it('una opción deshabilitada no se puede elegir y una destructive sí', async () => {
+    const state: { result: string | null | undefined } = { result: undefined };
+    await act(() => {
+      void actionSheet({
+        title: 'Opciones',
+        options: [
+          { value: 'move', label: 'Mover', disabled: true },
+          { value: 'remove', label: 'Quitar', destructive: true },
+        ],
+      }).then(result => {
+        state.result = result;
+      });
+    });
+
+    await fireEvent.press(screen.getByRole('menuitem', { name: 'Mover' }));
+    await flush();
+    expect(state.result).toBeUndefined();
+    await fireEvent.press(screen.getByRole('menuitem', { name: 'Quitar' }));
+    await flush();
+    expect(state.result).toBe('remove');
+  });
 });

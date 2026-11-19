@@ -1,8 +1,8 @@
-import { RADIUS, SPACING } from '@omni/shared/theme';
+import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { WarningCircleIcon, type Icon } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { Animated } from 'react-native';
-import { XStack, YStack } from 'tamagui';
+import { Paragraph, XStack, YStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { glassElevation } from '@/theme/elevation';
@@ -121,14 +121,15 @@ const INDICATOR_SIZE = 56;
 type EmptyStateProps = {
   icon: Icon;
   title: string;
+  description?: string;
   action?: ReactNode;
 };
 
 /**
- * Vacío de v2: ícono en un cuadro glass de 56 y radio 24, y el título en `display md`. `action` va debajo del título,
- * típicamente un Button.
+ * Vacío de v2: ícono en un cuadro glass de 56 y radio 24, y el título en `display md`. `description` es una línea de
+ * apoyo debajo del título; `action` va debajo, típicamente un Button.
  */
-export function EmptyState({ icon: IconComponent, title, action }: EmptyStateProps) {
+export function EmptyState({ icon: IconComponent, title, description, action }: EmptyStateProps) {
   const colors = useSemanticColors();
   const { colorScheme } = useColorSchemeControl();
 
@@ -158,6 +159,11 @@ export function EmptyState({ icon: IconComponent, title, action }: EmptyStatePro
       <DisplayTitle size="md" textAlign="center" header={false}>
         {title}
       </DisplayTitle>
+      {description ? (
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.md} textAlign="center">
+          {description}
+        </Paragraph>
+      ) : null}
       {action}
     </YStack>
   );

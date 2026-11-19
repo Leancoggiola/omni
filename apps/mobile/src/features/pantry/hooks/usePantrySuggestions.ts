@@ -1,8 +1,7 @@
 import useSWR from 'swr';
 
 import { API_KEYS, buildQueryString } from '@/shared/api';
-
-import { useDebouncedValue } from './useDebouncedValue';
+import { useDebouncedValue } from '@/shared/ui';
 
 import type { PantryProductSuggestion } from '@omni/shared/pantry';
 

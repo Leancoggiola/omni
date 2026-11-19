@@ -9,6 +9,7 @@ import type { Href } from 'expo-router';
 export const NAV_HREFS: Partial<Record<NavKey, Href>> = {
   home: '/',
   media: '/media',
+  gym: '/gym',
   pantry: '/pantry',
   profile: '/profile',
   admin: '/admin',

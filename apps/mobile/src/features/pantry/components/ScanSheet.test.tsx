@@ -36,9 +36,12 @@ jest.mock(
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default
 );
 jest.mock('@/shared/ui/actionSheet/actionSheet', () => ({ actionSheet: jest.fn() }));
+jest.mock('@/shared/ui/notify/notify', () => ({
+  ...jest.requireActual('@/shared/ui/notify/notify'),
+  notifySuccess: jest.fn(),
+}));
 jest.mock('@/shared/ui', () => ({
   ...jest.requireActual('@/shared/ui'),
-  notifySuccess: jest.fn(),
   notifyWarning: jest.fn(),
 }));
 jest.mock('expo-camera', () => {

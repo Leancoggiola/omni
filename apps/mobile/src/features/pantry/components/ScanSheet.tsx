@@ -19,12 +19,12 @@ import {
   notifySuccess,
   notifyWarning,
   Spinner,
+  useSheetNotice,
   type BannerColor,
 } from '@/shared/ui';
 
 import { usePantryBarcode } from '../hooks/usePantryBarcode';
 import { usePantryMutations } from '../hooks/usePantryMutations';
-import { useSheetNotice } from '../hooks/useSheetNotice';
 import { createScanGate } from '../utils/scanGate';
 import { ProductForm } from './ProductForm';
 

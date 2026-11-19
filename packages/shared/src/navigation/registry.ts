@@ -34,7 +34,7 @@ export interface NavEntry {
 export const NAV_REGISTRY: Record<NavKey, NavEntry> = {
   home: { label: 'Inicio', path: '/', availableOn: ['web', 'mobile'] },
   media: { label: 'Películas', shortLabel: 'Media', path: '/media', availableOn: ['web', 'mobile'] },
-  gym: { label: 'Gimnasio', path: '/gym', availableOn: ['web'] },
+  gym: { label: 'Gimnasio', path: '/gym', availableOn: ['web', 'mobile'] },
   expenses: { label: 'Gastos', path: '/expenses', availableOn: [] },
   'pc-control': { label: 'PC Control', path: '/pc-control', availableOn: [] },
   pantry: { label: 'Alacena', path: '/pantry', availableOn: ['web', 'mobile'] },

@@ -18,12 +18,12 @@ import {
   notifyError,
   notifySuccess,
   usePullToRefresh,
+  useSheetNotice,
 } from '@/shared/ui';
 
 import { usePantryMutations } from '../hooks/usePantryMutations';
 import { usePantryProducts } from '../hooks/usePantryProducts';
 import { usePantrySummary } from '../hooks/usePantrySummary';
-import { useSheetNotice } from '../hooks/useSheetNotice';
 import { PantrySummaryCards } from './PantrySummaryCards';
 import { ProductFormSheet } from './ProductFormSheet';
 import { ProductRow } from './ProductRow';
