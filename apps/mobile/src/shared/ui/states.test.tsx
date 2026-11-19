@@ -34,6 +34,13 @@ describe('ErrorState', () => {
 });
 
 describe('EmptyState', () => {
+  it('muestra la descripción opcional debajo del título', async () => {
+    await render(<EmptyState icon={TrayIcon} title="Sin planes" description="Armá un plan." />);
+
+    expect(screen.getByText('Sin planes')).toBeTruthy();
+    expect(screen.getByText('Armá un plan.')).toBeTruthy();
+  });
+
   it('muestra el título en display y la acción debajo', async () => {
     await render(<EmptyState icon={TrayIcon} title="Tu lista está vacía" action={<></>} />);
 

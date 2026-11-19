@@ -41,5 +41,7 @@ export { StatusPill } from './StatusPill';
 export { Title } from './Title';
 export { usePullToRefresh } from './usePullToRefresh';
 export { tabBarBottomOffset, useTabBarClearance } from './useTabBarClearance';
+export { useDebouncedValue } from './useDebouncedValue';
 export { useReduceMotion } from './useReduceMotion';
+export { useSheetNotice } from './useSheetNotice';
 export { UserAvatar } from './UserAvatar';

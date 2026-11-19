@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import { notifySuccess } from '@/shared/ui';
+import { notifySuccess } from './notify/notify';
 
 /**
  * Aviso de éxito de una hoja: mientras el `Modal` está visible tapa los toasts, así que se guarda al guardar y se
