@@ -175,6 +175,41 @@ describe('GymPage', () => {
     expect(mocks.mutations.createPlan).not.toHaveBeenCalled();
   });
 
+  it('en el alta "Crear plan" arranca deshabilitado hasta escribir', async () => {
+    renderPage();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Nuevo plan' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Nuevo plan' });
+    expect(within(dialog).getByRole('button', { name: 'Crear plan' })).toBeDisabled();
+
+    await userEvent.type(within(dialog).getByRole('textbox', { name: /Nombre/ }), 'A');
+    expect(within(dialog).getByRole('button', { name: 'Crear plan' })).toBeEnabled();
+  });
+
+  it('tras eliminar un plan no vuelve a abrir el recordado sino el primero del estado', async () => {
+    localStorage.setItem('omni.gym.lastPlan.ana', 'a2');
+    mocks.confirm.mockResolvedValue(true);
+    renderPage();
+    expect(shown()).toHaveTextContent('a2');
+
+    await userEvent.click(await planMenuItem('Eliminar plan'));
+
+    await waitFor(() => expect(shown()).toHaveTextContent('a1'));
+  });
+
+  it('mientras archiva el plan sigue elegido aunque el listado lo traiga con el estado viejo', async () => {
+    let finish: (value: unknown) => void = () => undefined;
+    mocks.mutations.archivePlan.mockReturnValue(new Promise(resolve => (finish = resolve)));
+    renderPage('/gym?plan=a2');
+
+    await userEvent.click(await planMenuItem('Archivar plan'));
+
+    expect(shown()).toHaveTextContent('a2');
+    expect(screen.queryByText('No tenés planes archivados')).not.toBeInTheDocument();
+    finish(planDetail());
+    await waitFor(() => expect(mocks.notifySuccess).toHaveBeenCalledWith('Plan archivado'));
+  });
+
   it('si crear falla avisa con un toast, deja el modal abierto y recarga la lista', async () => {
     mocks.mutations.createPlan.mockRejectedValue(new Error('timeout'));
     renderPage();

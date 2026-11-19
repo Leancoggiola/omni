@@ -135,7 +135,7 @@ const AddExerciseForm: FC<AddExerciseFormProps> = ({ planId, weekday, loading, c
           <Button variant="outline" type="button" onClick={onCancel} disabled={loading}>
             Cancelar
           </Button>
-          <Button type="submit" loading={loading}>
+          <Button type="submit" loading={loading} disabled={!form.isDirty()}>
             Agregar ejercicio
           </Button>
         </Group>

@@ -49,17 +49,19 @@ export const GymPage: FC = () => {
     target: null,
   });
   const [deleting, setDeleting] = useState(false);
-  const [archiving, setArchiving] = useState(false);
+  const [archivingId, setArchivingId] = useState<string | null>(null);
+  const archiving = archivingId !== null;
 
   const { plans, isLoading, error, mutate: retry } = useGymPlans();
   const { createPlan, renamePlan, archivePlan, unarchivePlan, deletePlan } = useGymPlanMutations();
 
-  const [lastPlan] = useState(() => (username ? readLastGymPlan(username) : null));
+  const [lastPlan, setLastPlan] = useState(() => (username ? readLastGymPlan(username) : null));
   const planParam = params.get('plan') ?? lastPlan;
   const fromParam = plans?.find(plan => plan.id === planParam);
   const status: GymPlanStatus = statusChoice ?? fromParam?.status ?? 'ACTIVE';
   const visiblePlans = plans?.filter(plan => plan.status === status) ?? [];
-  const selected = visiblePlans.find(plan => plan.id === planParam) ?? visiblePlans[0] ?? null;
+  const pinned = archivingId ? plans?.find(plan => plan.id === archivingId) : undefined;
+  const selected = pinned ?? visiblePlans.find(plan => plan.id === planParam) ?? visiblePlans[0] ?? null;
   const selectedId = selected?.id;
   const { plan: openPlan } = useGymPlan(selectedId);
   const activeOrderingId = openPlan?.days.some(day => day.id === orderingDayId) ? orderingDayId : null;
@@ -70,6 +72,7 @@ export const GymPage: FC = () => {
 
   const selectPlan = (planId: string | null) => {
     setOrderingDayId(null);
+    setLastPlan(null);
     setParams(planId ? { plan: planId } : {}, { replace: true });
   };
 
@@ -111,12 +114,16 @@ export const GymPage: FC = () => {
     }
   };
 
-  /** Archivar o desarchivar no pide confirmación (se revierte): el plan queda abierto y el filtro pasa a su nuevo estado. */
+  /**
+   * Archivar o desarchivar no pide confirmación (se revierte): el plan queda abierto y el filtro pasa a su nuevo
+   * estado. Mientras dura el pedido el plan queda fijado como elegido, aunque el listado todavía lo traiga con el
+   * estado viejo, para que la vista no salte a otro plan ni a un estado vacío.
+   */
   const handleToggleArchive = async () => {
     if (!selected || archiving) return;
     const archive = selected.status === 'ACTIVE';
     const previous = selected.status;
-    setArchiving(true);
+    setArchivingId(selected.id);
     setStatusChoice(archive ? 'ARCHIVED' : 'ACTIVE');
     selectPlan(selected.id);
     try {
@@ -127,7 +134,7 @@ export const GymPage: FC = () => {
       notifyError(getErrorMessage(err, archive ? 'No se pudo archivar el plan' : 'No se pudo desarchivar el plan'));
       void retry();
     } finally {
-      setArchiving(false);
+      setArchivingId(null);
     }
   };
 

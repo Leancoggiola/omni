@@ -73,7 +73,9 @@ describe('AddExerciseModal', () => {
 
   it('valida con los textos del canvas antes de llamar a la API', async () => {
     const { onSubmit } = renderModal();
+    expect(screen.getByRole('button', { name: 'Agregar ejercicio' })).toBeDisabled();
 
+    await userEvent.type(name(), ' ');
     await userEvent.click(screen.getByRole('button', { name: 'Agregar ejercicio' }));
 
     expect(await screen.findByText('Ponele un nombre al ejercicio')).toBeInTheDocument();

@@ -48,7 +48,7 @@ const PlanNameForm: FC<PlanNameFormProps> = ({ initialName, loading, onSubmit, o
           <Button variant="outline" type="button" onClick={onCancel} disabled={loading}>
             Cancelar
           </Button>
-          <Button type="submit" loading={loading} disabled={renaming && !form.isDirty()}>
+          <Button type="submit" loading={loading} disabled={!form.isDirty()}>
             {renaming ? 'Guardar nombre' : 'Crear plan'}
           </Button>
         </Group>
