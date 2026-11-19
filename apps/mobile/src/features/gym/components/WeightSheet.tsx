@@ -230,7 +230,7 @@ export function WeightSheet({
   const onClosedRef = useRef(onClosed);
   useEffect(() => {
     onClosedRef.current = onClosed;
-  });
+  }, [onClosed]);
 
   useEffect(() => {
     if (open || !visible) return;

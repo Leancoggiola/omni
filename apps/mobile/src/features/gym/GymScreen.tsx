@@ -197,14 +197,16 @@ export function GymScreen() {
     }
   };
 
-  const handleAdd = (exercise: Omit<AddGymExercisePayload, 'planId'>) =>
-    runSheetWrite(
+  const handleAdd = async (exercise: Omit<AddGymExercisePayload, 'planId'>): Promise<GymSubmitResult> => {
+    if (!planId) return { status: 'closed' };
+    return runSheetWrite(
       async () => {
-        await mutations.addExercise({ ...exercise, planId: planId! });
+        await mutations.addExercise({ ...exercise, planId });
       },
       'No se pudo agregar el ejercicio',
       'Ejercicio agregado'
     );
+  };
 
   const handleEdit = (exerciseId: string, payload: UpdateGymExercisePayload) =>
     runSheetWrite(
