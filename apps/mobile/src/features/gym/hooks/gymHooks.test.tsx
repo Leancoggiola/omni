@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { SWRConfig } from 'swr';
+import { SWRConfig, useSWRConfig } from 'swr';
 
 import { API_KEYS, ApiError } from '@/shared/api';
 
@@ -203,6 +203,22 @@ describe('useGymMutations', () => {
     fetcher.mockClear();
     return { fetcher, hook };
   }
+
+  it('cada escritura descarta las páginas guardadas de "Tus planes"', async () => {
+    mockApi.post.mockResolvedValue(planDetail());
+    const fetcher = jest.fn().mockResolvedValue({ items: [], total: 0, page: 1, limit: 100 });
+    const pagesKey = `$inf$${gymPlansKey('ACTIVE', 1, 50)}`;
+    const hook = await renderHook(() => ({ ...useSWRConfig(), ...useGymMutations() }), {
+      wrapper: wrapperWith(fetcher),
+    });
+    hook.result.current.cache.set(pagesKey, { data: [{ items: [planSummary({ id: 'borrado' })], total: 1 }] });
+
+    await act(async () => {
+      await hook.result.current.createPlan('Nuevo');
+    });
+
+    expect(hook.result.current.cache.get(pagesKey)?.data).toBeUndefined();
+  });
 
   it('agregar un ejercicio manda el payload y revalida las keys del gimnasio', async () => {
     mockApi.post.mockResolvedValue(planDetail());

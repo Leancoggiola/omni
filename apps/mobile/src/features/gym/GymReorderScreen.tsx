@@ -116,6 +116,7 @@ export function GymReorderScreen() {
     if (!day || !label) return <EmptyState icon={NAV_ICONS.gym} title="Este día ya no tiene ejercicios" />;
     return (
       <>
+        {error ? <ErrorState message="No se pudo actualizar el plan" onRetry={() => void mutate()} /> : null}
         {conflict === null ? null : (
           <YStack gap={SPACING.xs}>
             <GymErrorBanner message={conflict} help="Recargá el día para ver la lista actual y volvé a ordenar." />

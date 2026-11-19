@@ -116,6 +116,16 @@ describe('WeightSheet', () => {
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(0));
   });
 
+  it('con un texto que no es un peso, + y - quedan deshabilitados y no lo pisan', async () => {
+    await renderSheet();
+
+    await fireEvent.changeText(screen.getByLabelText('Peso en kg'), '1,234');
+
+    expect(screen.getByRole('button', { name: 'Sumar 2,5 kg' }).props.accessibilityState.disabled).toBe(true);
+    expect(screen.getByRole('button', { name: 'Restar 2,5 kg' }).props.accessibilityState.disabled).toBe(true);
+    expect(screen.getByLabelText('Peso en kg').props.value).toBe('1,234');
+  });
+
   it('un peso negativo o mayor al máximo muestra el error y bloquea Guardar', async () => {
     await renderSheet();
     const save = () => screen.getByRole('button', { name: 'Guardar peso' });

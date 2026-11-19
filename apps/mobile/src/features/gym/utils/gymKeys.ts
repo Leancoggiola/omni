@@ -1,3 +1,5 @@
+import { unstable_serialize } from 'swr/infinite';
+
 import { API_KEYS, buildQueryString } from '@/shared/api';
 
 import type { GymPlanStatus } from '@omni/shared/gym';
@@ -18,4 +20,12 @@ export function gymPlansKey(status?: GymPlanStatus, page?: number, limit: number
 export function isGymKey(key: unknown): boolean {
   if (typeof key !== 'string') return false;
   return key.startsWith(API_KEYS.gym.plans) || key.startsWith(API_KEYS.gym.exercises);
+}
+
+/**
+ * Key con la que `useSWRInfinite` guarda las páginas de "Tus planes" de un estado: el `mutate` con filtro de SWR no
+ * recorre las keys `$inf$`, así que se invalidan por nombre.
+ */
+export function gymPlansPagesKey(status: GymPlanStatus): string {
+  return unstable_serialize(() => gymPlansKey(status, 1, GYM_PLANS_LIST_PAGE_SIZE));
 }

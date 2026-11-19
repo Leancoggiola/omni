@@ -3,7 +3,7 @@ import { useSWRConfig } from 'swr';
 
 import { api, API_KEYS } from '@/shared/api';
 
-import { isGymKey } from '../utils/gymKeys';
+import { gymPlansPagesKey, isGymKey } from '../utils/gymKeys';
 
 import type {
   AddGymExercisePayload,
@@ -19,15 +19,20 @@ import type {
  * resúmenes y el catálogo. Todas tiran si la API responde error (409 de plan archivado, ejercicio repetido, orden
  * desactualizado…); el mensaje viene de la API. `deletePlan` no revalida el detalle del plan borrado (daría 404);
  * `reorderDay` recibe la lista completa del día en el orden nuevo (si no coincide con la de la API, 409); `updateWeight`
- * con `null` borra el peso, y el historial (`useGymWeightHistory`) lo revalida quien lo muestra. El `mutate` con filtro
- * no alcanza a las keys de `useSWRInfinite` (el historial y `useGymPlansPaged`): "Tus planes" se actualiza al montarse la
- * pantalla, no tras una escritura con ella montada.
+ * con `null` borra el peso, y el historial (`useGymWeightHistory`) lo revalida quien lo muestra. Las páginas de "Tus
+ * planes" (`useGymPlansPaged`, `useSWRInfinite`) se guardan bajo otra key: cada escritura las descarta para que la
+ * pantalla no muestre un instante un plan borrado o archivado, y se vuelven a pedir al montarla.
  */
 export function useGymMutations() {
   const { mutate } = useSWRConfig();
 
   const revalidate = useCallback(
-    (except?: string) => mutate((key: unknown) => isGymKey(key) && key !== except).catch(() => undefined),
+    (except?: string) =>
+      Promise.all([
+        mutate((key: unknown) => isGymKey(key) && key !== except).catch(() => undefined),
+        mutate(gymPlansPagesKey('ACTIVE'), undefined, { revalidate: true }).catch(() => undefined),
+        mutate(gymPlansPagesKey('ARCHIVED'), undefined, { revalidate: true }).catch(() => undefined),
+      ]),
     [mutate]
   );
 

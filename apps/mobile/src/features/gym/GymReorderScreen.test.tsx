@@ -28,9 +28,10 @@ jest.mock('@/shared/ui', () => ({
 }));
 
 let mockPlan: GymPlanDetail | undefined;
+let mockPlanError: Error | undefined;
 const mockRevalidatePlan = jest.fn();
 jest.mock('./hooks/useGymPlan', () => ({
-  useGymPlan: () => ({ plan: mockPlan, isLoading: false, error: undefined, mutate: mockRevalidatePlan }),
+  useGymPlan: () => ({ plan: mockPlan, isLoading: false, error: mockPlanError, mutate: mockRevalidatePlan }),
 }));
 const mockReorderDay = jest.fn();
 jest.mock('./hooks/useGymMutations', () => ({ useGymMutations: () => ({ reorderDay: mockReorderDay }) }));
@@ -51,11 +52,23 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockParams = { planId: 'p1', dayId: 'd1' };
   mockPlan = planDetail({ days: [MONDAY] });
+  mockPlanError = undefined;
   mockReorderDay.mockResolvedValue(planDetail());
   mockRevalidatePlan.mockResolvedValue(undefined);
 });
 
 describe('GymReorderScreen', () => {
+  it('si falla la revalidación con el plan ya cargado lo avisa con Reintentar y deja la lista', async () => {
+    mockPlanError = new Error('x');
+
+    await render(<GymReorderScreen />);
+
+    expect(screen.getByText('No se pudo actualizar el plan')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Bajar Sentadilla' })).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(mockRevalidatePlan).toHaveBeenCalled();
+  });
+
   it('si el día cambia mientras se ordena avisa antes de guardar y no deja guardar', async () => {
     const { rerender } = await render(<GymReorderScreen />);
     await fireEvent.press(screen.getByRole('button', { name: 'Bajar Sentadilla' }));

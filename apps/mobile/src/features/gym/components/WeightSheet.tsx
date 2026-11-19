@@ -93,8 +93,9 @@ type StepperProps = {
 };
 
 function WeightStepper({ text, previous, error, onChangeText }: StepperProps) {
-  const numeric = parseWeightInput(text) ?? 0;
   const next = parseWeightInput(text);
+  const numeric = next ?? 0;
+  const invalid = next === null && text.trim() !== '';
   const caption =
     previous === null
       ? 'kg · todavía sin peso'
@@ -117,7 +118,7 @@ function WeightStepper({ text, previous, error, onChangeText }: StepperProps) {
           variant="filled"
           size="lg"
           accessibilityLabel={`Restar ${formatWeight(WEIGHT_STEP_KG)} kg`}
-          disabled={numeric <= 0}
+          disabled={invalid || numeric <= 0}
           onPress={() => onChangeText(weightInputText(stepWeight(numeric, -WEIGHT_STEP_KG)))}
         />
         <YStack alignItems="center" flex={1} paddingHorizontal={SPACING.sm}>
@@ -139,6 +140,7 @@ function WeightStepper({ text, previous, error, onChangeText }: StepperProps) {
           variant="filled"
           size="lg"
           accessibilityLabel={`Sumar ${formatWeight(WEIGHT_STEP_KG)} kg`}
+          disabled={invalid}
           onPress={() => onChangeText(weightInputText(stepWeight(numeric, WEIGHT_STEP_KG)))}
         />
       </XStack>
