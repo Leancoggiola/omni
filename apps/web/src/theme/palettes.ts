@@ -34,6 +34,23 @@ function toTuple(scale: ColorScale10): MantineColorsTuple {
   return [scale[0], scale[1], scale[2], scale[3], scale[4], scale[5], scale[6], scale[7], scale[8], scale[9]];
 }
 
+/**
+ * Paleta de un estado semántico (info, warning, error, destructive). `dark` es el color de oscuro y el de
+ * los tonos que Mantine no usa en claro; `lightFill` ocupa el tono 7 (relleno, `-text` y outline con
+ * `primaryShade` de claro en 7), `lightHover` el 8 (hover del relleno; igual al relleno cuando la escala no
+ * tiene un tono más oscuro, como ya era con la paleta de un solo color) y `lightText` el 9 (`-light-color`,
+ * el texto sobre el wash).
+ * En destructive el relleno (`RED[7]`) queda más claro que el texto (`RED[9]`): el blanco encima ya cumple
+ * AA con el relleno, pero el rojo de texto sobre su wash necesita el tono más oscuro.
+ */
+function stateTuple(dark: string, lightFill: string, lightText: string, lightHover = lightFill): MantineColorsTuple {
+  const tuple = [...colorsTuple(dark)];
+  tuple[7] = lightFill;
+  tuple[8] = lightHover;
+  tuple[9] = lightText;
+  return tuple as unknown as MantineColorsTuple;
+}
+
 export const COLOR_PALETTE = {
   brand: toTuple(BRAND),
 
@@ -53,8 +70,8 @@ export const COLOR_PALETTE = {
   sage: toTuple(SAGE),
 
   success: colorsTuple(SAGE[6]),
-  info: colorsTuple(BLUE[6]),
-  warning: colorsTuple(ORANGE[8]),
-  error: colorsTuple(RED[7]),
-  destructive: colorsTuple(RED[7]),
+  info: stateTuple(BLUE[6], BLUE[8], BLUE[8], BLUE[9]),
+  warning: stateTuple(ORANGE[8], ORANGE[9], ORANGE[9]),
+  error: stateTuple(RED[7], RED[9], RED[9]),
+  destructive: stateTuple(RED[7], RED[7], RED[9]),
 };
