@@ -3,7 +3,7 @@ import useSWR, { SWRConfig, useSWRConfig } from 'swr';
 import type { FC, PropsWithChildren } from 'react';
 
 import { SWRProvider } from '@/core/providers';
-import { api, API_KEYS, readLastWeather, saveLastWeather } from '@/shared/api';
+import { api, API_KEYS, readLastGymPlan, readLastWeather, saveLastGymPlan, saveLastWeather } from '@/shared/api';
 import { getTokens, setTokens } from '@/shared/api/tokenStorage';
 import { deleteItemAsync, getItemAsync, store } from '@/test/secureStoreMock';
 
@@ -277,6 +277,17 @@ describe('AuthProvider', () => {
 
       expect(await readLastWeather('leo')).toBeNull();
       expect(await readLastWeather('otra')).not.toBeNull();
+    });
+
+    it('borra el último plan de gimnasio de la persona y no el de otra', async () => {
+      await saveLastGymPlan('leo', 'p1');
+      await saveLastGymPlan('otra', 'p2');
+      const { result } = await signIn();
+
+      await act(() => result.current.auth.logout());
+
+      expect(await readLastGymPlan('leo')).toBeNull();
+      expect(await readLastGymPlan('otra')).toBe('p2');
     });
 
     it('manda el token que dejó un refresh anterior', async () => {

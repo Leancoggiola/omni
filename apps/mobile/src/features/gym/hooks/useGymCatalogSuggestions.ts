@@ -27,7 +27,7 @@ export function useGymCatalogSuggestions(query: string) {
   const { data, isLoading, error, mutate } = useSWR<GymCatalogExercise[]>(key);
 
   return {
-    suggestions: key && !error ? (data ?? []) : [],
+    suggestions: key && !error && debounced === trimmed ? (data ?? []) : [],
     queried,
     searching: queried && (debounced !== trimmed || isLoading),
     error: key ? error : undefined,

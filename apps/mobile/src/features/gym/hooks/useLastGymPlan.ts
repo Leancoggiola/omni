@@ -9,7 +9,7 @@ const LAST_PLAN_KEY = 'gym:last-plan';
 /**
  * Último plan elegido en este dispositivo (por persona). Vive en la caché de SWR, con una key que no es de la API,
  * para que la pantalla del plan se entere cuando "Tus planes" elige otro. `lastPlanId` es `undefined` mientras se lee
- * y `null` si no hay. `setLastPlan(null)` lo olvida (se borró el plan).
+ * (o mientras la sesión no cargó) y `null` si no hay. `setLastPlan(null)` lo olvida (se borró el plan).
  */
 export function useLastGymPlan() {
   const { user } = useAuth();
@@ -27,5 +27,5 @@ export function useLastGymPlan() {
     [mutate, username]
   );
 
-  return { lastPlanId: username ? data : null, setLastPlan };
+  return { lastPlanId: username ? data : undefined, setLastPlan };
 }

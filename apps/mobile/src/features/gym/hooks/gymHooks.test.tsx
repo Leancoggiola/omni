@@ -179,11 +179,11 @@ describe('useLastGymPlan', () => {
     expect(mockSaveLastPlan).toHaveBeenCalledWith('maria', 'p2');
   });
 
-  it('sin sesión no hay plan guardado', async () => {
+  it('sin sesión cargada no resuelve el plan guardado, para no abrir uno equivocado', async () => {
     mockUsername = null;
     const { result } = await renderHook(() => useLastGymPlan(), { wrapper: wrapperWith(jest.fn()) });
 
-    expect(result.current.lastPlanId).toBeNull();
+    expect(result.current.lastPlanId).toBeUndefined();
     expect(mockReadLastPlan).not.toHaveBeenCalled();
   });
 });

@@ -408,6 +408,9 @@ export function GymScreen() {
     return (
       <>
         {planError ? <ErrorState message="No se pudo actualizar tu plan" onRetry={() => void retryPlan()} /> : null}
+        {plansError ? (
+          <ErrorState message="No se pudieron actualizar tus planes" onRetry={() => void retryPlans()} />
+        ) : null}
         <PlanPickerButton name={plan.name} onPress={() => openPlans()} />
         {readOnly ? (
           <Banner color="accent" icon={ArchiveIcon}>
