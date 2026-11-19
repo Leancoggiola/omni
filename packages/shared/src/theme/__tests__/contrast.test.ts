@@ -67,6 +67,56 @@ describe.each(['light', 'dark'] as const)('contraste de texto de SEMANTIC (%s)',
 });
 
 /**
+ * Regresión de contraste del texto semántico: el rojo, el naranja y el azul de estado llegan a AA sobre
+ * canvas, card y su wash (Banner, Badge y Alert de error, warning e info). En claro el texto subió a
+ * `RED[9]`, `ORANGE[9]` y `BLUE[8]` porque los tonos anteriores daban 3,84, 4,18 y 4,12:1 sobre su wash.
+ * Los íconos y bordes de warning e info comparten el tono del texto, y como elementos gráficos piden 3:1.
+ */
+describe.each(['light', 'dark'] as const)('contraste del texto de estado de SEMANTIC (%s)', scheme => {
+  const s = SEMANTIC[scheme];
+
+  it.each([
+    ['destructivo sobre canvas', s.destructive, s.body],
+    ['destructivo sobre card', s.destructive, s.card],
+    ['destructivo sobre su wash en una card', s.destructive, over(s.errorSurface, s.card)],
+    ['destructivo sobre su wash en el canvas', s.destructive, over(s.errorSurface, s.body)],
+    ['warning sobre canvas', s.warning, s.body],
+    ['warning sobre card', s.warning, s.card],
+    ['warning sobre su wash en una card', s.warning, over(s.warningSurface, s.card)],
+    ['warning sobre su wash en el canvas', s.warning, over(s.warningSurface, s.body)],
+    ['info sobre canvas', s.info, s.body],
+    ['info sobre card', s.info, s.card],
+    ['info sobre su wash en una card', s.info, over(s.infoSurface, s.card)],
+    ['info sobre su wash en el canvas', s.info, over(s.infoSurface, s.body)],
+  ])('%s llega a AA', (_name, text, background) => {
+    expect(contrastRatio(text, background)).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+  });
+
+  it.each([
+    ['ícono de error sobre su wash', s.errorIcon, over(s.errorSurface, s.card)],
+    ['ícono de warning sobre su wash', s.warningIcon, over(s.warningSurface, s.card)],
+    ['ícono de info sobre su wash', s.infoIcon, over(s.infoSurface, s.card)],
+    ['borde de warning sobre su wash', s.warningBorder, over(s.warningSurface, s.card)],
+    ['borde de info sobre su wash', s.infoBorder, over(s.infoSurface, s.card)],
+  ])('%s llega a 3:1', (_name, color, background) => {
+    expect(contrastRatio(color, background)).toBeGreaterThanOrEqual(3);
+  });
+});
+
+/** El texto de estado en claro es el del Design System: `#B41E25`, `#C3400D` y `#1665AE`. */
+describe('texto de estado en claro', () => {
+  it('destructive, warning e info usan los tonos AA del Design System', () => {
+    expect(SEMANTIC.light.destructive).toBe('#B41E25');
+    expect(SEMANTIC.light.warning).toBe('#C3400D');
+    expect(SEMANTIC.light.info).toBe('#1665AE');
+  });
+
+  it('el relleno destructivo sigue en RED[7]: el blanco encima ya cumple AA', () => {
+    expect(SEMANTIC.light.destructiveFill).toBe('#D83737');
+  });
+});
+
+/**
  * Los hovers del atenuado y del link (#137) también llegan a AA sobre el canvas y la card. No están en
  * `SEMANTIC` (mobile no tiene hover), así que se leen de `semanticLight` / `semanticDark`; el link hover
  * solo existe en claro.
