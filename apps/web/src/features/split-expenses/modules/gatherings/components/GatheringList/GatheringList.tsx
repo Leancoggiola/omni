@@ -1,7 +1,8 @@
 import { FC } from 'react';
 
+import { Overline } from '@/shared/ui';
+
 import { splitGatheringsByStatus } from '../../utils/gatheringView';
-import { Overline } from '../Overline';
 import { GatheringListItem } from './GatheringListItem';
 
 import type { GatheringSummary } from '@omni/shared/split-expenses';

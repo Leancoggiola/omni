@@ -1,10 +1,19 @@
 import { adminRoute } from '@/features/admin';
 import { loginRoute } from '@/features/auth';
+import { gymRoute } from '@/features/gym';
 import { homeRoute } from '@/features/home';
 import { mediaRoute } from '@/features/media';
 import { pantryRoute } from '@/features/pantry';
 import { profileRoute } from '@/features/profile';
 import { splitExpensesRoute } from '@/features/split-expenses';
 
-export const protectedRoutes = [homeRoute, mediaRoute, pantryRoute, splitExpensesRoute, profileRoute, adminRoute];
+export const protectedRoutes = [
+  homeRoute,
+  mediaRoute,
+  pantryRoute,
+  splitExpensesRoute,
+  profileRoute,
+  adminRoute,
+  gymRoute,
+];
 export const guestRoutes = [loginRoute];

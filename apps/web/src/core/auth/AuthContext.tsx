@@ -3,7 +3,7 @@ import { useSWRConfig } from 'swr';
 import useSWRImmutable from 'swr/immutable';
 
 import { clearSessionColorScheme } from '@/core/theme/sessionColorScheme';
-import { api, clearLastWeather, clearOnAuthFailure, setOnAuthFailure, SWR_KEYS } from '@/shared/api';
+import { api, clearLastGymPlan, clearLastWeather, clearOnAuthFailure, setOnAuthFailure, SWR_KEYS } from '@/shared/api';
 
 import type { AuthTokensResponse, ProfileResponse, SessionUser } from '@omni/shared/auth';
 
@@ -52,7 +52,10 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const clearSession = useCallback(async () => {
     const current = usernameRef.current;
     await globalMutate(() => true, undefined, { revalidate: false });
-    if (current) clearLastWeather(current);
+    if (current) {
+      clearLastWeather(current);
+      clearLastGymPlan(current);
+    }
   }, [globalMutate]);
 
   /**

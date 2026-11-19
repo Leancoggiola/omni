@@ -5,7 +5,7 @@ interface OverlineProps {
   children: ReactNode;
 }
 
-/** Encabezado de sección en mayúsculas (Activas, Saldadas) y separador de día del feed. */
+/** Encabezado de sección en mayúsculas (`OVERLINE`), para separar bloques de una lista o de un modal. */
 export const Overline: FC<OverlineProps> = ({ children }) => (
   <Text size="xs" fw={700} c="dimmed" tt="uppercase" lts="0.04rem">
     {children}
