@@ -21,9 +21,7 @@ export class GymPage {
 
   readonly dialog = () => this.page.getByRole('dialog');
   readonly toast = (text: string) =>
-    this.page
-      .locator('.mantine-Notifications-notification')
-      .filter({ has: this.page.getByText(text, { exact: true }) });
+    this.page.getByRole('alert').filter({ hasText: 'Listo' }).filter({ hasText: text });
   readonly day = (label: string) => this.page.getByRole('region', { name: label });
   readonly headerButton = (name: string) => this.page.getByRole('button', { name }).first();
   readonly planMenu = () => this.page.getByRole('button', { name: 'Acciones del plan' });
