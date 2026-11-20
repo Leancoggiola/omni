@@ -24,20 +24,15 @@ import {
   actionSheet,
   Banner,
   Button,
-  confirm,
   EmptyState,
   ErrorState,
   Fab,
   FAB_SIZE,
-  getErrorMessage,
   IconButton,
   LoadingState,
-  notifyError,
-  notifySuccess,
   Screen,
   ScreenHeader,
   usePullToRefresh,
-  useSheetNotice,
 } from '@/shared/ui';
 
 import { AddExerciseSheet } from './components/AddExerciseSheet';
@@ -49,25 +44,15 @@ import { PlanNameSheet } from './components/PlanNameSheet';
 import { PlanPickerButton } from './components/PlanPickerButton';
 import { WeekdayStrip } from './components/WeekdayStrip';
 import { WeightSheet } from './components/WeightSheet';
-import { useGymMutations } from './hooks/useGymMutations';
+import { useGymActions } from './hooks/useGymActions';
 import { useGymPlan } from './hooks/useGymPlan';
 import { useGymPlans } from './hooks/useGymPlans';
-import { useGymWriteFailure } from './hooks/useGymWriteFailure';
 import { useLastGymPlan } from './hooks/useLastGymPlan';
 import { formatPlanCounts, formatSetsReps, formatWeightKg } from './utils/gymFormat';
-import { deleteDayCopy, deletePlanCopy, removeExerciseCopy } from './utils/gymMessages';
 import { resolvePlanId } from './utils/resolvePlanId';
 import { weekdayOfDate } from './utils/gymWeekday';
 
-import type { GymSubmitResult } from './utils/gymSubmit';
-import type {
-  AddGymExercisePayload,
-  GymExercise,
-  GymPlanDay,
-  GymPlanDetail,
-  GymWeekday,
-  UpdateGymExercisePayload,
-} from '@omni/shared/gym';
+import type { GymExercise, GymPlanDay, GymPlanDetail, GymWeekday } from '@omni/shared/gym';
 
 type DayOption = { value: DayAction; label: string; icon: Icon; destructive?: boolean };
 
@@ -124,8 +109,9 @@ function dayActions(day: GymPlanDay): readonly DayOption[] {
  * del plan (renombrar, archivar, eliminar). Un plan archivado se ve de solo lectura, con "Desarchivar plan" y "Eliminar
  * plan" al pie. El plan se cambia en "Tus planes". Las hojas se remontan con una `key` nueva en cada apertura.
  *
- * Una escritura que falla se resuelve con `useGymWriteFailure`: un 409 de formulario queda como aviso dentro de la hoja;
- * si el plan se archivó o el elemento ya no existe, la hoja se cierra y el aviso sale cuando termina de ocultarse.
+ * Las escrituras y sus avisos están en `useGymActions`: una escritura que falla se resuelve con `useGymWriteFailure` (un
+ * 409 de formulario queda como aviso dentro de la hoja; si el plan se archivó o el elemento ya no existe, la hoja se
+ * cierra y el aviso sale cuando termina de ocultarse).
  */
 export function GymScreen() {
   const router = useRouter();
@@ -133,17 +119,27 @@ export function GymScreen() {
   const { plans, error: plansError, mutate: retryPlans } = useGymPlans();
   const planId = resolvePlanId(lastPlanId, plans);
   const { plan, error: planError, mutate: retryPlan } = useGymPlan(planId ?? null);
-  const mutations = useGymMutations();
-  const handleFailure = useGymWriteFailure(planId ?? null);
-  const notice = useSheetNotice();
   const retry = useCallback(() => Promise.all([retryPlans(), retryPlan()]), [retryPlans, retryPlan]);
   const refreshControl = usePullToRefresh(retry);
+  const {
+    handleClosed,
+    handleAdd,
+    handleEdit,
+    handleMove,
+    handleChangeDay,
+    handleWeight,
+    handleNameSubmit,
+    removeExercise,
+    deleteDay,
+    archivePlan,
+    unarchivePlan,
+    deletePlan,
+  } = useGymActions({ plan, planId, retry, setLastPlan });
 
   const [sheet, setSheet] = useState<SheetTarget | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const menuBusy = useRef(false);
   const plansPushedAt = useRef(0);
-  const closedNotice = useRef<string | null>(null);
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const listTop = useRef(0);
   const dayTops = useRef(new Map<GymWeekday, number>());
@@ -160,146 +156,6 @@ export function GymScreen() {
   const openSheet = (target: DistributiveOmit<SheetTarget, 'key'>) => {
     setSheet(current => ({ ...target, key: (current?.key ?? 0) + 1 }) as SheetTarget);
     setSheetOpen(true);
-  };
-
-  const handleClosed = () => {
-    notice.flush();
-    if (!closedNotice.current) return;
-    notifyError(closedNotice.current);
-    closedNotice.current = null;
-  };
-
-  const runSheetWrite = async (
-    action: () => Promise<unknown>,
-    fallback: string,
-    success: string
-  ): Promise<GymSubmitResult> => {
-    try {
-      await action();
-      notice.queue(success);
-      return { status: 'done' };
-    } catch (err) {
-      const failure = await handleFailure(err, fallback);
-      if (failure.status === 'closed') closedNotice.current = failure.notice;
-      return failure.status === 'closed' ? { status: 'closed' } : failure;
-    }
-  };
-
-  const runPlainWrite = async (action: () => Promise<unknown>, fallback: string, success: string) => {
-    try {
-      await action();
-      notifySuccess(success);
-      return true;
-    } catch (err) {
-      const failure = await handleFailure(err, fallback);
-      notifyError(failure.status === 'closed' ? failure.notice : failure.message);
-      return false;
-    }
-  };
-
-  const handleAdd = async (exercise: Omit<AddGymExercisePayload, 'planId'>): Promise<GymSubmitResult> => {
-    if (!planId) return { status: 'closed' };
-    return runSheetWrite(
-      () => mutations.addExercise({ ...exercise, planId }),
-      'No se pudo agregar el ejercicio',
-      'Ejercicio agregado'
-    );
-  };
-
-  const handleEdit = (exerciseId: string, payload: UpdateGymExercisePayload) =>
-    runSheetWrite(
-      () => mutations.updateExercise(exerciseId, payload),
-      'No se pudo guardar el ejercicio',
-      'Ejercicio actualizado'
-    );
-
-  const handleMove = (exerciseId: string, weekday: GymWeekday) =>
-    runSheetWrite(
-      () => mutations.updateExercise(exerciseId, { weekday }),
-      'No se pudo mover el ejercicio',
-      'Ejercicio movido'
-    );
-
-  const handleChangeDay = (dayId: string, weekday: GymWeekday) =>
-    runSheetWrite(() => mutations.changeDay(dayId, weekday), 'No se pudo cambiar el día', 'Día cambiado');
-
-  const handleWeight = (exerciseId: string, weightKg: number | null) =>
-    runSheetWrite(
-      () => mutations.updateWeight(exerciseId, weightKg),
-      weightKg === null ? 'No se pudo quitar el peso' : 'No se pudo guardar el peso',
-      weightKg === null ? 'Peso quitado' : 'Peso guardado'
-    );
-
-  const handleNameSubmit = async (name: string, mode: 'create' | 'rename'): Promise<GymSubmitResult> => {
-    if (mode === 'rename' && !plan) return { status: 'closed' };
-    try {
-      if (mode === 'rename' && plan) {
-        await mutations.renamePlan(plan.id, name);
-        notice.queue('Plan renombrado');
-      } else {
-        const created = await mutations.createPlan(name);
-        await setLastPlan(created.id);
-        notice.queue('Plan creado');
-      }
-      return { status: 'done' };
-    } catch (err) {
-      const message = getErrorMessage(
-        err,
-        mode === 'rename' ? 'No se pudo renombrar el plan' : 'No se pudo crear el plan'
-      );
-      if (mode === 'rename' && err instanceof ApiError && (err.status === 404 || err.status === 409)) {
-        closedNotice.current = message;
-        void retry();
-        return { status: 'closed' };
-      }
-      return { status: 'error', message, conflict: false };
-    }
-  };
-
-  const removeExercise = async (exercise: GymExercise, day: GymPlanDay) => {
-    if (!plan) return;
-    const { title, description } = removeExerciseCopy(plan, day, exercise);
-    if (!(await confirm({ title, description, confirmLabel: 'Quitar ejercicio', destructive: true }))) return;
-    await runPlainWrite(
-      () => mutations.removeExercise(exercise.id),
-      'No se pudo quitar el ejercicio',
-      'Ejercicio quitado'
-    );
-  };
-
-  const deleteDay = async (day: GymPlanDay) => {
-    const { title, description } = deleteDayCopy(day);
-    if (!(await confirm({ title, description, confirmLabel: 'Borrar día', destructive: true }))) return;
-    await runPlainWrite(() => mutations.deleteDay(day.id), 'No se pudo borrar el día', 'Día borrado');
-  };
-
-  const archivePlan = async (target: GymPlanDetail) => {
-    await runPlainWrite(
-      () => mutations.archivePlan(target.id).then(() => undefined),
-      'No se pudo archivar el plan',
-      'Plan archivado'
-    );
-  };
-
-  const unarchivePlan = async (target: GymPlanDetail) => {
-    await runPlainWrite(
-      () => mutations.unarchivePlan(target.id).then(() => undefined),
-      'No se pudo desarchivar el plan',
-      'Plan desarchivado'
-    );
-  };
-
-  const deletePlan = async (target: GymPlanDetail) => {
-    const { title, description } = deletePlanCopy(target);
-    if (!(await confirm({ title, description, confirmLabel: 'Eliminar plan', destructive: true }))) return;
-    const deleted = await runPlainWrite(
-      () => mutations.deletePlan(target.id),
-      'No se pudo eliminar el plan',
-      'Plan eliminado'
-    );
-    if (!deleted) return;
-    await setLastPlan(null);
-    router.push('/gym/plans');
   };
 
   const withMenuLock = async (open: () => Promise<void>) => {

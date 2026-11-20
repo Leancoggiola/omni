@@ -1,9 +1,11 @@
+import { isGymKey } from '@omni/shared/gym';
+
 import { useCallback } from 'react';
 import { useSWRConfig } from 'swr';
 
 import { api, API_KEYS } from '@/shared/api';
 
-import { gymPlansPagesKey, isGymKey } from '../utils/gymKeys';
+import { gymPlansPagesKey } from '../utils/gymKeys';
 
 import type {
   AddGymExercisePayload,

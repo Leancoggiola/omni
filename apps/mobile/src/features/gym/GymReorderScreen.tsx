@@ -1,8 +1,8 @@
 import { GYM_WEEKDAY_LABELS } from '@omni/shared/gym';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { BackHandler, ScrollView } from 'react-native';
 import { Paragraph, YStack } from 'tamagui';
 
 import { ApiError } from '@/shared/api';
@@ -33,7 +33,8 @@ type ReorderParams = { planId?: string; dayId?: string };
 /**
  * "Ordenar el <día>": ruta de stack con el plan y el día por parámetro (`/gym/reorder?planId&dayId`). Los ejercicios se
  * mueven con las flechas y "Guardar orden" manda la lista completa del día; si la API responde 409 (otro cambio llegó
- * mientras tanto) se ofrece recargar el día. "Cancelar" y volver descartan el orden.
+ * mientras tanto) se ofrece recargar el día. "Cancelar" y volver descartan el orden. Mientras se guarda no se puede
+ * volver: ni con el header ni con el botón Atrás de Android.
  */
 export function GymReorderScreen() {
   const router = useRouter();
@@ -45,6 +46,12 @@ export function GymReorderScreen() {
   const [stale, setStale] = useState<string | null>(null);
   const [reloading, setReloading] = useState(false);
   const savingRef = useRef(false);
+
+  useEffect(() => {
+    if (!saving) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => subscription.remove();
+  }, [saving]);
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/gym'));
   const day = plan?.days.find(candidate => candidate.id === dayId);

@@ -1,20 +1,18 @@
 import useSWR from 'swr';
 
-import { buildQueryString, fetcher, SWR_KEYS } from '@/shared/api';
+import { fetcher } from '@/shared/api';
 
 import type { PaginatedResponse } from '@omni/shared/common';
 import type { GymPlanSummary } from '@omni/shared/gym';
 
-const PLANS_PAGE_LIMIT = 100;
+import { GYM_PLANS_PAGE_LIMIT, gymPlansKey } from '@omni/shared/gym';
 
 /** Trae todas las páginas de planes (la API pagina de a 100 como máximo) y las junta en una sola lista. */
 async function fetchAllPlans(firstPageKey: string): Promise<PaginatedResponse<GymPlanSummary>> {
   const first = await fetcher<PaginatedResponse<GymPlanSummary>>(firstPageKey);
   const items = [...first.items];
-  for (let page = 2; items.length < first.total && page <= Math.ceil(first.total / PLANS_PAGE_LIMIT); page += 1) {
-    const next = await fetcher<PaginatedResponse<GymPlanSummary>>(
-      `${SWR_KEYS.gym.plans}${buildQueryString({ limit: PLANS_PAGE_LIMIT, page })}`
-    );
+  for (let page = 2; items.length < first.total && page <= Math.ceil(first.total / GYM_PLANS_PAGE_LIMIT); page += 1) {
+    const next = await fetcher<PaginatedResponse<GymPlanSummary>>(gymPlansKey(undefined, page));
     items.push(...next.items);
   }
   return { ...first, items };
@@ -25,7 +23,7 @@ async function fetchAllPlans(firstPageKey: string): Promise<PaginatedResponse<Gy
  * ordena con los activos primero y, dentro de cada estado, del más nuevo al más viejo.
  */
 export function useGymPlans() {
-  const key = `${SWR_KEYS.gym.plans}${buildQueryString({ limit: PLANS_PAGE_LIMIT })}`;
+  const key = gymPlansKey();
   const { data, isLoading, error, mutate } = useSWR<PaginatedResponse<GymPlanSummary>>(key, fetchAllPlans);
 
   return { plans: data?.items, isLoading, error, mutate };

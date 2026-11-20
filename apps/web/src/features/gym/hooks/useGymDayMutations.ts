@@ -3,9 +3,9 @@ import { useSWRConfig } from 'swr';
 
 import { api, SWR_KEYS } from '@/shared/api';
 
-import { isGymKey } from '../utils/gymCache';
-
 import type { GymPlanDetail, GymWeekday } from '@omni/shared/gym';
+
+import { isGymKey } from '@omni/shared/gym';
 
 /**
  * Escrituras sobre los días de un plan: pasar el día entero a otro día de la semana y borrarlo con sus ejercicios.

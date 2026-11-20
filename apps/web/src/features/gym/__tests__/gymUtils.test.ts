@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { SWR_KEYS } from '@/shared/api';
-
 import {
   exerciseFieldsSchema,
   exerciseFormSchema,
   toAddExercisePayload,
   toEditExercisePayload,
 } from '../utils/exerciseForm';
-import { isGymKey, withExerciseWeight } from '../utils/gymCache';
+import { withExerciseWeight } from '../utils/gymCache';
 import { formatHistoryDate, formatSetsAndReps, formatVariantShort, formatWeightKg } from '../utils/gymFormat';
 import { schemeChangeNotes } from '../utils/gymHistory';
 import { deleteDayCopy, deletePlanCopy, removeExerciseCopy } from '../utils/gymMessages';
@@ -81,15 +79,6 @@ describe('findMatchingVariant', () => {
 });
 
 describe('caché del gimnasio', () => {
-  it('isGymKey reconoce planes, catálogo e historiales, y nada más', () => {
-    expect(isGymKey(`${SWR_KEYS.gym.plans}?limit=100`)).toBe(true);
-    expect(isGymKey(SWR_KEYS.gym.plan('p1'))).toBe(true);
-    expect(isGymKey(`${SWR_KEYS.gym.catalog}?q=sen`)).toBe(true);
-    expect(isGymKey(`${SWR_KEYS.gym.exerciseWeightHistory('e1')}?page=1`)).toBe(true);
-    expect(isGymKey(SWR_KEYS.pantry.summary)).toBe(false);
-    expect(isGymKey(42)).toBe(false);
-  });
-
   it('withExerciseWeight actualiza todas las filas de la misma variante', () => {
     const plan = planDetail({
       days: [

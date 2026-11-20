@@ -211,6 +211,19 @@ describe('WeightModal', () => {
     expect(screen.getByRole('button', { name: 'Guardar peso' })).toBeEnabled();
   });
 
+  it('si "Ver más registros" falla lo dice con "Reintentar" y deja ver las páginas ya cargadas', async () => {
+    const mutate = vi.fn();
+    history.pages[2] = { entries: undefined, total: undefined, error: new Error('x'), mutate };
+    renderModal();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ver más registros' }));
+
+    expect(screen.getByText('No se pudo cargar más historial')).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: 'Historial de peso' })).toHaveTextContent('57,5 kg');
+    await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(mutate).toHaveBeenCalled();
+  });
+
   it('sin historial lo dice', () => {
     history.pages = { 1: page([], 0) };
     renderModal();

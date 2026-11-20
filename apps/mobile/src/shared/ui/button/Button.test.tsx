@@ -33,6 +33,18 @@ describe('Button', () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 
+  it('el overlay del Spinner queda montado sin loading, transparente: pasar a loading solo cambia su opacidad', async () => {
+    const { rerender } = await render(<Button>Ingresar</Button>);
+
+    const overlay = () => screen.getByTestId('spinner', { includeHiddenElements: true }).parent;
+    expect(overlay()).toHaveProp('opacity', 0);
+    expect(overlay()).toHaveProp('pointerEvents', 'none');
+
+    await rerender(<Button loading>Ingresar</Button>);
+
+    expect(overlay()).toHaveProp('opacity', 1);
+  });
+
   it('loading muestra el Spinner, marca busy e ignora los toques', async () => {
     const onPress = jest.fn();
     await render(

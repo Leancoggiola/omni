@@ -3,9 +3,9 @@ import { useSWRConfig } from 'swr';
 
 import { api, SWR_KEYS } from '@/shared/api';
 
-import { isGymKey } from '../utils/gymCache';
-
 import type { CreateGymPlanPayload, GymPlanDetail, UpdateGymPlanPayload } from '@omni/shared/gym';
+
+import { isGymKey } from '@omni/shared/gym';
 
 /**
  * Alta, renombre, archivo y baja de planes. Las que devuelven el plan lo guardan en su key (sin otro GET) y

@@ -32,3 +32,5 @@ export const GYM_DAY_EXERCISES_MAX = 200;
 
 export const GYM_CATALOG_DEFAULT_LIMIT = 10;
 export const GYM_CATALOG_MAX_LIMIT = 20;
+
+export const GYM_PLANS_PAGE_LIMIT = 100;

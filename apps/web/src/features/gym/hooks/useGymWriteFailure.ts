@@ -4,11 +4,10 @@ import { useSWRConfig } from 'swr';
 import { SWR_KEYS } from '@/shared/api';
 import { getErrorMessage, notifyError } from '@/shared/ui';
 
-import { isGymKey } from '../utils/gymCache';
-
 import type { GymPlanDetail } from '@omni/shared/gym';
 
 import { ApiError } from '@omni/shared/api';
+import { isGymKey } from '@omni/shared/gym';
 
 /**
  * Qué pasó con una escritura que falló: `archived` (el plan se archivó desde otro dispositivo: pasó a solo lectura),

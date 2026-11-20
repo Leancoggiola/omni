@@ -1,10 +1,10 @@
+import { gymPlansKey } from '@omni/shared/gym';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { SWRConfig, useSWRConfig } from 'swr';
 
 import { API_KEYS, ApiError } from '@/shared/api';
 
 import { catalogExercise, exercise, planDetail, planSummary, weightEntry } from '../fixtures';
-import { gymPlansKey } from '../utils/gymKeys';
 import { useGymCatalogSuggestions } from './useGymCatalogSuggestions';
 import { useGymMutations } from './useGymMutations';
 import { useGymPlan } from './useGymPlan';

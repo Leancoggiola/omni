@@ -39,6 +39,9 @@ export type ButtonProps = {
 /**
  * Equivalente de `Button` de Mantine: variantes filled · outline · light · subtle, colores brand ·
  * destructive, tamaños sm 36 / md 44 / lg 48 / xl 56 dp, pill (`RADIUS.full`) y peso 600.
+ *
+ * El overlay del Spinner está siempre montado y `loading` solo cambia su opacidad: montarlo y desmontarlo
+ * mientras la pantalla se desmonta (p. ej. al guardar y volver) crasheaba Fabric con "addViewAt: failed to insert view".
  */
 export function Button({
   children,
@@ -90,16 +93,24 @@ export function Button({
           {children}
         </Paragraph>
       </XStack>
-      {loading ? (
-        <YStack position="absolute" top={0} right={0} bottom={0} left={0} alignItems="center" justifyContent="center">
-          <Spinner
-            size="small"
-            color={palette.color}
-            accessible={false}
-            importantForAccessibility="no-hide-descendants"
-          />
-        </YStack>
-      ) : null}
+      <YStack
+        position="absolute"
+        top={0}
+        right={0}
+        bottom={0}
+        left={0}
+        alignItems="center"
+        justifyContent="center"
+        opacity={loading ? 1 : 0}
+        pointerEvents="none"
+      >
+        <Spinner
+          size="small"
+          color={palette.color}
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+        />
+      </YStack>
     </XStack>
   );
 }

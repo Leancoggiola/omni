@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { BackHandler } from 'react-native';
 
 import { ApiError } from '@omni/shared/api';
 
@@ -164,6 +165,25 @@ describe('GymReorderScreen', () => {
 
     expect(notifyError).toHaveBeenCalledWith('No se pudo guardar el orden');
     expect(saveButton().props.accessibilityState.disabled).toBe(false);
+  });
+
+  it('mientras se guarda el Atrás de Android no sale', async () => {
+    const addListener = jest.spyOn(BackHandler, 'addEventListener');
+    let fail: (error: Error) => void = () => undefined;
+    mockReorderDay.mockReturnValue(new Promise((_, reject) => (fail = reject)));
+    const handlers = () => addListener.mock.calls.map(([, handler]) => handler);
+    const pressBack = () => handlers().some(handler => handler({ type: 'hardwareBackPress', timeStamp: 0 }));
+    await render(<GymReorderScreen />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Bajar Sentadilla' }));
+    expect(addListener).not.toHaveBeenCalledWith('hardwareBackPress', expect.any(Function));
+
+    await fireEvent.press(saveButton());
+
+    expect(pressBack()).toBe(true);
+    expect(mockBack).not.toHaveBeenCalled();
+    await act(async () => fail(new Error('x')));
+    await waitFor(() => expect(notifyError).toHaveBeenCalled());
+    addListener.mockRestore();
   });
 
   it('Cancelar vuelve sin guardar', async () => {

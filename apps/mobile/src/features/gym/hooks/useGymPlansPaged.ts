@@ -1,7 +1,8 @@
+import { gymPlansKey } from '@omni/shared/gym';
 import { useCallback } from 'react';
 import useSWRInfinite from 'swr/infinite';
 
-import { GYM_PLANS_LIST_PAGE_SIZE, gymPlansKey } from '../utils/gymKeys';
+import { GYM_PLANS_LIST_PAGE_SIZE } from '../utils/gymKeys';
 
 import type { PaginatedResponse } from '@omni/shared/common';
 import type { GymPlanStatus, GymPlanSummary } from '@omni/shared/gym';

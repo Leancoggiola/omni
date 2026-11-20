@@ -1,8 +1,7 @@
+import { GYM_PLANS_PAGE_LIMIT, gymPlansKey } from '@omni/shared/gym';
 import useSWR from 'swr';
 
 import { fetcher } from '@/shared/api';
-
-import { GYM_PLANS_PAGE_LIMIT, gymPlansKey } from '../utils/gymKeys';
 
 import type { PaginatedResponse } from '@omni/shared/common';
 import type { GymPlanStatus, GymPlanSummary } from '@omni/shared/gym';
