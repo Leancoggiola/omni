@@ -33,8 +33,19 @@ export class GymPage {
   readonly rowMenuOf = (name: string) => this.page.getByRole('button', { name: `Opciones de ${name}` }).first();
   readonly weightButtonOf = (name: string) => this.page.getByRole('button', { name: new RegExp(`^Peso de ${name}:`) });
   readonly loadWeightButtonOf = (name: string) => this.page.getByRole('button', { name: `Cargar peso de ${name}` });
-  readonly weightField = () => this.dialog().getByRole('textbox', { name: 'Peso en kg' });
-  readonly historyTable = () => this.dialog().getByRole('table', { name: 'Historial de peso' });
+  readonly weightField = () => this.dialogField('Peso en kg');
+  readonly historyRows = () => this.dialog().getByRole('table', { name: 'Historial de peso' }).getByRole('row');
+  readonly text = (text: string) => this.page.getByText(text);
+  readonly option = (name: string) => this.page.getByRole('option', { name, exact: true });
+  readonly dialogField = (name: string | RegExp) => this.dialog().getByRole('textbox', { name });
+  readonly dialogSelect = (name: RegExp) => this.dialog().getByRole('combobox', { name });
+  readonly dialogButton = (name: string) => this.dialog().getByRole('button', { name });
+  readonly confirmDialog = (title: string) => this.page.getByRole('dialog', { name: title });
+  readonly moveButton = (direction: 'Subir' | 'Bajar', name: string) =>
+    this.page.getByRole('button', { name: `${direction} ${name}` });
+  readonly saveOrderButton = () => this.page.getByRole('button', { name: 'Guardar orden' });
+  readonly unarchiveButton = () => this.page.getByRole('button', { name: 'Desarchivar plan' });
+  readonly anyOptionsMenu = () => this.page.getByRole('button', { name: /^Opciones/ });
 
   async goto(planId?: string) {
     await this.page.goto(planId ? `/gym?plan=${planId}` : '/gym');
@@ -60,6 +71,17 @@ export class GymPage {
     const res = await this.page.request.post('/api/gym/exercises', { data });
     if (!res.ok()) throw new Error(`No se pudo precargar el ejercicio: ${await res.text()}`);
     return (await res.json()) as ApiPlan;
+  }
+
+  /** Intenta cuatro escrituras sobre un plan y devuelve las respuestas, para comprobar que ninguna se aplica. */
+  async writeAttemptsViaApi(exerciseId: string, dayId: string) {
+    const { request } = this.page;
+    return [
+      await request.patch(`/api/gym/exercises/${exerciseId}`, { data: { name: 'Otra' } }),
+      await request.patch(`/api/gym/exercises/${exerciseId}/weight`, { data: { weightKg: 10 } }),
+      await request.delete(`/api/gym/exercises/${exerciseId}`),
+      await request.patch(`/api/gym/days/${dayId}`, { data: { weekday: 'TUESDAY' } }),
+    ];
   }
 
   /** Mensaje del cuerpo de error de la API (`{ statusCode, message }`). */
