@@ -9,7 +9,9 @@ export {
   GYM_DAY_EXERCISES_MAX,
   GYM_CATALOG_DEFAULT_LIMIT,
   GYM_CATALOG_MAX_LIMIT,
+  GYM_PLANS_PAGE_LIMIT,
 } from './constants';
+export { gymPlansKey, isGymKey } from './keys';
 export type {
   GymCatalogExercise,
   GymExercise,

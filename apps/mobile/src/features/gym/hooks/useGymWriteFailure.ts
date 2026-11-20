@@ -1,10 +1,10 @@
+import { isGymKey } from '@omni/shared/gym';
+
 import { useCallback } from 'react';
 import { useSWRConfig } from 'swr';
 
 import { API_KEYS, ApiError } from '@/shared/api';
 import { getErrorMessage } from '@/shared/ui';
-
-import { isGymKey } from '../utils/gymKeys';
 
 import type { GymPlanDetail } from '@omni/shared/gym';
 

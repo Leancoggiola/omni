@@ -3,7 +3,7 @@ import { useSWRConfig } from 'swr';
 
 import { api, SWR_KEYS } from '@/shared/api';
 
-import { isGymKey, withExerciseWeight } from '../utils/gymCache';
+import { withExerciseWeight } from '../utils/gymCache';
 
 import type {
   AddGymExercisePayload,
@@ -12,6 +12,8 @@ import type {
   GymWeekday,
   UpdateGymExercisePayload,
 } from '@omni/shared/gym';
+
+import { isGymKey } from '@omni/shared/gym';
 
 /**
  * Escrituras sobre los ejercicios de un plan. El detalle del plan se actualiza con lo que devuelve la API y después
