@@ -20,7 +20,6 @@ import type {
 
 type GymActionsParams = {
   plan: GymPlanDetail | undefined;
-  /** El plan abierto: `undefined` mientras se resuelve, `null` si no hay planes. */
   planId: string | null | undefined;
   retry: () => Promise<unknown>;
   setLastPlan: (planId: string | null) => Promise<void>;
@@ -32,7 +31,8 @@ type GymActionsParams = {
  * `GymSubmitResult` y encolan el aviso de éxito para cuando la hoja se cierre; si la escritura falla con
  * `useGymWriteFailure` y la hoja tiene que cerrarse, el aviso queda en `closedNotice` y `handleClosed` lo muestra
  * cuando termina de ocultarse. Las de menú (`removeExercise`, `deleteDay`, `archivePlan`, `unarchivePlan`,
- * `deletePlan`) confirman si hace falta y avisan con un toast.
+ * `deletePlan`) confirman si hace falta y avisan con un toast. `planId` es el plan abierto: `undefined` mientras se
+ * resuelve y `null` si no hay planes.
  */
 export function useGymActions({ plan, planId, retry, setLastPlan }: GymActionsParams) {
   const router = useRouter();
