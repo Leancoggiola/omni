@@ -28,7 +28,8 @@ export class GymPage {
   readonly menuItem = (name: string) => this.page.getByRole('menuitem', { name });
   readonly dayMenuOf = (label: string) =>
     this.page.getByRole('button', { name: `Opciones del ${label.toLowerCase()}` });
-  readonly rowMenuOf = (name: string) => this.page.getByRole('button', { name: `Opciones de ${name}` }).first();
+  readonly rowMenuOf = (name: string, dayLabel: string) =>
+    this.day(dayLabel).getByRole('button', { name: `Opciones de ${name}` });
   readonly weightButtonOf = (name: string) => this.page.getByRole('button', { name: new RegExp(`^Peso de ${name}:`) });
   readonly loadWeightButtonOf = (name: string) => this.page.getByRole('button', { name: `Cargar peso de ${name}` });
   readonly weightField = () => this.dialogField('Peso en kg');

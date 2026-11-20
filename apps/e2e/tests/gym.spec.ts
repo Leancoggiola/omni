@@ -31,7 +31,7 @@ test.describe('gym', () => {
     await expect(gym.toast('Peso guardado')).toBeVisible();
     await expect(gym.weightButtonOf('Sentadilla')).toHaveText('60 kg');
 
-    await gym.rowMenuOf('Sentadilla').click();
+    await gym.rowMenuOf('Sentadilla', 'Miércoles').click();
     await gym.menuItem('Editar').click();
     await gym.dialogField(/Repeticiones/).fill('10');
     await gym.dialogButton('Guardar cambios').click();
@@ -53,7 +53,7 @@ test.describe('gym', () => {
     await gym.addExerciseViaApi({ planId: plan.id, weekday: 'FRIDAY', name: 'Sentadilla', sets: 4, reps: '12' });
     await gym.goto(plan.id);
 
-    await gym.rowMenuOf('Sentadilla').click();
+    await gym.rowMenuOf('Sentadilla', 'Lunes').click();
     await gym.menuItem('Mover de día').click();
     await gym.dialogSelect(/Mover a/).click();
     await expect(gym.option('Viernes · ya lo tiene')).toHaveAttribute('data-combobox-disabled', 'true');
@@ -108,7 +108,7 @@ test.describe('gym', () => {
     await gym.addExerciseViaApi({ planId: plan.id, weekday: 'SATURDAY', name: 'Plancha', sets: 3, reps: '60 s' });
     await gym.goto(plan.id);
 
-    await gym.rowMenuOf('Press militar').click();
+    await gym.rowMenuOf('Press militar', 'Viernes').click();
     await gym.menuItem('Quitar del día').click();
     const confirmDialog = gym.confirmDialog('¿Quitar Press militar del viernes?');
     await expect(confirmDialog).toContainText('Es el último del viernes: el día también se borra.');
