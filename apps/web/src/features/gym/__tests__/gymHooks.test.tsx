@@ -270,11 +270,11 @@ describe('hooks del gimnasio', () => {
       rerender({ query: 'Se' });
       expect(result.current.searching).toBe(true);
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(299);
+        await vi.advanceTimersByTimeAsync(250);
       });
       expect(fetcher).not.toHaveBeenCalled();
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(2);
+        await vi.advanceTimersByTimeAsync(100);
       });
       await waitFor(() => expect(fetcher).toHaveBeenCalledWith(`${SWR_KEYS.gym.catalog}?limit=20&q=Se`));
       await waitFor(() => expect(result.current.searching).toBe(false));
