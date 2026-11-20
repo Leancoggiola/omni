@@ -152,6 +152,12 @@ test.describe('gym', () => {
       expect(await gym.messageOf(res)).toBe('El plan está archivado');
     }
 
+    const after = await gym.getPlanViaApi(plan.id);
+    expect(after.status).toBe('ARCHIVED');
+    expect(after.days).toHaveLength(1);
+    expect(after.days[0]!.weekday).toBe('MONDAY');
+    expect(after.days[0]!.exercises).toMatchObject([{ name: 'Dominadas', currentWeightKg: null }]);
+
     await gym.unarchiveButton().click();
     await expect(gym.toast('Plan desarchivado')).toBeVisible();
     await expect(gym.headerButton('Agregar ejercicio')).toBeVisible();

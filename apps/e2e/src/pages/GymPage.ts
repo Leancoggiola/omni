@@ -35,7 +35,7 @@ export class GymPage {
   readonly loadWeightButtonOf = (name: string) => this.page.getByRole('button', { name: `Cargar peso de ${name}` });
   readonly weightField = () => this.dialogField('Peso en kg');
   readonly historyRows = () => this.dialog().getByRole('table', { name: 'Historial de peso' }).getByRole('row');
-  readonly text = (text: string) => this.page.getByText(text);
+  readonly text = (text: string) => this.page.getByText(text, { exact: true });
   readonly option = (name: string) => this.page.getByRole('option', { name, exact: true });
   readonly dialogField = (name: string | RegExp) => this.dialog().getByRole('textbox', { name });
   readonly dialogSelect = (name: RegExp) => this.dialog().getByRole('combobox', { name });
@@ -91,6 +91,7 @@ export class GymPage {
 
   async getPlanViaApi(planId: string) {
     const res = await this.page.request.get(`/api/gym/plans/${planId}`);
+    if (!res.ok()) throw new Error(`No se pudo leer el plan: ${await res.text()}`);
     return (await res.json()) as ApiPlan;
   }
 }
