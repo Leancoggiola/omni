@@ -101,6 +101,7 @@ export const GatheringFeed: FC<GatheringFeedProps> = ({
               <FeedBubble
                 key={expense.id}
                 expense={expense}
+                participants={gathering.participants}
                 payer={gathering.participants.find(participant => participant.id === expense.participantId)}
                 tone={tones[expense.participantId]}
                 canDelete={!gathering.isSettled}

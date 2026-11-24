@@ -105,6 +105,39 @@ test.describe('juntadas', () => {
     await expect(split.subtitle()).toHaveText(/^Debés \$3\.333,3[34]$/);
   });
 
+  test('divide un gasto solo entre algunos y deja afuera al resto', async ({ page, freshUser }) => {
+    await freshUser('parcial');
+    const split = new SplitExpensesPage(page);
+    await split.goto();
+    await split.createGathering('Bebidas', ['Ana', 'Bruno']);
+
+    await expect(split.feed()).toContainText('Se divide entre 3 de 3');
+    await split.excludeFromSplit('Bruno');
+    await split.amountField().fill('9000');
+    await expect(split.feed()).toContainText('Se divide entre 2 de 3 · $4.500,00 c/u');
+    await split.addExpense('Vos', '9000', 'Vino');
+
+    await expect(split.feed()).toContainText('Entre vos y Ana · $4.500,00 c/u');
+    await expect(split.settlements()).toContainText('Ana → vos');
+    await expect(split.settlements()).not.toContainText('Bruno');
+    await expect(split.balances()).toContainText('pagó $9.000,00 · gastó $4.500,00');
+    await expect(split.balances()).toContainText('pagó $0,00 · gastó $0,00');
+    await expect(split.sharersGroup().getByText('Bruno', { exact: true })).toBeVisible();
+  });
+
+  test('no deja agregar un gasto sin nadie entre quien dividirlo', async ({ page, freshUser }) => {
+    await freshUser('nadie');
+    const split = new SplitExpensesPage(page);
+    await split.goto();
+    await split.createGathering('Sin nadie', ['Ana']);
+
+    await split.excludeFromSplit('Vos', 'Ana');
+    await split.amountField().fill('500');
+
+    await expect(split.feed()).toContainText('Elegí al menos una persona');
+    await expect(split.addExpenseButton()).toBeDisabled();
+  });
+
   test('un gasto propio suma a "Te deben" en el saldo', async ({ page, freshUser }) => {
     await freshUser('deben');
     const split = new SplitExpensesPage(page);

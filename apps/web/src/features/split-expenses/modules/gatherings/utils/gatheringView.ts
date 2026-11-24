@@ -8,7 +8,7 @@ import type {
   SplitBalanceSummary,
 } from '@omni/shared/split-expenses';
 
-import { formatMoney } from '@omni/shared/common';
+import { formatMoney, MONEY_SCALE } from '@omni/shared/common';
 
 export type ParticipantTone = 'sage' | 'terracotta' | 'brand' | 'gray';
 
@@ -137,4 +137,56 @@ export function describeSettlement(settlement: Settlement, participants: Gatheri
     from: isSelf(settlement.fromParticipantId) ? 'Vos' : settlement.fromName,
     to: isSelf(settlement.toParticipantId) ? 'vos' : settlement.toName,
   };
+}
+
+export interface SplitCaption {
+  text: string;
+  /** `true` cuando no hay nadie entre quien repartir: el caption pasa a error y no se puede agregar el gasto. */
+  invalid: boolean;
+}
+
+/**
+ * Parte base de cada persona al repartir `amount` entre `count`: se trunca al centavo. El centavo que sobra lo
+ * absorben los primeros por id (ver `computeBalances`), así que acá no se menciona.
+ */
+export function baseSharePerPerson(amount: number, count: number): number {
+  if (count <= 0 || !Number.isFinite(amount) || amount <= 0) return 0;
+  return Math.floor(Math.round(amount * MONEY_SCALE) / count) / MONEY_SCALE;
+}
+
+/**
+ * Caption en vivo del composer: "Se divide entre 3 de 4 · $9.000,00 c/u" (sin "c/u" mientras no hay monto) o, con
+ * nadie elegido, "Elegí al menos una persona" como error.
+ */
+export function describeSplitCaption(amount: number, selectedCount: number, totalCount: number): SplitCaption {
+  if (selectedCount === 0) return { text: 'Elegí al menos una persona', invalid: true };
+  const each = baseSharePerPerson(amount, selectedCount);
+  const base = `Se divide entre ${selectedCount} de ${totalCount}`;
+  return { text: each > 0 ? `${base} · ${formatMoney(each)} c/u` : base, invalid: false };
+}
+
+/** Participantes entre quienes se reparte un gasto parcial, en el orden de la juntada. `[]` si es entre todos. */
+export function expenseSharers(
+  expense: Pick<GatheringExpense, 'sharedWith'>,
+  participants: GatheringParticipantSummary[]
+): GatheringParticipantSummary[] {
+  if (expense.sharedWith.length === 0) return [];
+  return participants.filter(participant => expense.sharedWith.includes(participant.id));
+}
+
+/** "vos, Martín y Sofía": el propio va en minúscula, como en el diseño. */
+function joinNames(participants: GatheringParticipantSummary[]): string {
+  const names = participants.map(participant => (participant.isSelf ? 'vos' : participant.displayName));
+  if (names.length <= 1) return names.join('');
+  return `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
+}
+
+/** Línea de un gasto parcial: "Entre vos, Martín y Sofía · $9.000,00 c/u". `null` si se reparte entre todos. */
+export function describeExpenseSharers(
+  expense: Pick<GatheringExpense, 'amount' | 'sharedWith'>,
+  participants: GatheringParticipantSummary[]
+): string | null {
+  const sharers = expenseSharers(expense, participants);
+  if (sharers.length === 0) return null;
+  return `Entre ${joinNames(sharers)} · ${formatMoney(baseSharePerPerson(expense.amount, sharers.length))} c/u`;
 }
