@@ -46,7 +46,7 @@ export function StatusPill({ status, onPress, accessibilityLabel }: StatusPillPr
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityLabel={accessibilityLabel ?? (onPress ? `Estado: ${label}. Cambiar estado` : `Estado: ${label}`)}
     >
-      <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600" color="color">
+      <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600" color="color" userSelect="none">
         {label}
       </Paragraph>
       {onPress ? <CaretDownIcon size={14} color={colors.text} /> : null}

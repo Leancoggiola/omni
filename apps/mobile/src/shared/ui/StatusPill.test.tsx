@@ -21,6 +21,11 @@ describe('StatusPill', () => {
     expect(pill()).toHaveProp('backgroundColor', 'successSurface');
   });
 
+  it('la etiqueta no es seleccionable: Android la recortaría en una pill del ancho justo (#328)', async () => {
+    await render(<StatusPill status="watching" />);
+    expect(screen.getByText('Viendo')).toHaveProp('userSelect', 'none');
+  });
+
   it('con onPress es un botón que abre el selector; sin onPress es solo texto', async () => {
     const onPress = jest.fn();
     const { rerender } = await render(<StatusPill status="watching" onPress={onPress} />);

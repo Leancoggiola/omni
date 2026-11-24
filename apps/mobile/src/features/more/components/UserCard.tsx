@@ -32,10 +32,16 @@ export function UserCard() {
     >
       <UserAvatar name={user?.name ?? ''} size={48} uri={user?.avatarUrl} />
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.lg} lineHeight={`${LINE_HEIGHT.xl}px`} fontWeight="600" numberOfLines={1}>
+        <Paragraph
+          fontSize={FONT_SIZE.lg}
+          lineHeight={`${LINE_HEIGHT.xl}px`}
+          fontWeight="600"
+          numberOfLines={1}
+          userSelect="none"
+        >
           {user?.name ?? '—'}
         </Paragraph>
-        <Paragraph fontSize={FONT_SIZE.sm} color="dimmed" numberOfLines={1}>
+        <Paragraph fontSize={FONT_SIZE.sm} color="dimmed" numberOfLines={1} userSelect="none">
           {user ? (user.email ?? `@${user.username}`) : '—'}
         </Paragraph>
       </YStack>

@@ -40,7 +40,7 @@ function StatCard({ value, label, pressed = false, onPress, accessibilityLabel }
       <Paragraph fontSize={STAT_FONT_SIZE} lineHeight={`${STAT_FONT_SIZE}px`} fontWeight="800">
         {value}
       </Paragraph>
-      <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={2}>
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={2} userSelect="none">
         {label}
       </Paragraph>
     </YStack>

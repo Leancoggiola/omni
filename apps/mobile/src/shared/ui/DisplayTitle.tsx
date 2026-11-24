@@ -44,7 +44,7 @@ export function DisplayTitle({ children, size = 'lg', accent, header = true, ...
   const at = accent ? lastWordIndex(children, accent) : -1;
 
   return (
-    <Paragraph color="color" accessibilityRole={header ? 'header' : undefined} {...style} {...props}>
+    <Paragraph color="color" accessibilityRole={header ? 'header' : undefined} userSelect="none" {...style} {...props}>
       {at < 0 || !accent ? (
         children
       ) : (

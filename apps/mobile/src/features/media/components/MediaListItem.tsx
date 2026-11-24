@@ -48,6 +48,7 @@ export const MediaListItem = memo(function MediaListItem({ item, onStatusPress, 
             lineHeight={`${LINE_HEIGHT.xl}px`}
             fontWeight="600"
             numberOfLines={2}
+            userSelect="none"
           >
             {item.title}
           </Paragraph>

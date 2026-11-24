@@ -40,10 +40,16 @@ export function PlanRow({ plan, onPress }: PlanRowProps) {
     >
       <ExerciseTile />
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.lg} lineHeight={`${LINE_HEIGHT.xl}px`} fontWeight="600" numberOfLines={1}>
+        <Paragraph
+          fontSize={FONT_SIZE.lg}
+          lineHeight={`${LINE_HEIGHT.xl}px`}
+          fontWeight="600"
+          numberOfLines={1}
+          userSelect="none"
+        >
           {plan.name}
         </Paragraph>
-        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1} userSelect="none">
           {counts}
         </Paragraph>
       </YStack>

@@ -78,7 +78,7 @@ function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { us
         <DisplayTitle size={compact ? 'md' : 'lg'} textAlign={compact ? 'left' : 'center'}>
           {`¡Hola, ${greetingName}!`}
         </DisplayTitle>
-        <Paragraph color="dimmed" fontSize={14} lineHeight="20px" numberOfLines={1}>
+        <Paragraph color="dimmed" fontSize={14} lineHeight="20px" numberOfLines={1} userSelect="none">
           {`Ingresando como ${username}`}
         </Paragraph>
       </YStack>

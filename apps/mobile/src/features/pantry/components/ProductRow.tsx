@@ -56,10 +56,16 @@ export const ProductRow = memo(function ProductRow({ product, onPress }: Product
         isExpiringSoon={product.isExpiringSoon}
       />
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.lg} lineHeight={`${LINE_HEIGHT.xl}px`} fontWeight="600" numberOfLines={1}>
+        <Paragraph
+          fontSize={FONT_SIZE.lg}
+          lineHeight={`${LINE_HEIGHT.xl}px`}
+          fontWeight="600"
+          numberOfLines={1}
+          userSelect="none"
+        >
           {product.name}
         </Paragraph>
-        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1} userSelect="none">
           {details}
         </Paragraph>
         {hasAlerts ? <ProductAlertBadges product={product} /> : null}

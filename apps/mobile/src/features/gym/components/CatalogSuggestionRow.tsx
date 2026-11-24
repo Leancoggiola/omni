@@ -37,10 +37,10 @@ export function CatalogSuggestionRow({ suggestion, selected, onPress }: CatalogS
       accessibilityState={{ selected }}
     >
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontWeight="600" numberOfLines={1}>
+        <Paragraph fontWeight="600" numberOfLines={1} userSelect="none">
           {suggestion.name}
         </Paragraph>
-        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1} userSelect="none">
           {details}
         </Paragraph>
       </YStack>

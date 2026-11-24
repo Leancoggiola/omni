@@ -49,7 +49,7 @@ function GenerateListForm({ rows, onConfirm, submitting, onSubmittingChange, onD
           <XStack key={product.id} gap={SPACING.sm} alignItems="center">
             <CategoryTile category={product.category} isLowStock />
             <YStack flex={1}>
-              <Paragraph fontWeight="600" numberOfLines={1}>
+              <Paragraph fontWeight="600" numberOfLines={1} userSelect="none">
                 {product.name}
               </Paragraph>
               <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>

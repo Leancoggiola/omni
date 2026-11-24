@@ -81,7 +81,7 @@ function WeatherSummary({ weather }: { weather: CurrentWeather }) {
         {createElement(getWeatherIcon(weather.condition, weather.isDay), { size: 26, color: colors.primary })}
       </YStack>
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.sm} color="dimmed" fontWeight="500" numberOfLines={1}>
+        <Paragraph fontSize={FONT_SIZE.sm} color="dimmed" fontWeight="500" numberOfLines={1} userSelect="none">
           {headline}
         </Paragraph>
         <Paragraph fontSize={FONT_SIZE.md} fontWeight="600">

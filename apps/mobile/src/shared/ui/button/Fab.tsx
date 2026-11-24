@@ -47,7 +47,7 @@ export function Fab({ onPress, icon: IconComponent = PlusIcon, label, accessibil
     >
       <IconComponent size={label ? 20 : 24} weight="bold" color={colors.onPrimaryFill} />
       {label ? (
-        <Paragraph color={colors.onPrimaryFill} fontSize={FONT_SIZE.md} fontWeight="600">
+        <Paragraph color={colors.onPrimaryFill} fontSize={FONT_SIZE.md} fontWeight="600" userSelect="none">
           {label}
         </Paragraph>
       ) : null}

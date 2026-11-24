@@ -76,6 +76,7 @@ export const ShoppingItemRow = memo(function ShoppingItemRow({
           fontWeight="600"
           textDecorationLine={item.checked ? 'line-through' : 'none'}
           numberOfLines={2}
+          userSelect="none"
         >
           {item.name}
         </Paragraph>

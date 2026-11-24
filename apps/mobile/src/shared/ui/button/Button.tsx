@@ -40,6 +40,11 @@ export type ButtonProps = {
  * Equivalente de `Button` de Mantine: variantes filled · outline · light · subtle, colores brand ·
  * destructive, tamaños sm 36 / md 44 / lg 48 / xl 56 dp, pill (`RADIUS.full`) y peso 600.
  *
+ * La etiqueta lleva `userSelect="none"` (`selectable={false}` en el `Text` nativo): `Paragraph` de Tamagui la deja
+ * seleccionable y, en Android, un `Text` seleccionable se dibuja más angosto de lo que se midió. En un botón del ancho
+ * justo del texto ("Volver a escanear") el renglón se partía y `numberOfLines={1}` dejaba solo "Volver a", sin puntos
+ * suspensivos (#328).
+ *
  * El overlay del Spinner está siempre montado y `loading` solo cambia su opacidad: montarlo y desmontarlo
  * mientras la pantalla se desmonta (p. ej. al guardar y volver) crasheaba Fabric con "addViewAt: failed to insert view".
  */
@@ -89,6 +94,7 @@ export function Button({
           lineHeight={`${metrics.fontSize * 1.25}px`}
           fontWeight="600"
           numberOfLines={1}
+          userSelect="none"
         >
           {children}
         </Paragraph>

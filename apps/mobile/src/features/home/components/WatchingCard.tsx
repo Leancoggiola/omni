@@ -60,7 +60,7 @@ function WatchingRow({ item, onPress }: { item: MediaItem; onPress: () => void }
       <XStack gap={SPACING.sm} alignItems="center">
         <WatchingPoster posterPath={item.posterPath} />
         <YStack flex={1} gap={SPACING['3xs']}>
-          <Paragraph fontSize={FONT_SIZE.md} fontWeight="600" numberOfLines={1}>
+          <Paragraph fontSize={FONT_SIZE.md} fontWeight="600" numberOfLines={1} userSelect="none">
             {item.title}
           </Paragraph>
           <Paragraph fontSize={FONT_SIZE.sm} color="dimmed">

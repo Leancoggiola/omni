@@ -78,7 +78,13 @@ export const MediaGridCard = memo(function MediaGridCard({ item, onStatusPress, 
         </YStack>
         <YStack flex={1} gap={SPACING.xs} justifyContent="space-between" paddingHorizontal={SPACING['2xs']}>
           <YStack gap={SPACING.xs}>
-            <Paragraph fontSize={FONT_SIZE.md} lineHeight={`${LINE_HEIGHT.lg}px`} fontWeight="600" numberOfLines={2}>
+            <Paragraph
+              fontSize={FONT_SIZE.md}
+              lineHeight={`${LINE_HEIGHT.lg}px`}
+              fontWeight="600"
+              numberOfLines={2}
+              userSelect="none"
+            >
               {item.title}
             </Paragraph>
             {author ? <AuthorTag author={author} /> : null}

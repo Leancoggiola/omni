@@ -51,7 +51,7 @@ export const TmdbResultRow = memo(function TmdbResultRow({
     >
       <MediaPoster posterPath={posterPath} width={THUMB_WIDTH} />
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.md} fontWeight="500" numberOfLines={1}>
+        <Paragraph fontSize={FONT_SIZE.md} fontWeight="500" numberOfLines={1} userSelect="none">
           {title}
         </Paragraph>
         <Paragraph fontSize={FONT_SIZE.sm} color="dimmed">

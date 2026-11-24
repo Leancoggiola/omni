@@ -214,7 +214,7 @@ function Stat({ value, label }: { value: number; label: string }) {
 function DiscardedRow({ name, kind }: { name: string; kind: string }) {
   return (
     <XStack justifyContent="space-between" gap={SPACING.sm}>
-      <Paragraph flex={1} fontSize={FONT_SIZE.md} numberOfLines={1}>
+      <Paragraph flex={1} fontSize={FONT_SIZE.md} numberOfLines={1} userSelect="none">
         {name}
       </Paragraph>
       <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>

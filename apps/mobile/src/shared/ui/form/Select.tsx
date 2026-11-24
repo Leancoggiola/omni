@@ -54,7 +54,7 @@ export function Select<T extends string>({ data, value, onChange, accessibilityL
       accessibilityLabel={`${accessibilityLabel}: ${current}`}
       accessibilityHint="Abre las opciones"
     >
-      <Paragraph flex={1} numberOfLines={1} fontSize={FONT_SIZE.md} color="color">
+      <Paragraph flex={1} numberOfLines={1} userSelect="none" fontSize={FONT_SIZE.md} color="color">
         {current}
       </Paragraph>
       <CaretUpDownIcon size={16} color={colors.dimmed} />

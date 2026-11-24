@@ -35,7 +35,7 @@ export function PlanPickerButton({ name, onPress }: PlanPickerButtonProps) {
       accessibilityLabel={`Plan ${name}`}
       accessibilityHint="Abre tus planes para elegir otro"
     >
-      <Paragraph flexShrink={1} fontSize={FONT_SIZE.lg} fontWeight="600" numberOfLines={1}>
+      <Paragraph flexShrink={1} fontSize={FONT_SIZE.lg} fontWeight="600" numberOfLines={1} userSelect="none">
         {name}
       </Paragraph>
       <CaretDownIcon size={16} weight="bold" color={colors.text} />

@@ -50,10 +50,16 @@ export function ExerciseRow({ exercise, readOnly, onWeightPress, onPress }: Exer
       >
         <ExerciseTile />
         <YStack flex={1} gap={SPACING['3xs']}>
-          <Paragraph fontSize={FONT_SIZE.lg} lineHeight={`${LINE_HEIGHT.xl}px`} fontWeight="600" numberOfLines={2}>
+          <Paragraph
+            fontSize={FONT_SIZE.lg}
+            lineHeight={`${LINE_HEIGHT.xl}px`}
+            fontWeight="600"
+            numberOfLines={2}
+            userSelect="none"
+          >
             {exercise.name}
           </Paragraph>
-          <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
+          <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1} userSelect="none">
             {details}
           </Paragraph>
         </YStack>

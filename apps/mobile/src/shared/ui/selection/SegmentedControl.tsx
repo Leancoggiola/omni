@@ -67,6 +67,7 @@ export function SegmentedControl<T extends string>({
               fontWeight={active ? '700' : '600'}
               color={active ? 'primary' : 'dimmed'}
               numberOfLines={1}
+              userSelect="none"
             >
               {item.label}
             </Paragraph>

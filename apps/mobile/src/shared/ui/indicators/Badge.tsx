@@ -80,6 +80,7 @@ export function Badge({ children, color, variant = 'light', size = 'sm', alignSe
         letterSpacing={0.25}
         textTransform="uppercase"
         numberOfLines={1}
+        userSelect="none"
       >
         {children}
       </Paragraph>

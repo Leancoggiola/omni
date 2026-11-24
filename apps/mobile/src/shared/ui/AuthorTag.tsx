@@ -52,7 +52,7 @@ export function AuthorTag({
         </Paragraph>
       </YStack>
       {showName ? (
-        <Paragraph color="dimmed" fontSize={FONT_SIZE.xs} numberOfLines={1} flexShrink={1}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.xs} numberOfLines={1} userSelect="none" flexShrink={1}>
           {showActionLabel ? `${actionLabel} ${label}` : label}
         </Paragraph>
       ) : null}

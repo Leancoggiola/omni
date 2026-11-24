@@ -48,6 +48,19 @@ async function renderLight(children: React.ReactNode) {
 }
 
 describe('Tamagui 3 con el config de la app (render real, sin mock)', () => {
+  it('`userSelect="none"` apaga `selectable` del Text nativo, que `Paragraph` deja en true (#328)', async () => {
+    await renderLight(
+      <>
+        <Paragraph testID="selectable">Volver a escanear</Paragraph>
+        <Paragraph testID="fixed" userSelect="none">
+          Volver a escanear
+        </Paragraph>
+      </>
+    );
+    expect(screen.getByTestId('selectable').props.selectable).toBe(true);
+    expect(screen.getByTestId('fixed').props.selectable).toBe(false);
+  });
+
   it('resuelve los valores planos: tokens propios, lineHeight en px y la familia display', async () => {
     await renderLight(
       <Paragraph testID="p" color="dimmed" lineHeight="20px" fontSize={14} fontFamily="display">
