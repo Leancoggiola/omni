@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { setColorSchemeHint } from '../colorSchemeHint';
 import { clearSessionColorScheme, setSessionColorScheme } from '../sessionColorScheme';
 import { createSessionColorSchemeManager, LEGACY_COLOR_SCHEME_KEY } from '../sessionColorSchemeManager';
 
@@ -25,6 +26,15 @@ describe('createSessionColorSchemeManager', () => {
 
     clearSessionColorScheme();
     expect(manager.get('auto')).toBe('auto');
+  });
+
+  it('sin override usa la pista del tema del perfil de la última sesión', () => {
+    setColorSchemeHint('dark');
+    const manager = createSessionColorSchemeManager();
+    expect(manager.get('auto')).toBe('dark');
+
+    setSessionColorScheme('light');
+    expect(manager.get('auto')).toBe('light');
   });
 
   it('borra el valor que dejaba el manager de localStorage de Mantine', () => {
