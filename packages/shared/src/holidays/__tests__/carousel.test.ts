@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
-import { clampCarouselIndex, emptyTodayHolidays, isStaleHolidayDay, nextCarouselIndex } from '..';
+import {
+  HOLIDAY_CAROUSEL_DURATION_MS,
+  clampCarouselIndex,
+  emptyTodayHolidays,
+  isStaleHolidayDay,
+  nextCarouselIndex,
+} from '..';
+
+describe('duración del carrusel', () => {
+  it('cada efeméride se muestra 5 segundos', () => {
+    expect(HOLIDAY_CAROUSEL_DURATION_MS).toBe(5_000);
+  });
+});
 
 describe('índices del carrusel', () => {
   it('avanza de a uno y vuelve al primero después del último', () => {
