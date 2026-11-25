@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseHolidayEntry } from '../holidays/holidays.parser';
+import { parseHolidayEntries, parseHolidayEntry } from '../holidays/holidays.parser';
 
 describe('parseHolidayEntry', () => {
   describe('título', () => {
@@ -362,12 +362,22 @@ describe('parseHolidayEntry', () => {
       }
     );
 
+    it.each(['Día Nacional del Frijol.(en inglés: National Bean Day).', 'Día Nacional del Vino Croata.'])(
+      'descarta el "Día Nacional" sin país "%s"',
+      raw => {
+        expect(parseHolidayEntry(raw)).toBeNull();
+      }
+    );
+
     it.each([
-      'Día Nacional del Frijol.(en inglés: National Bean Day).',
-      'Día Nacional del Vino Croata.',
-      'Día Nacional de la Medicina Social.En homenaje al Dr. René Favaloro.',
-    ])('descarta el "Día Nacional" sin país "%s"', raw => {
-      expect(parseHolidayEntry(raw)).toBeNull();
+      ['Día Nacional del Perro.', 'Día Nacional del Perro'],
+      ['Día Nacional de la Medicina Social.En homenaje al Dr. René Favaloro.', 'Día Nacional de la Medicina Social'],
+      [
+        'Día de las Heroínas y Mártires de la Independencia de América.',
+        'Día de las Heroínas y Mártires de la Independencia de América',
+      ],
+    ])('conserva como argentina la efeméride que llega sin país "%s"', (raw, title) => {
+      expect(parseHolidayEntry(raw)).toEqual({ title, isArgentina: true });
     });
 
     it('conserva el "Día Nacional" argentino', () => {
@@ -441,5 +451,74 @@ describe('parseHolidayEntry', () => {
 
   it('descarta texto vacío', () => {
     expect(parseHolidayEntry('   ')).toBeNull();
+  });
+});
+
+describe('parseHolidayEntries', () => {
+  const titles = (raw: string) => parseHolidayEntries(raw).map(holiday => holiday.title);
+  const MEDICINA =
+    'Día Nacional de la Medicina Social.En homenaje al Dr. René Favaloro, cardiocirujano nacido el 12 de julio de 1923.';
+
+  it.each([
+    [
+      'Día del Graduado en Ciencias Económicas.\nDía del Bombero Voluntario.',
+      ['Día del Graduado en Ciencias Económicas', 'Día del Bombero Voluntario'],
+    ],
+    [
+      'Día del Graduado en Ciencias Económicas.\nDía Nacional del Perro.',
+      ['Día del Graduado en Ciencias Económicas', 'Día Nacional del Perro'],
+    ],
+    [
+      `${MEDICINA}\nDía de las Heroínas y Mártires de la Independencia de América.`,
+      ['Día Nacional de la Medicina Social', 'Día de las Heroínas y Mártires de la Independencia de América'],
+    ],
+  ])('devuelve cada efeméride de "%s"', (raw, expected) => {
+    expect(titles(raw)).toEqual(expected);
+  });
+
+  it('aplica el encabezado de país a las efemérides que tiene debajo', () => {
+    const raw =
+      'Argentina Argentina:\nDía de la Obstetricia y la Embarazada.\nArmada Argentina:\nDía de la Fragata Presidente Sarmiento.Por Ley n.º 24.966.';
+
+    expect(parseHolidayEntries(raw)).toEqual([
+      { title: 'Día de la Obstetricia y la Embarazada', isArgentina: true },
+      { title: 'Día de la Fragata Presidente Sarmiento', isArgentina: true },
+    ]);
+  });
+
+  it.each([
+    [`${MEDICINA}\nCiudad de Buenos Aires:\nDía del barrio de La Paternal.`, ['Día Nacional de la Medicina Social']],
+    [
+      'Argentina Argentina:\nDía de los Glaciares.\nMisiones:\nDía Provincial para la Lucha contra el Cáncer Infantil.',
+      ['Día de los Glaciares'],
+    ],
+    ['Argentina Argentina:\ndia nacional des kiosquero\nMisiones:\nDía Provincial del Ecoturismo.', []],
+    [
+      'Estados Unidos Estados Unidos:\nTexas:\nDía de los Héroes Confederados.\ny su recordatorio relacionado en Alabama:\nDía de Robert E. Lee.',
+      [],
+    ],
+  ])('deja afuera lo provincial y lo de otro país en "%s"', (raw, expected) => {
+    expect(titles(raw)).toEqual(expected);
+  });
+
+  it('descarta la efeméride sin encabezado que cuelga de una descartada', () => {
+    const raw =
+      'Día Nacional de The Twilight Zone (serie de televisión de 1959).\nDía de los Derechos Humanos en Vietnam.';
+
+    expect(titles(raw)).toEqual([]);
+  });
+
+  it.each([
+    'Día de la Victoria sobre el nazismo.en ruso: День Победы\nArmeniaArmenia Armenia',
+    'México México:\nDía de la Madre.',
+    '   ',
+  ])('lee entera la entrada con menos de dos "Día…": "%s"', raw => {
+    expect(titles(raw)).toEqual([]);
+  });
+
+  it('devuelve la única efeméride de una entrada simple', () => {
+    expect(parseHolidayEntries('Argentina Argentina:\nDía del Bibliotecario.')).toEqual([
+      { title: 'Día del Bibliotecario', isArgentina: true },
+    ]);
   });
 });
