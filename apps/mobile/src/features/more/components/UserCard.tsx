@@ -1,11 +1,11 @@
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { useRouter } from 'expo-router';
 import { CaretRightIcon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
-import { UserAvatar } from '@/shared/ui';
+import { Paragraph, UserAvatar } from '@/shared/ui';
 import { glassElevation } from '@/theme/elevation';
 
 /** Tarjeta de usuario del launcher (= tarjeta del pie del navbar de web): card glass que lleva a Perfil. */

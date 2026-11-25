@@ -4,7 +4,7 @@ import { RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, type TextInputInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Paragraph, XStack, YStack, type TamaguiElement } from 'tamagui';
+import { XStack, YStack, type TamaguiElement } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { biometricIcon, useBiometrics } from '@/core/biometrics';
@@ -16,6 +16,7 @@ import {
   DisplayTitle,
   getErrorMessage,
   notifyWarning,
+  Paragraph,
   PasswordField,
   TextField,
   useKeyboardInset,

@@ -1,6 +1,8 @@
 import { PANTRY_EXPIRING_SOON_DAYS } from '@omni/shared/pantry';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
+
+import { Paragraph } from '@/shared/ui';
 
 import type { PantryAlertFilter, PantrySummary } from '@omni/shared/pantry';
 

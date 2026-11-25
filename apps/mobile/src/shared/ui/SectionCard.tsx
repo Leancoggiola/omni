@@ -1,9 +1,10 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
 import { useColorSchemeControl } from '@/core/theme';
 import { glassElevation } from '@/theme/elevation';
 
+import { Paragraph } from './Paragraph';
 import { Title } from './Title';
 
 import type { ReactNode } from 'react';

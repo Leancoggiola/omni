@@ -1,10 +1,11 @@
 import { FONT_SIZE, RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef } from 'react';
 import { AccessibilityInfo, type TextInputInstance } from 'react-native';
-import { Input, Paragraph, XStack, YStack, type InputProps } from 'tamagui';
+import { Input, XStack, YStack, type InputProps } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 
+import { Paragraph } from '../Paragraph';
 import { useFormField } from './FormContext';
 
 import type { Icon } from 'phosphor-react-native';

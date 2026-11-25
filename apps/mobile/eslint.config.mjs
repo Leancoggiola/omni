@@ -10,6 +10,14 @@ const SPINNER_PATHS = [
   { name: '@tamagui/spinner', message: SPINNER_MESSAGE },
 ];
 
+const PARAGRAPH_MESSAGE =
+  'Usar Paragraph de @/shared/ui: el de Tamagui nace seleccionable y en Android recorta el texto (#328).';
+const PARAGRAPH_PATHS = [
+  { name: 'tamagui', importNames: ['Paragraph'], message: PARAGRAPH_MESSAGE },
+  { name: '@tamagui/text', importNames: ['Paragraph'], message: PARAGRAPH_MESSAGE },
+];
+const SHARED_PATHS = [...SPINNER_PATHS, ...PARAGRAPH_PATHS];
+
 /** Las features usan las primitivas de @/shared/ui; las crudas de Tamagui salen con los estilos por defecto. */
 const BUTTON_MESSAGE = 'Usar Button de @/shared/ui (variantes, tamaños, loading y color de marca).';
 const INPUT_MESSAGE = 'Usar TextField / PasswordField de @/shared/ui (label, error, ícono y alto de 44 dp).';
@@ -39,7 +47,7 @@ const ALERT_SELECTORS = [
 const NAMESPACE_IMPORT = {
   selector: "ImportDeclaration[source.value='tamagui'] > ImportNamespaceSpecifier",
   message:
-    'Importar de tamagui por nombre: `import * as` esquiva la regla que prohíbe Button, Input, Switch y Spinner.',
+    'Importar de tamagui por nombre: `import * as` esquiva la regla que prohíbe Button, Input, Paragraph, Switch y Spinner.',
 };
 
 const TEST_FILES = ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}', 'src/test/**/*.{ts,tsx}'];
@@ -58,7 +66,7 @@ export default defineConfig([
   },
   {
     rules: {
-      'no-restricted-imports': ['error', { paths: SPINNER_PATHS }],
+      'no-restricted-imports': ['error', { paths: SHARED_PATHS }],
       'no-restricted-syntax': ['error', ...ALERT_SELECTORS],
     },
   },
@@ -71,13 +79,13 @@ export default defineConfig([
   {
     files: ['src/features/**/*.{ts,tsx}', 'app/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', { paths: [...SPINNER_PATHS, ...RAW_CONTROLS_PATHS] }],
+      'no-restricted-imports': ['error', { paths: [...SHARED_PATHS, ...RAW_CONTROLS_PATHS] }],
       'no-restricted-syntax': ['error', ...ALERT_SELECTORS, NAMESPACE_IMPORT, ...hardcodedColorSelectors],
     },
   },
   ...featureIsolation({
     featuresDir: join(import.meta.dirname, 'src/features'),
-    paths: [...SPINNER_PATHS, ...RAW_CONTROLS_PATHS],
+    paths: [...SHARED_PATHS, ...RAW_CONTROLS_PATHS],
   }),
   {
     files: TEST_FILES,
@@ -88,7 +96,7 @@ export default defineConfig([
     languageOptions: { globals: JEST_GLOBALS },
   },
   {
-    files: ['src/shared/ui/Spinner.tsx'],
+    files: ['src/shared/ui/Spinner.tsx', 'src/shared/ui/Paragraph.tsx'],
     rules: { 'no-restricted-imports': 'off' },
   },
 ]);

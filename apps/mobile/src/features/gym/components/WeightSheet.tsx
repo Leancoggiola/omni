@@ -3,7 +3,7 @@ import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { ArchiveIcon, MinusIcon, PlusIcon, XIcon } from 'phosphor-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal } from 'react-native';
-import { Paragraph, Sheet, XStack, YStack } from 'tamagui';
+import { Sheet, XStack, YStack } from 'tamagui';
 
 import {
   Banner,
@@ -11,6 +11,7 @@ import {
   DisplayTitle,
   IconButton,
   LoadingState,
+  Paragraph,
   SHEET_EXIT_MS,
   SheetFrame,
   SheetOverlay,

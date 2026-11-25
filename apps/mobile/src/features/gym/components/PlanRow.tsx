@@ -1,8 +1,9 @@
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { CaretRightIcon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
+import { Paragraph } from '@/shared/ui';
 import { glassElevation } from '@/theme/elevation';
 
 import { formatPlanCounts } from '../utils/gymFormat';

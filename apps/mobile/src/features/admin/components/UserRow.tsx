@@ -2,9 +2,9 @@ import { ROLE_LABELS } from '@omni/shared/auth';
 import { FONT_SIZE, LINE_HEIGHT, SPACING } from '@omni/shared/theme';
 import { TrashIcon } from 'phosphor-react-native';
 import { memo } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { Badge, IconButton, UserAvatar } from '@/shared/ui';
+import { Badge, IconButton, Paragraph, UserAvatar } from '@/shared/ui';
 
 import { formatCreatedAt } from '../utils/formatCreatedAt';
 
