@@ -205,4 +205,11 @@ describe('expenseSharers y describeExpenseSharers', () => {
     );
     expect(describeExpenseSharers({ amount: 10, sharedWith: ['p1'] }, participants)).toBe('Entre Ana · $10,00 c/u');
   });
+
+  it('ignora los ids que ya no están y, si no queda ninguno, no muestra línea, igual que computeBalances', () => {
+    expect(describeExpenseSharers({ amount: 40, sharedWith: ['p1', 'gone'] }, participants)).toBe(
+      'Entre Ana · $40,00 c/u'
+    );
+    expect(describeExpenseSharers({ amount: 30, sharedWith: ['gone'] }, participants)).toBeNull();
+  });
 });

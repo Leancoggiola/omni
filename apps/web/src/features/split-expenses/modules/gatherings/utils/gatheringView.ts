@@ -141,7 +141,6 @@ export function describeSettlement(settlement: Settlement, participants: Gatheri
 
 export interface SplitCaption {
   text: string;
-  /** `true` cuando no hay nadie entre quien repartir: el caption pasa a error y no se puede agregar el gasto. */
   invalid: boolean;
 }
 
@@ -156,7 +155,7 @@ export function baseSharePerPerson(amount: number, count: number): number {
 
 /**
  * Caption en vivo del composer: "Se divide entre 3 de 4 · $9.000,00 c/u" (sin "c/u" mientras no hay monto) o, con
- * nadie elegido, "Elegí al menos una persona" como error.
+ * nadie elegido, "Elegí al menos una persona" como error (`invalid: true`, no se puede agregar el gasto).
  */
 export function describeSplitCaption(amount: number, selectedCount: number, totalCount: number): SplitCaption {
   if (selectedCount === 0) return { text: 'Elegí al menos una persona', invalid: true };
