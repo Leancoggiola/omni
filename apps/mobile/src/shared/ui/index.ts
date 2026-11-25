@@ -26,6 +26,7 @@ export { NotificationsProvider, useSetNotificationsBottomOffset } from './notify
 export { AppBackground } from './AppBackground';
 export { AuthorTag } from './AuthorTag';
 export { DisplayTitle } from './DisplayTitle';
+export { Paragraph } from './Paragraph';
 export { Screen } from './Screen';
 export { ScreenHeader } from './ScreenHeader';
 export { SectionCard } from './SectionCard';

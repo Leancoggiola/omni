@@ -1,5 +1,7 @@
 import { DISPLAY } from '@omni/shared/theme';
-import { Paragraph, type ParagraphProps } from 'tamagui';
+import type { ParagraphProps } from 'tamagui';
+
+import { Paragraph } from './Paragraph';
 
 type DisplaySize = 'md' | 'lg' | 'xl';
 

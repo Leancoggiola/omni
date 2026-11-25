@@ -1,9 +1,9 @@
 import { PANTRY_CATEGORIES, PANTRY_CATEGORY_LABELS } from '@omni/shared/pantry';
 import { SPACING } from '@omni/shared/theme';
 import { useState } from 'react';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
-import { Banner, Button, FormSheet, getErrorMessage, Select, TextField } from '@/shared/ui';
+import { Banner, Button, FormSheet, getErrorMessage, Paragraph, Select, TextField } from '@/shared/ui';
 
 import { parseNumberInput } from '../utils/numberInput';
 

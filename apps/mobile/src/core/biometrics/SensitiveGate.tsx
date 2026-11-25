@@ -3,9 +3,9 @@ import { NAV_REGISTRY, type NavKey } from '@omni/shared/navigation';
 import { SPACING } from '@omni/shared/theme';
 import { LockKeyIcon } from 'phosphor-react-native';
 import { useState, type ReactNode } from 'react';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
-import { Button, EmptyState, notifyError, Screen, ScreenHeader } from '@/shared/ui';
+import { Button, EmptyState, notifyError, Paragraph, Screen, ScreenHeader } from '@/shared/ui';
 
 import { biometricIcon } from './biometricIcon';
 import { isSensitiveModule } from './biometrics';

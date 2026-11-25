@@ -2,13 +2,14 @@ import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { WarningCircleIcon, type Icon } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { Animated } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { glassElevation } from '@/theme/elevation';
 
 import { Button } from './button/Button';
 import { DisplayTitle } from './DisplayTitle';
+import { Paragraph } from './Paragraph';
 import { Spinner } from './Spinner';
 import { STATUS_PILL_HEIGHT } from './StatusPill';
 import { useReduceMotion } from './useReduceMotion';

@@ -1,9 +1,9 @@
 import { SPACING } from '@omni/shared/theme';
 import { MagnifyingGlassIcon } from 'phosphor-react-native';
 import { useState } from 'react';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
-import { Banner, Button, FormSheet, getErrorMessage, SegmentedControl, TextField } from '@/shared/ui';
+import { Banner, Button, FormSheet, getErrorMessage, Paragraph, SegmentedControl, TextField } from '@/shared/ui';
 
 import { usePantrySuggestions } from '../hooks/usePantrySuggestions';
 import { parseNumberInput } from '../utils/numberInput';

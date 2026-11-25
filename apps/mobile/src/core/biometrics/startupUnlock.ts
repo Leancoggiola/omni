@@ -2,9 +2,8 @@ let unlocked = false;
 
 /**
  * Si el bloqueo de arranque ya se liberó en este proceso (biometría, contraseña o activación desde Perfil). Vive a
- * nivel de módulo y no en el estado del `BiometricsProvider` porque expo-router vuelve a montar el layout raíz al
- * redirigir (login → tabs): con el estado del componente, el provider nuevo volvía a leer la preferencia, la app
- * quedaba bloqueada otra vez y `AuthGate` devolvía al login. Se reinicia solo con un arranque en frío.
+ * nivel de módulo y no en el estado del `BiometricsProvider` para que un nuevo montaje del layout raíz no vuelva a
+ * leer la preferencia, deje la app bloqueada otra vez y mande al login. Se reinicia solo con un arranque en frío.
  */
 export function isStartupUnlocked(): boolean {
   return unlocked;

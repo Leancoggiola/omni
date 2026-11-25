@@ -1,9 +1,9 @@
 import { formatPantryQuantity } from '@omni/shared/pantry';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { useState } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { Badge, Banner, Button, FormSheet, getErrorMessage } from '@/shared/ui';
+import { Badge, Banner, Button, FormSheet, getErrorMessage, Paragraph } from '@/shared/ui';
 
 import { CategoryTile } from './CategoryTile';
 

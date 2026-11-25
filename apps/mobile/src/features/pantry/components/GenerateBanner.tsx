@@ -1,9 +1,9 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { SparkleIcon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { Button } from '@/shared/ui';
+import { Button, Paragraph } from '@/shared/ui';
 
 type GenerateBannerProps = {
   lowStockCount: number;

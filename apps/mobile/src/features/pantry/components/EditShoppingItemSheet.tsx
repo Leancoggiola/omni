@@ -1,8 +1,8 @@
 import { SPACING } from '@omni/shared/theme';
 import { useState } from 'react';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
-import { Banner, Button, FormSheet, getErrorMessage, TextField } from '@/shared/ui';
+import { Banner, Button, FormSheet, getErrorMessage, Paragraph, TextField } from '@/shared/ui';
 
 import { parseNumberInput } from '../utils/numberInput';
 

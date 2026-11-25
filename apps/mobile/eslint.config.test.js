@@ -103,6 +103,24 @@ const CASES = [
     rule: IMPORTS,
   },
   {
+    name: 'Paragraph de tamagui en shared/ui',
+    file: 'src/shared/x/K4.tsx',
+    code: "import { Paragraph } from 'tamagui';\nexport const x = Paragraph;\n",
+    rule: IMPORTS,
+  },
+  {
+    name: 'Paragraph de tamagui en features',
+    file: 'src/features/x/K5.tsx',
+    code: "import { Paragraph } from 'tamagui';\nexport const x = Paragraph;\n",
+    rule: IMPORTS,
+  },
+  {
+    name: 'Paragraph de @tamagui/text en app',
+    file: 'app/K6.tsx',
+    code: "import { Paragraph } from '@tamagui/text';\nexport const x = Paragraph;\n",
+    rule: IMPORTS,
+  },
+  {
     name: 'import de otro feature',
     file: 'src/features/home/N.tsx',
     code: "import { y } from '@/features/media/MediaScreen';\nexport const x = y;\n",
@@ -139,9 +157,9 @@ const ALLOWED = [
     code: "import { Button } from 'tamagui';\nexport const x = Button;\n",
   },
   {
-    name: 'Stack y Paragraph de tamagui en features',
+    name: 'Stack de tamagui y Paragraph de shared/ui en features',
     file: 'src/features/x/M.tsx',
-    code: "import { YStack, Paragraph } from 'tamagui';\nexport const x = [YStack, Paragraph];\n",
+    code: "import { YStack } from 'tamagui';\nimport { Paragraph } from '@/shared/ui';\nexport const x = [YStack, Paragraph];\n",
   },
 ];
 

@@ -4,6 +4,7 @@ import { renderWithProviders } from '@/__tests__/helpers';
 
 import { HolidaysCard } from '../components/HolidaysCard/HolidaysCard';
 
+import { HOLIDAY_CAROUSEL_DURATION_MS } from '@omni/shared/holidays';
 import { act, fireEvent, screen } from '@testing-library/react';
 
 const useTodayHolidays = vi.fn();
@@ -154,7 +155,7 @@ describe('HolidaysCard', () => {
 
     fireEvent.mouseLeave(card);
     act(() => {
-      vi.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(HOLIDAY_CAROUSEL_DURATION_MS);
     });
     expect(screen.getByText('Segunda')).toBeInTheDocument();
 
@@ -173,8 +174,24 @@ describe('HolidaysCard', () => {
 
     fireEvent.focusOut(card, { relatedTarget: null });
     act(() => {
-      vi.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(HOLIDAY_CAROUSEL_DURATION_MS);
     });
     expect(screen.getByText('Tercera')).toBeInTheDocument();
+  });
+
+  it('avanza sola recién al cumplirse la duración compartida y la barra dura lo mismo', () => {
+    vi.useFakeTimers();
+    withItems(['Primera', 'Segunda']);
+    const { container } = renderWithProviders(<HolidaysCard />);
+
+    expect(container.innerHTML).toContain(`--progress-transition-duration: ${HOLIDAY_CAROUSEL_DURATION_MS}ms`);
+    act(() => {
+      vi.advanceTimersByTime(HOLIDAY_CAROUSEL_DURATION_MS - 1);
+    });
+    expect(screen.getByText('Primera')).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.getByText('Segunda')).toBeInTheDocument();
   });
 });

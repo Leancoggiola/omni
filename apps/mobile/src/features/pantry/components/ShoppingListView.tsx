@@ -3,7 +3,7 @@ import { SPACING } from '@omni/shared/theme';
 import { ShoppingCartIcon } from 'phosphor-react-native';
 import { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useHousehold } from '@/core/household';
 import {
@@ -18,6 +18,7 @@ import {
   LoadingState,
   notifyError,
   notifySuccess,
+  Paragraph,
   usePullToRefresh,
   useSheetNotice,
 } from '@/shared/ui';

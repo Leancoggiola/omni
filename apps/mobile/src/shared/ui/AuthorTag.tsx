@@ -1,7 +1,8 @@
 import { ITEM_ADDED_BY_LABEL } from '@omni/shared/household';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
+import { Paragraph } from './Paragraph';
 import { getInitials } from './UserAvatar.utils';
 
 import type { ItemAuthor } from '@omni/shared/household';
