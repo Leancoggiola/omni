@@ -133,7 +133,7 @@ Preferir `getByRole` siempre. Estas son las que ya nos mordieron:
 | El título de la juntada no es un heading               | Se renderiza como `<p>`. Usar `getByText`                                                                        |
 | `getByText(titulo)` matchea 2 veces tras usar el modal | Las opciones del dropdown siguen montadas. Esperar `getByRole('dialog')` oculto                                  |
 | Un monto aparece más de una vez                        | "Parte equitativa" repite el importe. Acotar al bloque, ej. `getByText('¿Quién le debe a quién?').locator('..')` |
-| La efeméride visible cambia sola                       | El carrusel avanza cada 3 s. `page.clock.install()` + `page.clock.pauseAt(new Date())` **antes** del `goto`      |
+| La efeméride visible cambia sola                       | El carrusel avanza cada 5 s. `page.clock.install()` + `page.clock.pauseAt(new Date())` **antes** del `goto`      |
 
 Si un elemento no tiene nombre accesible, **agregarle `aria-label` en `apps/web`** en vez de recurrir a selectores por clase. Es una mejora real de accesibilidad y de paso hace el test estable. Ya se hizo con el botón de logout, los de media y el `LoadingState`.
 
