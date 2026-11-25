@@ -29,3 +29,4 @@ export {
 export { formatMoney, MONEY_FORMAT, roundMoney } from './money';
 export { getTimeGreeting } from './greeting';
 export { ignoreError } from './ignoreError';
+export { compareNames } from './sorting';

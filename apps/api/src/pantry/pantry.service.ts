@@ -12,7 +12,7 @@ import type {
   UpdateShoppingListItemPayload,
 } from '@omni/shared/pantry';
 import { computeQuantityToBuy, isExpiringSoon, isLowStock } from '@omni/shared/pantry';
-import { AMOUNT_MAX_10_2, parseIsoDateString, startOfTodayInAppTz } from '@omni/shared/common';
+import { AMOUNT_MAX_10_2, compareNames, parseIsoDateString, startOfTodayInAppTz } from '@omni/shared/common';
 import type { PantryProduct as PrismaPantryProduct, Prisma } from '../generated/prisma/client';
 import { paginationSkipTake } from '@omni/shared/common';
 
@@ -88,6 +88,12 @@ export async function getSummary(userId: string): Promise<PantrySummary> {
   };
 }
 
+/**
+ * Página del inventario en orden alfabético (`compareNames`); entre nombres equivalentes, primero el más antiguo. La
+ * base no ordena con esas reglas, así que el orden se resuelve en memoria: de todos los productos que cumplen el filtro
+ * se leen solo `id` y `name`, se ordenan, se corta la página y recién ahí se leen completos los de esa página. El costo
+ * del primer paso crece con el inventario, que no tiene tope; se asume el de un hogar (cientos de productos).
+ */
 export async function listProducts(userId: string, params: ListPantryProductsParams) {
   const { skip, take } = paginationSkipTake(params);
   const householdId = await getHouseholdId(userId);
@@ -101,12 +107,23 @@ export async function listProducts(userId: string, params: ListPantryProductsPar
       ],
     }),
   };
-  const [items, total] = await Promise.all([
-    prisma.pantryProduct.findMany({ where, skip, take, orderBy: { name: 'asc' } }),
-    prisma.pantryProduct.count({ where }),
-  ]);
+  const matches = await prisma.pantryProduct.findMany({
+    where,
+    select: { id: true, name: true },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+  });
+  const pageIds = matches
+    .sort((a, b) => compareNames(a.name, b.name))
+    .slice(skip, skip + take)
+    .map(p => p.id);
+  const rows = await prisma.pantryProduct.findMany({ where: { householdId, id: { in: pageIds } } });
+  const rowsById = new Map(rows.map(row => [row.id, row]));
   const today = startOfTodayInAppTz();
-  return { items: items.map(p => mapProduct(p, today)), total, page: params.page, limit: params.limit };
+  const items = pageIds.flatMap(id => {
+    const row = rowsById.get(id);
+    return row ? [mapProduct(row, today)] : [];
+  });
+  return { items, total: matches.length, page: params.page, limit: params.limit };
 }
 
 export async function suggestProducts(userId: string, params: SuggestPantryProductsParams) {
@@ -273,13 +290,18 @@ function mapShoppingItem(
   };
 }
 
+/**
+ * Lista de compras: primero los pendientes y después los comprados, cada grupo en orden alfabético (`compareNames`);
+ * entre nombres equivalentes, primero el más antiguo.
+ */
 export async function listShoppingList(userId: string) {
   const householdId = await getHouseholdId(userId);
   const items = await prisma.pantryShoppingListItem.findMany({
     where: { householdId },
     include: { pantryProduct: true },
-    orderBy: [{ checked: 'asc' }, { createdAt: 'desc' }],
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
   });
+  items.sort((a, b) => Number(a.checked) - Number(b.checked) || compareNames(a.name, b.name));
   const today = startOfTodayInAppTz();
   return items.map(i => mapShoppingItem(i, i.pantryProduct, today));
 }

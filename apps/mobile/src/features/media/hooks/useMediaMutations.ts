@@ -3,6 +3,8 @@ import { useSWRConfig } from 'swr';
 
 import { api, API_KEYS } from '@/shared/api';
 
+import { insertMediaItem } from '@omni/shared/media';
+
 import type { MediaItem, MediaStatus, MediaType } from '@omni/shared/media';
 
 const LIST_KEY = API_KEYS.media.list;
@@ -41,7 +43,7 @@ export function useMediaMutations() {
       const item = await api.post<MediaItem>(LIST_KEY, { tmdbId, mediaType, status });
       await mutateList(
         () => Promise.resolve(),
-        items => [item, ...items]
+        items => insertMediaItem(items, item)
       );
       return item;
     },
