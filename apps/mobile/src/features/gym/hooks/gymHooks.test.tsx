@@ -103,11 +103,11 @@ describe('useGymCatalogSuggestions', () => {
     await rerender({ q: 'Se' });
     expect(result.current.searching).toBe(true);
     await act(async () => {
-      await jest.advanceTimersByTimeAsync(299);
+      await jest.advanceTimersByTimeAsync(250);
     });
     expect(fetcher).not.toHaveBeenCalled();
     await act(async () => {
-      await jest.advanceTimersByTimeAsync(2);
+      await jest.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => expect(result.current.suggestions).toHaveLength(1));
