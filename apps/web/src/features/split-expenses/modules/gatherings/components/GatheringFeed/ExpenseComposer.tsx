@@ -3,14 +3,12 @@ import { Button, Chip, Group, NumberInput, Text, TextInput } from '@mantine/core
 
 import { getErrorMessage, notifyError } from '@/shared/ui';
 
-import { describeSplitCaption, participantLabel } from '../../utils/gatheringView';
-
 import type { AddGatheringExpensePayload, GatheringParticipantSummary } from '@omni/shared/split-expenses';
 
 import classes from './GatheringFeed.module.scss';
 
 import { MONEY_FORMAT } from '@omni/shared/common';
-import { GATHERING_EXPENSE_DESCRIPTION_MAX } from '@omni/shared/split-expenses';
+import { describeSplitCaption, GATHERING_EXPENSE_DESCRIPTION_MAX, participantLabel } from '@omni/shared/split-expenses';
 
 interface ExpenseComposerProps {
   participants: GatheringParticipantSummary[];

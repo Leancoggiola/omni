@@ -1,8 +1,6 @@
 import { z } from 'zod';
-
-import type { CreateSplitFriendPayload } from '@omni/shared/split-expenses';
-
-import { createSplitFriendSchema, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
+import { SPLIT_FRIEND_NAME_MAX } from './constants';
+import { createSplitFriendSchema, type CreateSplitFriendPayload } from './schemas';
 
 export interface FriendFormValues {
   name: string;

@@ -41,7 +41,7 @@ export const NAV_REGISTRY: Record<NavKey, NavEntry> = {
   'split-expenses': {
     label: 'Dividir gastos',
     path: '/split-expenses',
-    availableOn: ['web'],
+    availableOn: ['web', 'mobile'],
   },
   profile: { label: 'Perfil', path: '/profile', availableOn: ['web', 'mobile'] },
   admin: { label: 'Administración', path: '/admin', availableOn: ['web', 'mobile'] },

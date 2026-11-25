@@ -23,7 +23,7 @@ export type ButtonProps = {
   children: string;
   onPress?: () => void;
   variant?: ButtonVariant;
-  color?: 'brand' | 'destructive';
+  color?: 'brand' | 'destructive' | 'success';
   size?: ButtonSize;
   /** Ícono de Phosphor a la izquierda: el botón lo pinta con el color y el tamaño de la variante. */
   leftSection?: Icon;
@@ -39,7 +39,7 @@ export type ButtonProps = {
 
 /**
  * Equivalente de `Button` de Mantine: variantes filled · outline · light · subtle, colores brand ·
- * destructive, tamaños sm 36 / md 44 / lg 48 / xl 56 dp, pill (`RADIUS.full`) y peso 600.
+ * destructive · success (terminado), tamaños sm 36 / md 44 / lg 48 / xl 56 dp, pill (`RADIUS.full`) y peso 600.
  *
  * El overlay del Spinner está siempre montado y `loading` solo cambia su opacidad: montarlo y desmontarlo
  * mientras la pantalla se desmonta (p. ej. al guardar y volver) crasheaba Fabric con "addViewAt: failed to insert view".

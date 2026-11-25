@@ -1,9 +1,8 @@
 import { z } from 'zod';
-
-import type { CreateGatheringPayload } from '@omni/shared/split-expenses';
-
-import { appDateKey, GATHERING_PARTICIPANTS_MAX, isoDateStringSchema } from '@omni/shared/common';
-import { GATHERING_NAME_MAX, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
+import { appDateKey, isoDateStringSchema } from '../common/dates';
+import { GATHERING_PARTICIPANTS_MAX } from '../common/limits';
+import { GATHERING_NAME_MAX, SPLIT_FRIEND_NAME_MAX } from './constants';
+import type { CreateGatheringPayload } from './schemas';
 
 export interface GatheringParticipantDraft {
   key: string;
@@ -29,7 +28,7 @@ export const newGatheringFormSchema: z.ZodType<NewGatheringFormValues> = z.objec
   participants: z
     .array(gatheringParticipantDraftSchema)
     .min(1, 'Agregá al menos un participante')
-    .max(GATHERING_PARTICIPANTS_MAX),
+    .max(GATHERING_PARTICIPANTS_MAX, `Máximo ${GATHERING_PARTICIPANTS_MAX} participantes`),
 });
 
 export function createInitialNewGatheringValues(): NewGatheringFormValues {

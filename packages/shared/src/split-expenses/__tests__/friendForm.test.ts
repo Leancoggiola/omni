@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { friendFormSchema, toCreateFriendPayload } from '../utils/friendForm';
+import { friendFormSchema, toCreateFriendPayload } from '..';
 
 describe('friendFormSchema', () => {
   it('accepts a valid friend', () => {

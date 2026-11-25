@@ -4,12 +4,15 @@ import { schemaResolver, useForm } from '@mantine/form';
 
 import { getErrorMessage } from '@/shared/ui';
 
-import { friendFormSchema, INITIAL_FRIEND_FORM_VALUES, toCreateFriendPayload } from '../../utils/friendForm';
+import type { CreateSplitFriendPayload, FriendFormValues } from '@omni/shared/split-expenses';
 
-import type { FriendFormValues } from '../../utils/friendForm';
-import type { CreateSplitFriendPayload } from '@omni/shared/split-expenses';
-
-import { SPLIT_FRIEND_ALIAS_MAX, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
+import {
+  friendFormSchema,
+  INITIAL_FRIEND_FORM_VALUES,
+  SPLIT_FRIEND_ALIAS_MAX,
+  SPLIT_FRIEND_NAME_MAX,
+  toCreateFriendPayload,
+} from '@omni/shared/split-expenses';
 
 interface FriendFormProps {
   /** Throws on failure so the form can surface the message. */

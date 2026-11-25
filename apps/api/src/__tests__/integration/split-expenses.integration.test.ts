@@ -171,6 +171,45 @@ describe('split-expenses routes (integration)', () => {
       expect(byName['Vacía']).toMatchObject({ totalAmount: 0, participantCount: 1 });
     });
 
+    it('GET /gatherings previews the most recent expense of each gathering', async () => {
+      const asado = await createGathering(user.id, { name: 'Asado', selfName: 'Lean', participants: ['Ana'] });
+      const self = asado.participants.find(participant => participant.isSelf)!;
+      const ana = asado.participants.find(participant => !participant.isSelf)!;
+      await createGatheringExpense(asado.id, ana.id, {
+        amount: 27000.5,
+        description: 'Bebidas',
+        createdAt: new Date('2026-01-15T16:20:00.000Z'),
+      });
+      await createGatheringExpense(asado.id, self.id, {
+        amount: 100,
+        createdAt: new Date('2026-01-15T15:00:00.000Z'),
+      });
+      await createGathering(user.id, { name: 'Vacía', participants: ['Ana'] });
+
+      const res = await request(app).get('/api/split-expenses/gatherings').set('Authorization', auth);
+
+      const byName = Object.fromEntries(res.body.items.map((item: { name: string }) => [item.name, item]));
+      expect(byName.Asado.lastExpense).toEqual({
+        participantName: 'Ana',
+        isSelf: false,
+        amount: 27000.5,
+        description: 'Bebidas',
+        createdAt: '2026-01-15T16:20:00.000Z',
+      });
+      expect(byName['Vacía'].lastExpense).toBeNull();
+    });
+
+    it('GET /gatherings has no preview when the last payer is not a participant of the gathering', async () => {
+      const asado = await createGathering(user.id, { name: 'Asado', participants: ['Ana'] });
+      const otra = await createGathering(user.id, { name: 'Otra', participants: ['Beto'] });
+      await createGatheringExpense(asado.id, otra.participants[0]!.id, { amount: 10 });
+
+      const res = await request(app).get('/api/split-expenses/gatherings').set('Authorization', auth);
+
+      const found = res.body.items.find((item: { name: string }) => item.name === 'Asado');
+      expect(found.lastExpense).toBeNull();
+    });
+
     it('GET /gatherings/:id rounds the totals and what each one spent', async () => {
       const asado = await createGathering(user.id, { name: 'Asado', participants: ['Ana', 'Beto'] });
       await createGatheringExpense(asado.id, asado.participants[0]!.id, { amount: 0.1 });

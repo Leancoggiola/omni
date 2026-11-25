@@ -6,6 +6,7 @@ import {
   describeExpenseSharers,
   describeMyBalance,
   describeSettlement,
+  describeSharerNames,
   describeSplitCaption,
   expenseSharers,
   formatSignedBalance,
@@ -13,9 +14,9 @@ import {
   participantLabel,
   participantTones,
   splitGatheringsByStatus,
-} from '../utils/gatheringView';
+} from '..';
 
-import type { GatheringExpense, GatheringParticipantSummary, GatheringSummary } from '@omni/shared/split-expenses';
+import type { GatheringExpense, GatheringParticipantSummary, GatheringSummary } from '..';
 
 const participant = (id: string, displayName: string, isSelf = false): GatheringParticipantSummary => ({
   id,
@@ -211,5 +212,17 @@ describe('expenseSharers y describeExpenseSharers', () => {
       'Entre Ana · $40,00 c/u'
     );
     expect(describeExpenseSharers({ amount: 30, sharedWith: ['gone'] }, participants)).toBeNull();
+  });
+});
+
+describe('describeSharerNames', () => {
+  const participants = [participant('p0', 'Mateo', true), participant('p1', 'Ana'), participant('p2', 'Beto')];
+
+  it('nombra a los elegidos sin la parte de cada uno', () => {
+    expect(describeSharerNames({ sharedWith: ['p1', 'p0'] }, participants)).toBe('Entre vos y Ana');
+  });
+
+  it('un gasto entre todos no tiene línea', () => {
+    expect(describeSharerNames({ sharedWith: [] }, participants)).toBeNull();
   });
 });
