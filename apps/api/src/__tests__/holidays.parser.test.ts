@@ -33,8 +33,8 @@ describe('parseHolidayEntry', () => {
 
   describe('coletillas', () => {
     it('quita la traducción al inglés', () => {
-      expect(parseHolidayEntry('Día Nacional del Frijol.(en inglés: National Bean Day)')?.title).toBe(
-        'Día Nacional del Frijol'
+      expect(parseHolidayEntry('Día Mundial de las Legumbres.(en inglés: World Pulses Day)')?.title).toBe(
+        'Día Mundial de las Legumbres'
       );
     });
 
@@ -45,15 +45,13 @@ describe('parseHolidayEntry', () => {
     });
 
     it('quita la aclaración con espacio', () => {
-      expect(parseHolidayEntry('Epifanía Ortodoxa. (no confundir con Epifanía Católica)')?.title).toBe(
-        'Epifanía Ortodoxa'
+      expect(parseHolidayEntry('Día del Dominio Público. (no confundir con el Día del Libro)')?.title).toBe(
+        'Día del Dominio Público'
       );
     });
 
     it('quita la coletilla separada por dos puntos', () => {
-      expect(parseHolidayEntry('Disolución de Checoslovaquia:(Celebraciones relacionadas)')?.title).toBe(
-        'Disolución de Checoslovaquia'
-      );
+      expect(parseHolidayEntry('Día de la Tierra:(Celebraciones relacionadas)')?.title).toBe('Día de la Tierra');
     });
   });
 
@@ -109,8 +107,7 @@ describe('parseHolidayEntry', () => {
     });
 
     it('no confunde dos puntos de un título con un prefijo de país', () => {
-      expect(parseHolidayEntry('Solemnidad de la Epifanía del Señor: Adoración de los Reyes Magos')).toBeNull();
-      expect(parseHolidayEntry('Yennayer: Año Nuevo Bereber')?.title).toBe('Yennayer: Año Nuevo Bereber');
+      expect(parseHolidayEntry('Día del Libro: Jornada literaria')?.title).toBe('Día del Libro: Jornada literaria');
     });
 
     it('descarta países con artículo y el nombre repetido', () => {
@@ -152,30 +149,29 @@ describe('parseHolidayEntry', () => {
     });
 
     it('no descarta un prefijo supranacional precedido de un dos puntos suelto', () => {
-      expect(parseHolidayEntry(': Unión Europea: Día de Europa')).not.toBeNull();
+      expect(parseHolidayEntry(': Naciones Unidas: Día de la Paz')).not.toBeNull();
     });
 
     it('no descarta un título precedido de un dos puntos suelto', () => {
-      expect(parseHolidayEntry(': Día del Mediterráneo: Jornada marítima')).toEqual({
-        title: 'Día del Mediterráneo: Jornada marítima',
+      expect(parseHolidayEntry(': Día del Libro: Jornada literaria')).toEqual({
+        title: 'Día del Libro: Jornada literaria',
         isArgentina: false,
       });
     });
 
     it('no toma una letra doble como repetición de país', () => {
-      expect(parseHolidayEntry('Yennayer: Celebración del Año Nuevo Bereber')).not.toBeNull();
-      expect(parseHolidayEntry('Carnaval: Desfile de comparsas')).not.toBeNull();
+      expect(parseHolidayEntry('Día del Yennayer')).not.toBeNull();
+    });
+
+    it('descarta un "Día…" sin país que enumera países en el título', () => {
+      const raw =
+        'Día de la liberación africana: en\nChad Chad, Liberia Liberia, Malí Mali, Mauritania Mauritania, Namibia Namibia, Zambia Zambia, Zimbabue Zimbabue';
+
+      expect(parseHolidayEntry(raw)).toBeNull();
     });
   });
 
   describe('prefijos supranacionales', () => {
-    it('conserva la entrada de la Unión Europea con el nombre repetido', () => {
-      const raw =
-        'Unión Europea Unión Europea:\nDía de Europa.Se celebra cada 9 de mayo la paz y la unidad en el continente.';
-
-      expect(parseHolidayEntry(raw)).toEqual({ title: 'Día de Europa', isArgentina: false });
-    });
-
     it.each([
       ['Naciones Unidas:\nDía Mundial del Medio Ambiente.', 'Día Mundial del Medio Ambiente'],
       [
@@ -184,8 +180,8 @@ describe('parseHolidayEntry', () => {
       ],
       ['ONU:\nDía Internacional de las Montañas.', 'Día Internacional de las Montañas'],
       ['Organización Mundial de la Salud:\nDía Mundial de la Salud.', 'Día Mundial de la Salud'],
-      ['Unión Europea: Día del Número de Emergencias Europeo 112.', 'Día del Número de Emergencias Europeo 112'],
       ['Mundialmente: Día internacional de la Química.', 'Día internacional de la Química'],
+      ['Unesco:\nDía Internacional del Patrimonio Mundial.', 'Día Internacional del Patrimonio Mundial'],
     ])('quita el prefijo de "%s"', (raw, title) => {
       expect(parseHolidayEntry(raw)).toEqual({ title, isArgentina: false });
     });
@@ -194,23 +190,35 @@ describe('parseHolidayEntry', () => {
       expect(parseHolidayEntry('Naciones Unidas\nDía Mundial de los Océanos.Se celebra desde 2009.')?.title).toBe(
         'Día Mundial de los Océanos'
       );
-      expect(parseHolidayEntry('Unión Europea Día Europeo contra la Trata de Personas.')?.title).toBe(
-        'Día Europeo contra la Trata de Personas'
-      );
     });
 
     it('quita los dos puntos que deja un paréntesis inicial', () => {
-      expect(parseHolidayEntry('Unión Europea Unión Europea: (ciertas regiones):\nDía del Mediterráneo.')).toEqual({
-        title: 'Día del Mediterráneo',
+      expect(parseHolidayEntry('Naciones Unidas: (ciertas regiones):\nDía Mundial de las Legumbres.')).toEqual({
+        title: 'Día Mundial de las Legumbres',
         isArgentina: false,
       });
     });
 
-    it('no toma como prefijo un nombre seguido de algo que no es título', () => {
-      expect(parseHolidayEntry('Mundial de Clubes')?.title).toBe('Mundial de Clubes');
+    it.each([
+      'Unión Europea Unión Europea:\nDía de Europa.Se celebra cada 9 de mayo.',
+      'Unión Europea Unión Europea:\nDía de las Enfermedades Raras.',
+      'Unión Europea Unión Europea:\nDía del Euro.(en británico-inglés: Euro Day).',
+      'Unión Europea Día Europeo contra la Trata de Personas.',
+      'Mercosur: Día del Mercado Común del Sur (Mercosur).En ocasión de recordar la firma del Tratado.',
+    ])('descarta la entrada de un bloque regional "%s"', raw => {
+      expect(parseHolidayEntry(raw)).toBeNull();
     });
 
-    it('sigue descartando la Unión Europea combinada con países', () => {
+    it('conserva la entrada de un bloque regional que se declara internacional', () => {
+      const raw = 'Unión Europea: Día internacional de los héroes de la lucha contra el totalitarismo.';
+
+      expect(parseHolidayEntry(raw)).toEqual({
+        title: 'Día internacional de los héroes de la lucha contra el totalitarismo',
+        isArgentina: false,
+      });
+    });
+
+    it('descarta la Unión Europea combinada con países', () => {
       const raw =
         'Unión Europea Unión Europea\nInglaterraInglaterra Inglaterra, EscociaEscocia Escocia, Finlandia Finlandia, Suecia Suecia y Baviera (Alemania Alemania):\nSanta Walburga o Walpurga, santa católica';
 
@@ -245,34 +253,41 @@ describe('parseHolidayEntry', () => {
       expect(parseHolidayEntry('🇨🇱 Día Nacional del Cine')).toBeNull();
     });
 
-    it('quita la provincia después de la bandera', () => {
-      expect(parseHolidayEntry('🇦🇷 Argentina Argentina: Misiones: Aniversario de Wanda')).toEqual({
-        title: 'Aniversario de Wanda',
-        isArgentina: true,
-      });
+    it('descarta una provincia después de la bandera', () => {
+      expect(parseHolidayEntry('🇦🇷 Argentina Argentina: Misiones: Día del Mate')).toBeNull();
     });
 
-    it('aplica el filtro religioso a una entrada argentina con bandera', () => {
+    it('descarta una entrada religiosa argentina con bandera', () => {
       expect(parseHolidayEntry('🇦🇷 Virgen de Luján')).toBeNull();
     });
   });
 
   describe('sub-prefijos argentinos', () => {
-    it('quita la provincia', () => {
-      expect(parseHolidayEntry('Argentina Argentina: Misiones: Aniversario de Wanda')).toEqual({
-        title: 'Aniversario de Wanda',
-        isArgentina: true,
-      });
+    it.each([
+      ['Armada Argentina:\nDía de la Infantería de Marina.', 'Día de la Infantería de Marina'],
+      ['Ejército Argentino: Día de las Tropas de Monte', 'Día de las Tropas de Monte'],
+      ['Club Atlético Boca Juniors: Día del Xeneize.', 'Día del Xeneize'],
+    ])('quita la institución de "%s"', (entry, title) => {
+      expect(parseHolidayEntry(`Argentina Argentina: ${entry}`)).toEqual({ title, isArgentina: true });
     });
 
-    it('quita dos niveles de sub-prefijo', () => {
-      const raw = 'Argentina Argentina: Buenos Aires: Partido de Lomas de Zamora: Aniversario de la fundación';
-
-      expect(parseHolidayEntry(raw)?.title).toBe('Aniversario de la fundación');
+    it.each([
+      'Misiones: Día del Mate',
+      'Chaco: Día del Teatro Chaqueño',
+      'Santa Fe: Día del Trabajador Rural',
+      'Provincia de Mendoza: Día de la Bandera de la provincia de Mendoza',
+      'Ciudad de Buenos Aires: Día del Vecino',
+      'Buenos Aires: Partido de Lomas de Zamora: Día del Vecino',
+      'Por provincias: Misiones: Día del Empleado Electoral de Misiones',
+      'Por provincias Misiones: Día del Mate',
+    ])('descarta la efeméride provincial "%s"', entry => {
+      expect(parseHolidayEntry(`Argentina Argentina: ${entry}`)).toBeNull();
     });
 
     it('no corta un título que arranca con "Día" aunque tenga dos puntos', () => {
-      expect(parseHolidayEntry('Argentina Argentina: Día de la Bandera')?.title).toBe('Día de la Bandera');
+      expect(parseHolidayEntry('Argentina Argentina: Día de la Bandera: acto central')?.title).toBe(
+        'Día de la Bandera: acto central'
+      );
     });
   });
 
@@ -295,12 +310,122 @@ describe('parseHolidayEntry', () => {
     ])('descarta "%s"', raw => {
       expect(parseHolidayEntry(raw)).toBeNull();
     });
+  });
 
-    it('no descarta una provincia que empieza con "Santa"', () => {
-      expect(parseHolidayEntry('Argentina Argentina: Santa Fe: Día del Trabajador Rural')).toEqual({
-        title: 'Día del Trabajador Rural',
-        isArgentina: true,
-      });
+  describe('lista blanca', () => {
+    it.each([
+      'Año Nuevo (según el calendario gregoriano).',
+      'Mundial:\nNavidad.Celebración cristiana que conmemora el nacimiento de Jesucristo.',
+      'Argentina Argentina:\nConmemoración por la Revolución de Mayo.',
+    ])('conserva la excepción "%s"', raw => {
+      expect(parseHolidayEntry(raw)).not.toBeNull();
+    });
+
+    it.each(['Año Nuevo Chino', 'Navidad Ortodoxa', 'Conmemoración por la Revolución de Mayo'])(
+      'no extiende la excepción a "%s"',
+      raw => {
+        expect(parseHolidayEntry(raw)).toBeNull();
+      }
+    );
+
+    it.each(['Semana Mundial de la Lactancia', 'Jornada Mundial de la Juventud', 'Carnaval', 'Mundial de Clubes'])(
+      'descarta "%s" porque no es un "Día…"',
+      raw => {
+        expect(parseHolidayEntry(raw)).toBeNull();
+      }
+    );
+  });
+
+  describe('alcance de los "Día…" sin país', () => {
+    it.each([
+      'Día Europeo de la Logopedia.',
+      'Día de Europa.',
+      'Día Panamericano de la Farmacia.',
+      'Día Latinoamericano de Prevención de las Quemaduras.',
+      'Día Interamericano de la radiodifusión.',
+      'Día de Iberoamérica.',
+      'Día de la Malaria en las Américas.',
+      'Día del Gato Montés Sudamericano.',
+      'Día Africano del Medio Ambiente.',
+      'Día de los Refugiados en África.',
+      'Día del Mediterráneo.',
+    ])('descarta el regional "%s"', raw => {
+      expect(parseHolidayEntry(raw)).toBeNull();
+    });
+
+    it.each(['Día Internacional de África', 'Día Mundial de la Cultura Africana y de los Afrodescendientes'])(
+      'conserva "%s" porque es mundial o internacional',
+      raw => {
+        expect(parseHolidayEntry(raw)?.title).toBe(raw);
+      }
+    );
+
+    it.each([
+      'Día Nacional del Frijol.(en inglés: National Bean Day).',
+      'Día Nacional del Vino Croata.',
+      'Día Nacional de la Medicina Social.En homenaje al Dr. René Favaloro.',
+    ])('descarta el "Día Nacional" sin país "%s"', raw => {
+      expect(parseHolidayEntry(raw)).toBeNull();
+    });
+
+    it('conserva el "Día Nacional" argentino', () => {
+      expect(parseHolidayEntry('Argentina Argentina: Día Nacional del Humorista.')?.title).toBe(
+        'Día Nacional del Humorista'
+      );
+    });
+
+    it.each([
+      'Día Mundial de la Infancia, en:\n Unión Europea,',
+      'Día Mundial de la Infancia, en:\n Albania, Armenia, Bulgaria y Rusia',
+      'Día del Padre en: Andorra Andorra: (Dia del Pare)',
+      'Día de la Victoria sobre el nazismo.en ruso: День Победы Bosnia y HerzegovinaBosnia y Herzegovina Bosnia y Herzegovina',
+    ])('descarta la versión por país "%s"', raw => {
+      expect(parseHolidayEntry(raw)).toBeNull();
+    });
+
+    it.each([
+      'No oficial: Día de No Volar.',
+      'Celebración no oficial: Día del Emoji.',
+      'Esperantujo: Día de Zamenhof.',
+    ])('descarta el "Día…" con un rótulo adelante "%s"', raw => {
+      expect(parseHolidayEntry(raw)).toBeNull();
+    });
+  });
+
+  describe('entradas reales del feed que se colaban', () => {
+    it.each([
+      'Todos los Santos.Solemnidad en la que la Iglesia católica honra conjuntamente a todos los santos.',
+      'Presentación de la Santísima Virgen María.\nMemoria litúrgica que recuerda la presentación de María en el Templo.',
+      'Gelasio 1°: Pontífice y santo\nSumo pontífice (49°) entre los años 492 y 496.',
+      'Calendario bahaí:\nFiesta de Masá’il.(grafía árabe: مسائل) (Significado: Preguntas).',
+      'Islas Vírgenes de los Estados Unidos Islas Vírgenes de los Estados Unidos:\nDía de la Libertad (Liberty Day).',
+      'Dedicación Catedral de la Santísima Trinidad y San Antonio de Padua de Zipaquirá',
+      'Argentina Argentina:\nMisiones:\nAniversario de Garuhapé.Fecha de fundación: 4 de noviembre de 1946 (80 años).',
+      'Argentina Argentina:\nPor provincias:\nMisiones:\n Posadas: Aniversario de la ciudad.Reconocimiento jurídico.',
+      'Argentina Argentina:\nPor provincias:\nMisiones:\nAniversario de Gobernador Roca.Fundación de la localidad.',
+      'Argentina Argentina:\nPor provincias:\nMisiones:\nDía del Empleado Electoral de Misiones.Instituido por la Ley.',
+      'Argentina Argentina:\nPor provincias:\n Misiones: Fiesta Provincial de Santa Cecilia, patrona de la Música.',
+      'Argentina Argentina:\nChaco:\nDía del Teatro Chaqueño.El 8 de diciembre de 1995 fue la primera reunión.',
+      'Con el armado del tradicional árbol de Navidad, cada año, el 8 de diciembre marca el inicio oficial de las celebraciones navideñas en muchos hogares.',
+      'Argentina Argentina:\n1910: Se inaugura y bendice el actual templo de la Basílica de Nuestra Señora de Luján.El edificio.',
+      'Glorioso 25 de Mayo.En homenaje a Terry Pratchett.',
+    ])('descarta "%s"', raw => {
+      expect(parseHolidayEntry(raw)).toBeNull();
+    });
+
+    it.each([
+      ['Día Mundial del Veganismo.Celebrado desde 1994.', 'Día Mundial del Veganismo', false],
+      ['Día de la UNESCO.Conmemora la entrada en vigor de la Constitución.', 'Día de la UNESCO', false],
+      ['Día de la Música.Celebración tradicional vinculada a Santa Cecilia.', 'Día de la Música', false],
+      ['Día Internacional de José José.Se celebra cada 20 de abril.', 'Día Internacional de José José', false],
+      ['Mundial:\nDía de los Reyes Magos, en el Cristianismo.', 'Día de los Reyes Magos, en el Cristianismo', false],
+      [
+        'Argentina Argentina:\nDía de la Inmaculada Concepción de María.Feriado nacional.',
+        'Día de la Inmaculada Concepción de María',
+        true,
+      ],
+    ])('conserva "%s"', (raw, title, isArgentina) => {
+      expect(parseHolidayEntry(raw)).toEqual({ title, isArgentina });
     });
   });
 
