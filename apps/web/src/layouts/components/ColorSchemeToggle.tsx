@@ -1,7 +1,7 @@
 import { ActionIcon } from '@mantine/core';
 import { useComputedColorScheme, useMantineColorScheme } from '@mantine/core';
 
-import { setSessionColorScheme } from '@/core/theme';
+import { runColorSchemeTransition, setSessionColorScheme } from '@/core/theme';
 
 import type { FC } from 'react';
 
@@ -14,7 +14,7 @@ export const ColorSchemeToggle: FC = () => {
   const toggle = () => {
     const next = computedColorScheme === 'dark' ? 'light' : 'dark';
     setSessionColorScheme(next);
-    setColorScheme(next);
+    runColorSchemeTransition(() => setColorScheme(next));
   };
 
   return (

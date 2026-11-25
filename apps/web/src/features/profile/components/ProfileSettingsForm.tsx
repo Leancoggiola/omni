@@ -16,7 +16,7 @@ import {
 import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 
-import { clearSessionColorScheme } from '@/core/theme';
+import { clearSessionColorScheme, runColorSchemeTransition } from '@/core/theme';
 import { DISPLAY_DATE_FORMAT } from '@/shared/dates';
 import { getErrorMessage, notifySuccess } from '@/shared/ui';
 
@@ -71,7 +71,7 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({ profile, isS
       await onSave({ profile: profileUpdates, preferences: preferencesUpdates, theme: values.theme });
       if ('theme' in preferencesUpdates) {
         clearSessionColorScheme();
-        setColorScheme(values.theme);
+        runColorSchemeTransition(() => setColorScheme(values.theme));
       }
       form.resetDirty(values);
       notifySuccess('Cambios guardados correctamente');
