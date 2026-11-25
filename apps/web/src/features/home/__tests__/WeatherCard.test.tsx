@@ -99,6 +99,13 @@ describe('WeatherCard', () => {
     expect(requestLocation).toHaveBeenCalledOnce();
   });
 
+  it.each(['no-location', 'loading'])('en el estado %s sigue siendo la card compacta del clima', state => {
+    withState(state);
+    const { container } = renderWithProviders(<WeatherCard />);
+    expect(screen.getByRole('region', { name: 'Clima' })).toBeInTheDocument();
+    expect(container.querySelector('.mantine-EmptyState-root')).not.toBeInTheDocument();
+  });
+
   it('con la ubicación bloqueada en el navegador explica cómo habilitarla', () => {
     withState('no-location', null, true);
     renderWithProviders(<WeatherCard />);

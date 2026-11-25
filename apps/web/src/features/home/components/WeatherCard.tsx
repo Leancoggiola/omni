@@ -6,7 +6,7 @@ import { useCurrentWeather } from '../hooks/useCurrentWeather';
 import { getWeatherIcon } from '../utils/weatherIcons';
 
 import type { CurrentWeather } from '@omni/shared/weather';
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
 
 import {
   formatTemperature,
@@ -68,30 +68,49 @@ const WeatherSummary: FC<{ weather: CurrentWeather }> = ({ weather }) => {
   );
 };
 
+/** Card del widget de Clima: la misma superficie para el dato, la carga y la invitación a dar la ubicación. */
+const WeatherSurface: FC<{ children: ReactNode }> = ({ children }) => (
+  <Paper
+    component="section"
+    aria-label="Clima"
+    withBorder
+    bg="var(--mantine-color-surfaces-primary-light)"
+    radius="lg"
+    shadow="none"
+    p="md"
+  >
+    {children}
+  </Paper>
+);
+
 /**
  * Widget de Clima de Inicio: temperatura actual, condición con ícono, mínima y máxima del día y la ciudad cuando
  * existe, con la atribución obligatoria. Sin ubicación (permiso negado o sin posición) invita a darla y no llama a la
- * API; el error de la API ofrece reintentar y nunca se ve como vacío; un dato `stale` avisa a qué hora es. Es una
- * card autónoma: se monta tal cual en la grilla de `HomeMainCard`.
+ * API; el error de la API ofrece reintentar y nunca se ve como vacío; un dato `stale` avisa a qué hora es. En todos
+ * los estados es una card baja y autónoma: se monta tal cual en la grilla de `HomeMainCard`. El error es la excepción
+ * a la superficie común: el `Alert` de `ErrorState` ya es bajo y trae la propia, así que va sin `WeatherSurface`.
  */
 export const WeatherCard: FC = () => {
   const { weather, state, retry, requestLocation, locationBlocked } = useCurrentWeather();
 
   if (state === 'no-location') {
     return (
-      <EmptyState
-        icon={<MapPinIcon size="1.5rem" />}
-        title={
-          locationBlocked
-            ? 'La ubicación está bloqueada. Habilitala desde el candado de la barra de direcciones'
-            : 'Activá la ubicación para ver el clima'
-        }
-        action={
-          <Button variant="default" size="xs" onClick={requestLocation}>
-            Permitir ubicación
-          </Button>
-        }
-      />
+      <WeatherSurface>
+        <EmptyState
+          compact
+          icon={<MapPinIcon size="1.5rem" />}
+          title={
+            locationBlocked
+              ? 'La ubicación está bloqueada. Habilitala desde el candado de la barra de direcciones'
+              : 'Activá la ubicación para ver el clima'
+          }
+          action={
+            <Button variant="default" size="xs" onClick={requestLocation}>
+              Permitir ubicación
+            </Button>
+          }
+        />
+      </WeatherSurface>
     );
   }
 
@@ -100,19 +119,15 @@ export const WeatherCard: FC = () => {
   }
 
   if (state === 'loading' || !weather) {
-    return <LoadingState variant="skeleton" rows={1} />;
+    return (
+      <WeatherSurface>
+        <LoadingState variant="skeleton" rows={1} />
+      </WeatherSurface>
+    );
   }
 
   return (
-    <Paper
-      component="section"
-      aria-label="Clima"
-      withBorder
-      bg="var(--mantine-color-surfaces-primary-light)"
-      radius="lg"
-      shadow="none"
-      p="md"
-    >
+    <WeatherSurface>
       <Stack gap="sm">
         <WeatherSummary weather={weather} />
         {weather.stale && (
@@ -122,6 +137,6 @@ export const WeatherCard: FC = () => {
         )}
         <WeatherAttribution />
       </Stack>
-    </Paper>
+    </WeatherSurface>
   );
 };

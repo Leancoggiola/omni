@@ -11,10 +11,10 @@ import {
 import { MapPinIcon } from 'phosphor-react-native';
 import { createElement } from 'react';
 import { Linking, Pressable } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { Button, EmptyState, ErrorState, LoadingState, SectionCard, Title } from '@/shared/ui';
+import { Button, EmptyState, ErrorState, LoadingState, Paragraph, SectionCard } from '@/shared/ui';
 
 import { useCurrentWeather } from '../hooks/useCurrentWeather';
 import { getWeatherIcon } from '../utils/weatherIcons';
@@ -110,8 +110,8 @@ function WeatherSummary({ weather }: { weather: CurrentWeather }) {
  * Widget de Clima de Inicio (= `WeatherCard` de web): temperatura actual, condición con ícono, mínima y máxima del día
  * y la ciudad cuando existe, con la atribución obligatoria. Sin ubicación (permiso negado o sin posición) invita a
  * darla, o a abrir los ajustes si el sistema ya no deja preguntar, y no llama a la API; el error de la API ofrece
- * reintentar y nunca se ve como vacío; un dato `stale` avisa a qué hora es. Es una card autónoma que `HomeScreen`
- * monta debajo de las efemérides.
+ * reintentar y nunca se ve como vacío; un dato `stale` avisa a qué hora es. En todos los estados es una sola card baja
+ * (los estados van en su variante `compact`, sin otra card adentro) que `HomeScreen` monta debajo de las efemérides.
  */
 export function WeatherCard() {
   const { weather, state, retry, requestLocation, canAskLocationAgain } = useCurrentWeather();
@@ -132,11 +132,9 @@ export function WeatherCard() {
 
   return (
     <SectionCard>
-      <Title order={4} fontWeight="600">
-        Clima
-      </Title>
       {state === 'no-location' ? (
         <EmptyState
+          compact
           icon={MapPinIcon}
           title="Activá la ubicación para ver el clima"
           action={
@@ -146,9 +144,9 @@ export function WeatherCard() {
           }
         />
       ) : state === 'error' ? (
-        <ErrorState message="No se pudo cargar el clima" onRetry={retry} />
+        <ErrorState compact message="No se pudo cargar el clima" onRetry={retry} />
       ) : (
-        <LoadingState variant="skeleton" rows={1} />
+        <LoadingState compact variant="skeleton" rows={1} />
       )}
     </SectionCard>
   );

@@ -5,6 +5,8 @@ import { AppState, Linking } from 'react-native';
 import { ignoreError } from '@omni/shared/common';
 import { roundWeatherCoordinates, WEATHER_REFRESH_MS } from '@omni/shared/weather';
 
+import { useLaunchState } from '@/core/launch';
+
 import type { WeatherCoordinates } from '@omni/shared/weather';
 
 const LOCATION_TIMEOUT_MS = 10_000;
@@ -25,7 +27,8 @@ export type DeviceLocation =
 
 /**
  * Posición del dispositivo con `expo-location` (= `useDeviceLocation` de web), redondeada a dos decimales antes de
- * salir de este hook: la ubicación exacta no llega a ningún otro lado. Pide el permiso en primer plano al montar; si
+ * salir de este hook: la ubicación exacta no llega a ningún otro lado. Pide el permiso en primer plano al montar (o,
+ * en el arranque en frío, cuando termina la animación: el diálogo del sistema no sale sobre ella, #332); si
  * se niega, el servicio está apagado o no hay posición queda `unavailable` (no hay ciudad por defecto). Con
  * `Accuracy.Low` alcanza, porque después se redondea a ~1 km. `request` vuelve a pedir el permiso, o abre los ajustes
  * si el sistema ya no deja preguntar (`canAskAgain` en `false`); en ese caso, al volver a primer plano re-evalúa el permiso
@@ -34,8 +37,10 @@ export type DeviceLocation =
 export function useDeviceLocation() {
   const [location, setLocation] = useState<DeviceLocation>({ status: 'locating' });
   const [attempt, setAttempt] = useState(0);
+  const { finished: launched } = useLaunchState();
 
   useEffect(() => {
+    if (!launched) return;
     let cancelled = false;
 
     async function locate(): Promise<DeviceLocation> {
@@ -57,7 +62,7 @@ export function useDeviceLocation() {
     return () => {
       cancelled = true;
     };
-  }, [attempt]);
+  }, [attempt, launched]);
 
   const canOnlyOpenSettings = location.status === 'unavailable' && !location.canAskAgain;
 

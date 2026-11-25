@@ -5,10 +5,10 @@ import { useRouter } from 'expo-router';
 import { FilmSlateIcon } from 'phosphor-react-native';
 import { useState } from 'react';
 import { Pressable } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { EmptyState, ErrorState, LoadingState, SectionCard, StatusPill, Title } from '@/shared/ui';
+import { EmptyState, ErrorState, LoadingState, Paragraph, SectionCard, StatusPill, Title } from '@/shared/ui';
 
 import { useWatchingMedia, WATCHING_LIMIT } from '../hooks/useWatchingMedia';
 

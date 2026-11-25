@@ -1,8 +1,9 @@
 import { FONT_SIZE, RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { CaretDownIcon } from 'phosphor-react-native';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
+import { Paragraph } from '@/shared/ui';
 import { glassElevation } from '@/theme/elevation';
 
 type PlanPickerButtonProps = {

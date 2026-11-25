@@ -2,10 +2,10 @@ import { formatInviteCode, getInviteErrorMessage, householdInviteCodeSchema } fr
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CheckIcon, InfoIcon } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { Banner, Button, FormSheet, TextField, UserAvatar } from '@/shared/ui';
+import { Banner, Button, FormSheet, Paragraph, TextField, UserAvatar } from '@/shared/ui';
 
 import type { HouseholdInvitePreview } from '@omni/shared/household';
 

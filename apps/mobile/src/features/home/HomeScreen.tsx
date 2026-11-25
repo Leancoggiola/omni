@@ -1,10 +1,10 @@
 import { getTimeGreeting } from '@omni/shared/common';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { ScrollView } from 'react-native';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
-import { DisplayTitle, Screen, SectionCard } from '@/shared/ui';
+import { DisplayTitle, Paragraph, Screen, SectionCard } from '@/shared/ui';
 
 import { HolidaysCard } from './components/HolidaysCard';
 import { WatchingCard } from './components/WatchingCard';

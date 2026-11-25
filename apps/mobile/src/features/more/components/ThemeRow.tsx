@@ -1,9 +1,9 @@
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { MoonIcon } from 'phosphor-react-native';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
-import { Switch } from '@/shared/ui';
+import { Paragraph, Switch } from '@/shared/ui';
 
 /**
  * Toggle de tema (= `ColorSchemeToggle` de web): override de la sesión, no toca la preferencia del perfil. Muestra el

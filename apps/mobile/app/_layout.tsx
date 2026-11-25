@@ -14,6 +14,7 @@ import type { ProfileTheme } from '@omni/shared/users';
 import { AuthProvider, useProfileColorScheme } from '@/core/auth';
 import { AuthGate } from '@/core/authGate';
 import { BiometricsProvider } from '@/core/biometrics';
+import { LaunchSplash, useLaunchState } from '@/core/launch';
 import { SWRProvider } from '@/core/providers';
 import { ServerWakeNotice } from '@/core/serverWake';
 import { ColorSchemeProvider, useColorSchemeControl } from '@/core/theme';
@@ -24,23 +25,33 @@ import { readColorSchemeHint } from '@/shared/api';
 import { ActionSheetProvider, ConfirmProvider, NotificationsProvider } from '@/shared/ui';
 
 /**
- * La splash nativa queda visible hasta que se resuelvan las fuentes (ver `RootLayout`). `preventAutoHideAsync`
- * puede rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
+ * La splash nativa queda visible hasta que `LaunchSplash` dibuja su primer cuadro, que es igual, y ahí se va sin
+ * fundido (el de Android es de 400 ms y dejaría ver el logo quieto sobre el que gira). `preventAutoHideAsync` puede
+ * rechazar si ya no hay splash que retener (ej. fast refresh): no es un error para la app.
  */
 function holdSplash() {
+  SplashScreen.setOptions({ duration: 0, fade: false });
   SplashScreen.preventAutoHideAsync().catch(ignoreError);
 }
 
 holdSplash();
 
-/** Alimenta `ColorSchemeProvider` con el tema del perfil de la sesión (`useProfileColorScheme`). */
+/**
+ * Alimenta `ColorSchemeProvider` con el tema del perfil de la sesión (`useProfileColorScheme`). Mientras dura la
+ * animación de arranque el tema se aplica sin fundido: lo tapa la animación y la captura la congelaría.
+ */
 function ProfileColorSchemeProvider({
   initialHint,
   children,
 }: PropsWithChildren<{ initialHint: ProfileTheme | null }>) {
   const profileTheme = useProfileColorScheme(initialHint);
+  const { finished } = useLaunchState();
 
-  return <ColorSchemeProvider profileTheme={profileTheme}>{children}</ColorSchemeProvider>;
+  return (
+    <ColorSchemeProvider profileTheme={profileTheme} instant={!finished}>
+      {children}
+    </ColorSchemeProvider>
+  );
 }
 
 /**
@@ -67,7 +78,8 @@ function ThemedRoot({ children }: PropsWithChildren) {
 /**
  * Sin las fuentes, el primer render saldría con la tipografía del sistema y saltaría al cargarlas; mientras
  * tanto se ve la splash. Si fallan se sigue con la del sistema en vez de quedar en blanco. La splash también espera
- * la pista de tema (`readColorSchemeHint`, nunca rechaza), así el primer cuadro sale con el tema del perfil.
+ * la pista de tema (`readColorSchemeHint`, nunca rechaza), así el primer cuadro sale con el tema del perfil. Con las
+ * dos resueltas se monta la app con `LaunchSplash` encima, que es quien oculta la splash nativa.
  */
 export default function RootLayout() {
   const systemScheme = useColorScheme();
@@ -79,10 +91,6 @@ export default function RootLayout() {
   useEffect(() => {
     void readColorSchemeHint().then(setColorSchemeHint);
   }, []);
-
-  useEffect(() => {
-    if (ready) void SplashScreen.hideAsync();
-  }, [ready]);
 
   if (!ready) return null;
 
@@ -97,6 +105,7 @@ export default function RootLayout() {
                   <ConfirmProvider>
                     <ActionSheetProvider>
                       <AuthGate />
+                      <LaunchSplash />
                       <ServerWakeNotice />
                     </ActionSheetProvider>
                   </ConfirmProvider>
