@@ -7,7 +7,7 @@ import { createIntegrationApp } from '../../test/integration/createIntegrationAp
 import { createExpenseReminder, createPersonalExpense, createUser, toJwtUser } from '../../test/integration/factories';
 import { findRecordedCall, getRecordedCalls } from '../../test/integration/queryRecorder';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('expenses routes (integration)', () => {
   let user: Awaited<ReturnType<typeof createUser>>;

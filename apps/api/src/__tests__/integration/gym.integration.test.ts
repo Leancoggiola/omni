@@ -10,7 +10,7 @@ import { createGymExercise, createGymPlan, createUser, toJwtUser } from '../../t
 import { findRecordedCall, resetRecordedCalls } from '../../test/integration/queryRecorder';
 import { withSavepoint } from '../../test/integration/withSavepoint';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('gym routes (integration)', () => {
   let user: Awaited<ReturnType<typeof createUser>>;

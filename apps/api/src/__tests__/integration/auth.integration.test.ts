@@ -5,7 +5,7 @@ import { prisma } from '../../common/db';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
 import { TEST_PASSWORD, createUser } from '../../test/integration/factories';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('auth routes (integration)', () => {
   describe('POST /login', () => {

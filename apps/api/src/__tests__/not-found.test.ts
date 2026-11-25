@@ -4,6 +4,7 @@ import request from 'supertest';
 
 import { apiNotFound } from '../common/utils/not-found';
 import { errorHandler } from '../common/utils/error-handler';
+import { listenOnLoopback } from '../test/listenOnLoopback';
 
 function buildApp() {
   const app = express();
@@ -12,12 +13,12 @@ function buildApp() {
   });
   app.use('/api', apiNotFound);
   app.use(errorHandler);
-  return app;
+  return listenOnLoopback(app);
 }
 
 describe('apiNotFound', () => {
   it('responde 404 en JSON con el formato del errorHandler', async () => {
-    const res = await request(buildApp()).post('/api/no-existe?x=1');
+    const res = await request(await buildApp()).post('/api/no-existe?x=1');
 
     expect(res.status).toBe(404);
     expect(res.headers['content-type']).toMatch(/application\/json/);
@@ -25,7 +26,7 @@ describe('apiNotFound', () => {
   });
 
   it('no intercepta las rutas que existen', async () => {
-    const res = await request(buildApp()).get('/api/existe');
+    const res = await request(await buildApp()).get('/api/existe');
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true });

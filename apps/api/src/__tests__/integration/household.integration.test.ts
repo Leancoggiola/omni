@@ -16,7 +16,7 @@ import {
 
 vi.mock('../../media/tmdb.service');
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 type TestUser = Awaited<ReturnType<typeof createUser>>;
 

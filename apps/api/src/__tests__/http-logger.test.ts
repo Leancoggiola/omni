@@ -5,6 +5,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
 import { createHttpLogger } from '../common/utils/http-logger';
+import { listenOnLoopback } from '../test/listenOnLoopback';
 
 function captureLogs() {
   const lines: string[] = [];
@@ -27,7 +28,7 @@ describe('createHttpLogger', () => {
       res.json({ ok: true });
     });
 
-    await request(app)
+    await request(await listenOnLoopback(app))
       .get('/ping')
       .set('Authorization', 'Bearer access-del-request')
       .set('Cookie', 'refresh_token=refresh-del-request')

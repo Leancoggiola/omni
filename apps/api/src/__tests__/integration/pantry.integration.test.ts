@@ -17,7 +17,7 @@ import {
 import { getRecordedCalls } from '../../test/integration/queryRecorder';
 import { withSavepoint } from '../../test/integration/withSavepoint';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('pantry routes (integration)', () => {
   let user: Awaited<ReturnType<typeof createUser>>;

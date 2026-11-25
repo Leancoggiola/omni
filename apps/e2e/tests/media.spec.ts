@@ -2,6 +2,10 @@ import { expect, test } from '../src/fixtures/test';
 import { MediaPage } from '../src/pages/MediaPage';
 
 test.describe('media', () => {
+  test.beforeEach(async ({ freshUser }) => {
+    await freshUser('media');
+  });
+
   test('busca en TMDB y agrega el resultado a la lista', async ({ page }) => {
     const media = new MediaPage(page);
     await media.goto();
@@ -43,11 +47,7 @@ test.describe('media', () => {
     await expect(page.getByRole('option', { name: /Inception/i }).first()).toBeVisible();
   });
 
-  test('muestra "No hay resultados" y no la lista vacía al filtrar por un tipo sin items', async ({
-    page,
-    freshUser,
-  }) => {
-    await freshUser('filtros');
+  test('muestra "No hay resultados" y no la lista vacía al filtrar por un tipo sin items', async ({ page }) => {
     const media = new MediaPage(page);
     await media.goto();
     await media.addViaApi(603, 'movie');
