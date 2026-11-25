@@ -18,6 +18,7 @@ import type { ReactNode } from 'react';
 
 const SKELETON_ROWS = 3;
 const SKELETON_PULSE_MS = 900;
+const COMPACT_CHIP_SIZE = 44;
 const POSTER = { width: 56, height: 84 } as const;
 
 /** Bloque de color `track`; su forma sale de las props. */
@@ -64,19 +65,84 @@ function SkeletonRow() {
   );
 }
 
+/** Fila skeleton compacta: círculo y dos líneas, sin superficie propia. */
+function CompactSkeletonRow() {
+  return (
+    <XStack gap={SPACING.sm} alignItems="center">
+      <SkeletonBlock width={COMPACT_CHIP_SIZE} height={COMPACT_CHIP_SIZE} radius={RADIUS.full} />
+      <YStack flex={1} gap={SPACING.xs}>
+        <SkeletonBlock height={14} radius={RADIUS.sm} />
+        <SkeletonBlock width={104} height={12} radius={RADIUS.sm} />
+      </YStack>
+    </XStack>
+  );
+}
+
+/** Fila de las variantes `compact`: chip redondo con el ícono, texto al lado y la acción a lo ancho debajo. */
+function CompactRow({
+  icon: IconComponent,
+  iconColor,
+  chipColor,
+  title,
+  description,
+  action,
+}: {
+  icon: Icon;
+  iconColor: string;
+  chipColor: 'primarySurface' | 'errorSurface';
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <YStack gap={SPACING.sm}>
+      <XStack gap={SPACING.sm} alignItems="center">
+        <YStack
+          width={COMPACT_CHIP_SIZE}
+          height={COMPACT_CHIP_SIZE}
+          borderRadius={RADIUS.full}
+          backgroundColor={chipColor}
+          alignItems="center"
+          justifyContent="center"
+        >
+          <IconComponent size={24} color={iconColor} />
+        </YStack>
+        <YStack flex={1} gap={SPACING['3xs']}>
+          <Paragraph fontSize={FONT_SIZE.md} fontWeight="600">
+            {title}
+          </Paragraph>
+          {description ? (
+            <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>
+              {description}
+            </Paragraph>
+          ) : null}
+        </YStack>
+      </XStack>
+      {action}
+    </YStack>
+  );
+}
+
 type LoadingStateProps = {
   variant?: 'spinner' | 'skeleton';
   size?: 'small' | 'large';
   rows?: number;
+  compact?: boolean;
 };
 
 /**
  * Carga de los estados de UI compartidos, mismo contrato que `@/shared/ui` de web (regla de oro 0): el `error` de SWR
  * se muestra con `ErrorState`, nunca como lista vacía. `variant="spinner"` (por defecto) es el spinner de marca, con
  * `size`; `variant="skeleton"` dibuja `rows` filas (por defecto 3) en `track` que pulsan despacio, quietas con "reducir
- * movimiento". En las dos el contenedor se llama "Cargando".
+ * movimiento". Con `compact` las filas del skeleton son bajas y sin card, para ir dentro de la card de un widget. En las
+ * dos variantes el contenedor se llama "Cargando".
  */
-export function LoadingState({ variant = 'spinner', size = 'large', rows = SKELETON_ROWS }: LoadingStateProps) {
+export function LoadingState({
+  variant = 'spinner',
+  size = 'large',
+  rows = SKELETON_ROWS,
+  compact = false,
+}: LoadingStateProps) {
   const reduceMotion = useReduceMotion();
   const [pulse] = useState(() => new Animated.Value(1));
 
@@ -103,9 +169,9 @@ export function LoadingState({ variant = 'spinner', size = 'large', rows = SKELE
         accessibilityRole="progressbar"
         accessibilityLabel="Cargando"
       >
-        {Array.from({ length: rows }, (_, index) => (
-          <SkeletonRow key={index} />
-        ))}
+        {Array.from({ length: rows }, (_, index) =>
+          compact ? <CompactSkeletonRow key={index} /> : <SkeletonRow key={index} />
+        )}
       </Animated.View>
     );
   }
@@ -124,15 +190,30 @@ type EmptyStateProps = {
   title: string;
   description?: string;
   action?: ReactNode;
+  compact?: boolean;
 };
 
 /**
  * Vacío de v2: ícono en un cuadro glass de 56 y radio 24, y el título en `display md`. `description` es una línea de
- * apoyo debajo del título; `action` va debajo, típicamente un Button.
+ * apoyo debajo del título; `action` va debajo, típicamente un Button. `compact` es una fila baja sin superficie propia,
+ * para ir dentro de la card de un widget.
  */
-export function EmptyState({ icon: IconComponent, title, description, action }: EmptyStateProps) {
+export function EmptyState({ icon: IconComponent, title, description, action, compact = false }: EmptyStateProps) {
   const colors = useSemanticColors();
   const { colorScheme } = useColorSchemeControl();
+
+  if (compact) {
+    return (
+      <CompactRow
+        icon={IconComponent}
+        iconColor={colors.primary}
+        chipColor="primarySurface"
+        title={title}
+        description={description}
+        action={action}
+      />
+    );
+  }
 
   return (
     <YStack
@@ -174,19 +255,40 @@ type ErrorStateProps = {
   message?: string;
   onRetry?: () => void;
   retrying?: boolean;
+  compact?: boolean;
 };
 
 /**
  * Error de v2: card sólida con borde `hairline`, ícono en un cuadro `errorSurface` de 56, el mensaje en `display md` y
  * "Reintentar" opcional (outline destructivo, a lo ancho); `retrying` lo muestra cargando mientras el reintento está
- * en curso.
+ * en curso. `compact` es una fila baja sin superficie propia, para ir dentro de la card de un widget.
  */
 export function ErrorState({
   message = 'No se pudieron cargar los datos',
   onRetry,
   retrying = false,
+  compact = false,
 }: ErrorStateProps) {
   const colors = useSemanticColors();
+  const retryButton = onRetry ? (
+    <Button fullWidth variant="outline" color="destructive" loading={retrying} onPress={onRetry}>
+      Reintentar
+    </Button>
+  ) : null;
+
+  if (compact) {
+    return (
+      <YStack accessibilityRole="alert">
+        <CompactRow
+          icon={WarningCircleIcon}
+          iconColor={colors.destructive}
+          chipColor="errorSurface"
+          title={message}
+          action={retryButton}
+        />
+      </YStack>
+    );
+  }
 
   return (
     <YStack
@@ -213,11 +315,7 @@ export function ErrorState({
       <DisplayTitle size="md" textAlign="center" header={false}>
         {message}
       </DisplayTitle>
-      {onRetry ? (
-        <Button fullWidth variant="outline" color="destructive" loading={retrying} onPress={onRetry}>
-          Reintentar
-        </Button>
-      ) : null}
+      {retryButton}
     </YStack>
   );
 }
