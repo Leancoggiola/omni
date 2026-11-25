@@ -1,5 +1,6 @@
 import { RADIUS } from '@omni/shared/theme';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import type { InlineAlign } from '../types';
 
@@ -80,7 +81,6 @@ export function Badge({ children, color, variant = 'light', size = 'sm', alignSe
         letterSpacing={0.25}
         textTransform="uppercase"
         numberOfLines={1}
-        userSelect="none"
       >
         {children}
       </Paragraph>

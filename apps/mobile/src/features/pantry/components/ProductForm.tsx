@@ -8,9 +8,9 @@ import {
 } from '@omni/shared/pantry';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { useState } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { Banner, Button, getErrorMessage, SegmentedControl, Select, TextField } from '@/shared/ui';
+import { Banner, Button, getErrorMessage, Paragraph, SegmentedControl, Select, TextField } from '@/shared/ui';
 
 import { expiryToDisplay, maskExpiryInput, parseExpiryInput } from '../utils/expiryDate';
 import { parseNumberInput } from '../utils/numberInput';

@@ -1,9 +1,9 @@
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { ArrowDownIcon, ArrowUpIcon, DotsSixVerticalIcon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
-import { IconButton } from '@/shared/ui';
+import { IconButton, Paragraph } from '@/shared/ui';
 import { glassElevation } from '@/theme/elevation';
 
 import { formatSetsReps } from '../utils/gymFormat';
@@ -37,16 +37,10 @@ export function ReorderRow({ exercise, isFirst, isLast, onMove }: ReorderRowProp
         <DotsSixVerticalIcon size={20} color={colors.dimmed} />
       </YStack>
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph
-          fontSize={FONT_SIZE.lg}
-          lineHeight={`${LINE_HEIGHT.xl}px`}
-          fontWeight="600"
-          numberOfLines={2}
-          userSelect="none"
-        >
+        <Paragraph fontSize={FONT_SIZE.lg} lineHeight={`${LINE_HEIGHT.xl}px`} fontWeight="600" numberOfLines={2}>
           {exercise.name}
         </Paragraph>
-        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1} userSelect="none">
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
           {formatSetsReps(exercise.sets, exercise.reps)}
         </Paragraph>
       </YStack>

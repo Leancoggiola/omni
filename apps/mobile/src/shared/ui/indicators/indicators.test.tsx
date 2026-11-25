@@ -21,11 +21,6 @@ describe('Badge', () => {
     expect(text).toHaveProp('fontWeight', '700');
   });
 
-  it('el texto no es seleccionable: Android lo recortaría en una pill del ancho justo (#328)', async () => {
-    await render(<Badge color="dimmed">Próximamente</Badge>);
-    expect(screen.getByText('Próximamente')).toHaveProp('userSelect', 'none');
-  });
-
   it('light dimmed: texto atenuado ("Próximamente")', async () => {
     await render(<Badge color="dimmed">Próximamente</Badge>);
     expect(screen.getByText('Próximamente')).toHaveProp('color', 'dimmed');

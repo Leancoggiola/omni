@@ -1,5 +1,6 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 export type SegmentedControlItem<T extends string> = T | { value: T; label: string };
 
@@ -67,7 +68,6 @@ export function SegmentedControl<T extends string>({
               fontWeight={active ? '700' : '600'}
               color={active ? 'primary' : 'dimmed'}
               numberOfLines={1}
-              userSelect="none"
             >
               {item.label}
             </Paragraph>

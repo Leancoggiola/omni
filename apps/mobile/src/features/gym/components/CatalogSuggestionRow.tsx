@@ -1,7 +1,7 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { Badge } from '@/shared/ui';
+import { Badge, Paragraph } from '@/shared/ui';
 
 import { formatSetsReps, formatWeightKg } from '../utils/gymFormat';
 
@@ -37,10 +37,10 @@ export function CatalogSuggestionRow({ suggestion, selected, onPress }: CatalogS
       accessibilityState={{ selected }}
     >
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontWeight="600" numberOfLines={1} userSelect="none">
+        <Paragraph fontWeight="600" numberOfLines={1}>
           {suggestion.name}
         </Paragraph>
-        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1} userSelect="none">
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
           {details}
         </Paragraph>
       </YStack>

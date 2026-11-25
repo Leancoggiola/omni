@@ -68,11 +68,6 @@ describe('Button', () => {
     expect(screen.getByText('Ingresar')).toHaveProp('fontSize', 16);
   });
 
-  it('la etiqueta no es seleccionable: con `selectable` Android la dibuja más angosta de lo que midió y la corta (#328)', async () => {
-    await render(<Button>Volver a escanear</Button>);
-    expect(screen.getByText('Volver a escanear')).toHaveProp('userSelect', 'none');
-  });
-
   it('el xl mide 56 dp con fuente de 16', async () => {
     await render(<Button size="xl">Ingresar</Button>);
     expect(screen.getByRole('button', { name: 'Ingresar' })).toHaveProp('height', 56);

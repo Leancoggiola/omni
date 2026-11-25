@@ -1,6 +1,7 @@
 import { FONT_SIZE, RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { CaretDownIcon } from 'phosphor-react-native';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { glassElevation } from '@/theme/elevation';
@@ -35,7 +36,7 @@ export function PlanPickerButton({ name, onPress }: PlanPickerButtonProps) {
       accessibilityLabel={`Plan ${name}`}
       accessibilityHint="Abre tus planes para elegir otro"
     >
-      <Paragraph flexShrink={1} fontSize={FONT_SIZE.lg} fontWeight="600" numberOfLines={1} userSelect="none">
+      <Paragraph flexShrink={1} fontSize={FONT_SIZE.lg} fontWeight="600" numberOfLines={1}>
         {name}
       </Paragraph>
       <CaretDownIcon size={16} weight="bold" color={colors.text} />

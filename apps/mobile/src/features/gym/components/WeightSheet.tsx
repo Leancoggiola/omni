@@ -3,7 +3,7 @@ import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { ArchiveIcon, MinusIcon, PlusIcon, XIcon } from 'phosphor-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal } from 'react-native';
-import { Paragraph, Sheet, XStack, YStack } from 'tamagui';
+import { Sheet, XStack, YStack } from 'tamagui';
 
 import {
   Banner,
@@ -11,6 +11,7 @@ import {
   DisplayTitle,
   IconButton,
   LoadingState,
+  Paragraph,
   SHEET_EXIT_MS,
   SheetFrame,
   SheetOverlay,
@@ -69,7 +70,7 @@ function HistoryRow({ entry, note, last }: HistoryRowProps) {
         <Paragraph width={88} fontSize={FONT_SIZE.lg} fontWeight="700">
           {weight}
         </Paragraph>
-        <Paragraph flex={1} fontSize={FONT_SIZE.lg} color="dimmed" numberOfLines={1} userSelect="none">
+        <Paragraph flex={1} fontSize={FONT_SIZE.lg} color="dimmed" numberOfLines={1}>
           {effort}
         </Paragraph>
         <Paragraph fontSize={FONT_SIZE.sm} color="dimmed">
@@ -292,7 +293,7 @@ export function WeightSheet({
               <DisplayTitle size="md" numberOfLines={1}>
                 {exercise.name}
               </DisplayTitle>
-              <Paragraph color="dimmed" fontSize={FONT_SIZE.md} numberOfLines={1} userSelect="none">
+              <Paragraph color="dimmed" fontSize={FONT_SIZE.md} numberOfLines={1}>
                 {[
                   formatSetsReps(exercise.sets, exercise.reps),
                   GYM_WEEKDAY_LABELS[weekday],

@@ -1,7 +1,8 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CaretUpDownIcon } from 'phosphor-react-native';
 import { useRef } from 'react';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useSemanticColors } from '@/core/theme';
 
@@ -54,7 +55,7 @@ export function Select<T extends string>({ data, value, onChange, accessibilityL
       accessibilityLabel={`${accessibilityLabel}: ${current}`}
       accessibilityHint="Abre las opciones"
     >
-      <Paragraph flex={1} numberOfLines={1} userSelect="none" fontSize={FONT_SIZE.md} color="color">
+      <Paragraph flex={1} numberOfLines={1} fontSize={FONT_SIZE.md} color="color">
         {current}
       </Paragraph>
       <CaretUpDownIcon size={16} color={colors.dimmed} />

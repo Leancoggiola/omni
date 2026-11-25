@@ -23,11 +23,6 @@ describe('SegmentedControl', () => {
     expect(onChange).toHaveBeenCalledWith('watched');
   });
 
-  it('las etiquetas no son seleccionables: Android las recortaría en un segmento del ancho justo (#328)', async () => {
-    await render(<SegmentedControl data={STATUSES} value="all" onChange={jest.fn()} />);
-    expect(screen.getByText('Pendiente')).toHaveProp('userSelect', 'none');
-  });
-
   it('tocar el activo no vuelve a avisar', async () => {
     const onChange = jest.fn();
     await render(<SegmentedControl data={STATUSES} value="all" onChange={onChange} />);

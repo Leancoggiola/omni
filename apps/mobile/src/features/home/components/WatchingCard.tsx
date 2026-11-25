@@ -5,10 +5,10 @@ import { useRouter } from 'expo-router';
 import { FilmSlateIcon } from 'phosphor-react-native';
 import { useState } from 'react';
 import { Pressable } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { EmptyState, ErrorState, LoadingState, SectionCard, StatusPill, Title } from '@/shared/ui';
+import { EmptyState, ErrorState, LoadingState, Paragraph, SectionCard, StatusPill, Title } from '@/shared/ui';
 
 import { useWatchingMedia, WATCHING_LIMIT } from '../hooks/useWatchingMedia';
 
@@ -60,7 +60,7 @@ function WatchingRow({ item, onPress }: { item: MediaItem; onPress: () => void }
       <XStack gap={SPACING.sm} alignItems="center">
         <WatchingPoster posterPath={item.posterPath} />
         <YStack flex={1} gap={SPACING['3xs']}>
-          <Paragraph fontSize={FONT_SIZE.md} fontWeight="600" numberOfLines={1} userSelect="none">
+          <Paragraph fontSize={FONT_SIZE.md} fontWeight="600" numberOfLines={1}>
             {item.title}
           </Paragraph>
           <Paragraph fontSize={FONT_SIZE.sm} color="dimmed">

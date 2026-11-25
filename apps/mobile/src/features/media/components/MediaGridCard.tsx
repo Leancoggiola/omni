@@ -2,11 +2,11 @@ import { MEDIA_STATUS_LABELS, MEDIA_TYPE_LABELS } from '@omni/shared/media';
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { TrashIcon } from 'phosphor-react-native';
 import { memo, useState } from 'react';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
 import { useItemAuthor } from '@/core/household';
 import { useColorSchemeControl } from '@/core/theme';
-import { AuthorTag, Badge, IconButton, StatusPill } from '@/shared/ui';
+import { AuthorTag, Badge, IconButton, Paragraph, StatusPill } from '@/shared/ui';
 import { glassElevation } from '@/theme/elevation';
 
 import { MediaPoster } from './MediaPoster';
@@ -78,13 +78,7 @@ export const MediaGridCard = memo(function MediaGridCard({ item, onStatusPress, 
         </YStack>
         <YStack flex={1} gap={SPACING.xs} justifyContent="space-between" paddingHorizontal={SPACING['2xs']}>
           <YStack gap={SPACING.xs}>
-            <Paragraph
-              fontSize={FONT_SIZE.md}
-              lineHeight={`${LINE_HEIGHT.lg}px`}
-              fontWeight="600"
-              numberOfLines={2}
-              userSelect="none"
-            >
+            <Paragraph fontSize={FONT_SIZE.md} lineHeight={`${LINE_HEIGHT.lg}px`} fontWeight="600" numberOfLines={2}>
               {item.title}
             </Paragraph>
             {author ? <AuthorTag author={author} /> : null}

@@ -1,5 +1,6 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useColorSchemeControl } from '@/core/theme';
 import { glassElevation } from '@/theme/elevation';

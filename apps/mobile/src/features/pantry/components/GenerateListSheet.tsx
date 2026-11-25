@@ -1,9 +1,9 @@
 import { formatPantryQuantity } from '@omni/shared/pantry';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { useState } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { Badge, Banner, Button, FormSheet, getErrorMessage } from '@/shared/ui';
+import { Badge, Banner, Button, FormSheet, getErrorMessage, Paragraph } from '@/shared/ui';
 
 import { CategoryTile } from './CategoryTile';
 
@@ -49,7 +49,7 @@ function GenerateListForm({ rows, onConfirm, submitting, onSubmittingChange, onD
           <XStack key={product.id} gap={SPACING.sm} alignItems="center">
             <CategoryTile category={product.category} isLowStock />
             <YStack flex={1}>
-              <Paragraph fontWeight="600" numberOfLines={1} userSelect="none">
+              <Paragraph fontWeight="600" numberOfLines={1}>
                 {product.name}
               </Paragraph>
               <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>

@@ -1,6 +1,7 @@
 import { ITEM_ADDED_BY_LABEL } from '@omni/shared/household';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { getInitials } from './UserAvatar.utils';
 
@@ -52,7 +53,7 @@ export function AuthorTag({
         </Paragraph>
       </YStack>
       {showName ? (
-        <Paragraph color="dimmed" fontSize={FONT_SIZE.xs} numberOfLines={1} userSelect="none" flexShrink={1}>
+        <Paragraph color="dimmed" fontSize={FONT_SIZE.xs} numberOfLines={1} flexShrink={1}>
           {showActionLabel ? `${actionLabel} ${label}` : label}
         </Paragraph>
       ) : null}

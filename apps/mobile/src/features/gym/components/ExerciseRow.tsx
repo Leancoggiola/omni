@@ -1,5 +1,6 @@
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui';
 
 import { useColorSchemeControl } from '@/core/theme';
 import { glassElevation } from '@/theme/elevation';
@@ -50,16 +51,10 @@ export function ExerciseRow({ exercise, readOnly, onWeightPress, onPress }: Exer
       >
         <ExerciseTile />
         <YStack flex={1} gap={SPACING['3xs']}>
-          <Paragraph
-            fontSize={FONT_SIZE.lg}
-            lineHeight={`${LINE_HEIGHT.xl}px`}
-            fontWeight="600"
-            numberOfLines={2}
-            userSelect="none"
-          >
+          <Paragraph fontSize={FONT_SIZE.lg} lineHeight={`${LINE_HEIGHT.xl}px`} fontWeight="600" numberOfLines={2}>
             {exercise.name}
           </Paragraph>
-          <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1} userSelect="none">
+          <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={1}>
             {details}
           </Paragraph>
         </YStack>

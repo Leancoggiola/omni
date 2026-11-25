@@ -1,5 +1,6 @@
 import { FONT_SIZE, LINE_HEIGHT, SPACING } from '@omni/shared/theme';
-import { Paragraph, Switch as TamaguiSwitch, XStack, YStack } from 'tamagui';
+import { Switch as TamaguiSwitch, XStack, YStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useSemanticColors } from '@/core/theme';
 

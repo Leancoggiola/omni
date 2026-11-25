@@ -1,7 +1,8 @@
 import { MEDIA_STATUS_LABELS, type MediaStatus } from '@omni/shared/media';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CaretDownIcon } from 'phosphor-react-native';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useSemanticColors } from '@/core/theme';
 
@@ -46,7 +47,7 @@ export function StatusPill({ status, onPress, accessibilityLabel }: StatusPillPr
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityLabel={accessibilityLabel ?? (onPress ? `Estado: ${label}. Cambiar estado` : `Estado: ${label}`)}
     >
-      <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600" color="color" userSelect="none">
+      <Paragraph fontSize={FONT_SIZE.sm} fontWeight="600" color="color">
         {label}
       </Paragraph>
       {onPress ? <CaretDownIcon size={14} color={colors.text} /> : null}

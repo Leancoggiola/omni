@@ -1,6 +1,7 @@
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon, type Icon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { themedElevation } from '@/theme/elevation';

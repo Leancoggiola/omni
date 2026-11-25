@@ -2,7 +2,7 @@ import { GRADIENT_STOPS } from '@omni/shared/theme';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Paragraph } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useSemanticColors } from '@/core/theme';
 import { gradientPoints } from '@/theme/gradient';

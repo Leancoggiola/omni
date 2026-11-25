@@ -4,7 +4,7 @@ import { RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, type TextInputInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Paragraph, XStack, YStack, type TamaguiElement } from 'tamagui';
+import { XStack, YStack, type TamaguiElement } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { biometricIcon, useBiometrics } from '@/core/biometrics';
@@ -16,6 +16,7 @@ import {
   DisplayTitle,
   getErrorMessage,
   notifyWarning,
+  Paragraph,
   PasswordField,
   TextField,
   useKeyboardInset,
@@ -78,7 +79,7 @@ function RememberedHeader({ username, colorScheme, compact }: HeaderProps & { us
         <DisplayTitle size={compact ? 'md' : 'lg'} textAlign={compact ? 'left' : 'center'}>
           {`¡Hola, ${greetingName}!`}
         </DisplayTitle>
-        <Paragraph color="dimmed" fontSize={14} lineHeight="20px" numberOfLines={1} userSelect="none">
+        <Paragraph color="dimmed" fontSize={14} lineHeight="20px" numberOfLines={1}>
           {`Ingresando como ${username}`}
         </Paragraph>
       </YStack>

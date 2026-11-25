@@ -1,6 +1,7 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { ArrowLeftIcon, type Icon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useSemanticColors } from '@/core/theme';
 

@@ -1,7 +1,8 @@
 import { FONT_SIZE, RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { useEffect, useRef } from 'react';
 import { AccessibilityInfo, type TextInputInstance } from 'react-native';
-import { Input, Paragraph, XStack, YStack, type InputProps } from 'tamagui';
+import { Input, XStack, YStack, type InputProps } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useSemanticColors } from '@/core/theme';
 

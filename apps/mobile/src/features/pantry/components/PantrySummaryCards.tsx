@@ -1,6 +1,7 @@
 import { PANTRY_EXPIRING_SOON_DAYS } from '@omni/shared/pantry';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui';
 
 import type { PantryAlertFilter, PantrySummary } from '@omni/shared/pantry';
 
@@ -40,7 +41,7 @@ function StatCard({ value, label, pressed = false, onPress, accessibilityLabel }
       <Paragraph fontSize={STAT_FONT_SIZE} lineHeight={`${STAT_FONT_SIZE}px`} fontWeight="800">
         {value}
       </Paragraph>
-      <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={2} userSelect="none">
+      <Paragraph color="dimmed" fontSize={FONT_SIZE.sm} numberOfLines={2}>
         {label}
       </Paragraph>
     </YStack>

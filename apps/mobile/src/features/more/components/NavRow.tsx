@@ -2,11 +2,11 @@ import { isNavAvailable, NAV_REGISTRY } from '@omni/shared/navigation';
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { useRouter } from 'expo-router';
 import { CaretRightIcon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 import { NAV_HREFS, NAV_ICONS } from '@/shared/navigation';
-import { Badge } from '@/shared/ui';
+import { Badge, Paragraph } from '@/shared/ui';
 
 import type { NavKey } from '@omni/shared/navigation';
 

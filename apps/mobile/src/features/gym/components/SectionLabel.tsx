@@ -1,5 +1,5 @@
 import { OVERLINE } from '@omni/shared/theme';
-import { Paragraph } from 'tamagui';
+import { Paragraph } from '@/shared/ui';
 
 /** Encabezado de sección del DS (`OVERLINE`: 12/16, 700, en mayúsculas): "LUNES", "HISTORIAL". */
 export function SectionLabel({ children }: { children: string }) {

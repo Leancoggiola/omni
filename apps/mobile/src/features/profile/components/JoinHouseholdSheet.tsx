@@ -2,10 +2,10 @@ import { formatInviteCode, getInviteErrorMessage, householdInviteCodeSchema } fr
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CheckIcon, InfoIcon } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { Banner, Button, FormSheet, TextField, UserAvatar } from '@/shared/ui';
+import { Banner, Button, FormSheet, Paragraph, TextField, UserAvatar } from '@/shared/ui';
 
 import type { HouseholdInvitePreview } from '@omni/shared/household';
 
@@ -214,7 +214,7 @@ function Stat({ value, label }: { value: number; label: string }) {
 function DiscardedRow({ name, kind }: { name: string; kind: string }) {
   return (
     <XStack justifyContent="space-between" gap={SPACING.sm}>
-      <Paragraph flex={1} fontSize={FONT_SIZE.md} numberOfLines={1} userSelect="none">
+      <Paragraph flex={1} fontSize={FONT_SIZE.md} numberOfLines={1}>
         {name}
       </Paragraph>
       <Paragraph color="dimmed" fontSize={FONT_SIZE.sm}>

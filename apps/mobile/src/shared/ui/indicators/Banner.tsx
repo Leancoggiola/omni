@@ -1,7 +1,8 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect } from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { themedElevation } from '@/theme/elevation';

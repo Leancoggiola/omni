@@ -4,7 +4,7 @@ import { MOBILE_TAB_KEYS, NAV_REGISTRY } from '@omni/shared/navigation';
 import { Tabs } from 'expo-router';
 import { type Icon } from 'phosphor-react-native';
 import { StyleSheet, View } from 'react-native';
-import { Paragraph } from 'tamagui';
+import { Paragraph } from '@/shared/ui';
 
 import { useSemanticColors } from '@/core/theme';
 import { FloatingTabBar, MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';

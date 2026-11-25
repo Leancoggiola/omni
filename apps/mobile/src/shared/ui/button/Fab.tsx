@@ -1,6 +1,7 @@
 import { FONT_SIZE, RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { PlusIcon, type Icon } from 'phosphor-react-native';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { themedElevation } from '@/theme/elevation';
@@ -47,7 +48,7 @@ export function Fab({ onPress, icon: IconComponent = PlusIcon, label, accessibil
     >
       <IconComponent size={label ? 20 : 24} weight="bold" color={colors.onPrimaryFill} />
       {label ? (
-        <Paragraph color={colors.onPrimaryFill} fontSize={FONT_SIZE.md} fontWeight="600" userSelect="none">
+        <Paragraph color={colors.onPrimaryFill} fontSize={FONT_SIZE.md} fontWeight="600">
           {label}
         </Paragraph>
       ) : null}

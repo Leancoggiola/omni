@@ -2,7 +2,8 @@ import { MEDIA_TYPE_LABELS } from '@omni/shared/media';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CheckIcon } from 'phosphor-react-native';
 import { memo } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui';
 
 import { useSemanticColors } from '@/core/theme';
 
@@ -51,7 +52,7 @@ export const TmdbResultRow = memo(function TmdbResultRow({
     >
       <MediaPoster posterPath={posterPath} width={THUMB_WIDTH} />
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.md} fontWeight="500" numberOfLines={1} userSelect="none">
+        <Paragraph fontSize={FONT_SIZE.md} fontWeight="500" numberOfLines={1}>
           {title}
         </Paragraph>
         <Paragraph fontSize={FONT_SIZE.sm} color="dimmed">

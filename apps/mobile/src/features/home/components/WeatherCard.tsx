@@ -11,10 +11,10 @@ import {
 import { MapPinIcon } from 'phosphor-react-native';
 import { createElement } from 'react';
 import { Linking, Pressable } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { Button, EmptyState, ErrorState, LoadingState, SectionCard, Title } from '@/shared/ui';
+import { Button, EmptyState, ErrorState, LoadingState, Paragraph, SectionCard, Title } from '@/shared/ui';
 
 import { useCurrentWeather } from '../hooks/useCurrentWeather';
 import { getWeatherIcon } from '../utils/weatherIcons';
@@ -81,7 +81,7 @@ function WeatherSummary({ weather }: { weather: CurrentWeather }) {
         {createElement(getWeatherIcon(weather.condition, weather.isDay), { size: 26, color: colors.primary })}
       </YStack>
       <YStack flex={1} gap={SPACING['3xs']}>
-        <Paragraph fontSize={FONT_SIZE.sm} color="dimmed" fontWeight="500" numberOfLines={1} userSelect="none">
+        <Paragraph fontSize={FONT_SIZE.sm} color="dimmed" fontWeight="500" numberOfLines={1}>
           {headline}
         </Paragraph>
         <Paragraph fontSize={FONT_SIZE.md} fontWeight="600">

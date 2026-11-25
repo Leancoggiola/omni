@@ -1,5 +1,6 @@
 import { DISPLAY } from '@omni/shared/theme';
-import { Paragraph, type ParagraphProps } from 'tamagui';
+import type { ParagraphProps } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 type DisplaySize = 'md' | 'lg' | 'xl';
 
@@ -44,7 +45,7 @@ export function DisplayTitle({ children, size = 'lg', accent, header = true, ...
   const at = accent ? lastWordIndex(children, accent) : -1;
 
   return (
-    <Paragraph color="color" accessibilityRole={header ? 'header' : undefined} userSelect="none" {...style} {...props}>
+    <Paragraph color="color" accessibilityRole={header ? 'header' : undefined} {...style} {...props}>
       {at < 0 || !accent ? (
         children
       ) : (

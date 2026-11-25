@@ -2,7 +2,8 @@ import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { CheckIcon } from 'phosphor-react-native';
 import { type PropsWithChildren } from 'react';
 import { useWindowDimensions } from 'react-native';
-import { Paragraph, Sheet, XStack, YStack } from 'tamagui';
+import { Sheet, XStack, YStack } from 'tamagui';
+import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useSemanticColors } from '@/core/theme';
 
