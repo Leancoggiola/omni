@@ -88,6 +88,10 @@ describe('buildShareMessage', () => {
     );
   });
 
+  it('cuenta una sola persona en singular', () => {
+    expect(buildShareMessage(gatheringDetail({ participantCount: 1 }))).toContain('1 persona · $27.000,00');
+  });
+
   it('sin transferencias lo dice', () => {
     expect(buildShareMessage(gatheringDetail({ settlements: [] }))).toContain('Nadie le debe nada a nadie.');
   });

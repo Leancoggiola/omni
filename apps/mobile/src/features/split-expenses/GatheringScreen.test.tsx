@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { Share } from 'react-native';
+import { ScrollView, Share } from 'react-native';
 
 import { actionSheet, confirm, notifyError, notifySuccess, SHEET_EXIT_MS } from '@/shared/ui';
+import { getByHostType } from '@/test/hostQueries';
 
 import { expense, gatheringDetail, participant } from './fixtures';
 import { GatheringScreen } from './GatheringScreen';
@@ -97,6 +98,21 @@ describe('GatheringScreen', () => {
 
     await unmount();
     expect(mockSetOffset).toHaveBeenLastCalledWith(0);
+  });
+
+  it('baja al final al abrir y con un gasto nuevo, no ante otro cambio de alto', async () => {
+    const scrollToEnd = jest.spyOn(ScrollView.prototype as unknown as { scrollToEnd: () => void }, 'scrollToEnd');
+    const { rerender } = await render(<GatheringScreen />);
+    const resize = () => fireEvent(getByHostType('RCTScrollView'), 'contentSizeChange', 400, 800);
+
+    await resize();
+    await resize();
+    expect(scrollToEnd).toHaveBeenCalledTimes(1);
+
+    mockUseGathering.mockReturnValue(loaded(gatheringDetail({ expenses: [expense(), expense({ id: 'e2' })] })));
+    await rerender(<GatheringScreen />);
+    await resize();
+    expect(scrollToEnd).toHaveBeenCalledTimes(2);
   });
 
   it('un gasto parcial dice entre quiénes y cuánto es cada parte', async () => {

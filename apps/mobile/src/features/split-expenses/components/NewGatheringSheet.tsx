@@ -12,6 +12,7 @@ import { XStack, YStack } from 'tamagui';
 import { Banner, Button, FormSheet, getErrorMessage, Paragraph, TextField } from '@/shared/ui';
 
 import { maskDateInput, parseOtherDate, relativeDateKey, type DateChoice } from '../utils/gatheringDate';
+import { DUPLICATE_PARTICIPANT_MESSAGE, hasParticipantNamed } from '../utils/participants';
 import { ChoiceChip } from './ChoiceChip';
 import { ParticipantPicker } from './ParticipantPicker';
 
@@ -64,6 +65,11 @@ export function NewGatheringSheet({ open, onOpenChange, onCreate, onCreated, onC
   const toggleFriend = (friendId: string, displayName: string) => {
     if (participants.some(participant => participant.friendId === friendId)) {
       changeParticipants(participants.filter(participant => participant.friendId !== friendId));
+    } else if (hasParticipantNamed(participants, displayName)) {
+      setErrors(current => ({
+        ...current,
+        participants: `${displayName}: ${DUPLICATE_PARTICIPANT_MESSAGE.toLowerCase()}`,
+      }));
     } else {
       addParticipant(friendId, displayName);
     }

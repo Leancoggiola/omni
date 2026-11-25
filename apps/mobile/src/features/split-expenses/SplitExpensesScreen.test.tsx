@@ -151,7 +151,7 @@ describe('SplitExpensesScreen', () => {
       expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/split-expenses/[id]', params: { id: 'nueva' } });
     });
 
-    it('quitar un participante y no repetir nombres', async () => {
+    it('quitar un participante y avisar si el nombre ya está', async () => {
       await openSheet();
 
       for (const name of ['Lucas', 'lucas']) {
@@ -160,9 +160,23 @@ describe('SplitExpensesScreen', () => {
         await fireEvent.press(screen.getByRole('button', { name: 'Agregar participante' }));
       }
       expect(screen.getByText('2 personas')).toBeTruthy();
+      expect(screen.getByText('Ya está en la juntada')).toBeTruthy();
+      expect(screen.getByLabelText('Nombre del participante').props.value).toBe('lucas');
 
       await fireEvent.press(screen.getByRole('button', { name: 'Quitar Lucas' }));
       expect(screen.getByText('1 persona')).toBeTruthy();
+    });
+
+    it('no suma un amigo guardado con el nombre de un participante ya cargado', async () => {
+      await openSheet();
+
+      await fireEvent.press(screen.getByRole('button', { name: 'Amigo nuevo' }));
+      await fireEvent.changeText(screen.getByLabelText('Nombre del participante'), 'martín');
+      await fireEvent.press(screen.getByRole('button', { name: 'Agregar participante' }));
+      await fireEvent.press(screen.getByRole('button', { name: 'Martín' }));
+
+      expect(screen.getByText('Martín: ya está en la juntada')).toBeTruthy();
+      expect(screen.getByText('2 personas')).toBeTruthy();
     });
 
     it('valida el nombre y los participantes al enviar', async () => {

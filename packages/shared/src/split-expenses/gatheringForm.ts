@@ -28,7 +28,7 @@ export const newGatheringFormSchema: z.ZodType<NewGatheringFormValues> = z.objec
   participants: z
     .array(gatheringParticipantDraftSchema)
     .min(1, 'Agregá al menos un participante')
-    .max(GATHERING_PARTICIPANTS_MAX),
+    .max(GATHERING_PARTICIPANTS_MAX, `Máximo ${GATHERING_PARTICIPANTS_MAX} participantes`),
 });
 
 export function createInitialNewGatheringValues(): NewGatheringFormValues {

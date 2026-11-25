@@ -60,8 +60,8 @@ const SIZES = {
 
 /**
  * Equivalente de `Badge` de Mantine: pill en mayúsculas, 700. `color`: `accent` es el terracota del tipo de media;
- * `dimmed`, el gris de "Próximamente"; `success`, lo terminado o a favor ("Saldada", "Te deben"); `warning`, el ámbar de "Por vencer" (de un solo tono: va en `outline`, no hay
- * un wash legible).
+ * `dimmed`, el gris de "Próximamente"; `success`, lo terminado o a favor ("Saldada", "Te deben"); `warning`, el ámbar
+ * de "Por vencer" (de un solo tono: va en `outline`, no hay un wash legible).
  */
 export function Badge({ children, color, variant = 'light', size = 'sm', alignSelf = 'flex-start' }: BadgeProps) {
   const t = BADGE_TOKENS[color];

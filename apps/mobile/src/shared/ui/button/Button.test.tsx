@@ -126,6 +126,13 @@ describe('buttonPalette', () => {
     expect(buttonPalette(variant, 'destructive', false, s)).toMatchObject({ ...expected, icon: s.destructive });
   });
 
+  it('filled success usa el relleno de lo terminado, sin theme propio', () => {
+    const palette = buttonPalette('filled', 'success', false, s);
+
+    expect(palette).toMatchObject({ background: 'successFill', color: 'onSuccessFill', icon: s.onSuccessFill });
+    expect(palette.theme).toBeUndefined();
+  });
+
   it('deshabilitado ignora la variante, como Mantine', () => {
     for (const variant of ['filled', 'outline', 'light', 'subtle'] as const) {
       expect(buttonPalette(variant, 'brand', true, s)).toMatchObject({

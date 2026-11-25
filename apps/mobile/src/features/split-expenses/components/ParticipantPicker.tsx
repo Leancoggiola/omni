@@ -9,6 +9,7 @@ import { useAuth } from '@/core/auth';
 import { Button, ErrorState, LoadingState, Paragraph, TextField } from '@/shared/ui';
 
 import { useSplitFriends } from '../hooks/useSplitFriends';
+import { DUPLICATE_PARTICIPANT_MESSAGE, hasParticipantNamed } from '../utils/participants';
 import { toneForName } from '../utils/presentation';
 import { ChoiceChip } from './ChoiceChip';
 import { ParticipantAvatar } from './ParticipantAvatar';
@@ -27,12 +28,13 @@ type ParticipantPickerProps = {
 /**
  * "¿Quiénes participan?": "Vos" fijo, los amigos guardados como chips que se marcan y se desmarcan, y "Amigo nuevo"
  * para sumar a alguien por nombre (queda solo en esa juntada, sin guardarse como amigo). Un nombre repetido no se
- * agrega de nuevo.
+ * agrega: el campo queda abierto y lo avisa.
  */
 export function ParticipantPicker({ participants, error, onToggleFriend, onAddNew, onRemove }: ParticipantPickerProps) {
   const { friends, isLoading, error: friendsError, mutate } = useSplitFriends();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
+  const [nameError, setNameError] = useState<string | undefined>(undefined);
   const inputRef = useRef<TamaguiElement>(null);
   const { user } = useAuth();
 
@@ -42,11 +44,13 @@ export function ParticipantPicker({ participants, error, onToggleFriend, onAddNe
 
   const addNew = () => {
     const trimmed = name.trim();
-    const duplicated = participants.some(
-      participant => participant.displayName.toLowerCase() === trimmed.toLowerCase()
-    );
-    if (trimmed && !duplicated) onAddNew(trimmed);
+    if (trimmed && hasParticipantNamed(participants, trimmed)) {
+      setNameError(DUPLICATE_PARTICIPANT_MESSAGE);
+      return;
+    }
+    if (trimmed) onAddNew(trimmed);
     setName('');
+    setNameError(undefined);
     setAdding(false);
   };
 
@@ -95,7 +99,12 @@ export function ParticipantPicker({ participants, error, onToggleFriend, onAddNe
             ref={inputRef}
             maxLength={SPLIT_FRIEND_NAME_MAX}
             value={name}
-            onChangeText={(text: string) => setName(text)}
+            onChangeText={(text: string) => {
+              setName(text);
+              setNameError(undefined);
+            }}
+            error={nameError}
+            submitBehavior="submit"
             onSubmitEditing={addNew}
             returnKeyType="done"
           />

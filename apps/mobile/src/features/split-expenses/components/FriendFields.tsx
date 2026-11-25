@@ -1,11 +1,11 @@
-import { SPLIT_FRIEND_ALIAS_MAX, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
+import { SPLIT_FRIEND_ALIAS_MAX, SPLIT_FRIEND_ALIAS_MIN, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
 
 import { TextField } from '@/shared/ui';
 
 import type { FriendFormErrors } from '../utils/friendErrors';
 import type { FriendFormValues } from '@omni/shared/split-expenses';
 
-export const ALIAS_HINT = 'Entre 6 y 20 caracteres: letras, números, puntos y guiones.';
+export const ALIAS_HINT = `Entre ${SPLIT_FRIEND_ALIAS_MIN} y ${SPLIT_FRIEND_ALIAS_MAX} caracteres: letras, números, puntos y guiones.`;
 
 type FriendFieldsProps = {
   values: FriendFormValues;

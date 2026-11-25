@@ -84,6 +84,7 @@ function GatheringView({ gathering, refresh, stale, onBack }: GatheringViewProps
   const refreshControl = usePullToRefresh(refresh);
   const notice = useSheetNotice();
   const scroll = useRef<ScrollViewInstance>(null);
+  const shownExpenses = useRef(0);
   const selfId = (gathering.participants.find(participant => participant.isSelf) ?? gathering.participants[0])?.id;
   const [pickedPayerId, setPayerId] = useState(selfId ?? '');
   const [text, setText] = useState('');
@@ -104,6 +105,12 @@ function GatheringView({ gathering, refresh, stale, onBack }: GatheringViewProps
   const payerId = gathering.participants.some(participant => participant.id === pickedPayerId)
     ? pickedPayerId
     : (selfId ?? '');
+
+  /** Baja al final al abrir el feed y cuando suma un gasto; otro cambio de alto no mueve a quien lee más arriba. */
+  const followNewExpenses = () => {
+    if (gathering.expenses.length > shownExpenses.current) scroll.current?.scrollToEnd({ animated: false });
+    shownExpenses.current = gathering.expenses.length;
+  };
 
   const handleQuickSubmit = async () => {
     if (text.trim() === '' || busy.current) return;
@@ -284,7 +291,7 @@ function GatheringView({ gathering, refresh, stale, onBack }: GatheringViewProps
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ gap: SPACING.sm, paddingBottom: SPACING.xs }}
-        onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: false })}
+        onContentSizeChange={followNewExpenses}
       >
         {hasExpenses
           ? days.map(day => (

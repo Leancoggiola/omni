@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { GATHERING_PARTICIPANTS_MAX } from '../../common/limits';
+
 import { createInitialNewGatheringValues, newGatheringFormSchema, toCreateGatheringPayload } from '..';
 
 import type { NewGatheringFormValues } from '..';
@@ -30,6 +32,18 @@ describe('newGatheringFormSchema', () => {
 
   it('rejects an invalid date', () => {
     expect(newGatheringFormSchema.safeParse({ ...base, date: '15/08/2026' }).success).toBe(false);
+  });
+
+  it('explains the participant limit in Spanish', () => {
+    const participants = Array.from({ length: GATHERING_PARTICIPANTS_MAX + 1 }, (_, index) => ({
+      key: `k${index}`,
+      friendId: null,
+      displayName: `Persona ${index}`,
+    }));
+
+    const result = newGatheringFormSchema.safeParse({ ...base, participants });
+
+    expect(result.error?.issues[0]?.message).toBe(`Máximo ${GATHERING_PARTICIPANTS_MAX} participantes`);
   });
 
   it('requires at least one participant', () => {

@@ -63,8 +63,8 @@ export function formatLastExpenseTime(createdAt: string, now: Date = new Date())
 }
 
 /**
- * Tono de avatar para quien solo se conoce por el nombre (la vista previa de la lista, que no trae los participantes):
- * estable para un mismo nombre.
+ * Tono de avatar para quien solo se conoce por el nombre (la vista previa de la lista y los amigos): estable para un
+ * mismo nombre. Puede no coincidir con el del feed, que rota según el orden en la juntada (`participantTones`).
  */
 export function toneForName(name: string): ParticipantTone {
   const sum = Array.from(name).reduce((total, char) => total + (char.codePointAt(0) ?? 0), 0);
@@ -101,7 +101,7 @@ export function buildShareMessage(gathering: GatheringDetail): string {
   });
   return [
     `${gathering.name} · ${formatGatheringShortDate(gathering.date)}`,
-    `${gathering.participantCount} personas · ${formatMoney(gathering.totalAmount)}`,
+    `${gathering.participantCount === 1 ? '1 persona' : `${gathering.participantCount} personas`} · ${formatMoney(gathering.totalAmount)}`,
     '',
     ...(transfers.length > 0 ? ['Cómo se saldan las cuentas:', ...transfers] : ['Nadie le debe nada a nadie.']),
   ].join('\n');
