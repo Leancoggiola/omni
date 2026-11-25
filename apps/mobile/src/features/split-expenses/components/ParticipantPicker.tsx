@@ -2,7 +2,7 @@ import { SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { PlusIcon, XIcon } from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { XStack, YStack, type TamaguiElement } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 
@@ -35,11 +35,11 @@ export function ParticipantPicker({ participants, error, onToggleFriend, onAddNe
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState<string | undefined>(undefined);
-  const inputRef = useRef<TamaguiElement>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const { user } = useAuth();
 
   useEffect(() => {
-    if (adding) (inputRef.current as TextInputInstance | null)?.focus();
+    if (adding) inputRef.current?.focus();
   }, [adding]);
 
   const addNew = () => {

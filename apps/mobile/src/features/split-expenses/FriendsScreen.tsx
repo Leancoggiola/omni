@@ -29,10 +29,6 @@ import { useSplitFriends } from './hooks/useSplitFriends';
 
 import type { SplitFriend } from '@omni/shared/split-expenses';
 
-/**
- * Amigos de División de gastos (ruta de stack): alta, saldo de cada uno en las juntadas activas y edición en una hoja,
- * desde donde se elimina con confirmación.
- */
 function FriendsContent({ onBack }: { onBack: () => void }) {
   const { friends, isLoading, error, mutate } = useSplitFriends();
   const { createFriend, updateFriend, deleteFriend } = useSplitExpensesMutations();
@@ -132,6 +128,11 @@ function FriendsContent({ onBack }: { onBack: () => void }) {
   );
 }
 
+/**
+ * Amigos de División de gastos (ruta de stack `/split-expenses/friends`): alta, saldo de cada uno en las juntadas
+ * activas y edición en una hoja, desde donde se elimina con confirmación. Módulo sensible: pide biometría si está
+ * activada.
+ */
 export function FriendsScreen() {
   const router = useRouter();
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/split-expenses'));
