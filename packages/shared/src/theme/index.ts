@@ -39,5 +39,5 @@ export {
   SHADOW_THEMED,
 } from './tokens';
 export { contrastRatio, pickOnFill, WCAG_AA_TEXT } from './contrast';
-export { resolveColorScheme } from './colorScheme';
+export { parseColorSchemeHint, resolveColorScheme, THEME_FADE_MS } from './colorScheme';
 export type { ColorScheme } from './tokens';
