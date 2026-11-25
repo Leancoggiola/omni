@@ -328,6 +328,26 @@ describe('GatheringScreen', () => {
       expect(mockBack).toHaveBeenCalled();
     });
 
+    it('mientras elimina no avisa que no pudo actualizar la juntada que ya no existe', async () => {
+      mockActionSheet.mockResolvedValue('delete');
+      mockMutations.deleteGathering.mockReturnValue(new Promise(() => undefined));
+      const { rerender } = await render(<GatheringScreen />);
+      await fireEvent.press(screen.getByRole('button', { name: 'Opciones de la juntada' }));
+
+      mockUseGathering.mockReturnValue({ ...loaded(), error: new Error('404') });
+      await rerender(<GatheringScreen />);
+
+      expect(screen.queryByText('No se pudo actualizar la juntada')).toBeNull();
+    });
+
+    it('si falla la actualización avisa sin tapar el feed', async () => {
+      mockUseGathering.mockReturnValue({ ...loaded(), error: new Error('503') });
+      await render(<GatheringScreen />);
+
+      expect(screen.getByText('No se pudo actualizar la juntada')).toBeTruthy();
+      expect(screen.getByText('Asado del sábado')).toBeTruthy();
+    });
+
     it('si el borrado de la juntada falla se queda y avisa', async () => {
       mockActionSheet.mockResolvedValue('delete');
       mockMutations.deleteGathering.mockRejectedValue(new Error('x'));

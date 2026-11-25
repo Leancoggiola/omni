@@ -78,7 +78,11 @@ type GatheringViewProps = {
   onBack: () => void;
 };
 
-/** El feed de una juntada ya cargada, con su pie (carga rápida y saldar, o "Todo saldado") y sus hojas. */
+/**
+ * El feed de una juntada ya cargada, con su pie (carga rápida y saldar, o "Todo saldado") y sus hojas. Baja al final al
+ * abrir el feed y cuando suma un gasto; otro cambio de alto no mueve a quien lee más arriba. Mientras se elimina la
+ * juntada no avisa que no se pudo actualizar: un pedido del detalle en ese lapso ya no la encuentra.
+ */
 function GatheringView({ gathering, refresh, stale, onBack }: GatheringViewProps) {
   const { addExpense, deleteExpense, setGatheringSettled, deleteGathering } = useSplitExpensesMutations();
   const refreshControl = usePullToRefresh(refresh);
@@ -90,6 +94,7 @@ function GatheringView({ gathering, refresh, stale, onBack }: GatheringViewProps
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [reopening, setReopening] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [expenseDraft, setExpenseDraft] = useState<ExpenseDraft | null>(null);
   const [expenseOpen, setExpenseOpen] = useState(false);
   const [expenseKey, setExpenseKey] = useState(0);
@@ -106,7 +111,6 @@ function GatheringView({ gathering, refresh, stale, onBack }: GatheringViewProps
     ? pickedPayerId
     : (selfId ?? '');
 
-  /** Baja al final al abrir el feed y cuando suma un gasto; otro cambio de alto no mueve a quien lee más arriba. */
   const followNewExpenses = () => {
     if (gathering.expenses.length > shownExpenses.current) scroll.current?.scrollToEnd({ animated: false });
     shownExpenses.current = gathering.expenses.length;
@@ -177,12 +181,14 @@ function GatheringView({ gathering, refresh, stale, onBack }: GatheringViewProps
     });
     if (!confirmed) return;
     busy.current = true;
+    setDeleting(true);
     try {
       await deleteGathering(gathering.id);
       notifySuccess('Juntada eliminada');
       onBack();
     } catch (err) {
       busy.current = false;
+      setDeleting(false);
       notifyError(getErrorMessage(err, 'No se pudo eliminar la juntada'));
     }
   };
@@ -282,7 +288,9 @@ function GatheringView({ gathering, refresh, stale, onBack }: GatheringViewProps
           {SOLO_WARNING}
         </Banner>
       ) : null}
-      {stale ? <ErrorState message="No se pudo actualizar la juntada" onRetry={() => void refresh()} /> : null}
+      {stale && !deleting ? (
+        <ErrorState message="No se pudo actualizar la juntada" onRetry={() => void refresh()} />
+      ) : null}
 
       <ScrollView
         ref={scroll}
