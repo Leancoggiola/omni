@@ -1,10 +1,10 @@
 import { FONT_SIZE, LINE_HEIGHT, SPACING } from '@omni/shared/theme';
 import { type PropsWithChildren } from 'react';
 import { YStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { Button } from '../button/Button';
 import { DisplayTitle } from '../DisplayTitle';
+import { Paragraph } from '../Paragraph';
 import { QueuedSheet } from '../sheet/QueuedSheet';
 import { useSheetQueue } from '../sheet/useSheetQueue';
 

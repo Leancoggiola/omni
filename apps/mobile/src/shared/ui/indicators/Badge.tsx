@@ -1,7 +1,7 @@
 import { RADIUS } from '@omni/shared/theme';
 import { XStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui/Paragraph';
 
+import { Paragraph } from '../Paragraph';
 import type { InlineAlign } from '../types';
 
 export type BadgeColor = 'accent' | 'dimmed' | 'warning';

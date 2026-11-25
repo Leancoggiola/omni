@@ -3,13 +3,13 @@ import { WarningCircleIcon, type Icon } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { Animated } from 'react-native';
 import { XStack, YStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { glassElevation } from '@/theme/elevation';
 
 import { Button } from './button/Button';
 import { DisplayTitle } from './DisplayTitle';
+import { Paragraph } from './Paragraph';
 import { Spinner } from './Spinner';
 import { STATUS_PILL_HEIGHT } from './StatusPill';
 import { useReduceMotion } from './useReduceMotion';

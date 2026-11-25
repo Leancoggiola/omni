@@ -2,11 +2,11 @@ import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CaretUpDownIcon } from 'phosphor-react-native';
 import { useRef } from 'react';
 import { XStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useSemanticColors } from '@/core/theme';
 
 import { actionSheet, type ActionSheetOption } from '../actionSheet/actionSheet';
+import { Paragraph } from '../Paragraph';
 import { FIELD_HEIGHT } from './TextField';
 
 export type SelectItem<T extends string> = ActionSheetOption<T>;

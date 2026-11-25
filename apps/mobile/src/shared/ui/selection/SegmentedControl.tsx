@@ -1,6 +1,7 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { XStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui/Paragraph';
+
+import { Paragraph } from '../Paragraph';
 
 export type SegmentedControlItem<T extends string> = T | { value: T; label: string };
 

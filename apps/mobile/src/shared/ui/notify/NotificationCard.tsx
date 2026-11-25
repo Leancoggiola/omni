@@ -1,12 +1,12 @@
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon, type Icon } from 'phosphor-react-native';
 import { XStack, YStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { themedElevation } from '@/theme/elevation';
 
 import { IconButton } from '../button/IconButton';
+import { Paragraph } from '../Paragraph';
 
 import type { NotificationVariant } from './notify';
 

@@ -1,9 +1,9 @@
 import { RADIUS, SPACING } from '@omni/shared/theme';
 import { XStack, YStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useSemanticColors } from '@/core/theme';
 
+import { Paragraph } from '../Paragraph';
 import { Spinner } from '../Spinner';
 
 import {

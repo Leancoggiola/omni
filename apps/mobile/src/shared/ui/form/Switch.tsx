@@ -1,8 +1,9 @@
 import { FONT_SIZE, LINE_HEIGHT, SPACING } from '@omni/shared/theme';
 import { Switch as TamaguiSwitch, XStack, YStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui/Paragraph';
 
 import { useSemanticColors } from '@/core/theme';
+
+import { Paragraph } from '../Paragraph';
 
 type SwitchProps = {
   checked: boolean;
