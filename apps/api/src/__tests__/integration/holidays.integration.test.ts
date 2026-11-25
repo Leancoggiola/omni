@@ -12,7 +12,7 @@ import * as wikipediaService from '../../holidays/wikipedia.service';
 
 const mockedWikipedia = vi.mocked(wikipediaService);
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('holidays routes (integration)', () => {
   let auth: string;

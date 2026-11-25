@@ -15,7 +15,7 @@ import * as openFoodFactsService from '../../pantry/open-food-facts.service';
 
 const mockedOpenFoodFacts = vi.mocked(openFoodFactsService);
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const COKE = '7790895000997';

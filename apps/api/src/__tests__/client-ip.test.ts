@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 
 import { clientIpKey, getClientIp } from '../common/utils/client-ip';
 import { createOriginGuard, ORIGIN_SECRET_HEADER } from '../common/utils/origin-guard';
+import { listenOnLoopback } from '../test/listenOnLoopback';
 
 function mockReq(headers: Record<string, string>, ip = '10.0.0.1'): Request {
   const lower = Object.fromEntries(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
@@ -73,11 +74,11 @@ describe('rate limit detrás del origin guard', () => {
     app.get('/probe', (_req, res) => {
       res.json({ ok: true });
     });
-    return app;
+    return listenOnLoopback(app);
   }
 
   it('cuenta por x-real-ip cuando el request vino del proxy', async () => {
-    const app = buildApp(SECRET);
+    const app = await buildApp(SECRET);
 
     const first = await request(app).get('/probe').set(ORIGIN_SECRET_HEADER, SECRET).set('x-real-ip', '203.0.113.1');
     const other = await request(app).get('/probe').set(ORIGIN_SECRET_HEADER, SECRET).set('x-real-ip', '203.0.113.2');
@@ -89,7 +90,7 @@ describe('rate limit detrás del origin guard', () => {
   });
 
   it('un x-real-ip inventado sin pasar por el proxy no esquiva el límite', async () => {
-    const app = buildApp(undefined);
+    const app = await buildApp(undefined);
 
     const first = await request(app).get('/probe').set('x-real-ip', '203.0.113.1');
     const spoofed = await request(app).get('/probe').set('x-real-ip', '203.0.113.2');

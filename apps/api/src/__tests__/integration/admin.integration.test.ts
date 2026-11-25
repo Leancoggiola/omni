@@ -6,7 +6,7 @@ import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
 import { createUser, toJwtUser } from '../../test/integration/factories';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('admin users routes (integration)', () => {
   let adminAuth: string;

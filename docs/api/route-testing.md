@@ -54,15 +54,17 @@ Consecuencias a tener presentes:
 
 Todos en `apps/api/src/test/integration/`:
 
-| Helper                        | Uso                                                                      |
-| ----------------------------- | ------------------------------------------------------------------------ |
-| `createIntegrationApp()`      | `createApp()` tal cual; el rate limit se apaga con `RATE_LIMIT_DISABLED` |
-| `authHeader(user)`            | Firma un JWT real que passport valida — no hay middleware mockeado       |
-| `toJwtUser(user)`             | Convierte una fila de `User` en el payload del token                     |
-| `createUser()`, `create…()`   | Factories determinísticas, sin datos aleatorios                          |
-| `findRecordedCall(model, op)` | Devuelve los `args` que recibió Prisma — para assertear el SQL emitido   |
-| `withSavepoint(fn)`           | Aísla una request que provoca un error de base de datos                  |
-| `createFakeAvatarStorage()`   | Storage de fotos en memoria; se instala con `setAvatarStorageOverride`   |
+| Helper                        | Uso                                                                                                               |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `createIntegrationApp()`      | `createApp()` ya escuchando en loopback (se espera con `await`); el rate limit se apaga con `RATE_LIMIT_DISABLED` |
+| `authHeader(user)`            | Firma un JWT real que passport valida — no hay middleware mockeado                                                |
+| `toJwtUser(user)`             | Convierte una fila de `User` en el payload del token                                                              |
+| `createUser()`, `create…()`   | Factories determinísticas, sin datos aleatorios                                                                   |
+| `findRecordedCall(model, op)` | Devuelve los `args` que recibió Prisma — para assertear el SQL emitido                                            |
+| `withSavepoint(fn)`           | Aísla una request que provoca un error de base de datos                                                           |
+| `createFakeAvatarStorage()`   | Storage de fotos en memoria; se instala con `setAvatarStorageOverride`                                            |
+
+A supertest se le pasa siempre un servidor ya escuchando, nunca la app suelta: con una app propia (`express()`), envolverla con `await listenOnLoopback(app)` de `apps/api/src/test/`. Con la app suelta supertest puede recibir un puerto que otro proceso ya usa en `127.0.0.1`.
 
 ---
 
@@ -77,7 +79,7 @@ import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
 import { createUser, toJwtUser } from '../../test/integration/factories';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('<feature> routes (integration)', () => {
   let user: Awaited<ReturnType<typeof createUser>>;

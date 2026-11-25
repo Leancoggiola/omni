@@ -94,6 +94,8 @@ Usar `createRateLimiter` de `common/utils`, no `express-rate-limit` directo: per
 
 Supertest + PostgreSQL real + JWT real; cada test corre en una transacción que se revierte contra `db-test`. Solo se mockea lo que sale a internet: `tmdb.service`, `open-meteo.service`, `nominatim.service`, `open-food-facts.service` y el storage de fotos (`createFakeAvatarStorage()` + `setAvatarStorageOverride`). Patrón completo: `docs/api/route-testing.md`.
 
+A supertest se le pasa un servidor en loopback, nunca la app suelta: `await createIntegrationApp()` o `await listenOnLoopback(app)`.
+
 ```bash
 docker compose up -d db-test
 pnpm --filter api db:test:reset

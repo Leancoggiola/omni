@@ -12,7 +12,7 @@ import * as tmdbService from '../../media/tmdb.service';
 
 const mockedTmdb = vi.mocked(tmdbService);
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 const movieDetail = {
   id: 550,

@@ -14,7 +14,7 @@ import {
 import { findRecordedCall } from '../../test/integration/queryRecorder';
 import { withSavepoint } from '../../test/integration/withSavepoint';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('split-expenses routes (integration)', () => {
   let user: Awaited<ReturnType<typeof createUser>>;
