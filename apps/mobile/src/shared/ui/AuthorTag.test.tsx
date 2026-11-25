@@ -13,7 +13,7 @@ describe('AuthorTag', () => {
   });
 
   it('dice "Vos" para la propia sesión', async () => {
-    await render(<AuthorTag author={{ kind: 'self', name: 'Leandro Coggiola', avatarUrl: null }} />);
+    await render(<AuthorTag author={{ kind: 'self', name: 'Ana Gomez', avatarUrl: null }} />);
 
     expect(screen.getByLabelText('Agregado por Vos')).toBeTruthy();
     expect(screen.getByText('Vos')).toBeTruthy();
@@ -42,11 +42,7 @@ describe('AuthorTag', () => {
 
   it('con showActionLabel muestra la acción delante del nombre', async () => {
     await render(
-      <AuthorTag
-        author={{ kind: 'self', name: 'Leandro', avatarUrl: null }}
-        actionLabel="Editado por"
-        showActionLabel
-      />
+      <AuthorTag author={{ kind: 'self', name: 'Mateo', avatarUrl: null }} actionLabel="Editado por" showActionLabel />
     );
 
     expect(screen.getByText('Editado por Vos')).toBeTruthy();

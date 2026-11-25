@@ -1,12 +1,14 @@
 import { FC } from 'react';
 
-import { splitGatheringsByStatus } from '../../utils/gatheringView';
-import { Overline } from '../Overline';
+import { Overline } from '@/shared/ui';
+
 import { GatheringListItem } from './GatheringListItem';
 
 import type { GatheringSummary } from '@omni/shared/split-expenses';
 
 import classes from './GatheringList.module.scss';
+
+import { splitGatheringsByStatus } from '@omni/shared/split-expenses';
 
 interface GatheringListProps {
   items: GatheringSummary[];

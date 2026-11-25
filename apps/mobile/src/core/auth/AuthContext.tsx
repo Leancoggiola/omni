@@ -17,6 +17,7 @@ import {
   api,
   ApiError,
   API_KEYS,
+  clearLastGymPlan,
   clearLastWeather,
   clearOnAuthFailure,
   clearTokens,
@@ -120,17 +121,20 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
 
   /**
    * Cierra la sesión local: sin token la key de sesión pasa a null (`user` → null, AuthGate
-   * redirige al login y ColorSchemeContext descarta el override) y se vacía todo el caché de
+   * pasa al login y ColorSchemeContext descarta el override) y se vacía todo el caché de
    * SWR para que el próximo usuario no herede datos del anterior (ej. `users.profile`, immutable).
-   * Después borra el respaldo del clima de la persona (guarda su ciudad en SecureStore): va al final porque SWR
-   * descarta las respuestas en vuelo al vaciar la caché, y así un clima que llega durante el cierre no lo vuelve a
-   * guardar. Se lee del ref porque este callback también corre al vencer la sesión.
+   * Después borra el respaldo del clima de la persona (guarda su ciudad en SecureStore) y el último plan de gimnasio
+   * que abrió: va al final porque SWR descarta las respuestas en vuelo al vaciar la caché, y así un clima que llega
+   * durante el cierre no lo vuelve a guardar. Se lee del ref porque este callback también corre al vencer la sesión.
    */
   const clearSession = useCallback(async () => {
     const current = usernameRef.current;
     setHasToken(false);
     await globalMutate(() => true, undefined, { revalidate: false });
-    if (current) await clearLastWeather(current);
+    if (current) {
+      await clearLastWeather(current);
+      await clearLastGymPlan(current);
+    }
   }, [globalMutate]);
 
   useEffect(() => {

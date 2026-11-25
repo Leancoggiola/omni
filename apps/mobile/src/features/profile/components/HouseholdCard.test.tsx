@@ -33,7 +33,7 @@ jest.mock('@/shared/ui', () => ({
 }));
 jest.mock('../hooks/useHouseholdActions', () => ({ useHouseholdActions: () => mockActions }));
 
-const ME = { userId: 'u1', name: 'Leandro', username: 'leo', avatarUrl: null, joinedAt: '2026-10-31T00:00:00.000Z' };
+const ME = { userId: 'u1', name: 'Mateo', username: 'leo', avatarUrl: null, joinedAt: '2026-10-31T00:00:00.000Z' };
 const PARTNER = {
   userId: 'u2',
   name: 'Lucía',
@@ -128,7 +128,7 @@ describe('HouseholdCard', () => {
     await render(<HouseholdCard />);
 
     expect(screen.getByText('Lucía')).toBeTruthy();
-    expect(screen.getByText('Leandro (vos)')).toBeTruthy();
+    expect(screen.getByText('Mateo (vos)')).toBeTruthy();
     expect(screen.getByText('2 de 2')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Tengo un código' })).toBeNull();
   });
@@ -137,8 +137,8 @@ describe('HouseholdCard', () => {
     show(LINKED);
     await render(<HouseholdCard />);
 
-    const names = screen.getAllByText(/^(Leandro \(vos\)|Lucía)$/).map(node => node.props.children);
-    expect(names).toEqual(['Leandro (vos)', 'Lucía']);
+    const names = screen.getAllByText(/^(Mateo \(vos\)|Lucía)$/).map(node => node.props.children);
+    expect(names).toEqual(['Mateo (vos)', 'Lucía']);
   });
 
   it('vinculado: el aviso de push se descarta y no vuelve en la sesión', async () => {

@@ -39,7 +39,15 @@ describe('MoreScreen', () => {
     await render(<MoreScreen />);
 
     expect(screen.getAllByText('Próximamente').length).toBeGreaterThan(0);
-    expect(screen.getByRole('button', { name: 'Gimnasio, próximamente', disabled: true })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Gastos, próximamente', disabled: true })).toBeTruthy();
+  });
+
+  it('Gimnasio está disponible y navega a /gym', async () => {
+    await render(<MoreScreen />);
+
+    expect(screen.queryByRole('button', { name: 'Gimnasio, próximamente' })).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'Gimnasio' }));
+    expect(mockNavigate).toHaveBeenCalledWith('/gym');
   });
 
   it('Administración está disponible para ADMIN y navega a /admin', async () => {

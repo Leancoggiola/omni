@@ -3,7 +3,7 @@ import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { MagnifyingGlassIcon, XIcon } from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard, Modal } from 'react-native';
-import { Paragraph, Sheet, XStack, YStack } from 'tamagui';
+import { Sheet, XStack, YStack } from 'tamagui';
 
 import {
   Banner,
@@ -12,6 +12,7 @@ import {
   ErrorState,
   getErrorMessage,
   IconButton,
+  Paragraph,
   SegmentedControl,
   SHEET_EXIT_MS,
   SheetFrame,

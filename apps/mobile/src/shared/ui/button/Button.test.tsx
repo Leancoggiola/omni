@@ -33,6 +33,18 @@ describe('Button', () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 
+  it('el overlay del Spinner queda montado sin loading, transparente: pasar a loading solo cambia su opacidad', async () => {
+    const { rerender } = await render(<Button>Ingresar</Button>);
+
+    const overlay = () => screen.getByTestId('spinner', { includeHiddenElements: true }).parent;
+    expect(overlay()).toHaveProp('opacity', 0);
+    expect(overlay()).toHaveProp('pointerEvents', 'none');
+
+    await rerender(<Button loading>Ingresar</Button>);
+
+    expect(overlay()).toHaveProp('opacity', 1);
+  });
+
   it('loading muestra el Spinner, marca busy e ignora los toques', async () => {
     const onPress = jest.fn();
     await render(
@@ -112,6 +124,13 @@ describe('buttonPalette', () => {
     ['subtle', { background: 'transparent', backgroundPress: 'errorSurface', color: 'destructive' }],
   ] as const)('%s destructive', (variant, expected) => {
     expect(buttonPalette(variant, 'destructive', false, s)).toMatchObject({ ...expected, icon: s.destructive });
+  });
+
+  it('filled success usa el relleno de lo terminado, sin theme propio', () => {
+    const palette = buttonPalette('filled', 'success', false, s);
+
+    expect(palette).toMatchObject({ background: 'successFill', color: 'onSuccessFill', icon: s.onSuccessFill });
+    expect(palette.theme).toBeUndefined();
   });
 
   it('deshabilitado ignora la variante, como Mantine', () => {

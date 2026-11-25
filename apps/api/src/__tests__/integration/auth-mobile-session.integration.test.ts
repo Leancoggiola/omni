@@ -13,7 +13,7 @@ import { createIntegrationApp } from '../../test/integration/createIntegrationAp
 import { TEST_PASSWORD, createUser, toJwtUser } from '../../test/integration/factories';
 import { activeSessionCount, seedSession } from '../../test/integration/session';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

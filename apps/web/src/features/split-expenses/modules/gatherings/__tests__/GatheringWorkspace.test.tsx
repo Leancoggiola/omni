@@ -6,9 +6,10 @@ import { GatheringWorkspace } from '../components/GatheringWorkspace';
 
 import type { GatheringDetail } from '@omni/shared/split-expenses';
 
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => ({
+  addGatheringExpense: vi.fn(),
   confirm: vi.fn(),
   deleteGatheringExpense: vi.fn(),
   toggleGatheringSettled: vi.fn(),
@@ -23,7 +24,7 @@ vi.mock('@/shared/ui', async importOriginal => ({
 
 vi.mock('../../../hooks/useSplitExpensesMutations', () => ({
   useSplitExpensesMutations: () => ({
-    addGatheringExpense: vi.fn(),
+    addGatheringExpense: mocks.addGatheringExpense,
     deleteGatheringExpense: mocks.deleteGatheringExpense,
     toggleGatheringSettled: mocks.toggleGatheringSettled,
     deleteGathering: vi.fn(),
@@ -46,7 +47,7 @@ const detail: GatheringDetail = {
   participants: [
     {
       id: 'p0',
-      displayName: 'Leandro',
+      displayName: 'Mateo',
       friendId: null,
       alias: null,
       totalPaid: 90,
@@ -61,7 +62,7 @@ const detail: GatheringDetail = {
     {
       id: 'e1',
       participantId: 'p0',
-      participantName: 'Leandro',
+      participantName: 'Mateo',
       amount: 90,
       description: 'Carne',
       sharedWith: [],
@@ -69,8 +70,8 @@ const detail: GatheringDetail = {
     },
   ],
   settlements: [
-    { fromParticipantId: 'p1', fromName: 'Ana', toParticipantId: 'p0', toName: 'Leandro', amount: 30 },
-    { fromParticipantId: 'p2', fromName: 'Beto', toParticipantId: 'p0', toName: 'Leandro', amount: 30 },
+    { fromParticipantId: 'p1', fromName: 'Ana', toParticipantId: 'p0', toName: 'Mateo', amount: 30 },
+    { fromParticipantId: 'p2', fromName: 'Beto', toParticipantId: 'p0', toName: 'Mateo', amount: 30 },
   ],
 };
 
@@ -78,6 +79,7 @@ const clickDeleteExpense = () => fireEvent.click(screen.getByRole('button', { na
 
 describe('GatheringWorkspace', () => {
   beforeEach(() => {
+    mocks.addGatheringExpense.mockReset().mockResolvedValue(undefined);
     mocks.confirm.mockReset().mockResolvedValue(true);
     mocks.deleteGatheringExpense.mockReset().mockResolvedValue(undefined);
     mocks.toggleGatheringSettled.mockReset().mockResolvedValue(undefined);
@@ -94,6 +96,94 @@ describe('GatheringWorkspace', () => {
     expect(screen.getByText('+$60,00')).toBeInTheDocument();
     expect(screen.getAllByText('−$30,00')).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Marcar como saldada' })).toBeInTheDocument();
+  });
+
+  it('cada saldo muestra lo que pagó y lo que gastó la persona', () => {
+    renderWithProviders(<GatheringWorkspace gatheringId="g1" />);
+
+    expect(screen.getByText('pagó $90,00 · gastó $30,00')).toBeInTheDocument();
+    expect(screen.getAllByText('pagó $0,00 · gastó $30,00')).toHaveLength(2);
+  });
+
+  it('un gasto entre todos no muestra la línea "Entre"', () => {
+    renderWithProviders(<GatheringWorkspace gatheringId="g1" />);
+
+    expect(screen.queryByText(/^Entre /)).not.toBeInTheDocument();
+  });
+
+  it('un gasto parcial muestra entre quiénes se divide y cuánto es cada parte', () => {
+    mocks.state = {
+      gathering: {
+        ...detail,
+        expenses: [{ ...detail.expenses[0], amount: 27, sharedWith: ['p0', 'p2'] }],
+      },
+    };
+    renderWithProviders(<GatheringWorkspace gatheringId="g1" />);
+
+    expect(screen.getByText('Entre vos y Beto · $13,50 c/u')).toBeInTheDocument();
+  });
+
+  describe('composer', () => {
+    const fillAmount = (value: string) =>
+      fireEvent.change(screen.getByRole('textbox', { name: 'Monto' }), { target: { value } });
+    const toggleSharer = (name: string) =>
+      fireEvent.click(within(screen.getByRole('group', { name: 'Entre quiénes se divide' })).getByLabelText(name));
+
+    it('arranca dividiendo entre todos y el caption sigue al monto', () => {
+      renderWithProviders(<GatheringWorkspace gatheringId="g1" />);
+
+      expect(screen.getByText('Se divide entre 3 de 3')).toBeInTheDocument();
+
+      fillAmount('90');
+
+      expect(screen.getByText('Se divide entre 3 de 3 · $30,00 c/u')).toBeInTheDocument();
+    });
+
+    it('sacar a alguien actualiza el caption y manda solo a los elegidos', async () => {
+      renderWithProviders(<GatheringWorkspace gatheringId="g1" />);
+
+      fillAmount('27');
+      toggleSharer('Beto');
+
+      expect(screen.getByText('Se divide entre 2 de 3 · $13,50 c/u')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Agregar gasto' }));
+
+      await waitFor(() =>
+        expect(mocks.addGatheringExpense).toHaveBeenCalledWith('g1', {
+          participantId: 'p0',
+          amount: 27,
+          description: null,
+          sharedWith: ['p0', 'p1'],
+        })
+      );
+    });
+
+    it('si se divide entre todos no manda sharedWith', async () => {
+      renderWithProviders(<GatheringWorkspace gatheringId="g1" />);
+
+      fillAmount('30');
+      fireEvent.click(screen.getByRole('button', { name: 'Agregar gasto' }));
+
+      await waitFor(() =>
+        expect(mocks.addGatheringExpense).toHaveBeenCalledWith('g1', {
+          participantId: 'p0',
+          amount: 30,
+          description: null,
+          sharedWith: undefined,
+        })
+      );
+    });
+
+    it('sin nadie elegido muestra el error y no deja agregar', () => {
+      renderWithProviders(<GatheringWorkspace gatheringId="g1" />);
+
+      fillAmount('30');
+      ['Vos', 'Ana', 'Beto'].forEach(toggleSharer);
+
+      expect(screen.getByText('Elegí al menos una persona')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Agregar gasto' })).toBeDisabled();
+    });
   });
 
   it('borrar un gasto pide confirmación y borra al confirmar', async () => {

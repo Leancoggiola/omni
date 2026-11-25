@@ -4,6 +4,7 @@ import {
   DEFAULT_MEDIA_FILTERS,
   filterMediaItems,
   hasActiveFilters,
+  insertMediaItem,
   takeMediaByStatus,
   MEDIA_STATUS_FILTER_OPTIONS,
   MEDIA_STATUS_LABELS,
@@ -75,6 +76,23 @@ describe('hasActiveFilters', () => {
     expect(hasActiveFilters({ ...DEFAULT_MEDIA_FILTERS, status: 'watched' })).toBe(true);
     expect(hasActiveFilters({ ...DEFAULT_MEDIA_FILTERS, mediaType: 'movie' })).toBe(true);
     expect(hasActiveFilters({ ...DEFAULT_MEDIA_FILTERS, query: 'bear' })).toBe(true);
+  });
+});
+
+describe('insertMediaItem', () => {
+  const list = [item('1', 'Árbol', 'movie', 'to_watch'), item('2', 'Dune', 'movie', 'to_watch')];
+
+  it('ubica el ítem en su lugar alfabético sin mutar la lista', () => {
+    const result = insertMediaItem(list, item('3', 'breaking Bad', 'tv', 'to_watch'));
+
+    expect(result.map(i => i.title)).toEqual(['Árbol', 'breaking Bad', 'Dune']);
+    expect(list.map(i => i.title)).toEqual(['Árbol', 'Dune']);
+  });
+
+  it('deja el nuevo después de uno con el mismo título', () => {
+    const result = insertMediaItem(list, item('3', 'Dune', 'tv', 'to_watch'));
+
+    expect(result.map(i => i.id)).toEqual(['1', '2', '3']);
   });
 });
 

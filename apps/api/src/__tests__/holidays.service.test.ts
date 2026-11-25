@@ -108,6 +108,25 @@ describe('holidays.service', () => {
       expect(new Set(items.map(i => i.id)).size).toBe(2);
     });
 
+    it('separa las efemérides agrupadas en una entrada, con ids distintos y sin repetir', async () => {
+      vi.setSystemTime(new Date('2026-06-02T15:00:00Z'));
+      mockedWikipedia.fetchHolidays.mockResolvedValue(
+        rawResponse(
+          'Día del Graduado en Ciencias Económicas.\nDía del Bombero Voluntario.',
+          'Día del Graduado en Ciencias Económicas.\nDía Nacional del Perro.'
+        )
+      );
+
+      const { count, items } = await getTodayHolidays();
+
+      expect(count).toBe(3);
+      expect(items).toEqual([
+        { id: '2026-06-02-0', title: 'Día del Graduado en Ciencias Económicas', isArgentina: false },
+        { id: '2026-06-02-0-1', title: 'Día del Bombero Voluntario', isArgentina: false },
+        { id: '2026-06-02-1-1', title: 'Día Nacional del Perro', isArgentina: true },
+      ]);
+    });
+
     it('recorta en MAX_HOLIDAY_ITEMS', async () => {
       vi.setSystemTime(new Date('2026-09-13T15:00:00Z'));
       mockedWikipedia.fetchHolidays.mockResolvedValue(

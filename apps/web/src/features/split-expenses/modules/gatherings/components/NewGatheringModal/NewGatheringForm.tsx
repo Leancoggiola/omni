@@ -6,18 +6,17 @@ import { schemaResolver, useForm } from '@mantine/form';
 import { DISPLAY_DATE_FORMAT } from '@/shared/dates';
 import { getErrorMessage } from '@/shared/ui';
 
-import {
-  createInitialNewGatheringValues,
-  newGatheringFormSchema,
-  toCreateGatheringPayload,
-} from '../../utils/newGatheringForm';
 import { ParticipantPicker } from './ParticipantPicker';
 
-import type { NewGatheringFormValues } from '../../utils/newGatheringForm';
-import type { CreateGatheringPayload } from '@omni/shared/split-expenses';
+import type { CreateGatheringPayload, NewGatheringFormValues } from '@omni/shared/split-expenses';
 
 import { appDateKey } from '@omni/shared/common';
-import { GATHERING_NAME_MAX } from '@omni/shared/split-expenses';
+import {
+  createInitialNewGatheringValues,
+  GATHERING_NAME_MAX,
+  newGatheringFormSchema,
+  toCreateGatheringPayload,
+} from '@omni/shared/split-expenses';
 
 interface NewGatheringFormProps {
   loading: boolean;

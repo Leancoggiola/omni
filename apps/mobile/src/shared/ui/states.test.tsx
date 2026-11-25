@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TrayIcon } from 'phosphor-react-native';
+import { Text } from 'react-native';
 
 import { getByHostProps, queryAllByHostProps } from '@/test/hostQueries';
 
@@ -34,10 +35,55 @@ describe('ErrorState', () => {
 });
 
 describe('EmptyState', () => {
+  it('muestra la descripción opcional debajo del título', async () => {
+    await render(<EmptyState icon={TrayIcon} title="Sin planes" description="Armá un plan." />);
+
+    expect(screen.getByText('Sin planes')).toBeTruthy();
+    expect(screen.getByText('Armá un plan.')).toBeTruthy();
+  });
+
   it('muestra el título en display y la acción debajo', async () => {
     await render(<EmptyState icon={TrayIcon} title="Tu lista está vacía" action={<></>} />);
 
     expect(screen.getByText('Tu lista está vacía')).toHaveProp('fontFamily', 'display');
+  });
+});
+
+describe('variantes compact', () => {
+  it('el vacío no suma otra superficie y muestra título, descripción y acción', async () => {
+    await render(
+      <EmptyState
+        compact
+        icon={TrayIcon}
+        title="Sin ubicación"
+        description="Activala."
+        action={<Text>Permitir</Text>}
+      />
+    );
+
+    expect(screen.getByText('Sin ubicación')).not.toHaveProp('fontFamily', 'display');
+    expect(screen.getByText('Activala.')).toBeTruthy();
+    expect(screen.getByText('Permitir')).toBeTruthy();
+    expect(queryAllByHostProps({ backgroundColor: 'backgroundStrong' })).toHaveLength(0);
+  });
+
+  it('el error sigue siendo una alerta con "Reintentar", sin otra superficie', async () => {
+    const onRetry = jest.fn();
+    await render(<ErrorState compact message="No se pudo cargar el clima" onRetry={onRetry} />);
+
+    expect(getByHostProps({ accessibilityRole: 'alert' })).toBeTruthy();
+    expect(screen.getByText('No se pudo cargar el clima')).toBeTruthy();
+    expect(queryAllByHostProps({ backgroundColor: 'backgroundStrong' })).toHaveLength(0);
+    await fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('el skeleton se llama "Cargando" y sus filas no son cards', async () => {
+    await render(<LoadingState compact variant="skeleton" rows={1} />);
+
+    expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
+    expect(queryAllByHostProps({ backgroundColor: 'surfaceGlass' })).toHaveLength(0);
+    expect(queryAllByHostProps({ backgroundColor: 'track' }).length).toBeGreaterThan(0);
   });
 });
 

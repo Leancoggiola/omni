@@ -18,7 +18,7 @@ import { resetWeatherCache } from '../../weather/weather.service';
 const mockedOpenMeteo = vi.mocked(openMeteoService);
 const mockedNominatim = vi.mocked(nominatimService);
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 const COORDINATES = { latitude: -34.61, longitude: -58.38 };
 
 describe('weather routes (integration)', () => {

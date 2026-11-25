@@ -2,10 +2,10 @@ import { formatPantryQuantity } from '@omni/shared/pantry';
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { CheckIcon, PencilSimpleIcon, TrashIcon } from 'phosphor-react-native';
 import { memo } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
-import { Badge, IconButton } from '@/shared/ui';
+import { Badge, IconButton, Paragraph } from '@/shared/ui';
 import { glassElevation } from '@/theme/elevation';
 
 import { PantryItemAuthor } from './PantryItemAuthor';

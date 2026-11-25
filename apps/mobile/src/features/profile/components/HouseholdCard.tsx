@@ -2,7 +2,7 @@ import { formatInviteExpiryDate, inviteHoursLeft } from '@omni/shared/household'
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { LinkBreakIcon, UserPlusIcon } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { useHousehold } from '@/core/household';
@@ -16,6 +16,7 @@ import {
   LoadingState,
   notifyError,
   notifySuccess,
+  Paragraph,
   SectionCard,
   UserAvatar,
 } from '@/shared/ui';

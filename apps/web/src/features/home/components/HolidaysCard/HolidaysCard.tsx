@@ -55,14 +55,15 @@ export const HolidaysCard: FC = () => {
       shadow="none"
       p="none"
       pos="relative"
-      style={{ cursor: isCarousel ? 'pointer' : undefined, overflow: 'hidden' }}
+      display="flex"
+      style={{ flexDirection: 'column', cursor: isCarousel ? 'pointer' : undefined, overflow: 'hidden' }}
       onClick={isCarousel ? next : undefined}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setFocusWithin(true)}
       onBlur={handleBlur}
     >
-      <Group align="flex-start" wrap="nowrap" gap="sm" p="md">
+      <Group align="flex-start" wrap="nowrap" gap="sm" p="md" flex={1}>
         <ThemeIcon
           variant="transparent"
           bg="var(--mantine-color-surfaces-card)"

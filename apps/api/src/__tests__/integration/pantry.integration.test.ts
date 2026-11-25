@@ -14,10 +14,10 @@ import {
   linkUsers,
   toJwtUser,
 } from '../../test/integration/factories';
-import { findRecordedCall, getRecordedCalls } from '../../test/integration/queryRecorder';
+import { getRecordedCalls } from '../../test/integration/queryRecorder';
 import { withSavepoint } from '../../test/integration/withSavepoint';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('pantry routes (integration)', () => {
   let user: Awaited<ReturnType<typeof createUser>>;
@@ -60,18 +60,63 @@ describe('pantry routes (integration)', () => {
       expect(res.body).toMatchObject({ total: 1, page: 1, limit: 50 });
     });
 
-    it('GET /products sends numeric take and skip to Prisma', async () => {
-      await createPantryProduct(user.id, { name: 'Arroz' });
-      await createPantryProduct(user.id, { name: 'Banana' });
-      await createPantryProduct(user.id, { name: 'Cacao' });
+    it('GET /products returns the products in alphabetical order, ignoring case and accents', async () => {
+      for (const name of ['yerba', 'Ñoquis', 'Azúcar', 'Orégano', 'Nuez', 'Árbol', 'arroz', 'Leche 10', 'Leche 2']) {
+        await createPantryProduct(user.id, { name });
+      }
 
-      const res = await request(app).get('/api/pantry/products?page=2&limit=2').set('Authorization', auth);
+      const res = await request(app).get('/api/pantry/products').set('Authorization', auth);
 
       expect(res.status).toBe(200);
-      expect(res.body.items).toHaveLength(1);
-      const call = findRecordedCall('pantryProduct', 'findMany');
-      expect(call?.args?.take).toBe(2);
-      expect(call?.args?.skip).toBe(2);
+      expect(res.body.items.map((p: { name: string }) => p.name)).toEqual([
+        'Árbol',
+        'arroz',
+        'Azúcar',
+        'Leche 2',
+        'Leche 10',
+        'Nuez',
+        'Ñoquis',
+        'Orégano',
+        'yerba',
+      ]);
+    });
+
+    it('GET /products keeps the alphabetical order across pages', async () => {
+      await createPantryProduct(user.id, { name: 'Cacao' });
+      await createPantryProduct(user.id, { name: 'banana' });
+      await createPantryProduct(user.id, { name: 'Árbol' });
+
+      const first = await request(app).get('/api/pantry/products?page=1&limit=2').set('Authorization', auth);
+      const second = await request(app).get('/api/pantry/products?page=2&limit=2').set('Authorization', auth);
+
+      expect(first.body.items.map((p: { name: string }) => p.name)).toEqual(['Árbol', 'banana']);
+      expect(second.body.items.map((p: { name: string }) => p.name)).toEqual(['Cacao']);
+      expect(second.body).toMatchObject({ total: 3, page: 2, limit: 2 });
+    });
+
+    it('GET /products reads in full only the products of the requested page', async () => {
+      await createPantryProduct(user.id, { name: 'Cacao' });
+      await createPantryProduct(user.id, { name: 'banana' });
+      const first = await createPantryProduct(user.id, { name: 'Árbol' });
+
+      await request(app).get('/api/pantry/products?page=1&limit=1').set('Authorization', auth);
+
+      const [sortQuery, pageQuery] = getRecordedCalls().filter(
+        call => call.model === 'pantryProduct' && call.operation === 'findMany'
+      );
+      expect(sortQuery?.args?.select).toEqual({ id: true, name: true });
+      expect(pageQuery?.args?.where).toMatchObject({ id: { in: [first.id] } });
+    });
+
+    it('GET /products keeps the alphabetical order when searching', async () => {
+      await createPantryProduct(user.id, { name: 'Arvejas' });
+      await createPantryProduct(user.id, { name: 'Arroz' });
+      await createPantryProduct(user.id, { name: 'Leche' });
+
+      const res = await request(app).get('/api/pantry/products?q=ar').set('Authorization', auth);
+
+      expect(res.body.items.map((p: { name: string }) => p.name)).toEqual(['Arroz', 'Arvejas']);
+      expect(res.body.total).toBe(2);
     });
 
     it('GET /products filters by category', async () => {
@@ -175,6 +220,38 @@ describe('pantry routes (integration)', () => {
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(1);
       expect(res.body[0]).toMatchObject({ name: 'Leche' });
+    });
+
+    it('GET /shopping-list sorts pending and checked items alphabetically, pending first', async () => {
+      await createShoppingListItem(user.id, { name: 'yerba' });
+      await createShoppingListItem(user.id, { name: 'Azúcar', checked: true });
+      await createShoppingListItem(user.id, { name: 'Ñoquis' });
+      await createShoppingListItem(user.id, { name: 'arroz', checked: true });
+      await createShoppingListItem(user.id, { name: 'Nuez' });
+
+      const res = await request(app).get('/api/pantry/shopping-list').set('Authorization', auth);
+
+      expect(res.status).toBe(200);
+      expect(res.body.map((i: { name: string; checked: boolean }) => [i.name, i.checked])).toEqual([
+        ['Nuez', false],
+        ['Ñoquis', false],
+        ['yerba', false],
+        ['arroz', true],
+        ['Azúcar', true],
+      ]);
+    });
+
+    it('GET /shopping-list puts the oldest first between items with the same name', async () => {
+      const newer = await createShoppingListItem(user.id, { name: 'Café' });
+      const older = await createShoppingListItem(user.id, { name: 'cafe' });
+      await prisma.pantryShoppingListItem.update({
+        where: { id: older.id },
+        data: { createdAt: new Date('2026-01-01') },
+      });
+
+      const res = await request(app).get('/api/pantry/shopping-list').set('Authorization', auth);
+
+      expect(res.body.map((i: { id: string }) => i.id)).toEqual([older.id, newer.id]);
     });
 
     it('POST /shopping-list/generate adds an item for each low stock product', async () => {

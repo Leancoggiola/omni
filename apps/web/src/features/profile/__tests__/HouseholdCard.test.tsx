@@ -40,7 +40,7 @@ vi.mock('@/shared/ui', async importOriginal => ({
   notifySuccess: mocks.notifySuccess,
 }));
 
-const me = { userId: 'u1', name: 'Leandro', username: 'leo', avatarUrl: null, joinedAt: '2026-10-31T00:00:00.000Z' };
+const me = { userId: 'u1', name: 'Mateo', username: 'leo', avatarUrl: null, joinedAt: '2026-10-31T00:00:00.000Z' };
 const partner = {
   userId: 'u2',
   name: 'Lucía',
@@ -142,8 +142,8 @@ describe('HouseholdCard', () => {
     setHousehold(linked);
     renderWithProviders(<HouseholdCard />);
 
-    const names = screen.getAllByText(/^(Leandro|Lucía)$/).map(node => node.textContent);
-    expect(names).toEqual(['Leandro', 'Lucía']);
+    const names = screen.getAllByText(/^(Mateo|Lucía)$/).map(node => node.textContent);
+    expect(names).toEqual(['Mateo', 'Lucía']);
   });
 
   it('vinculado: el aviso de push se descarta y no vuelve en la sesión', async () => {

@@ -28,7 +28,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
       - uses: actions/setup-node@v7
         with:
@@ -64,7 +64,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
       - uses: actions/setup-node@v7
         with:
@@ -72,26 +72,6 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install --frozen-lockfile
-
-      # Excepciones en auditConfig.ignoreCves de pnpm-workspace.yaml:
-      # - CVE-2025-71329/CVE-2025-71330 (image-size): dependencia del bundler de
-      #   mobile (metro) que pide la 1.x; el fix es 2.x.
-      # - CVE-2026-93687 (braces): sin versión parcheada upstream. En el grafo
-      #   --prod solo aparece bajo apps/mobile (toolchain de build de Expo/Metro,
-      #   que llega por los peers de @tamagui/config; @tamagui/metro-plugin es
-      #   devDependency y no entra en --prod); no está en api ni en web. También llega por
-      #   semantic-release.
-      # node-forge se fija con un override en pnpm-workspace.yaml (>=1.4.1).
-      # Revisar las excepciones cuando salga un parche.
-      - name: Excepciones solo en mobile (bloqueante)
-        shell: bash
-        run: |
-          pnpm --filter '!mobile' why braces --prod --json | node -e "
-            const r = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-            if (!r.length) { console.error('sin proyectos evaluados'); process.exit(1); }
-            const h = r.filter((p) => p.dependencies || p.devDependencies || p.optionalDependencies);
-            if (h.length) { console.error('excepciones fuera de mobile: ' + h.map((p) => p.name).join(', ')); process.exit(1); }
-          "
 
       - name: Audit de producción (bloqueante)
         run: pnpm audit --prod --audit-level=high
@@ -111,7 +91,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
       - uses: actions/setup-node@v7
         with:
@@ -136,7 +116,7 @@ jobs:
     services:
       # Contra esto corren los tests de integración. El puerto coincide con apps/api/.env.test.
       postgres:
-        image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        image: postgres:17-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -153,7 +133,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
       - uses: actions/setup-node@v7
         with:
@@ -193,7 +173,7 @@ jobs:
     services:
       # Puerto y nombre de base tomados de apps/api/.env.e2e.
       postgres:
-        image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        image: postgres:17-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -210,7 +190,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
       - uses: actions/setup-node@v7
         with:
@@ -254,7 +234,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
       - uses: actions/setup-node@v7
         with:

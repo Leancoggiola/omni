@@ -4,6 +4,8 @@ export type ActionSheetOption<T extends string = string> = {
   value: T;
   label: string;
   icon?: Icon;
+  destructive?: boolean;
+  disabled?: boolean;
 };
 
 export type ActionSheetOptions<T extends string = string> = {

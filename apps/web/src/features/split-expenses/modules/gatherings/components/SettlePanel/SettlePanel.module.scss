@@ -34,3 +34,14 @@
   color: var(--mantine-color-text-success);
   background-color: var(--mantine-color-surfaces-success-light);
 }
+
+.balanceRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--mantine-spacing-xs);
+}
+
+.balanceCaption {
+  grid-column: 2 / -1;
+}

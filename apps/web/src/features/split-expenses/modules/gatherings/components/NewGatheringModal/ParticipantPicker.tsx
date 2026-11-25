@@ -6,7 +6,7 @@ import { ErrorState, LoadingState } from '@/shared/ui';
 import { useSplitFriends } from '../../../friends/hooks/useSplitFriends';
 import { ParticipantAvatar } from '../ParticipantAvatar';
 
-import type { GatheringParticipantDraft } from '../../utils/newGatheringForm';
+import type { GatheringParticipantDraft } from '@omni/shared/split-expenses';
 
 import classes from './ParticipantPicker.module.scss';
 

@@ -33,6 +33,7 @@ const gathering = (id: string, name: string): GatheringSummary => ({
   participantCount: 3,
   totalAmount: 90,
   myBalance: 30,
+  lastExpense: null,
 });
 
 describe('SplitExpensesPage', () => {

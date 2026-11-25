@@ -28,6 +28,21 @@ describe('API_PATHS', () => {
     expect(API_PATHS.pantry.shoppingListItemComplete('i1')).toBe('/api/pantry/shopping-list/items/i1/complete');
     expect(API_PATHS.pantry.shoppingListItemUncheck('i1')).toBe('/api/pantry/shopping-list/items/i1/uncheck');
   });
+
+  it('arma los paths de gym', () => {
+    expect(API_PATHS.gym.plans).toBe('/api/gym/plans');
+    expect(API_PATHS.gym.plan('p1')).toBe('/api/gym/plans/p1');
+    expect(API_PATHS.gym.planArchive('p1')).toBe('/api/gym/plans/p1/archive');
+    expect(API_PATHS.gym.planUnarchive('p1')).toBe('/api/gym/plans/p1/unarchive');
+    expect(API_PATHS.gym.day('d1')).toBe('/api/gym/days/d1');
+    expect(API_PATHS.gym.dayExercisesOrder('d1')).toBe('/api/gym/days/d1/exercises/order');
+    expect(API_PATHS.gym.exercises).toBe('/api/gym/exercises');
+    expect(API_PATHS.gym.exercise('e1')).toBe('/api/gym/exercises/e1');
+    expect(API_PATHS.gym.exerciseWeight('e1')).toBe('/api/gym/exercises/e1/weight');
+    expect(API_PATHS.gym.exerciseWeightHistory('e1')).toBe('/api/gym/exercises/e1/weight-history');
+    expect(API_PATHS.gym.catalog).toBe('/api/gym/exercises/catalog');
+    expect(API_PATHS.gym.catalogWeightHistory('c1')).toBe('/api/gym/exercises/catalog/c1/weight-history');
+  });
 });
 
 describe('buildQueryString', () => {

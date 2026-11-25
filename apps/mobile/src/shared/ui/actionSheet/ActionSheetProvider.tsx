@@ -2,12 +2,13 @@ import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { CheckIcon } from 'phosphor-react-native';
 import { type PropsWithChildren } from 'react';
 import { useWindowDimensions } from 'react-native';
-import { Paragraph, Sheet, XStack, YStack } from 'tamagui';
+import { Sheet, XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 
 import { Button } from '../button/Button';
 import { DisplayTitle } from '../DisplayTitle';
+import { Paragraph } from '../Paragraph';
 import { QueuedSheet } from '../sheet/QueuedSheet';
 import { useSheetQueue } from '../sheet/useSheetQueue';
 
@@ -22,7 +23,8 @@ const MAX_LIST_RATIO = 0.5;
 
 /**
  * Opciones de `actionSheet()` en una hoja inferior de v2: una por fila con divisor `hairline`, check en la actual y
- * "Cancelar" abajo.
+ * "Cancelar" abajo. Una opción `destructive` (eliminar, quitar) se pinta en el color destructivo y una `disabled`
+ * no se puede elegir.
  */
 export function ActionSheetProvider({ children }: PropsWithChildren) {
   const colors = useSemanticColors();
@@ -47,6 +49,7 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
             {request?.options.map((option, index) => {
               const selected = option.value === request.value;
               const OptionIcon = option.icon;
+              const tone = option.destructive ? colors.destructive : colors.text;
               return (
                 <XStack
                   key={option.value}
@@ -56,19 +59,20 @@ export function ActionSheetProvider({ children }: PropsWithChildren) {
                   alignItems="center"
                   borderBottomWidth={index < request.options.length - 1 ? 1 : 0}
                   borderBottomColor="hairline"
-                  backgroundColor="press:hover"
-                  onPress={() => queue.close(option.value)}
+                  backgroundColor={option.disabled ? undefined : 'press:hover'}
+                  opacity={option.disabled ? 0.4 : 1}
+                  onPress={option.disabled ? undefined : () => queue.close(option.value)}
                   accessible
                   accessibilityRole="menuitem"
                   accessibilityLabel={option.label}
-                  accessibilityState={{ selected }}
+                  accessibilityState={{ selected, disabled: option.disabled === true }}
                 >
-                  {OptionIcon ? <OptionIcon size={20} color={selected ? colors.primary : colors.text} /> : null}
+                  {OptionIcon ? <OptionIcon size={20} color={selected ? colors.primary : tone} /> : null}
                   <Paragraph
                     flex={1}
                     fontSize={FONT_SIZE.lg}
                     fontWeight={selected ? '600' : '400'}
-                    color={selected ? 'primary' : 'color'}
+                    color={selected ? 'primary' : option.destructive ? 'destructive' : 'color'}
                   >
                     {option.label}
                   </Paragraph>

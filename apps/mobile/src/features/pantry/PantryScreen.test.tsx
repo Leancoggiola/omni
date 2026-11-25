@@ -8,6 +8,7 @@ jest.mock('@/shared/navigation', () => ({ NAV_ICONS: { pantry: () => null } }));
 jest.mock('@/shared/ui', () => {
   const { Pressable, Text, View } = jest.requireActual('react-native');
   return {
+    Paragraph: Text,
     Screen: ({ children }: { children: React.ReactNode }) => <View>{children}</View>,
     ScreenHeader: ({ action }: { action?: React.ReactNode }) => <View>{action}</View>,
     SegmentedControl: ({

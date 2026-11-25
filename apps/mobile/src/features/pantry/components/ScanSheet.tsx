@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions, type BarcodeScanningResult, type Barc
 import { CameraIcon, CameraSlashIcon, FlashlightIcon } from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { AppState, Linking } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { ApiError } from '@/shared/api';
 import {
@@ -18,13 +18,14 @@ import {
   LoadingState,
   notifySuccess,
   notifyWarning,
+  Paragraph,
   Spinner,
+  useSheetNotice,
   type BannerColor,
 } from '@/shared/ui';
 
 import { usePantryBarcode } from '../hooks/usePantryBarcode';
 import { usePantryMutations } from '../hooks/usePantryMutations';
-import { useSheetNotice } from '../hooks/useSheetNotice';
 import { createScanGate } from '../utils/scanGate';
 import { ProductForm } from './ProductForm';
 

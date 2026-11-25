@@ -1,13 +1,6 @@
 import { FC } from 'react';
-import { Button, Divider, Group, Paper, Stack, Text, Title } from '@mantine/core';
+import { Button, Divider, Paper, Stack, Text, Title } from '@mantine/core';
 
-import {
-  type BalanceTone,
-  describeSettlement,
-  formatSignedBalance,
-  participantLabel,
-  participantTones,
-} from '../../utils/gatheringView';
 import { MoneyAmount } from '../MoneyAmount';
 import { ParticipantAvatar } from '../ParticipantAvatar';
 
@@ -15,6 +8,14 @@ import type { GatheringDetail } from '@omni/shared/split-expenses';
 
 import classes from './SettlePanel.module.scss';
 
+import { formatMoney } from '@omni/shared/common';
+import {
+  type BalanceTone,
+  describeSettlement,
+  formatSignedBalance,
+  participantLabel,
+  participantTones,
+} from '@omni/shared/split-expenses';
 import { ArrowCounterClockwiseIcon, CheckCircleIcon, CheckIcon } from '@phosphor-icons/react';
 
 const TONE_COLORS: Record<BalanceTone, string> = {
@@ -71,15 +72,18 @@ export const SettlePanel: FC<SettlePanelProps> = ({ gathering, loading, onToggle
         {gathering.participants.map(participant => {
           const { label, tone } = formatSignedBalance(participant.balance);
           return (
-            <Group key={participant.id} gap="xs" wrap="nowrap">
+            <div key={participant.id} className={classes.balanceRow}>
               <ParticipantAvatar name={participant.displayName} tone={tones[participant.id]} size="1.5rem" />
-              <Text size="sm" style={{ flex: 1 }} lineClamp={1}>
+              <Text size="sm" lineClamp={1}>
                 {participantLabel(participant)}
               </Text>
               <Text size="sm" fw={700} c={TONE_COLORS[tone]}>
                 {label}
               </Text>
-            </Group>
+              <Text size="xs" c="dimmed" className={classes.balanceCaption}>
+                pagó {formatMoney(participant.totalPaid)} · gastó {formatMoney(participant.owed)}
+              </Text>
+            </div>
           );
         })}
       </Stack>

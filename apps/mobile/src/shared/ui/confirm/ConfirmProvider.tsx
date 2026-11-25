@@ -1,9 +1,10 @@
 import { FONT_SIZE, LINE_HEIGHT, SPACING } from '@omni/shared/theme';
 import { type PropsWithChildren } from 'react';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
 import { Button } from '../button/Button';
 import { DisplayTitle } from '../DisplayTitle';
+import { Paragraph } from '../Paragraph';
 import { QueuedSheet } from '../sheet/QueuedSheet';
 import { useSheetQueue } from '../sheet/useSheetQueue';
 
@@ -11,7 +12,7 @@ import { registerConfirmHandler, type ConfirmRequest } from './confirm';
 
 /**
  * Confirmaciones en una hoja inferior de v2 (título en `display`). Botones apilados a lo ancho: confirmar arriba
- * (filled) y cancelar abajo (outline), ver "Botones de acción" en `apps/mobile/CLAUDE.md`.
+ * (filled) y cancelar abajo (outline).
  */
 export function ConfirmProvider({ children }: PropsWithChildren) {
   const queue = useSheetQueue<boolean, ConfirmRequest>(registerConfirmHandler, false);

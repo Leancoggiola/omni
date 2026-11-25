@@ -169,7 +169,7 @@ describe('MediaScreen · autoría', () => {
 
   it('cada fila muestra quién la agregó, con "Vos" para la propia sesión', async () => {
     mockAuthor.mockImplementation((id: string | null) =>
-      id === 'u1' ? { kind: 'self', name: 'Leandro', avatarUrl: null } : undefined
+      id === 'u1' ? { kind: 'self', name: 'Mateo', avatarUrl: null } : undefined
     );
     await renderWith();
 

@@ -20,7 +20,7 @@ const household: HouseholdInfo = {
   id: 'h1',
   pendingInvite: null,
   members: [
-    { userId: 'u1', name: 'Leandro', username: 'leo', avatarUrl: null, joinedAt: '2026-01-01T00:00:00.000Z' },
+    { userId: 'u1', name: 'Mateo', username: 'leo', avatarUrl: null, joinedAt: '2026-01-01T00:00:00.000Z' },
     { userId: 'u2', name: 'Lucía', username: 'lucia', avatarUrl: null, joinedAt: '2026-01-01T00:00:00.000Z' },
   ],
 };

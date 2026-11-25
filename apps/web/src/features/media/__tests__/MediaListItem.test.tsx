@@ -88,7 +88,7 @@ describe('MediaListItem: autoría', () => {
   });
 
   it('dice "Vos" cuando lo agregó la propia sesión', () => {
-    mocks.author = { kind: 'self', name: 'Leandro', avatarUrl: null };
+    mocks.author = { kind: 'self', name: 'Mateo', avatarUrl: null };
     renderWithProviders(<MediaListItem item={item} onStatusChange={vi.fn()} onDelete={vi.fn()} />);
 
     expect(screen.getByLabelText('Agregado por Vos')).toBeInTheDocument();

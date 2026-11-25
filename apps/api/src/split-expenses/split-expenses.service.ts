@@ -3,6 +3,7 @@ import type {
   CreateGatheringPayload,
   CreateSplitFriendPayload,
   GatheringDetail,
+  GatheringLastExpense,
   GatheringSummary,
   ListGatheringsParams,
   SettlementExpenseInput,
@@ -67,6 +68,28 @@ function toSplitExpenses(rows: ExpenseSplitRow[]): SettlementExpenseInput[] {
     amount: decimalToNumber(row.amount) ?? 0,
     sharedWith: row.shares.map(share => share.participantId),
   }));
+}
+
+type LastExpenseRow = Pick<PrismaGatheringExpense, 'participantId' | 'amount' | 'description' | 'createdAt'>;
+
+/**
+ * Vista previa del gasto más reciente (`rows` llega del más nuevo al más viejo). Es `null` si no hay gastos o si quien
+ * pagó el último no está entre los participantes: sin su nombre no hay qué mostrar.
+ */
+function toLastExpense(
+  rows: LastExpenseRow[],
+  participants: Array<{ id: string; displayName: string; isSelf: boolean }>
+): GatheringLastExpense | null {
+  const last = rows[0];
+  const payer = participants.find(participant => participant.id === last?.participantId);
+  if (!last || !payer) return null;
+  return {
+    participantName: payer.displayName,
+    isSelf: payer.isSelf,
+    amount: decimalToNumber(last.amount) ?? 0,
+    description: last.description,
+    createdAt: toIsoDateTimeString(last.createdAt),
+  };
 }
 
 /** Id del participante propio ("Vos") de una juntada, o `null` si es anterior a "Vos" y no lo tiene. */
@@ -283,7 +306,10 @@ export async function listGatherings(userId: string, params: ListGatheringsParam
       orderBy: [{ isSettled: 'asc' }, { date: 'desc' }, { createdAt: 'desc' }],
       include: {
         participants: { select: { id: true, displayName: true, isSelf: true } },
-        expenses: { select: EXPENSE_SPLIT_SELECT },
+        expenses: {
+          select: { ...EXPENSE_SPLIT_SELECT, description: true, createdAt: true },
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        },
       },
     }),
     prisma.gathering.count({ where }),
@@ -299,6 +325,7 @@ export async function listGatherings(userId: string, params: ListGatheringsParam
       participantCount: g.participants.length,
       totalAmount: roundMoney(expenses.reduce((sum, expense) => sum + expense.amount, 0)),
       myBalance: summarizeUserBalance(g.participants, expenses, findSelfParticipantId(g.participants)),
+      lastExpense: toLastExpense(g.expenses, g.participants),
     };
   });
 

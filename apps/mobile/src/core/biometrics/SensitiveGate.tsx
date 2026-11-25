@@ -3,9 +3,9 @@ import { NAV_REGISTRY, type NavKey } from '@omni/shared/navigation';
 import { SPACING } from '@omni/shared/theme';
 import { LockKeyIcon } from 'phosphor-react-native';
 import { useState, type ReactNode } from 'react';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
-import { Button, EmptyState, notifyError, Screen, ScreenHeader } from '@/shared/ui';
+import { Button, EmptyState, notifyError, Paragraph, Screen, ScreenHeader } from '@/shared/ui';
 
 import { biometricIcon } from './biometricIcon';
 import { isSensitiveModule } from './biometrics';
@@ -18,20 +18,20 @@ type SensitiveGateProps = {
 };
 
 /**
- * Envuelve la pantalla de un módulo sensible (`SENSITIVE_MODULES`, hoy Gastos) y pide biometría al entrar si no hubo un
- * desbloqueo en los últimos `SENSITIVE_UNLOCK_TTL_MS` o si la app pasó por background desde el último. Mientras está
- * bloqueado no se monta nada de `children`, así que no se piden ni se muestran sus datos. Si la persona no activó la
- * biometría (o el teléfono no tiene), el módulo no es sensible o ya hay un desbloqueo vigente, renderiza `children` sin
- * más. Cancelar no avisa nada y queda el botón para reintentar; una falla avisa con `notifyError`. Como alternativa
- * a la biometría el sistema ofrece el PIN o patrón del teléfono. La vigencia se evalúa al entrar y al volver de
- * background, y al recuperar el foco (las pantallas de las tabs quedan montadas): al volver a un módulo pasados los 5
- * minutos vuelve a pedir biometría; si la biometría se activa con el gate ya montado, recoge el desbloqueo vigente que
- * renueva la activación, sin pedirla de nuevo. Una pantalla que ya está en foco no se cierra sola a los 5 minutos.
- * Esa evaluación se hace durante el render, solo cuando cambia el foco, `enabled` o la época (estado derivado de lo
- * anterior, no un efecto que escribe estado); `isSensitiveUnlocked()` lee el reloj durante el render y solo es válida
- * ahí porque se evalúa cuando cambian el foco, `enabled` o la época. Un éxito de la biometría solo desbloquea si el
- * desbloqueo sigue vigente al responder: si la app pasó por background durante el prompt, la época capturada ya es
- * vieja y no se guarda.
+ * Envuelve la pantalla de un módulo sensible (`SENSITIVE_MODULES`, Gastos y Dividir gastos) y pide biometría al entrar
+ * si no hubo un desbloqueo en los últimos `SENSITIVE_UNLOCK_TTL_MS` o si la app pasó por background desde el último.
+ * Mientras está bloqueado no se monta nada de `children`, así que no se piden ni se muestran sus datos. Si la persona
+ * no activó la biometría (o el teléfono no tiene), el módulo no es sensible o ya hay un desbloqueo vigente, renderiza
+ * `children` sin más. Cancelar no avisa nada y queda el botón para reintentar; una falla avisa con `notifyError`. Como
+ * alternativa a la biometría el sistema ofrece el PIN o patrón del teléfono. La vigencia se evalúa al entrar y al
+ * volver de background, y al recuperar el foco (las pantallas de las tabs quedan montadas): al volver a un módulo
+ * pasados los 5 minutos vuelve a pedir biometría; si la biometría se activa con el gate ya montado, recoge el
+ * desbloqueo vigente que renueva la activación, sin pedirla de nuevo. Una pantalla que ya está en foco no se cierra
+ * sola a los 5 minutos. Esa evaluación se hace durante el render, solo cuando cambia el foco, `enabled` o la época
+ * (estado derivado de lo anterior, no un efecto que escribe estado); `isSensitiveUnlocked()` lee el reloj durante el
+ * render y solo es válida ahí porque se evalúa cuando cambian el foco, `enabled` o la época. Un éxito de la biometría
+ * solo desbloquea si el desbloqueo sigue vigente al responder: si la app pasó por background durante el prompt, la
+ * época capturada ya es vieja y no se guarda.
  *
  * `module` es el módulo que protege (solo pide biometría si está en `SENSITIVE_MODULES`). `onBack` marca una ruta de
  * stack: suma el botón de volver del header a la pantalla bloqueada y el inset inferior de las rutas sin tab bar.

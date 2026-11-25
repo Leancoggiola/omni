@@ -15,7 +15,7 @@ describe('AuthorTag', () => {
   });
 
   it('dice "Vos" para la propia sesión', () => {
-    renderWithProviders(<AuthorTag author={{ kind: 'self', name: 'Leandro', avatarUrl: null }} />);
+    renderWithProviders(<AuthorTag author={{ kind: 'self', name: 'Mateo', avatarUrl: null }} />);
 
     expect(screen.getByText('Vos')).toBeInTheDocument();
   });
@@ -45,11 +45,7 @@ describe('AuthorTag', () => {
 
   it('con showActionLabel muestra la acción delante del nombre', () => {
     renderWithProviders(
-      <AuthorTag
-        author={{ kind: 'self', name: 'Leandro', avatarUrl: null }}
-        actionLabel="Editado por"
-        showActionLabel
-      />
+      <AuthorTag author={{ kind: 'self', name: 'Mateo', avatarUrl: null }} actionLabel="Editado por" showActionLabel />
     );
 
     expect(screen.getByText('Editado por Vos')).toBeInTheDocument();

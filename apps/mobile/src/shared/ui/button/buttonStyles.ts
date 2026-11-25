@@ -5,7 +5,7 @@ import type { useSemanticColors } from '@/core/theme';
 export type ButtonVariant = 'filled' | 'outline' | 'light' | 'subtle' | 'glass';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 /** `dimmed` es el `color="gray"` de Mantine: solo lo usa `IconButton` (cerrar, mostrar contraseña). */
-export type ButtonColor = 'brand' | 'destructive' | 'dimmed';
+export type ButtonColor = 'brand' | 'destructive' | 'success' | 'dimmed';
 
 type SemanticColors = ReturnType<typeof useSemanticColors>;
 
@@ -53,6 +53,7 @@ export type ButtonPalette = {
 const ACCENT = {
   brand: { token: 'primary', surface: 'primarySurface', raw: (s: SemanticColors) => s.primary },
   destructive: { token: 'destructive', surface: 'errorSurface', raw: (s: SemanticColors) => s.destructive },
+  success: { token: 'success', surface: 'successSurface', raw: (s: SemanticColors) => s.success },
   dimmed: { token: 'dimmed', surface: 'dimmedSurface', raw: (s: SemanticColors) => s.dimmed },
 } as const;
 
@@ -87,6 +88,16 @@ export function buttonPalette(
           borderColor: 'transparent',
           color: 'onDimmed',
           icon: colors.onDimmed,
+          pressOpacity: 0.85,
+        };
+      }
+      if (color === 'success') {
+        return {
+          background: 'successFill',
+          backgroundPress: 'successFill',
+          borderColor: 'transparent',
+          color: 'onSuccessFill',
+          icon: colors.onSuccessFill,
           pressOpacity: 0.85,
         };
       }

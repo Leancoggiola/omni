@@ -1,7 +1,8 @@
-import type { GymPlanStatus } from './constants';
+import type { GymPlanStatus, GymWeekday } from './constants';
 
 export interface GymExercise {
   id: string;
+  catalogId: string;
   name: string;
   sets: number | null;
   reps: string;
@@ -11,14 +12,13 @@ export interface GymExercise {
 
 export interface GymPlanDay {
   id: string;
-  label: string;
-  sortOrder: number;
+  weekday: GymWeekday;
   exercises: GymExercise[];
 }
 
 export interface GymPlanDetail {
   id: string;
-  name: string | null;
+  name: string;
   status: GymPlanStatus;
   createdAt: string;
   archivedAt: string | null;
@@ -27,10 +27,26 @@ export interface GymPlanDetail {
 
 export interface GymPlanSummary {
   id: string;
-  name: string | null;
+  name: string;
   status: GymPlanStatus;
   createdAt: string;
   archivedAt: string | null;
   dayCount: number;
   exerciseCount: number;
+}
+
+export interface GymCatalogExercise {
+  id: string;
+  name: string;
+  sets: number | null;
+  reps: string;
+  currentWeightKg: number | null;
+}
+
+export interface GymWeightEntry {
+  id: string;
+  weightKg: number;
+  sets: number | null;
+  reps: string;
+  recordedAt: string;
 }

@@ -1,8 +1,12 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { existsSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { notifyError } from '@/shared/ui';
 
-import { AuthGate, SESSION_ERROR_MESSAGE } from './AuthGate';
+import { AuthGate, SESSION_ERROR_MESSAGE, SESSION_ROUTES } from './AuthGate';
+
+import type { ReactNode } from 'react';
 
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
@@ -16,21 +20,50 @@ const mockAuth = {
   logout: jest.fn(),
 };
 const mockBiometrics = { ready: true, locked: false };
-let mockSegments: string[] = [];
+const mockLaunchDestination = jest.fn<void, [boolean]>();
+const mockLaunchDeadline = jest.fn<void, [boolean]>();
 
 jest.mock('@/core/auth', () => ({ useAuth: () => mockAuth }));
 jest.mock('@/core/biometrics', () => ({ useBiometrics: () => mockBiometrics }));
+jest.mock('@/core/launch', () => ({
+  useLaunchDestination: (ready: boolean) => mockLaunchDestination(ready),
+  useLaunchDeadline: (settled: boolean) => mockLaunchDeadline(settled),
+}));
 jest.mock('@/shared/ui', () => ({ ...jest.requireActual('@/shared/ui'), notifyError: jest.fn() }));
 jest.mock('expo-router', () => {
   const { Text: MockText } = jest.requireActual<typeof import('react-native')>('react-native');
-  return {
-    Redirect: ({ href }: { href: string }) => <MockText>{`redirect:${href}`}</MockText>,
-    Stack: () => <MockText>stack</MockText>,
-    useSegments: () => mockSegments,
-  };
+  function MockStack({ children }: { children: ReactNode }) {
+    return <>{children}</>;
+  }
+  function MockProtected({ guard, children }: { guard: boolean; children: ReactNode }) {
+    return guard ? <>{children}</> : null;
+  }
+  function MockScreen({ name }: { name: string }) {
+    return <MockText>{`route:${name}`}</MockText>;
+  }
+  MockStack.Protected = MockProtected;
+  MockStack.Screen = MockScreen;
+  return { Stack: MockStack };
 });
 
 const setAuth = (overrides: Partial<typeof mockAuth>) => Object.assign(mockAuth, overrides);
+
+const shownRoutes = () =>
+  screen.queryAllByText(/^route:/).map(node => String(node.props.children).slice('route:'.length));
+
+/**
+ * Nombres de las rutas del `Stack` raíz según los archivos de `app/`: un grupo con `_layout` es una sola ruta y una
+ * carpeta sin él aporta una por archivo.
+ */
+function appRoutes(dir: string, prefix = ''): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+    if (entry.name.startsWith('_')) return [];
+    if (!entry.isDirectory()) return [`${prefix}${entry.name.replace(/\.tsx?$/, '')}`];
+    const path = join(dir, entry.name);
+    if (existsSync(join(path, '_layout.tsx'))) return [`${prefix}${entry.name}`];
+    return appRoutes(path, `${prefix}${entry.name}/`);
+  });
+}
 
 beforeEach(() => {
   setAuth({
@@ -42,75 +75,95 @@ beforeEach(() => {
     logout: jest.fn().mockResolvedValue(undefined),
   });
   Object.assign(mockBiometrics, { ready: true, locked: false });
-  mockSegments = [];
+  mockLaunchDestination.mockClear();
 });
 
 describe('AuthGate', () => {
-  it('muestra el spinner mientras verifica la sesión', async () => {
+  it('cada ruta de app/ menos el login pide sesión', () => {
+    const routes = appRoutes(join(__dirname, '../../../app'));
+
+    expect(routes).toContain('login');
+    expect([...SESSION_ROUTES].sort()).toEqual(routes.filter(route => route !== 'login').sort());
+  });
+
+  describe('aviso a la animación de arranque', () => {
+    it.each([
+      ['con la sesión y la biometría resueltas', {}, {}, true],
+      ['mientras verifica la sesión', { isLoading: true }, {}, false],
+      ['mientras lee la biometría', {}, { ready: false }, false],
+    ])('el tope de seguridad %s', async (_, auth, biometrics, settled) => {
+      setAuth(auth);
+      Object.assign(mockBiometrics, biometrics);
+
+      await render(<AuthGate />);
+
+      expect(mockLaunchDeadline).toHaveBeenLastCalledWith(settled);
+    });
+
+    it.each([
+      ['con sesión', { isAuthenticated: true }, {}, true],
+      ['con la sesión sin verificar', { isSessionUnverified: true }, {}, true],
+      ['mientras verifica la sesión', { isLoading: true }, {}, false],
+      ['mientras lee la biometría', { isAuthenticated: true }, { ready: false }, false],
+      ['sin sesión, porque avisa el login', {}, {}, false],
+      ['con la app bloqueada, porque avisa el login', { isAuthenticated: true }, { locked: true }, false],
+    ])('%s', async (_, auth, biometrics, ready) => {
+      setAuth(auth);
+      Object.assign(mockBiometrics, biometrics);
+
+      await render(<AuthGate />);
+
+      expect(mockLaunchDestination).toHaveBeenLastCalledWith(ready);
+    });
+  });
+
+  it('muestra el spinner mientras verifica la sesión, sin montar rutas', async () => {
     setAuth({ isLoading: true });
     await render(<AuthGate />);
 
     expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
-    expect(screen.queryByText('stack')).toBeNull();
+    expect(shownRoutes()).toEqual([]);
   });
 
-  it('sin sesión manda al login', async () => {
+  it('sin sesión solo está el login', async () => {
     await render(<AuthGate />);
-    expect(screen.getByText('redirect:/login')).toBeTruthy();
+
+    expect(shownRoutes()).toEqual(['login']);
   });
 
-  it('sin sesión y ya en el login muestra el stack', async () => {
-    mockSegments = ['login'];
-    await render(<AuthGate />);
-    expect(screen.getByText('stack')).toBeTruthy();
-  });
-
-  it('con sesión en el login manda a las tabs', async () => {
-    setAuth({ isAuthenticated: true });
-    mockSegments = ['login'];
-    await render(<AuthGate />);
-    expect(screen.getByText('redirect:/(tabs)')).toBeTruthy();
-  });
-
-  it('con sesión muestra el stack', async () => {
+  it('con sesión están las rutas de la app, con las tabs primero, y no el login', async () => {
     setAuth({ isAuthenticated: true });
     await render(<AuthGate />);
-    expect(screen.getByText('stack')).toBeTruthy();
+
+    expect(shownRoutes()).toEqual(SESSION_ROUTES);
+    expect(shownRoutes()[0]).toBe('(tabs)');
   });
 
   describe('bloqueo biométrico', () => {
-    it('con sesión y bloqueado, cualquier ruta redirige al login', async () => {
+    it('con sesión y bloqueado solo está el login', async () => {
       setAuth({ isAuthenticated: true });
       mockBiometrics.locked = true;
       await render(<AuthGate />);
 
-      expect(screen.getByText('redirect:/login')).toBeTruthy();
-      expect(screen.queryByText('stack')).toBeNull();
+      expect(shownRoutes()).toEqual(['login']);
     });
 
-    it('con sesión y bloqueado, en el login se queda ahí (no redirige a las tabs)', async () => {
+    it('al desbloquear pasan a estar las rutas de la app', async () => {
       setAuth({ isAuthenticated: true });
       mockBiometrics.locked = true;
-      mockSegments = ['login'];
-      await render(<AuthGate />);
+      const view = await render(<AuthGate />);
 
-      expect(screen.getByText('stack')).toBeTruthy();
-      expect(screen.queryByText(/redirect:/)).toBeNull();
+      mockBiometrics.locked = false;
+      await view.rerender(<AuthGate />);
+
+      expect(shownRoutes()).toEqual(SESSION_ROUTES);
     });
 
-    it('al desbloquear, el login redirige a las tabs', async () => {
-      setAuth({ isAuthenticated: true });
-      mockSegments = ['login'];
-      await render(<AuthGate />);
-
-      expect(screen.getByText('redirect:/(tabs)')).toBeTruthy();
-    });
-
-    it('sin sesión el bloqueo no cambia nada: va al login', async () => {
+    it('sin sesión el bloqueo no cambia nada: solo el login', async () => {
       mockBiometrics.locked = true;
       await render(<AuthGate />);
 
-      expect(screen.getByText('redirect:/login')).toBeTruthy();
+      expect(shownRoutes()).toEqual(['login']);
     });
 
     it('mientras se lee la preferencia muestra el spinner, sin dejar ver la app', async () => {
@@ -119,7 +172,7 @@ describe('AuthGate', () => {
       await render(<AuthGate />);
 
       expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
-      expect(screen.queryByText('stack')).toBeNull();
+      expect(shownRoutes()).toEqual([]);
     });
   });
 
@@ -129,7 +182,7 @@ describe('AuthGate', () => {
       await render(<AuthGate />);
 
       expect(screen.getByText(SESSION_ERROR_MESSAGE)).toBeTruthy();
-      expect(screen.queryByText('redirect:/login')).toBeNull();
+      expect(shownRoutes()).toEqual([]);
 
       await fireEvent.press(screen.getByRole('button', { name: 'Reintentar' }));
       expect(mockAuth.retrySession).toHaveBeenCalledTimes(1);
@@ -171,13 +224,6 @@ describe('AuthGate', () => {
       await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' })));
 
       expect(notifyError).toHaveBeenCalledWith('No se pudo cerrar la sesión');
-    });
-
-    it('también en la ruta del login', async () => {
-      setAuth({ isSessionUnverified: true });
-      mockSegments = ['login'];
-      await render(<AuthGate />);
-      expect(screen.getByText(SESSION_ERROR_MESSAGE)).toBeTruthy();
     });
   });
 });

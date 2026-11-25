@@ -37,20 +37,22 @@
 
 ### Mobile
 
-| Doc                                       | Contenido                |
-| ----------------------------------------- | ------------------------ |
-| [tooling.md](./mobile/tooling.md)         | Scripts mobile           |
-| [new-feature.md](./mobile/new-feature.md) | Checklist feature mobile |
+| Doc                                             | Contenido                                     |
+| ----------------------------------------------- | --------------------------------------------- |
+| [tooling.md](./mobile/tooling.md)               | Scripts mobile                                |
+| [new-feature.md](./mobile/new-feature.md)       | Checklist feature mobile                      |
+| [split-expenses.md](./mobile/split-expenses.md) | Dividir gastos: rutas, datos y comportamiento |
 
 ### API
 
-| Doc                                          | Contenido                          |
-| -------------------------------------------- | ---------------------------------- |
-| [prisma.md](./api/prisma.md)                 | Migraciones Prisma                 |
-| [route-testing.md](./api/route-testing.md)   | Tests de integración de endpoints  |
-| [household.md](./api/household.md)           | Hogar compartido y postura de RLS  |
-| [pantry-barcode.md](./api/pantry-barcode.md) | Código de barras de la alacena     |
-| [avatar-storage.md](./api/avatar-storage.md) | Foto de perfil y bucket de Storage |
+| Doc                                          | Contenido                            |
+| -------------------------------------------- | ------------------------------------ |
+| [prisma.md](./api/prisma.md)                 | Migraciones Prisma                   |
+| [route-testing.md](./api/route-testing.md)   | Tests de integración de endpoints    |
+| [household.md](./api/household.md)           | Hogar compartido y postura de RLS    |
+| [gym.md](./api/gym.md)                       | Planes, catálogo e historial de peso |
+| [pantry-barcode.md](./api/pantry-barcode.md) | Código de barras de la alacena       |
+| [avatar-storage.md](./api/avatar-storage.md) | Foto de perfil y bucket de Storage   |
 
 ### Ops
 

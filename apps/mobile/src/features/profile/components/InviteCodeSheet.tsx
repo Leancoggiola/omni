@@ -4,9 +4,9 @@ import { ClockIcon, CopyIcon, ShareNetworkIcon } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
 import { Share } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { Banner, Button, FormSheet, getErrorMessage } from '@/shared/ui';
+import { Banner, Button, FormSheet, getErrorMessage, Paragraph } from '@/shared/ui';
 
 import type { CreatedHouseholdInvite } from '@omni/shared/household';
 

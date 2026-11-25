@@ -3,31 +3,35 @@ import { Button, Chip, Group, NumberInput, Text, TextInput } from '@mantine/core
 
 import { getErrorMessage, notifyError } from '@/shared/ui';
 
-import { participantLabel } from '../../utils/gatheringView';
-
 import type { AddGatheringExpensePayload, GatheringParticipantSummary } from '@omni/shared/split-expenses';
 
 import classes from './GatheringFeed.module.scss';
 
 import { MONEY_FORMAT } from '@omni/shared/common';
-import { GATHERING_EXPENSE_DESCRIPTION_MAX } from '@omni/shared/split-expenses';
+import { describeSplitCaption, GATHERING_EXPENSE_DESCRIPTION_MAX, participantLabel } from '@omni/shared/split-expenses';
 
 interface ExpenseComposerProps {
   participants: GatheringParticipantSummary[];
   onAdd: (payload: AddGatheringExpensePayload) => Promise<void>;
 }
 
-/** Composer del feed: quién pagó (chips; "Vos" por defecto), monto, detalle y "Agregar". */
+/**
+ * Composer del feed: quién pagó (chips; "Vos" por defecto), entre quiénes se divide (chips; todos por defecto), el
+ * caption en vivo del reparto, monto, detalle y "Agregar". Con nadie elegido el caption pasa a error y no se agrega.
+ */
 export const ExpenseComposer: FC<ExpenseComposerProps> = ({ participants, onAdd }) => {
   const [participantId, setParticipantId] = useState<string>(
     (participants.find(participant => participant.isSelf) ?? participants[0])?.id ?? ''
   );
+  const [sharedWith, setSharedWith] = useState<string[]>(participants.map(participant => participant.id));
   const [amount, setAmount] = useState<number | string>('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
 
   const numericAmount = typeof amount === 'number' ? amount : Number(amount);
-  const canSubmit = participantId !== '' && Number.isFinite(numericAmount) && numericAmount > 0;
+  const caption = describeSplitCaption(numericAmount, sharedWith.length, participants.length);
+  const canSubmit =
+    participantId !== '' && Number.isFinite(numericAmount) && numericAmount > 0 && sharedWith.length > 0;
 
   const handleSubmit = async () => {
     if (!canSubmit || loading) return;
@@ -39,8 +43,10 @@ export const ExpenseComposer: FC<ExpenseComposerProps> = ({ participants, onAdd 
         participantId,
         amount: numericAmount,
         description: trimmedDescription ? trimmedDescription : null,
+        sharedWith: sharedWith.length === participants.length ? undefined : sharedWith,
       });
       setAmount('');
+      setSharedWith(participants.map(participant => participant.id));
       setDescription('');
     } catch (err) {
       notifyError(getErrorMessage(err, 'No se pudo agregar el gasto'));
@@ -71,6 +77,26 @@ export const ExpenseComposer: FC<ExpenseComposerProps> = ({ participants, onAdd 
           ))}
         </Chip.Group>
       </Group>
+      <Group gap="xs" role="group" aria-label="Entre quiénes se divide">
+        <Text size="xs" fw={600} c="dimmed">
+          Entre
+        </Text>
+        <Chip.Group multiple value={sharedWith} onChange={setSharedWith}>
+          {participants.map(participant => (
+            <Chip key={participant.id} value={participant.id} size="sm">
+              {participantLabel(participant)}
+            </Chip>
+          ))}
+        </Chip.Group>
+      </Group>
+      <Text
+        size="xs"
+        c={caption.invalid ? 'destructive' : 'dimmed'}
+        fw={caption.invalid ? 600 : undefined}
+        aria-live="polite"
+      >
+        {caption.text}
+      </Text>
       <Group gap="xs" align="flex-start">
         <NumberInput
           aria-label="Monto"

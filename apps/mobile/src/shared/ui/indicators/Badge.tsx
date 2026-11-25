@@ -1,9 +1,10 @@
 import { RADIUS } from '@omni/shared/theme';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
 
+import { Paragraph } from '../Paragraph';
 import type { InlineAlign } from '../types';
 
-export type BadgeColor = 'accent' | 'dimmed' | 'warning';
+export type BadgeColor = 'accent' | 'dimmed' | 'success' | 'warning';
 type BadgeVariant = 'filled' | 'light' | 'outline';
 type BadgeSize = 'sm' | 'md';
 
@@ -35,6 +36,13 @@ const BADGE_TOKENS = {
     text: 'dimmed',
     border: 'border-color',
   },
+  success: {
+    fill: 'successFill',
+    onFill: 'onSuccessFill',
+    surface: 'successSurface',
+    text: 'success',
+    border: 'successBorder',
+  },
   warning: {
     fill: 'warning',
     onFill: 'onDimmed',
@@ -52,8 +60,8 @@ const SIZES = {
 
 /**
  * Equivalente de `Badge` de Mantine: pill en mayúsculas, 700. `color`: `accent` es el terracota del tipo de media;
- * `dimmed`, el gris de "Próximamente"; `warning`, el ámbar de "Por vencer" (de un solo tono: va en `outline`, no hay
- * un wash legible).
+ * `dimmed`, el gris de "Próximamente"; `success`, lo terminado o a favor ("Saldada", "Te deben"); `warning`, el ámbar
+ * de "Por vencer" (de un solo tono: va en `outline`, no hay un wash legible).
  */
 export function Badge({ children, color, variant = 'light', size = 'sm', alignSelf = 'flex-start' }: BadgeProps) {
   const t = BADGE_TOKENS[color];

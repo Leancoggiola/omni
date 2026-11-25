@@ -55,6 +55,20 @@ describe('ScreenHeader', () => {
     expect(screen.getByRole('button', { name: 'Volver a Más' })).toHaveProp('backgroundColor', 'surfaceGlass');
   });
 
+  it('`accent=""` no resalta ninguna palabra', async () => {
+    await render(<ScreenHeader title="Asado del sábado" accent="" />);
+
+    expect(queryAllByHostProps({ color: 'primary' })).toHaveLength(0);
+  });
+
+  it('el título va en una línea salvo que `titleLines` admita más', async () => {
+    const { rerender } = await render(<ScreenHeader title="Asado del sábado" />);
+    expect(screen.getByRole('header', { name: 'Asado del sábado' })).toHaveProp('numberOfLines', 1);
+
+    await rerender(<ScreenHeader title="Asado del sábado" titleLines={2} />);
+    expect(screen.getByRole('header', { name: 'Asado del sábado' })).toHaveProp('numberOfLines', 2);
+  });
+
   it('con action dibuja el control a la derecha del título', async () => {
     await render(<ScreenHeader title="Películas y Series" action={<Text>Control</Text>} />);
 

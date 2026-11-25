@@ -1,9 +1,11 @@
 import { MEDIA_STATUS_LABELS, type MediaStatus } from '@omni/shared/media';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CaretDownIcon } from 'phosphor-react-native';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
+
+import { Paragraph } from './Paragraph';
 
 const STATUS_TOKENS = {
   to_watch: { background: 'disabledSurface', border: 'borderSubtle' },

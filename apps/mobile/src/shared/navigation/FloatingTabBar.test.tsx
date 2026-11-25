@@ -77,6 +77,31 @@ describe('FloatingTabBar', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it('una ruta sin tab no se lista: marca "Más" y tocarla vuelve ahí', async () => {
+    const props = bar(0);
+    const routes = [route('index'), route('more'), route('split-expenses')];
+    const options = (title: string) => ({ options: { title, tabBarIcon: () => null, tabBarLabel: () => null } });
+    await render(
+      <FloatingTabBar
+        {...({
+          ...props,
+          state: { index: 2, routes },
+          descriptors: {
+            'index-key': options('Inicio'),
+            'more-key': options('Más'),
+            'split-expenses-key': options('Dividir gastos'),
+          },
+        } as unknown as BottomTabBarProps)}
+      />
+    );
+
+    expect(screen.queryByRole('tab', { name: 'Dividir gastos' })).toBeNull();
+    expect(screen.getByRole('tab', { name: 'Más', selected: true })).toBeTruthy();
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Más' }));
+    expect(navigate).toHaveBeenCalledWith('more-key');
+  });
+
   it('no navega si alguien frena el tabPress', async () => {
     emit.mockReturnValue({ defaultPrevented: true });
     await render(<FloatingTabBar {...bar(0)} />);

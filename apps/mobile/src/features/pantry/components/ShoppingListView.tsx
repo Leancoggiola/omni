@@ -3,10 +3,11 @@ import { SPACING } from '@omni/shared/theme';
 import { ShoppingCartIcon } from 'phosphor-react-native';
 import { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useHousehold } from '@/core/household';
 import {
+  Banner,
   Button,
   confirm,
   EmptyState,
@@ -15,15 +16,15 @@ import {
   FAB_SIZE,
   getErrorMessage,
   LoadingState,
-  Banner,
   notifyError,
   notifySuccess,
+  Paragraph,
   usePullToRefresh,
+  useSheetNotice,
 } from '@/shared/ui';
 
 import { usePantryProducts } from '../hooks/usePantryProducts';
 import { usePantrySummary } from '../hooks/usePantrySummary';
-import { useSheetNotice } from '../hooks/useSheetNotice';
 import { useShoppingList } from '../hooks/useShoppingList';
 import { useShoppingListMutations } from '../hooks/useShoppingListMutations';
 import { AddShoppingItemSheet } from './AddShoppingItemSheet';

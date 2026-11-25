@@ -1,5 +1,7 @@
 import { HEADING } from '@omni/shared/theme';
-import { Paragraph, type ParagraphProps } from 'tamagui';
+import type { ParagraphProps } from 'tamagui';
+
+import { Paragraph } from './Paragraph';
 
 type TitleProps = Omit<ParagraphProps, 'order'> & {
   /** Mismo nivel que `Title order` de Mantine: tamaños de `HEADING` en `@omni/shared/theme`. */

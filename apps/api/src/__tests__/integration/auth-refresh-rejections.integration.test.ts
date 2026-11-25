@@ -11,7 +11,7 @@ import { createIntegrationApp } from '../../test/integration/createIntegrationAp
 import { createUser } from '../../test/integration/factories';
 import { activeSessionCount, seedSession } from '../../test/integration/session';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 function refresh(refreshToken: string) {
   return request(app).post('/api/auth/refresh').send({ refreshToken });

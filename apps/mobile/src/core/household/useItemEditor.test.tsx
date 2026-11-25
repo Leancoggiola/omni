@@ -14,7 +14,7 @@ const HOUSEHOLD: HouseholdInfo = {
   id: 'h1',
   pendingInvite: null,
   members: [
-    { userId: 'u1', name: 'Leandro', username: 'leo', avatarUrl: null, joinedAt: '' },
+    { userId: 'u1', name: 'Mateo', username: 'leo', avatarUrl: null, joinedAt: '' },
     { userId: 'u2', name: 'Lucía', username: 'lucia', avatarUrl: null, joinedAt: '' },
   ],
 };

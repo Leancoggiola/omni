@@ -4,7 +4,7 @@ import request from 'supertest';
 import { prisma } from '../../common/db';
 import { authHeader } from '../../test/integration/auth';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
-import { createUser, linkUsers, toJwtUser } from '../../test/integration/factories';
+import { createMediaItem, createUser, linkUsers, toJwtUser } from '../../test/integration/factories';
 
 vi.mock('../../media/tmdb.service');
 
@@ -12,7 +12,7 @@ import * as tmdbService from '../../media/tmdb.service';
 
 const mockedTmdb = vi.mocked(tmdbService);
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 const movieDetail = {
   id: 550,
@@ -152,6 +152,34 @@ describe('media routes (integration)', () => {
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(1);
       expect(res.body[0]).toMatchObject({ tmdbId: 550 });
+    });
+
+    it('GET /list returns the items in alphabetical order by title, ignoring case and accents', async () => {
+      for (const title of ['The Dark Knight', 'Érase una vez', 'dune', 'Rocky 10', 'El Padrino', 'Rocky 2']) {
+        await createMediaItem(user.id, { title });
+      }
+
+      const res = await request(app).get('/api/media/list').set('Authorization', auth);
+
+      expect(res.status).toBe(200);
+      expect(res.body.map((i: { title: string }) => i.title)).toEqual([
+        'dune',
+        'El Padrino',
+        'Érase una vez',
+        'Rocky 2',
+        'Rocky 10',
+        'The Dark Knight',
+      ]);
+    });
+
+    it('GET /list keeps the alphabetical order with filters', async () => {
+      await createMediaItem(user.id, { title: 'Zodiac', status: 'watched' });
+      await createMediaItem(user.id, { title: 'Alien', status: 'watched' });
+      await createMediaItem(user.id, { title: 'Brazil', status: 'to_watch' });
+
+      const res = await request(app).get('/api/media/list?status=watched').set('Authorization', auth);
+
+      expect(res.body.map((i: { title: string }) => i.title)).toEqual(['Alien', 'Zodiac']);
     });
 
     it('GET /list filters by status', async () => {

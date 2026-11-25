@@ -26,6 +26,7 @@ export { NotificationsProvider, useSetNotificationsBottomOffset } from './notify
 export { AppBackground } from './AppBackground';
 export { AuthorTag } from './AuthorTag';
 export { DisplayTitle } from './DisplayTitle';
+export { Paragraph } from './Paragraph';
 export { Screen } from './Screen';
 export { ScreenHeader } from './ScreenHeader';
 export { SectionCard } from './SectionCard';
@@ -41,5 +42,8 @@ export { StatusPill } from './StatusPill';
 export { Title } from './Title';
 export { usePullToRefresh } from './usePullToRefresh';
 export { tabBarBottomOffset, useTabBarClearance } from './useTabBarClearance';
+export { useDebouncedValue } from './useDebouncedValue';
 export { useReduceMotion } from './useReduceMotion';
+export { useSheetNotice } from './useSheetNotice';
 export { UserAvatar } from './UserAvatar';
+export { getInitials } from './UserAvatar.utils';

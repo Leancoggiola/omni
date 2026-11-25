@@ -6,7 +6,7 @@ import { prisma } from '../../common/db';
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
 import { TEST_PASSWORD, createUser } from '../../test/integration/factories';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 const NEW_PASSWORD = 'nueva-password-456';
 

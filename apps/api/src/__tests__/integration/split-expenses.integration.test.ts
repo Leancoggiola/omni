@@ -14,7 +14,7 @@ import {
 import { findRecordedCall } from '../../test/integration/queryRecorder';
 import { withSavepoint } from '../../test/integration/withSavepoint';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('split-expenses routes (integration)', () => {
   let user: Awaited<ReturnType<typeof createUser>>;
@@ -169,6 +169,45 @@ describe('split-expenses routes (integration)', () => {
       );
       expect(byName.Asado).toMatchObject({ totalAmount: 0.3, participantCount: 2 });
       expect(byName['Vacía']).toMatchObject({ totalAmount: 0, participantCount: 1 });
+    });
+
+    it('GET /gatherings previews the most recent expense of each gathering', async () => {
+      const asado = await createGathering(user.id, { name: 'Asado', selfName: 'Lean', participants: ['Ana'] });
+      const self = asado.participants.find(participant => participant.isSelf)!;
+      const ana = asado.participants.find(participant => !participant.isSelf)!;
+      await createGatheringExpense(asado.id, ana.id, {
+        amount: 27000.5,
+        description: 'Bebidas',
+        createdAt: new Date('2026-01-15T16:20:00.000Z'),
+      });
+      await createGatheringExpense(asado.id, self.id, {
+        amount: 100,
+        createdAt: new Date('2026-01-15T15:00:00.000Z'),
+      });
+      await createGathering(user.id, { name: 'Vacía', participants: ['Ana'] });
+
+      const res = await request(app).get('/api/split-expenses/gatherings').set('Authorization', auth);
+
+      const byName = Object.fromEntries(res.body.items.map((item: { name: string }) => [item.name, item]));
+      expect(byName.Asado.lastExpense).toEqual({
+        participantName: 'Ana',
+        isSelf: false,
+        amount: 27000.5,
+        description: 'Bebidas',
+        createdAt: '2026-01-15T16:20:00.000Z',
+      });
+      expect(byName['Vacía'].lastExpense).toBeNull();
+    });
+
+    it('GET /gatherings has no preview when the last payer is not a participant of the gathering', async () => {
+      const asado = await createGathering(user.id, { name: 'Asado', participants: ['Ana'] });
+      const otra = await createGathering(user.id, { name: 'Otra', participants: ['Beto'] });
+      await createGatheringExpense(asado.id, otra.participants[0]!.id, { amount: 10 });
+
+      const res = await request(app).get('/api/split-expenses/gatherings').set('Authorization', auth);
+
+      const found = res.body.items.find((item: { name: string }) => item.name === 'Asado');
+      expect(found.lastExpense).toBeNull();
     });
 
     it('GET /gatherings/:id rounds the totals and what each one spent', async () => {
@@ -497,7 +536,7 @@ describe('split-expenses routes (integration)', () => {
     });
 
     it('POST /gatherings usa el nombre del usuario sin espacios sobrantes', async () => {
-      const spaced = await createUser({ username: 'spaced-owner', name: '  Lean Coggiola  ' });
+      const spaced = await createUser({ username: 'spaced-owner', name: '  Ana Gomez  ' });
 
       const res = await request(app)
         .post('/api/split-expenses/gatherings')
@@ -505,7 +544,7 @@ describe('split-expenses routes (integration)', () => {
         .send({ name: 'Asado', date: '2026-08-10', participants: [{ name: 'Ana' }] });
 
       expect(res.status).toBe(201);
-      expect(res.body.participants[0]).toMatchObject({ displayName: 'Lean Coggiola', isSelf: true });
+      expect(res.body.participants[0]).toMatchObject({ displayName: 'Ana Gomez', isSelf: true });
     });
 
     it('POST /gatherings suma al usuario también cuando los participantes son amigos', async () => {

@@ -26,6 +26,12 @@ describe('Badge', () => {
     expect(screen.getByText('Próximamente')).toHaveProp('color', 'dimmed');
   });
 
+  it('light success: texto en el color de lo terminado ("Saldada")', async () => {
+    await render(<Badge color="success">Saldada</Badge>);
+
+    expect(screen.getByText('Saldada')).toHaveProp('color', 'success');
+  });
+
   it('outline warning: texto ámbar sobre fondo transparente (el ámbar es de un solo tono)', async () => {
     await render(
       <Badge color="warning" variant="outline">
