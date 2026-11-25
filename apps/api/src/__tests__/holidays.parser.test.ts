@@ -348,6 +348,8 @@ describe('parseHolidayEntry', () => {
       'Día del Gato Montés Sudamericano.',
       'Día Africano del Medio Ambiente.',
       'Día de los Refugiados en África.',
+      'Día de África.',
+      'Día del Aborigen Americano.',
       'Día del Mediterráneo.',
     ])('descarta el regional "%s"', raw => {
       expect(parseHolidayEntry(raw)).toBeNull();
@@ -393,6 +395,14 @@ describe('parseHolidayEntry', () => {
   });
 
   describe('entradas reales del feed que se colaban', () => {
+    it.each([
+      'Yennayer: Año Nuevo Bereber',
+      'Epifanía Ortodoxa. (no confundir con Epifanía Católica)',
+      'Disolución de Checoslovaquia:(Celebraciones relacionadas)',
+    ])('descarta "%s", que no es un "Día…"', raw => {
+      expect(parseHolidayEntry(raw)).toBeNull();
+    });
+
     it.each([
       'Todos los Santos.Solemnidad en la que la Iglesia católica honra conjuntamente a todos los santos.',
       'Presentación de la Santísima Virgen María.\nMemoria litúrgica que recuerda la presentación de María en el Templo.',

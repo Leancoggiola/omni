@@ -21,7 +21,7 @@ const NAME_START = `(?:(?:El|La|Los|Las)\\s+)?[A-ZÁÉÍÓÚÑÜ]${NAME_CHAR}{2,
 const ADJACENT_REPEAT = new RegExp(`^(${NAME_START}(?:\\s+${NAME_CHAR}+){0,4})\\s?\\1(?!${NAME_CHAR})`, 'i');
 
 const LISTED_COUNTRY = new RegExp(
-  `,\\s*en:|(?::.*?|(?<!${NAME_CHAR})en\\s+)(?<!${NAME_CHAR})([A-ZÁÉÍÓÚÑÜ]${NAME_CHAR}{2,}(?:\\s+${NAME_CHAR}+){0,4}?)\\s?\\1(?!${NAME_CHAR})`
+  `,\\s*en:|(?:^[^:]*:.*?|(?<!${NAME_CHAR})en\\s+)(?<!${NAME_CHAR})([A-ZÁÉÍÓÚÑÜ]${NAME_CHAR}{2,}(?:\\s+${NAME_CHAR}+){0,4}?)\\s?\\1(?!${NAME_CHAR})`
 );
 
 /** "Argentina Argentina: …", "ChinaChina China: …", "Andorra Andorra, España España y Gibraltar Gibraltar: …" */
@@ -33,7 +33,6 @@ const ARGENTINA_FLAG = '🇦🇷';
 /** Variante sin dos puntos: "México México Día Nacional del Cine Mexicano". */
 const COUNTRY_PREFIX_BARE = new RegExp(`^(${NAME_START}(?:\\s+${NAME_CHAR}+){0,3})\\s?\\1\\s+`);
 
-/** Sub-prefijos argentinos: "Misiones: …", "Armada Argentina: …", "Provincia de Mendoza: …". */
 const SUBREGION_PREFIX = /^([^:]{2,45}):\s*/;
 const TITLE_START = /^(día|días|fiesta|aniversario|conmemoración|celebración|natalicio|jornada|semana|año)\b/i;
 
