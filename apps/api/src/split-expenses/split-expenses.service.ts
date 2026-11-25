@@ -72,17 +72,20 @@ function toSplitExpenses(rows: ExpenseSplitRow[]): SettlementExpenseInput[] {
 
 type LastExpenseRow = Pick<PrismaGatheringExpense, 'participantId' | 'amount' | 'description' | 'createdAt'>;
 
-/** Vista previa del gasto más reciente (`rows` llega del más nuevo al más viejo), o `null` si no hay gastos. */
+/**
+ * Vista previa del gasto más reciente (`rows` llega del más nuevo al más viejo). Es `null` si no hay gastos o si quien
+ * pagó el último no está entre los participantes: sin su nombre no hay qué mostrar.
+ */
 function toLastExpense(
   rows: LastExpenseRow[],
   participants: Array<{ id: string; displayName: string; isSelf: boolean }>
 ): GatheringLastExpense | null {
   const last = rows[0];
-  if (!last) return null;
-  const payer = participants.find(participant => participant.id === last.participantId);
+  const payer = participants.find(participant => participant.id === last?.participantId);
+  if (!last || !payer) return null;
   return {
-    participantName: payer?.displayName ?? '',
-    isSelf: payer?.isSelf ?? false,
+    participantName: payer.displayName,
+    isSelf: payer.isSelf,
     amount: decimalToNumber(last.amount) ?? 0,
     description: last.description,
     createdAt: toIsoDateTimeString(last.createdAt),

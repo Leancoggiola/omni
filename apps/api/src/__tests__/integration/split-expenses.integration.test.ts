@@ -199,6 +199,17 @@ describe('split-expenses routes (integration)', () => {
       expect(byName['Vacía'].lastExpense).toBeNull();
     });
 
+    it('GET /gatherings has no preview when the last payer is not a participant of the gathering', async () => {
+      const asado = await createGathering(user.id, { name: 'Asado', participants: ['Ana'] });
+      const otra = await createGathering(user.id, { name: 'Otra', participants: ['Beto'] });
+      await createGatheringExpense(asado.id, otra.participants[0]!.id, { amount: 10 });
+
+      const res = await request(app).get('/api/split-expenses/gatherings').set('Authorization', auth);
+
+      const found = res.body.items.find((item: { name: string }) => item.name === 'Asado');
+      expect(found.lastExpense).toBeNull();
+    });
+
     it('GET /gatherings/:id rounds the totals and what each one spent', async () => {
       const asado = await createGathering(user.id, { name: 'Asado', participants: ['Ana', 'Beto'] });
       await createGatheringExpense(asado.id, asado.participants[0]!.id, { amount: 0.1 });
