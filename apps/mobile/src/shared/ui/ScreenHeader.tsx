@@ -18,6 +18,7 @@ type ScreenHeaderProps = {
   accent?: string;
   subtitle?: string;
   size?: 'md' | 'lg' | 'xl';
+  titleLines?: number;
   onBack?: () => void;
   backLabel?: string;
   action?: ReactNode;
@@ -35,7 +36,8 @@ function accentWord(title: string, accent?: string): string | undefined {
  * Equivalente de `PageHeader` de web en v2: chip de ícono opcional en `primarySurface`, el título en `display` (`size`
  * `md` por defecto; `lg` en Perfil y `xl` en "Más") con una palabra en `primary` (sin itálica) y el subtítulo.
  * `accent` es esa palabra (por defecto, la última) y tiene que ser una palabra completa de `title`; un título de una
- * sola palabra no se resalta. Pantallas de stack (Perfil): `onBack` agrega un `IconButton` glass de volver, que
+ * sola palabra no se resalta y `accent=""` no resalta ninguna. El título va en una línea salvo que `titleLines` admita
+ * más (el nombre de una juntada). Pantallas de stack (Perfil): `onBack` agrega un `IconButton` glass de volver, que
  * `backLabel` nombra ("Volver a Más"). `action` es un control opcional a la derecha (el Lista/Grilla de Media).
  */
 export function ScreenHeader({
@@ -44,6 +46,7 @@ export function ScreenHeader({
   accent,
   subtitle,
   size = 'md',
+  titleLines = 1,
   onBack,
   backLabel = 'Volver',
   action,
@@ -69,7 +72,7 @@ export function ScreenHeader({
           </YStack>
         ) : null}
         <YStack flexShrink={1} gap={SPACING['2xs']}>
-          <DisplayTitle size={size} accent={accentWord(title, accent)} numberOfLines={1}>
+          <DisplayTitle size={size} accent={accentWord(title, accent)} numberOfLines={titleLines}>
             {title}
           </DisplayTitle>
           {subtitle ? (

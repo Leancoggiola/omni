@@ -59,6 +59,14 @@ export interface GatheringDetail {
   myBalance: number | null;
 }
 
+export interface GatheringLastExpense {
+  participantName: string;
+  isSelf: boolean;
+  amount: number;
+  description: string | null;
+  createdAt: string;
+}
+
 export interface GatheringSummary {
   id: string;
   name: string;
@@ -67,6 +75,7 @@ export interface GatheringSummary {
   participantCount: number;
   totalAmount: number;
   myBalance: number | null;
+  lastExpense: GatheringLastExpense | null;
 }
 
 export interface SplitBalanceSummary {

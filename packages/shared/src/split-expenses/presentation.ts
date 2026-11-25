@@ -1,14 +1,11 @@
-import { dayjs } from '@/shared/dates';
-
+import { formatMoney, MONEY_SCALE } from '../common/money';
 import type {
   GatheringExpense,
   GatheringParticipantSummary,
   GatheringSummary,
   Settlement,
   SplitBalanceSummary,
-} from '@omni/shared/split-expenses';
-
-import { formatMoney, MONEY_SCALE } from '@omni/shared/common';
+} from './types';
 
 export type ParticipantTone = 'sage' | 'terracotta' | 'brand' | 'gray';
 
@@ -27,8 +24,30 @@ export interface ExpenseDayGroup {
   expenses: GatheringExpense[];
 }
 
-function capitalize(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+export interface SplitCaption {
+  text: string;
+  invalid: boolean;
+}
+
+const WEEKDAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'] as const;
+
+const MONTH_NAMES = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+] as const;
+
+function pad(value: number): string {
+  return String(value).padStart(2, '0');
 }
 
 /** Nombre a mostrar de un participante: el propio es siempre "Vos". */
@@ -90,41 +109,50 @@ export function formatSignedBalance(balance: number): BalanceView {
   return { label: formatMoney(0), tone: 'dimmed' };
 }
 
-/** "Sábado 18/10" para la cabecera del feed. */
+/** "Sábado 18/10" para la cabecera de una juntada, a partir de su fecha de calendario (`YYYY-MM-DD`). */
 export function formatGatheringWeekday(isoDate: string): string {
-  return capitalize(dayjs(isoDate, 'YYYY-MM-DD', true).format('dddd DD/MM'));
+  const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return `${WEEKDAY_NAMES[weekday]} ${formatGatheringShortDate(isoDate)}`;
 }
 
 /** "18/10" para la lista de juntadas. */
 export function formatGatheringShortDate(isoDate: string): string {
-  return dayjs(isoDate, 'YYYY-MM-DD', true).format('DD/MM');
+  const [, month = '', day = ''] = isoDate.split('-');
+  return `${day}/${month}`;
 }
 
 /** Hora local de un gasto, `HH:mm`. */
 export function formatExpenseTime(createdAt: string): string {
-  return dayjs(createdAt).format('HH:mm');
+  const date = new Date(createdAt);
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 /**
- * Agrupa los gastos por día de carga (más viejo primero, como un chat). La etiqueta es "Sábado 18" y suma el mes
- * ("Sábado 18 de octubre") cuando no es el mes en curso.
+ * Agrupa los gastos por día de carga en hora local (más viejo primero, como un chat). La etiqueta es "Sábado 18" y
+ * suma el mes ("Sábado 18 de octubre") cuando no es el mes en curso.
  */
 export function groupExpensesByDay(expenses: GatheringExpense[], now: Date = new Date()): ExpenseDayGroup[] {
   const sorted = [...expenses].sort(
-    (left, right) => dayjs(left.createdAt).valueOf() - dayjs(right.createdAt).valueOf()
+    (left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()
   );
   const groups: ExpenseDayGroup[] = [];
 
   for (const expense of sorted) {
-    const day = dayjs(expense.createdAt);
-    const key = day.format('YYYY-MM-DD');
+    const date = new Date(expense.createdAt);
+    const key = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
     const last = groups[groups.length - 1];
     if (last?.key === key) {
       last.expenses.push(expense);
       continue;
     }
-    const sameMonth = day.isSame(now, 'month');
-    groups.push({ key, label: capitalize(day.format(sameMonth ? 'dddd D' : 'dddd D [de] MMMM')), expenses: [expense] });
+    const sameMonth = date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+    const day = `${WEEKDAY_NAMES[date.getDay()]} ${date.getDate()}`;
+    groups.push({
+      key,
+      label: sameMonth ? day : `${day} de ${MONTH_NAMES[date.getMonth()]}`,
+      expenses: [expense],
+    });
   }
 
   return groups;
@@ -139,11 +167,6 @@ export function describeSettlement(settlement: Settlement, participants: Gatheri
   };
 }
 
-export interface SplitCaption {
-  text: string;
-  invalid: boolean;
-}
-
 /**
  * Parte base de cada persona al repartir `amount` entre `count`: se trunca al centavo. El centavo que sobra lo
  * absorben los primeros por id (ver `computeBalances`), así que acá no se menciona.
@@ -154,7 +177,7 @@ export function baseSharePerPerson(amount: number, count: number): number {
 }
 
 /**
- * Caption en vivo del composer: "Se divide entre 3 de 4 · $9.000,00 c/u" (sin "c/u" mientras no hay monto) o, con
+ * Línea en vivo de un alta de gasto: "Se divide entre 3 de 4 · $9.000,00 c/u" (sin "c/u" mientras no hay monto) o, con
  * nadie elegido, "Elegí al menos una persona" como error (`invalid: true`, no se puede agregar el gasto).
  */
 export function describeSplitCaption(amount: number, selectedCount: number, totalCount: number): SplitCaption {
@@ -180,12 +203,22 @@ function joinNames(participants: GatheringParticipantSummary[]): string {
   return `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
 }
 
+/** Entre quiénes se divide un gasto parcial: "Entre vos, Martín y Sofía". `null` si se reparte entre todos. */
+export function describeSharerNames(
+  expense: Pick<GatheringExpense, 'sharedWith'>,
+  participants: GatheringParticipantSummary[]
+): string | null {
+  const sharers = expenseSharers(expense, participants);
+  return sharers.length === 0 ? null : `Entre ${joinNames(sharers)}`;
+}
+
 /** Línea de un gasto parcial: "Entre vos, Martín y Sofía · $9.000,00 c/u". `null` si se reparte entre todos. */
 export function describeExpenseSharers(
   expense: Pick<GatheringExpense, 'amount' | 'sharedWith'>,
   participants: GatheringParticipantSummary[]
 ): string | null {
-  const sharers = expenseSharers(expense, participants);
-  if (sharers.length === 0) return null;
-  return `Entre ${joinNames(sharers)} · ${formatMoney(baseSharePerPerson(expense.amount, sharers.length))} c/u`;
+  const names = describeSharerNames(expense, participants);
+  if (names === null) return null;
+  const count = expenseSharers(expense, participants).length;
+  return `${names} · ${formatMoney(baseSharePerPerson(expense.amount, count))} c/u`;
 }

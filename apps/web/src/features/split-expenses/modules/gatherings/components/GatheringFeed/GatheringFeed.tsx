@@ -3,7 +3,6 @@ import { ActionIcon, Alert, Avatar, Menu, Paper, Text, Title } from '@mantine/co
 
 import { Overline, useDisplayStyles } from '@/shared/ui';
 
-import { formatGatheringWeekday, groupExpensesByDay, participantTones } from '../../utils/gatheringView';
 import { MoneyAmount } from '../MoneyAmount';
 import { ParticipantAvatar } from '../ParticipantAvatar';
 import { ExpenseComposer } from './ExpenseComposer';
@@ -13,6 +12,7 @@ import type { AddGatheringExpensePayload, GatheringDetail, GatheringExpense } fr
 
 import classes from './GatheringFeed.module.scss';
 
+import { formatGatheringWeekday, groupExpensesByDay, participantTones } from '@omni/shared/split-expenses';
 import { DotsThreeIcon, TrashIcon, WarningCircleIcon } from '@phosphor-icons/react';
 
 interface GatheringFeedProps {

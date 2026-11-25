@@ -6,7 +6,7 @@ import { type Icon } from 'phosphor-react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { useSemanticColors } from '@/core/theme';
-import { FloatingTabBar, MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';
+import { FloatingTabBar, MORE_CHILD_ROUTES, MORE_TAB, NAV_ICONS, TAB_ROUTES } from '@/shared/navigation';
 import { Paragraph } from '@/shared/ui';
 
 import type { NavKey } from '@omni/shared/navigation';
@@ -76,6 +76,11 @@ const TAB_SCREENS = MOBILE_TAB_KEYS.map(key => ({
 }));
 const MORE_OPTIONS = tabOptions(MORE_TAB.label, MORE_TAB.icon);
 
+/**
+ * Las tabs del registro, "Más" y las rutas de `MORE_CHILD_ROUTES` (módulos de "Más" que conservan la tab bar). Estas
+ * últimas se declaran como cualquier tab y las oculta `FloatingTabBar`: con `href: null` expo-router las toma por
+ * ocultas y redirige a Inicio al navegar.
+ */
 export default function TabsLayout() {
   return (
     <Tabs tabBar={renderTabBar} screenOptions={{ headerShown: false }}>
@@ -83,6 +88,9 @@ export default function TabsLayout() {
         <Tabs.Screen key={name} name={name} options={options} />
       ))}
       <Tabs.Screen name={MORE_TAB.route} options={MORE_OPTIONS} />
+      {MORE_CHILD_ROUTES.map(name => (
+        <Tabs.Screen key={name} name={name} />
+      ))}
     </Tabs>
   );
 }

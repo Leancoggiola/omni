@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { Badge, type BadgeProps } from '@mantine/core';
 
-import { type BalanceTone, describeMyBalance } from '../utils/gatheringView';
+import { type BalanceTone, describeMyBalance } from '@omni/shared/split-expenses';
 
 const BADGE_COLORS: Record<BalanceTone, BadgeProps['color']> = {
   success: 'sage',

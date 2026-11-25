@@ -4,8 +4,8 @@ import { Button, Group } from '@mantine/core';
 import { PageHeader } from '@/shared/ui';
 
 import { useSplitBalance } from '../hooks/useSplitBalance';
-import { describeBalanceSummary } from '../utils/gatheringView';
 
+import { describeBalanceSummary } from '@omni/shared/split-expenses';
 import { PlusIcon, UsersThreeIcon } from '@phosphor-icons/react';
 
 interface SplitExpensesHeaderProps {

@@ -1,9 +1,8 @@
 import { z } from 'zod';
-
-import type { CreateGatheringPayload } from '@omni/shared/split-expenses';
-
-import { appDateKey, GATHERING_PARTICIPANTS_MAX, isoDateStringSchema } from '@omni/shared/common';
-import { GATHERING_NAME_MAX, SPLIT_FRIEND_NAME_MAX } from '@omni/shared/split-expenses';
+import { appDateKey, isoDateStringSchema } from '../common/dates';
+import { GATHERING_PARTICIPANTS_MAX } from '../common/limits';
+import { GATHERING_NAME_MAX, SPLIT_FRIEND_NAME_MAX } from './constants';
+import type { CreateGatheringPayload } from './schemas';
 
 export interface GatheringParticipantDraft {
   key: string;

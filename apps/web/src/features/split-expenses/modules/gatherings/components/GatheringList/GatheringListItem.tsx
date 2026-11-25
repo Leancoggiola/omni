@@ -1,13 +1,14 @@
 import { FC } from 'react';
 import { Badge, Group, Text, UnstyledButton } from '@mantine/core';
 
-import { formatGatheringShortDate } from '../../utils/gatheringView';
 import { BalanceBadge } from '../BalanceBadge';
 import { MoneyAmount } from '../MoneyAmount';
 
 import type { GatheringSummary } from '@omni/shared/split-expenses';
 
 import classes from './GatheringList.module.scss';
+
+import { formatGatheringShortDate } from '@omni/shared/split-expenses';
 
 interface GatheringListItemProps {
   gathering: GatheringSummary;

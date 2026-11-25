@@ -37,10 +37,11 @@
 
 ### Mobile
 
-| Doc                                       | Contenido                |
-| ----------------------------------------- | ------------------------ |
-| [tooling.md](./mobile/tooling.md)         | Scripts mobile           |
-| [new-feature.md](./mobile/new-feature.md) | Checklist feature mobile |
+| Doc                                             | Contenido                                     |
+| ----------------------------------------------- | --------------------------------------------- |
+| [tooling.md](./mobile/tooling.md)               | Scripts mobile                                |
+| [new-feature.md](./mobile/new-feature.md)       | Checklist feature mobile                      |
+| [split-expenses.md](./mobile/split-expenses.md) | Dividir gastos: rutas, datos y comportamiento |
 
 ### API
 

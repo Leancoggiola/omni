@@ -1,13 +1,6 @@
 import { FC } from 'react';
 import { Button, Divider, Paper, Stack, Text, Title } from '@mantine/core';
 
-import {
-  type BalanceTone,
-  describeSettlement,
-  formatSignedBalance,
-  participantLabel,
-  participantTones,
-} from '../../utils/gatheringView';
 import { MoneyAmount } from '../MoneyAmount';
 import { ParticipantAvatar } from '../ParticipantAvatar';
 
@@ -16,6 +9,13 @@ import type { GatheringDetail } from '@omni/shared/split-expenses';
 import classes from './SettlePanel.module.scss';
 
 import { formatMoney } from '@omni/shared/common';
+import {
+  type BalanceTone,
+  describeSettlement,
+  formatSignedBalance,
+  participantLabel,
+  participantTones,
+} from '@omni/shared/split-expenses';
 import { ArrowCounterClockwiseIcon, CheckCircleIcon, CheckIcon } from '@phosphor-icons/react';
 
 const TONE_COLORS: Record<BalanceTone, string> = {

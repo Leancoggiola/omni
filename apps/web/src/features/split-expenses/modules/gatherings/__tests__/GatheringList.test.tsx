@@ -16,6 +16,7 @@ const gathering = (overrides: Partial<GatheringSummary>): GatheringSummary => ({
   participantCount: 4,
   totalAmount: 96000,
   myBalance: 24000,
+  lastExpense: null,
   ...overrides,
 });
 

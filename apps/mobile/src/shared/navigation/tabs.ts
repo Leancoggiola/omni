@@ -11,5 +11,7 @@ export const TAB_ROUTES: Record<(typeof MOBILE_TAB_KEYS)[number], string> = {
   pantry: 'pantry',
 };
 
+export const MORE_CHILD_ROUTES: readonly string[] = ['split-expenses'];
+
 /** "Más" no es un módulo del registro: label e ícono compartidos por la tab y su pantalla. */
 export const MORE_TAB = { route: 'more', label: 'Más', icon: SquaresFourIcon } as const;

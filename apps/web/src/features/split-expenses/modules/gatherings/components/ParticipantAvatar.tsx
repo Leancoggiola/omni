@@ -2,7 +2,7 @@ import { FC } from 'react';
 
 import { UserAvatar } from '@/shared/ui';
 
-import type { ParticipantTone } from '../utils/gatheringView';
+import type { ParticipantTone } from '@omni/shared/split-expenses';
 
 interface ParticipantAvatarProps {
   name: string;

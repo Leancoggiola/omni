@@ -10,7 +10,16 @@ import { useSemanticColors } from '@/core/theme';
 import { Button, ErrorState, notifyError, Spinner } from '@/shared/ui';
 
 export const SESSION_ERROR_MESSAGE = 'No pudimos verificar tu sesión. Intentá de nuevo.';
-export const SESSION_ROUTES = ['(tabs)', 'profile', 'admin', 'gym/index', 'gym/plans', 'gym/reorder'];
+export const SESSION_ROUTES = [
+  '(tabs)',
+  'profile',
+  'admin',
+  'gym/index',
+  'gym/plans',
+  'gym/reorder',
+  'split-expenses/[id]',
+  'split-expenses/friends',
+];
 
 /**
  * Decide qué ve la persona según la sesión: spinner mientras se verifica, login sin sesión y la app con sesión.

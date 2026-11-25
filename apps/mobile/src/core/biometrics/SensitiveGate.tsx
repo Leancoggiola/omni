@@ -18,7 +18,7 @@ type SensitiveGateProps = {
 };
 
 /**
- * Envuelve la pantalla de un módulo sensible (`SENSITIVE_MODULES`, hoy Gastos) y pide biometría al entrar si no hubo un
+ * Envuelve la pantalla de un módulo sensible (`SENSITIVE_MODULES`, Gastos y Dividir gastos) y pide biometría al entrar si no hubo un
  * desbloqueo en los últimos `SENSITIVE_UNLOCK_TTL_MS` o si la app pasó por background desde el último. Mientras está
  * bloqueado no se monta nada de `children`, así que no se piden ni se muestran sus datos. Si la persona no activó la
  * biometría (o el teléfono no tiene), el módulo no es sensible o ya hay un desbloqueo vigente, renderiza `children` sin

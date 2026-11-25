@@ -1,21 +1,20 @@
 import { FC } from 'react';
 import { ActionIcon, Avatar, Group, Text } from '@mantine/core';
 
+import { MoneyAmount } from '../MoneyAmount';
+import { ParticipantAvatar } from '../ParticipantAvatar';
+
+import type { GatheringExpense, GatheringParticipantSummary, ParticipantTone } from '@omni/shared/split-expenses';
+
+import classes from './GatheringFeed.module.scss';
+
 import {
   describeExpenseSharers,
   expenseSharers,
   formatExpenseTime,
   participantLabel,
   participantTones,
-} from '../../utils/gatheringView';
-import { MoneyAmount } from '../MoneyAmount';
-import { ParticipantAvatar } from '../ParticipantAvatar';
-
-import type { ParticipantTone } from '../../utils/gatheringView';
-import type { GatheringExpense, GatheringParticipantSummary } from '@omni/shared/split-expenses';
-
-import classes from './GatheringFeed.module.scss';
-
+} from '@omni/shared/split-expenses';
 import { XIcon } from '@phosphor-icons/react';
 
 interface FeedBubbleProps {
