@@ -57,9 +57,8 @@ type SWRProviderProps = PropsWithChildren<{
  * misma caché (`clearSession` la vacía entera). `initFocus` solo se aplica con `provider`: por eso la caché propia.
  * Los `useSWR` revalidan al volver a primer plano; los `useSWRImmutable` (sesión, perfil) no. `isVisible` es falso con la
  * app en segundo plano: ahí no corre el `refreshInterval` ni los reintentos. Los datos viven en
- * `store`, fuera del componente (`appStore`; los tests pasan uno nuevo, y se toma solo al montar): expo-router
- * vuelve a montar el layout raíz al redirigir (del login a las tabs, al cerrar sesión) y una caché creada al montar
- * se perdería, la sesión incluida.
+ * `store`, fuera del componente (`appStore`; los tests pasan uno nuevo, y se toma solo al montar): una caché creada
+ * al montar se perdería, la sesión incluida, si el layout raíz se volviera a montar.
  */
 export const SWRProvider: FC<SWRProviderProps> = ({ children, store = appStore }) => {
   const [value] = useState<SWRConfiguration>(() => ({ ...SWR_OPTIONS, provider: () => cacheOver(store) }));

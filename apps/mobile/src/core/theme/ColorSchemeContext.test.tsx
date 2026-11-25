@@ -84,6 +84,21 @@ describe('ColorSchemeProvider', () => {
     expect(screen.getByText('light')).toBeTruthy();
   });
 
+  it('con instant aplica el tema nuevo enseguida, sin capturar la pantalla', async () => {
+    mockReduceMotion = false;
+    const tree = (theme: ProfileTheme) => (
+      <ColorSchemeProvider profileTheme={theme} instant>
+        <Probe />
+      </ColorSchemeProvider>
+    );
+    const view = await render(tree('light'));
+
+    await view.rerender(tree('dark'));
+
+    expect(screen.getByText('dark')).toBeTruthy();
+    expect(mockCaptureScreen).not.toHaveBeenCalled();
+  });
+
   it('con fundido aplica el tema nuevo recién cuando la captura de la pantalla vieja la tapa', async () => {
     mockReduceMotion = false;
     jest.useFakeTimers();
