@@ -88,6 +88,11 @@ export const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ profileTheme
     setFade(null);
   }, [fade]);
 
+  const skipFade = useCallback(() => {
+    showTarget();
+    endFade();
+  }, [showTarget, endFade]);
+
   const toggle = useCallback(() => {
     setOverride(target === 'dark' ? 'light' : 'dark');
   }, [target]);
@@ -108,6 +113,7 @@ export const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ profileTheme
           uri={fade.uri}
           start={shown === fade.to}
           onLoad={showTarget}
+          onError={skipFade}
           onDone={endFade}
         />
       )}

@@ -115,6 +115,18 @@ describe('ColorSchemeProvider', () => {
     expect(screen.queryByTestId('theme-snapshot-fade', { includeHiddenElements: true })).toBeNull();
   });
 
+  it('si la captura no carga aplica el tema sin fundido y libera la captura', async () => {
+    mockReduceMotion = false;
+    await renderWith('light');
+    await act(() => control.toggle());
+
+    await act(() => fireEvent(screen.getByTestId('theme-snapshot-fade', { includeHiddenElements: true }), 'error'));
+
+    expect(screen.getByText('dark')).toBeTruthy();
+    expect(screen.queryByTestId('theme-snapshot-fade', { includeHiddenElements: true })).toBeNull();
+    expect(mockReleaseCapture).toHaveBeenCalledWith('file:///snapshot.jpg');
+  });
+
   it('con movimiento reducido cambia al instante sin capturar la pantalla', async () => {
     await renderWith('light');
     await act(() => control.toggle());
