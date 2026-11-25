@@ -11,6 +11,9 @@ jest.mock('expo-location', () => ({
   getCurrentPositionAsync: jest.fn(),
 }));
 
+const mockLaunch = { finished: true };
+jest.mock('@/core/launch', () => ({ useLaunchState: () => mockLaunch }));
+
 const mocked = jest.mocked(Location);
 
 const position = (latitude: number, longitude: number) =>
@@ -20,10 +23,24 @@ const permission = (granted: boolean, canAskAgain = true) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockLaunch.finished = true;
   mocked.getLastKnownPositionAsync.mockResolvedValue(null);
 });
 
 describe('useDeviceLocation', () => {
+  it('no pide el permiso hasta que termina la animación de arranque', async () => {
+    mockLaunch.finished = false;
+    mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(false));
+    const { result, rerender } = await renderHook(() => useDeviceLocation());
+    expect(mocked.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
+    expect(result.current.location).toEqual({ status: 'locating' });
+
+    mockLaunch.finished = true;
+    await rerender(undefined);
+
+    await waitFor(() => expect(result.current.location).toEqual({ status: 'unavailable', canAskAgain: true }));
+  });
+
   it('con permiso redondea la posición a dos decimales', async () => {
     mocked.requestForegroundPermissionsAsync.mockResolvedValue(permission(true));
     let resolvePosition: (value: ReturnType<typeof position>) => void = () => undefined;

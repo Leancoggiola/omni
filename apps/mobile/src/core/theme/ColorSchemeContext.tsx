@@ -19,7 +19,7 @@ import { ThemeSnapshotFade } from './ThemeSnapshotFade';
 
 type ColorScheme = 'light' | 'dark';
 
-type ColorSchemeProviderProps = PropsWithChildren<{ profileTheme: ProfileTheme | null }>;
+type ColorSchemeProviderProps = PropsWithChildren<{ profileTheme: ProfileTheme | null; instant?: boolean }>;
 
 interface ColorSchemeContextValue {
   colorScheme: ColorScheme;
@@ -47,11 +47,13 @@ const ColorSchemeContext = createContext<ColorSchemeContextValue | null>(null);
  * todo (`ThemeSnapshotFade`), recién entonces se aplica el tema nuevo y la captura se desvanece. Si la captura falla
  * el cambio es instantáneo, y con movimiento reducido no hay fundido. `selectedScheme` es el resuelto: lo usan los
  * controles del tema (el Switch de "Más") para responder al toque sin esperar la captura. La captura va en JPG: en
- * PNG tardaba ~250 ms más en el emulador.
+ * PNG tardaba ~250 ms más en el emulador. Con `instant` (la animación de arranque tapando la app, #332) el cambio
+ * tampoco lleva fundido.
  */
-export const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ profileTheme, children }) => {
+export const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ profileTheme, instant = false, children }) => {
   const systemScheme: ColorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const reduceMotion = useReducedMotion();
+  const withoutFade = reduceMotion || instant;
   const [override, setOverride] = useState<ColorScheme | null>(null);
 
   if (profileTheme === null && override !== null) setOverride(null);
@@ -60,10 +62,10 @@ export const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ profileTheme
   const [shown, setShown] = useState<ColorScheme>(target);
   const [fade, setFade] = useState<SnapshotFade | null>(null);
 
-  if (reduceMotion && shown !== target) setShown(target);
+  if (withoutFade && shown !== target) setShown(target);
 
   useEffect(() => {
-    if (reduceMotion || fade || target === shown) return;
+    if (withoutFade || fade || target === shown) return;
     let cancelled = false;
     captureScreen({ format: 'jpg', quality: 0.9 }).then(
       uri => {
@@ -77,7 +79,7 @@ export const ColorSchemeProvider: FC<ColorSchemeProviderProps> = ({ profileTheme
     return () => {
       cancelled = true;
     };
-  }, [reduceMotion, fade, target, shown]);
+  }, [withoutFade, fade, target, shown]);
 
   const showTarget = useCallback(() => {
     if (fade) setShown(fade.to);

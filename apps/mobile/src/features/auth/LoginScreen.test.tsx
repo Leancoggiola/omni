@@ -18,9 +18,11 @@ const mockEnsureServerAwake = jest.fn();
 const mockGetRememberedUser = jest.fn();
 const mockSetRememberedUser = jest.fn();
 const mockClearRememberedUser = jest.fn();
+const mockLaunchDestination = jest.fn<void, [boolean]>();
 
 jest.mock('tamagui', () => jest.requireActual('@/test/tamaguiMock'));
 jest.mock('@/core/theme', () => jest.requireActual('@/test/themeMock'));
+jest.mock('@/core/launch', () => ({ useLaunchDestination: (ready: boolean) => mockLaunchDestination(ready) }));
 jest.mock('@/core/auth', () => ({
   useAuth: () => ({ login: mockLogin, logout: mockLogout, isAuthenticated: mockAuth.isAuthenticated }),
 }));
@@ -301,6 +303,18 @@ describe('LoginScreen', () => {
   });
 
   describe('usuario recordado', () => {
+    it('avisa a la animación de arranque recién cuando terminó de leerlo', async () => {
+      let resolve: (value: string | null) => void = () => undefined;
+      mockGetRememberedUser.mockReturnValue(new Promise<string | null>(done => (resolve = done)));
+      mockLaunchDestination.mockClear();
+      await render(<LoginScreen />);
+      expect(mockLaunchDestination).toHaveBeenLastCalledWith(false);
+
+      await act(async () => resolve('ana'));
+
+      expect(mockLaunchDestination).toHaveBeenLastCalledWith(true);
+    });
+
     const renderRemembered = async () => {
       mockGetRememberedUser.mockResolvedValue('admin01');
       await render(<LoginScreen />);

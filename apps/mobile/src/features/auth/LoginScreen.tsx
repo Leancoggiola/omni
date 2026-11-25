@@ -8,6 +8,7 @@ import { XStack, YStack, type TamaguiElement } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { biometricIcon, useBiometrics } from '@/core/biometrics';
+import { useLaunchDestination } from '@/core/launch';
 import { useColorSchemeControl } from '@/core/theme';
 import { clearRememberedUser, ensureServerAwake, getRememberedUser, setRememberedUser } from '@/shared/api';
 import {
@@ -155,7 +156,7 @@ function OrDivider() {
  * es la contraseña, que sí autentica contra el servidor y también libera el bloqueo. Sin sesión guardada (después de
  * cerrar sesión) no hay nada que liberar y el botón no aparece. Cancelar el prompt no avisa nada (el botón y la
  * contraseña siguen ahí); una falla (huella no reconocida, bloqueo por intentos) avisa y manda a la contraseña; si
- * funciona, `AuthGate` redirige solo al ver `locked` en false.
+ * funciona, `AuthGate` pasa solo a las tabs al ver `locked` en false.
  *
  * "Ingresar con otro usuario" siempre desactiva la biometría de este dispositivo (la preferencia es por dispositivo y
  * la persona siguiente no debe heredarla; si quiere, la vuelve a activar desde Perfil). Con el bloqueo puesto, además,
@@ -183,6 +184,8 @@ export function LoginScreen() {
   const [remembered, setRemembered] = useState<string | null | undefined>(undefined);
   const submitting = useRef(false);
   const showBiometric = isAuthenticated && locked;
+
+  useLaunchDestination(remembered !== undefined);
 
   useEffect(() => {
     void ensureServerAwake();
