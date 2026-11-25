@@ -3,9 +3,9 @@ import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { CaretRightIcon } from 'phosphor-react-native';
 import { memo } from 'react';
 import { XStack, YStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
+import { Paragraph } from '@/shared/ui';
 import { glassElevation } from '@/theme/elevation';
 
 import { CategoryTile } from './CategoryTile';

@@ -1,8 +1,8 @@
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { XStack, YStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui';
 
 import { useColorSchemeControl } from '@/core/theme';
+import { Paragraph } from '@/shared/ui';
 import { glassElevation } from '@/theme/elevation';
 
 import { formatSetsReps } from '../utils/gymFormat';

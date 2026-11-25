@@ -1,6 +1,7 @@
 import { GYM_WEEKDAY_LABELS, GYM_WEEKDAYS } from '@omni/shared/gym';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { XStack, YStack } from 'tamagui';
+
 import { Paragraph } from '@/shared/ui';
 
 import { formatExerciseCount, weekdayShortLabel } from '../utils/gymFormat';

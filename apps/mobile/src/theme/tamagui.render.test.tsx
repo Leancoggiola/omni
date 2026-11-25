@@ -2,8 +2,8 @@ import { SEMANTIC } from '@omni/shared/theme';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet, Text } from 'react-native';
 import { Input, Sheet, Switch, TamaguiProvider, XStack, YStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui';
 
+import { Paragraph } from '@/shared/ui';
 import { SheetOverlay } from '@/shared/ui/sheet/SheetOverlay';
 
 import { tamaguiConfig } from './tamagui.config';

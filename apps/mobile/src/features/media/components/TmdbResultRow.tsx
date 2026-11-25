@@ -3,9 +3,9 @@ import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CheckIcon } from 'phosphor-react-native';
 import { memo } from 'react';
 import { XStack, YStack } from 'tamagui';
-import { Paragraph } from '@/shared/ui';
 
 import { useSemanticColors } from '@/core/theme';
+import { Paragraph } from '@/shared/ui';
 
 import { MediaPoster } from './MediaPoster';
 
