@@ -90,8 +90,9 @@ export async function getSummary(userId: string): Promise<PantrySummary> {
 
 /**
  * Página del inventario en orden alfabético (`compareNames`); entre nombres equivalentes, primero el más antiguo. La
- * base no ordena con esas reglas: se leen todos los productos que cumplen el filtro, se ordenan y recién ahí se corta
- * la página, así el orden vale a lo largo de todas.
+ * base no ordena con esas reglas, así que el orden se resuelve en memoria: de todos los productos que cumplen el filtro
+ * se leen solo `id` y `name`, se ordenan, se corta la página y recién ahí se leen completos los de esa página. El costo
+ * del primer paso crece con el inventario, que no tiene tope; se asume el de un hogar (cientos de productos).
  */
 export async function listProducts(userId: string, params: ListPantryProductsParams) {
   const { skip, take } = paginationSkipTake(params);
@@ -106,10 +107,23 @@ export async function listProducts(userId: string, params: ListPantryProductsPar
       ],
     }),
   };
-  const matches = await prisma.pantryProduct.findMany({ where, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] });
-  const items = matches.sort((a, b) => compareNames(a.name, b.name)).slice(skip, skip + take);
+  const matches = await prisma.pantryProduct.findMany({
+    where,
+    select: { id: true, name: true },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+  });
+  const pageIds = matches
+    .sort((a, b) => compareNames(a.name, b.name))
+    .slice(skip, skip + take)
+    .map(p => p.id);
+  const rows = await prisma.pantryProduct.findMany({ where: { householdId, id: { in: pageIds } } });
+  const rowsById = new Map(rows.map(row => [row.id, row]));
   const today = startOfTodayInAppTz();
-  return { items: items.map(p => mapProduct(p, today)), total: matches.length, page: params.page, limit: params.limit };
+  const items = pageIds.flatMap(id => {
+    const row = rowsById.get(id);
+    return row ? [mapProduct(row, today)] : [];
+  });
+  return { items, total: matches.length, page: params.page, limit: params.limit };
 }
 
 export async function suggestProducts(userId: string, params: SuggestPantryProductsParams) {

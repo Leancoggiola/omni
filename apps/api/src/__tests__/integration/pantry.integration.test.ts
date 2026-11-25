@@ -94,6 +94,20 @@ describe('pantry routes (integration)', () => {
       expect(second.body).toMatchObject({ total: 3, page: 2, limit: 2 });
     });
 
+    it('GET /products reads in full only the products of the requested page', async () => {
+      await createPantryProduct(user.id, { name: 'Cacao' });
+      await createPantryProduct(user.id, { name: 'banana' });
+      const first = await createPantryProduct(user.id, { name: 'Árbol' });
+
+      await request(app).get('/api/pantry/products?page=1&limit=1').set('Authorization', auth);
+
+      const [sortQuery, pageQuery] = getRecordedCalls().filter(
+        call => call.model === 'pantryProduct' && call.operation === 'findMany'
+      );
+      expect(sortQuery?.args?.select).toEqual({ id: true, name: true });
+      expect(pageQuery?.args?.where).toMatchObject({ id: { in: [first.id] } });
+    });
+
     it('GET /products keeps the alphabetical order when searching', async () => {
       await createPantryProduct(user.id, { name: 'Arvejas' });
       await createPantryProduct(user.id, { name: 'Arroz' });
