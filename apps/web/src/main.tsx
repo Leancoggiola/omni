@@ -9,7 +9,7 @@ import { router } from '@/app/router';
 import { AuthProvider } from '@/core/auth';
 import { SWRProvider } from '@/core/providers';
 import { ServerWakeNotice } from '@/core/serverWake';
-import { createSessionColorSchemeManager } from '@/core/theme';
+import { ColorSchemeSync, createSessionColorSchemeManager } from '@/core/theme';
 import { ConfirmProvider, LightboxProvider } from '@/shared/ui';
 import { THEME } from '@/theme/config';
 import { cssVariablesResolver } from '@/theme/css-variables';
@@ -39,6 +39,7 @@ createRoot(document.getElementById('app')!).render(
           <SWRProvider>
             <ServerWakeNotice />
             <AuthProvider>
+              <ColorSchemeSync />
               <RouterProvider router={router} />
             </AuthProvider>
           </SWRProvider>
