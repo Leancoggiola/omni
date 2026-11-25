@@ -1,9 +1,10 @@
 import { ignoreError } from '@omni/shared/common';
 import { BRAND, SEMANTIC } from '@omni/shared/theme';
+import { router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, useColorScheme } from 'react-native';
+import { Animated, BackHandler, Easing, StyleSheet, useColorScheme } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 
 import LOGO from '../../../assets/images/splash-icon.png';
@@ -33,6 +34,9 @@ const LAYER_Z_INDEX = 99_998;
  * (`LAUNCH_SPIN_MS` es lo mínimo que gira antes de cerrar), la espiral crece hacia su centro mientras la capa se
  * desvanece. Con "reducir movimiento" el logo queda quieto y la capa solo se
  * desvanece apenas la destino está lista.
+ *
+ * El botón Atrás no navega por debajo de la capa: se consume si hay historial. Sin historial (lo normal al arrancar)
+ * sigue su curso y sale de la app, así una espera larga no deja a nadie atrapado.
  */
 function LaunchLayer({ destinationReady }: { destinationReady: boolean }) {
   const reduceMotion = useReducedMotion();
@@ -45,6 +49,11 @@ function LaunchLayer({ destinationReady }: { destinationReady: boolean }) {
   const [lag] = useState(() => new Animated.Value(0));
   const [exit] = useState(() => new Animated.Value(0));
   const closing = started && destinationReady && (reduceMotion || spun);
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => router.canGoBack());
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     if (!logoSettled) return;

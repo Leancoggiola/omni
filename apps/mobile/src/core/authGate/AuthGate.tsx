@@ -5,7 +5,7 @@ import { YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import { useBiometrics } from '@/core/biometrics';
-import { useLaunchDestination } from '@/core/launch';
+import { useLaunchDeadline, useLaunchDestination } from '@/core/launch';
 import { useSemanticColors } from '@/core/theme';
 import { Button, ErrorState, notifyError, Spinner } from '@/shared/ui';
 
@@ -30,7 +30,8 @@ export const SESSION_ROUTES = ['(tabs)', 'profile', 'admin', 'gym/index', 'gym/p
  * la preferencia (`biometricsReady`) se muestra el spinner, así la app no se ve ni un instante antes de bloquearse.
  *
  * Arranque (#332): avisa a la animación que puede cerrar cuando queda en el `ErrorState` o en las rutas con sesión.
- * En el login lo avisa `LoginScreen`, cuando termina de leer el usuario recordado.
+ * En el login lo avisa `LoginScreen`, cuando termina de leer el usuario recordado. Con la sesión y la biometría
+ * resueltas corre además el tope de `useLaunchDeadline`, por si ninguna pantalla avisa.
  */
 export function AuthGate() {
   const { isAuthenticated, isLoading, isSessionUnverified, isRetryingSession, retrySession, logout } = useAuth();
@@ -39,7 +40,10 @@ export function AuthGate() {
   const [loggingOut, setLoggingOut] = useState(false);
   const open = isAuthenticated && !locked;
 
-  useLaunchDestination(isSessionUnverified || (!isLoading && biometricsReady && open));
+  const settled = !isLoading && biometricsReady;
+
+  useLaunchDestination(isSessionUnverified || (settled && open));
+  useLaunchDeadline(settled);
 
   if (isSessionUnverified) {
     return (

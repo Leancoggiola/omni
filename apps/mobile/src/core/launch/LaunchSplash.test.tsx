@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { BackHandler, StyleSheet } from 'react-native';
 
 import appJson from '../../../app.json';
 
@@ -8,6 +8,9 @@ import { markLaunchDestinationReady, resetLaunch } from './launchState';
 
 const mockHideSplash = jest.fn<Promise<void>, []>();
 jest.mock('expo-splash-screen', () => ({ hideAsync: () => mockHideSplash() }));
+
+const mockCanGoBack = jest.fn<boolean, []>();
+jest.mock('expo-router', () => ({ router: { canGoBack: () => mockCanGoBack() } }));
 
 let mockReduceMotion = false;
 jest.mock('react-native-reanimated', () => ({ useReducedMotion: () => mockReduceMotion }));
@@ -62,6 +65,24 @@ describe('LaunchSplash', () => {
     await render(<LaunchSplash />);
 
     expect(screen.getByRole('progressbar', { name: 'Cargando' })).toBeTruthy();
+  });
+
+  it.each([
+    ['con historial consume el botón Atrás, para no navegar por debajo', true],
+    ['sin historial deja que el botón Atrás salga de la app', false],
+  ])('%s', async (_, canGoBack) => {
+    mockCanGoBack.mockReturnValue(canGoBack);
+    const remove = jest.fn();
+    const listen = jest.spyOn(BackHandler, 'addEventListener').mockReturnValue({ remove });
+    const view = await render(<LaunchSplash />);
+    const onBack = listen.mock.calls.at(-1)?.[1];
+
+    expect(listen).toHaveBeenLastCalledWith('hardwareBackPress', expect.any(Function));
+    expect(onBack?.({} as never)).toBe(canGoBack);
+
+    await view.unmount();
+    expect(remove).toHaveBeenCalled();
+    listen.mockRestore();
   });
 
   it('conserva el fondo con el que arrancó aunque cambie el tema del sistema', async () => {

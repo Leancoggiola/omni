@@ -1,2 +1,2 @@
 export { LaunchSplash } from './LaunchSplash';
-export { useLaunchDestination, useLaunchState } from './launchState';
+export { useLaunchDeadline, useLaunchDestination, useLaunchState } from './launchState';

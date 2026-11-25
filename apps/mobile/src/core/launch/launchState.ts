@@ -5,6 +5,8 @@ interface LaunchState {
   finished: boolean;
 }
 
+export const LAUNCH_DESTINATION_TIMEOUT_MS = 3000;
+
 const COLD_START: LaunchState = { destinationReady: false, finished: false };
 
 let state = COLD_START;
@@ -54,4 +56,17 @@ export function useLaunchDestination(ready: boolean): void {
   useEffect(() => {
     if (ready) markLaunchDestinationReady();
   }, [ready]);
+}
+
+/**
+ * Tope de seguridad: con `settled` (sesión y biometría resueltas), si en `LAUNCH_DESTINATION_TIMEOUT_MS` ninguna
+ * pantalla avisó con `useLaunchDestination`, se la da por lista, así la animación cierra y lo que espera a que termine
+ * no queda bloqueado. Mientras la sesión se verifica no corre: esa espera no tiene tope.
+ */
+export function useLaunchDeadline(settled: boolean): void {
+  useEffect(() => {
+    if (!settled) return;
+    const timer = setTimeout(markLaunchDestinationReady, LAUNCH_DESTINATION_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [settled]);
 }

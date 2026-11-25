@@ -21,10 +21,14 @@ const mockAuth = {
 };
 const mockBiometrics = { ready: true, locked: false };
 const mockLaunchDestination = jest.fn<void, [boolean]>();
+const mockLaunchDeadline = jest.fn<void, [boolean]>();
 
 jest.mock('@/core/auth', () => ({ useAuth: () => mockAuth }));
 jest.mock('@/core/biometrics', () => ({ useBiometrics: () => mockBiometrics }));
-jest.mock('@/core/launch', () => ({ useLaunchDestination: (ready: boolean) => mockLaunchDestination(ready) }));
+jest.mock('@/core/launch', () => ({
+  useLaunchDestination: (ready: boolean) => mockLaunchDestination(ready),
+  useLaunchDeadline: (settled: boolean) => mockLaunchDeadline(settled),
+}));
 jest.mock('@/shared/ui', () => ({ ...jest.requireActual('@/shared/ui'), notifyError: jest.fn() }));
 jest.mock('expo-router', () => {
   const { Text: MockText } = jest.requireActual<typeof import('react-native')>('react-native');
@@ -83,6 +87,19 @@ describe('AuthGate', () => {
   });
 
   describe('aviso a la animación de arranque', () => {
+    it.each([
+      ['con la sesión y la biometría resueltas', {}, {}, true],
+      ['mientras verifica la sesión', { isLoading: true }, {}, false],
+      ['mientras lee la biometría', {}, { ready: false }, false],
+    ])('el tope de seguridad %s', async (_, auth, biometrics, settled) => {
+      setAuth(auth);
+      Object.assign(mockBiometrics, biometrics);
+
+      await render(<AuthGate />);
+
+      expect(mockLaunchDeadline).toHaveBeenLastCalledWith(settled);
+    });
+
     it.each([
       ['con sesión', { isAuthenticated: true }, {}, true],
       ['con la sesión sin verificar', { isSessionUnverified: true }, {}, true],
