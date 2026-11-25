@@ -508,6 +508,28 @@ describe('parseHolidayEntries', () => {
     expect(titles(raw)).toEqual([]);
   });
 
+  it('descarta también un "Día…" válido que viene después de uno descartado, porque el feed no marca la profundidad', () => {
+    expect(titles('Día Europeo de la Logopedia.\nDía Mundial de los Océanos.')).toEqual([]);
+    expect(titles('Día Mundial de los Océanos.')).toEqual(['Día Mundial de los Océanos']);
+  });
+
+  it.each(['DÍA NACIONAL DEL PERRO', 'Día de las Heroinas y Martires de la Independencia de America'])(
+    'reconoce como argentina "%s" aunque cambien las tildes o las mayúsculas',
+    raw => {
+      expect(parseHolidayEntries(raw)).toEqual([{ title: raw, isArgentina: true }]);
+    }
+  );
+
+  it.each([
+    ['dos puntos y palabras', `Día ${': Abcd Efgh '.repeat(16_700)}x`],
+    ['dos puntos seguidos', `Día ${':a '.repeat(66_700)}`],
+  ])('no se cuelga con un texto patológico de 200.000 caracteres: %s', (_label, raw) => {
+    const start = performance.now();
+    parseHolidayEntries(raw);
+
+    expect(performance.now() - start).toBeLessThan(2_000);
+  });
+
   it.each([
     'Día de la Victoria sobre el nazismo.en ruso: День Победы\nArmeniaArmenia Armenia',
     'México México:\nDía de la Madre.',
