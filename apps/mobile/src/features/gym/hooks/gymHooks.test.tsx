@@ -88,7 +88,7 @@ describe('useGymPlan', () => {
 
 describe('useGymCatalogSuggestions', () => {
   it('busca desde 2 letras, a los 300 ms y pidiendo 20', async () => {
-    jest.useFakeTimers({ advanceTimers: true });
+    jest.useFakeTimers();
     const fetcher = jest.fn().mockResolvedValue([catalogExercise()]);
     const { result, rerender } = await renderHook(({ q }: { q: string }) => useGymCatalogSuggestions(q), {
       wrapper: wrapperWith(fetcher),
@@ -103,11 +103,11 @@ describe('useGymCatalogSuggestions', () => {
     await rerender({ q: 'Se' });
     expect(result.current.searching).toBe(true);
     await act(async () => {
-      await jest.advanceTimersByTimeAsync(250);
+      await jest.advanceTimersByTimeAsync(299);
     });
     expect(fetcher).not.toHaveBeenCalled();
     await act(async () => {
-      await jest.advanceTimersByTimeAsync(100);
+      await jest.advanceTimersByTimeAsync(2);
     });
 
     await waitFor(() => expect(result.current.suggestions).toHaveLength(1));
