@@ -36,7 +36,8 @@ const item = (id: string, status: MediaItem['status']): MediaItem => ({
 
 /** "Servidor": lo que devuelve el GET de la lista. Las mutaciones lo cambian al resolver. */
 let server: MediaItem[] = [];
-const fetcher = () => Promise.resolve(server.map(i => ({ ...i })));
+let refetchGate = Promise.resolve();
+const fetcher = () => refetchGate.then(() => server.map(i => ({ ...i })));
 
 function deferred() {
   let resolve!: () => void;
@@ -62,6 +63,7 @@ const statuses = (items: MediaItem[] | undefined) => items?.map(i => `${i.id}:${
 
 beforeEach(() => {
   vi.clearAllMocks();
+  refetchGate = Promise.resolve();
   server = [item('1', 'to_watch'), item('2', 'to_watch')];
 });
 
@@ -129,17 +131,27 @@ describe('useMediaMutations', () => {
     expect(statuses(result.current.list.data)).toEqual(['1:to_watch', '2:to_watch']);
   });
 
-  it('agregar suma el ítem arriba y queda lo que devuelve el servidor', async () => {
-    const created = item('3', 'watching');
+  it('agregar ubica el ítem en su lugar alfabético, antes y después de revalidar', async () => {
+    const created = { ...item('3', 'watching'), title: 'Título 1 bis' };
+    const refetch = deferred();
     post.mockImplementation(() => {
-      server = [created, ...server];
+      server = [server[0]!, created, server[1]!];
       return Promise.resolve(created);
     });
     const { result } = await renderList();
+    refetchGate = refetch.promise;
+    const expected = ['1:to_watch', '3:watching', '2:to_watch'];
+
+    let addition!: Promise<unknown>;
+    act(() => {
+      addition = result.current.addToList(3, 'movie', 'watching');
+    });
+    await waitFor(() => expect(statuses(result.current.list.data)).toEqual(expected));
 
     await act(async () => {
-      await result.current.addToList(3, 'movie', 'watching');
+      refetch.resolve();
+      await addition;
     });
-    expect(statuses(result.current.list.data)).toEqual(['3:watching', '1:to_watch', '2:to_watch']);
+    expect(statuses(result.current.list.data)).toEqual(expected);
   });
 });

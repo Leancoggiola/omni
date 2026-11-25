@@ -29,6 +29,7 @@ export {
   MEDIA_TYPE_OPTIONS,
   filterMediaItems,
   hasActiveFilters,
+  insertMediaItem,
   takeMediaByStatus,
 } from './filters';
 export type { MediaListFilters } from './filters';
