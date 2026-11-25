@@ -1,3 +1,4 @@
+import { compareNames } from '@omni/shared/common';
 import type { AddMediaItemPayload, FilterMediaParams, UpdateMediaItemPayload } from '@omni/shared/media';
 
 import { prisma } from '../common/db';
@@ -54,16 +55,18 @@ export async function addToList(userId: string, dto: AddMediaItemPayload) {
   });
 }
 
+/** Lista del hogar en orden alfabético por título (`compareNames`); entre títulos iguales, primero el más antiguo. */
 export async function getList(userId: string, filters: FilterMediaParams) {
   const householdId = await getHouseholdId(userId);
-  return prisma.mediaItem.findMany({
+  const items = await prisma.mediaItem.findMany({
     where: {
       householdId,
       ...(filters.status && { status: filters.status }),
       ...(filters.mediaType && { mediaType: filters.mediaType }),
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
   });
+  return items.sort((a, b) => compareNames(a.title, b.title));
 }
 
 export async function updateStatus(userId: string, itemId: string, dto: UpdateMediaItemPayload) {

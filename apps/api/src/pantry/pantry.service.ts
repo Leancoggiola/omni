@@ -12,7 +12,7 @@ import type {
   UpdateShoppingListItemPayload,
 } from '@omni/shared/pantry';
 import { computeQuantityToBuy, isExpiringSoon, isLowStock } from '@omni/shared/pantry';
-import { AMOUNT_MAX_10_2, parseIsoDateString, startOfTodayInAppTz } from '@omni/shared/common';
+import { AMOUNT_MAX_10_2, compareNames, parseIsoDateString, startOfTodayInAppTz } from '@omni/shared/common';
 import type { PantryProduct as PrismaPantryProduct, Prisma } from '../generated/prisma/client';
 import { paginationSkipTake } from '@omni/shared/common';
 
@@ -88,6 +88,11 @@ export async function getSummary(userId: string): Promise<PantrySummary> {
   };
 }
 
+/**
+ * Página del inventario en orden alfabético (`compareNames`); entre nombres equivalentes, primero el más antiguo. La
+ * base no ordena con esas reglas: se leen todos los productos que cumplen el filtro, se ordenan y recién ahí se corta
+ * la página, así el orden vale a lo largo de todas.
+ */
 export async function listProducts(userId: string, params: ListPantryProductsParams) {
   const { skip, take } = paginationSkipTake(params);
   const householdId = await getHouseholdId(userId);
@@ -101,12 +106,10 @@ export async function listProducts(userId: string, params: ListPantryProductsPar
       ],
     }),
   };
-  const [items, total] = await Promise.all([
-    prisma.pantryProduct.findMany({ where, skip, take, orderBy: { name: 'asc' } }),
-    prisma.pantryProduct.count({ where }),
-  ]);
+  const matches = await prisma.pantryProduct.findMany({ where, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] });
+  const items = matches.sort((a, b) => compareNames(a.name, b.name)).slice(skip, skip + take);
   const today = startOfTodayInAppTz();
-  return { items: items.map(p => mapProduct(p, today)), total, page: params.page, limit: params.limit };
+  return { items: items.map(p => mapProduct(p, today)), total: matches.length, page: params.page, limit: params.limit };
 }
 
 export async function suggestProducts(userId: string, params: SuggestPantryProductsParams) {
@@ -273,13 +276,18 @@ function mapShoppingItem(
   };
 }
 
+/**
+ * Lista de compras: primero los pendientes y después los comprados, cada grupo en orden alfabético (`compareNames`);
+ * entre nombres equivalentes, primero el más antiguo.
+ */
 export async function listShoppingList(userId: string) {
   const householdId = await getHouseholdId(userId);
   const items = await prisma.pantryShoppingListItem.findMany({
     where: { householdId },
     include: { pantryProduct: true },
-    orderBy: [{ checked: 'asc' }, { createdAt: 'desc' }],
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
   });
+  items.sort((a, b) => Number(a.checked) - Number(b.checked) || compareNames(a.name, b.name));
   const today = startOfTodayInAppTz();
   return items.map(i => mapShoppingItem(i, i.pantryProduct, today));
 }
