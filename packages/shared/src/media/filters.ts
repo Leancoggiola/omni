@@ -1,3 +1,4 @@
+import { compareNames } from '../common/sorting';
 import { MEDIA_STATUS_LABELS, MEDIA_STATUSES, MEDIA_TYPE_LABELS, MEDIA_TYPES } from './constants';
 
 import type { MediaItem, MediaStatus, MediaType } from './types';
@@ -45,6 +46,11 @@ export function filterMediaItems(items: readonly MediaItem[], filters: MediaList
 /** ¿Hay algún filtro activo? Distingue "lista vacía" de "sin resultados"; una búsqueda solo con espacios no cuenta. */
 export function hasActiveFilters(filters: MediaListFilters): boolean {
   return filters.status !== 'all' || filters.mediaType !== 'all' || filters.query.trim() !== '';
+}
+
+/** La lista con `item` en su lugar alfabético, el mismo en que la devuelve la API (sin mutar la lista). */
+export function insertMediaItem(items: readonly MediaItem[], item: MediaItem): MediaItem[] {
+  return [...items, item].sort((a, b) => compareNames(a.title, b.title));
 }
 
 /** Los primeros `limit` ítems con ese estado, del actualizado más recientemente al más viejo (sin mutar la lista). */

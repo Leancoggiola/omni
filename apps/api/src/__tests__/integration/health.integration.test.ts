@@ -3,6 +3,7 @@ import express from 'express';
 import request from 'supertest';
 
 import { createIntegrationApp } from '../../test/integration/createIntegrationApp';
+import { listenOnLoopback } from '../../test/listenOnLoopback';
 
 vi.mock('../../common/db/check-database');
 
@@ -10,7 +11,7 @@ import * as checkDatabase from '../../common/db/check-database';
 
 const mockedCheckDatabase = vi.mocked(checkDatabase);
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('health routes (integration)', () => {
   beforeEach(async () => {
@@ -79,7 +80,7 @@ describe('health routes (integration)', () => {
     const { default: healthRoutes } = await import('../../health/health.routes');
     const freshCheckDatabase = await import('../../common/db/check-database');
     vi.mocked(freshCheckDatabase.checkDatabaseConnection).mockResolvedValue(true);
-    const limitedApp = express().use('/api/health', healthRoutes);
+    const limitedApp = await listenOnLoopback(express().use('/api/health', healthRoutes));
 
     const statuses: number[] = [];
     for (let i = 0; i < 31; i++) {

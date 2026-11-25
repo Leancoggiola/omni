@@ -5,6 +5,8 @@ import { api, SWR_KEYS } from '@/shared/api';
 
 import type { MediaItem, MediaStatus, MediaType } from '../types';
 
+import { insertMediaItem } from '@omni/shared/media';
+
 type ListTransform = (items: MediaItem[]) => MediaItem[];
 
 /**
@@ -41,7 +43,7 @@ export function useMediaMutations() {
       const item = await api.post<MediaItem>(listKey, { tmdbId, mediaType, status });
       await mutateList(
         () => Promise.resolve(item),
-        items => [item, ...items]
+        items => insertMediaItem(items, item)
       );
       return item;
     },

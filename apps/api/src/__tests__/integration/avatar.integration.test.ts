@@ -12,7 +12,7 @@ import { createUser, toJwtUser } from '../../test/integration/factories';
 import { FAKE_AVATAR_BASE_URL, createFakeAvatarStorage } from '../../test/integration/fakeAvatarStorage';
 import type { FakeAvatarStorage } from '../../test/integration/fakeAvatarStorage';
 
-const app = createIntegrationApp();
+const app = await createIntegrationApp();
 
 describe('avatar routes (integration)', () => {
   let storage: FakeAvatarStorage;

@@ -1,15 +1,18 @@
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { MoonIcon } from 'phosphor-react-native';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
-import { Switch } from '@/shared/ui';
+import { Paragraph, Switch } from '@/shared/ui';
 
-/** Toggle de tema (= `ColorSchemeToggle` de web): override de la sesión, no toca la preferencia del perfil. */
+/**
+ * Toggle de tema (= `ColorSchemeToggle` de web): override de la sesión, no toca la preferencia del perfil. Muestra el
+ * tema elegido (`selectedScheme`), no el que se ve, así el Switch responde al toque mientras corre el fundido.
+ */
 export function ThemeRow() {
-  const { colorScheme, toggle } = useColorSchemeControl();
+  const { selectedScheme, toggle } = useColorSchemeControl();
   const colors = useSemanticColors();
-  const isDark = colorScheme === 'dark';
+  const isDark = selectedScheme === 'dark';
 
   return (
     <XStack alignItems="center" gap={SPACING.sm}>

@@ -1,6 +1,9 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+
+import { colorSchemeBootScript } from '@/core/theme';
 
 interface VercelRoute {
   src?: string;
@@ -42,7 +45,7 @@ describe('vercel.json', () => {
     });
   });
 
-  it('la CSP cubre fuentes, pósters, estilos de Mantine, API y framing', () => {
+  it('la CSP cubre fuentes, pósters, estilos de Mantine, el script del tema, API y framing', () => {
     const csp = headerRoute?.headers?.['Content-Security-Policy'] ?? '';
     const directives = Object.fromEntries(
       csp.split(';').map(part => {
@@ -52,7 +55,8 @@ describe('vercel.json', () => {
     );
 
     expect(directives['default-src']).toEqual(["'self'"]);
-    expect(directives['script-src']).toEqual(["'self'"]);
+    const bootScriptHash = createHash('sha256').update(colorSchemeBootScript()).digest('base64');
+    expect(directives['script-src']).toEqual(["'self'", `'sha256-${bootScriptHash}'`]);
     expect(directives['style-src']).toEqual(
       expect.arrayContaining(["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'])
     );

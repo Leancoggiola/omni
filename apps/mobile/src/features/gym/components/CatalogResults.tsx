@@ -1,9 +1,9 @@
 import { GYM_CATALOG_MAX_LIMIT } from '@omni/shared/gym';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { ScrollView } from 'react-native';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
-import { Button, LoadingState } from '@/shared/ui';
+import { Button, LoadingState, Paragraph } from '@/shared/ui';
 
 import { CATALOG_MIN_QUERY_LENGTH } from '../hooks/useGymCatalogSuggestions';
 import { CatalogSuggestionRow } from './CatalogSuggestionRow';

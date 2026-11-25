@@ -9,6 +9,7 @@ export const useSemanticColors = () => SEMANTIC.light;
 
 export const useColorSchemeControl = () => ({
   colorScheme: 'light' as const,
+  selectedScheme: 'light' as const,
   toggle: () => undefined,
   clearOverride: () => undefined,
 });

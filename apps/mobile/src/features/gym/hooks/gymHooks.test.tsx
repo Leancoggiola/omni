@@ -88,7 +88,7 @@ describe('useGymPlan', () => {
 
 describe('useGymCatalogSuggestions', () => {
   it('busca desde 2 letras, a los 300 ms y pidiendo 20', async () => {
-    jest.useFakeTimers({ advanceTimers: true });
+    jest.useFakeTimers();
     const fetcher = jest.fn().mockResolvedValue([catalogExercise()]);
     const { result, rerender } = await renderHook(({ q }: { q: string }) => useGymCatalogSuggestions(q), {
       wrapper: wrapperWith(fetcher),

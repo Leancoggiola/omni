@@ -1,9 +1,9 @@
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { PROFILE_THEME_OPTIONS } from '@omni/shared/users';
 import { useRef, useState } from 'react';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
-import { getErrorMessage, notifyError, SectionCard, SegmentedControl, Switch } from '@/shared/ui';
+import { getErrorMessage, notifyError, Paragraph, SectionCard, SegmentedControl, Switch } from '@/shared/ui';
 
 import type { ProfileTheme, UpdatePreferencesPayload } from '@omni/shared/users';
 

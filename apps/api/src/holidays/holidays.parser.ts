@@ -1,7 +1,8 @@
 /**
- * El feed `onthisday/holidays` de es.wikipedia mezcla efemérides civiles con el santoral completo
- * y con celebraciones de todos los países. Este módulo se queda solo con lo civil/temático
- * internacional más lo argentino. Las reglas salen de medir las 10.768 entradas del año.
+ * El feed `onthisday/holidays` de es.wikipedia mezcla efemérides civiles con el santoral, aniversarios locales,
+ * rituales, notas sueltas y celebraciones de todos los países. Este módulo se queda solo con los "Día…"
+ * internacionales y los argentinos que no son provinciales, más las excepciones de `isAllowedTitle`.
+ * Las reglas salen de medir las entradas de todo el año.
  */
 
 const NAME_CHAR = '[\\wÁÉÍÓÚÑÜáéíóúñü]';
@@ -19,6 +20,10 @@ const NAME_START = `(?:(?:El|La|Los|Las)\\s+)?[A-ZÁÉÍÓÚÑÜ]${NAME_CHAR}{2,
  */
 const ADJACENT_REPEAT = new RegExp(`^(${NAME_START}(?:\\s+${NAME_CHAR}+){0,4})\\s?\\1(?!${NAME_CHAR})`, 'i');
 
+const LISTED_COUNTRY = new RegExp(
+  `,\\s*en:|(?:^[^:]*:.*?|(?<!${NAME_CHAR})en\\s+)(?<!${NAME_CHAR})([A-ZÁÉÍÓÚÑÜ]${NAME_CHAR}{2,}(?:\\s+${NAME_CHAR}+){0,4}?)\\s?\\1(?!${NAME_CHAR})`
+);
+
 /** "Argentina Argentina: …", "ChinaChina China: …", "Andorra Andorra, España España y Gibraltar Gibraltar: …" */
 const COUNTRY_PREFIX_WITH_COLON = /^([^:]{2,120}):\s*/;
 
@@ -28,9 +33,40 @@ const ARGENTINA_FLAG = '🇦🇷';
 /** Variante sin dos puntos: "México México Día Nacional del Cine Mexicano". */
 const COUNTRY_PREFIX_BARE = new RegExp(`^(${NAME_START}(?:\\s+${NAME_CHAR}+){0,3})\\s?\\1\\s+`);
 
-/** Sub-prefijos argentinos: "Misiones: …", "Armada Argentina: …", "Provincia de Mendoza: …". */
 const SUBREGION_PREFIX = /^([^:]{2,45}):\s*/;
 const TITLE_START = /^(día|días|fiesta|aniversario|conmemoración|celebración|natalicio|jornada|semana|año)\b/i;
+
+const PROVINCIAL_PREFIX = new RegExp(
+  `^(?:por provincias|provincias? de|ciudad (?:autónoma )?de buenos aires|caba|buenos aires|catamarca|chaco|chubut|córdoba|corrientes|entre ríos|formosa|jujuy|la pampa|la rioja|mendoza|misiones|neuquén|río negro|salta|san juan|san luis|santa cruz|santa fe|santiago del estero|tierra del fuego|tucumán)(?!${NAME_CHAR})`,
+  'i'
+);
+
+/** Título sin tildes ni mayúsculas, para compararlo sin depender de cómo lo escriba el feed. */
+function toComparableTitle(title: string): string {
+  return title
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
+}
+
+const DAY_TITLE = /^días?\s/i;
+const DAY_LINE = /^d[ií]as?\s/i;
+const UNLABELED_ARGENTINE_DAYS = new Set(
+  [
+    'Día Nacional del Perro',
+    'Día Nacional de la Medicina Social',
+    'Día de las Heroínas y Mártires de la Independencia de América',
+  ].map(toComparableTitle)
+);
+const WORLDWIDE_EXCEPTION = /^(año nuevo|navidad)$/i;
+const ARGENTINE_EXCEPTION = /^(conmemoración (por|de) )?(la )?revolución de mayo$/i;
+
+const UNLABELED_NATIONAL_DAY = /^días?\s+nacional(?!es)/i;
+const WORLDWIDE_WORD = /\b(mundial|internacional|universal)\b/i;
+const REGION = new RegExp(
+  `(?<!${NAME_CHAR})(?:europ(?:a|e[oa]s?)|(?:pan|latino|inter|ibero|sud|sur|norte|centro|hispano)?am[eé]rica(?:n[oa]s?|s)?|(?:sud)?áfrica|african[oa]s?|mediterráneo|mercado común del sur)(?!${NAME_CHAR})`,
+  'i'
+);
 
 /**
  * Prefijos supranacionales o globales que usa el feed para efemérides internacionales: se quitan
@@ -44,12 +80,16 @@ const SUPRANATIONAL_NAMES = [
   'Organización del Tratado del Atlántico Norte',
   'Naciones Unidas',
   'ONU',
+  'UNESCO',
+  'Unesco',
   'Unión Europea',
   'Mercosur',
   'Cruz Roja Internacional',
   'Mundialmente',
   'Mundial',
 ];
+
+const REGIONAL_BLOCKS = ['Unión Europea', 'Mercosur'];
 
 /** El nombre, opcionalmente repetido como en los países, seguido o no de dos puntos (grupo 2). */
 const SUPRANATIONAL_PREFIX = new RegExp(`^(${SUPRANATIONAL_NAMES.join('|')})(?!${NAME_CHAR})(?:\\s?\\1)?(\\s*:)?\\s*`);
@@ -65,10 +105,6 @@ const RELATED_HEADER = /^[^:]{2,80}:\s*\(Celebraciones relacionadas\)\.\s*(?=\S)
  * si lo que sigue es un título ("Día …:").
  */
 const LEADING_COLON_COUNTRY = /^:\s*([^:.]{2,60}):\s*\S/;
-
-/** Santoral y fiestas litúrgicas. */
-const RELIGIOUS =
-  /^(san|santo|santa|santos|santas|beato|beata|beatos|beatas|santoral|nuestra\s+señora|señor\s+de|virgen|solemnidad|festividad|exaltación|memoria\s+de|fiesta\s+de\s+(san|santa|la\s+virgen)|conversión\s+de|presentación\s+del\s+señor|asunción|natividad|inmaculada|sagrado\s+coraz(ó|o)n|cristo|la\s+iglesia|las\s+iglesias|el\s+papa)\b/i;
 
 /** Coletillas al final: ".(en inglés: X)", ".(imagen ilustrativa)", ":(Celebraciones relacionadas)". */
 const TRAILING_NOTE = /[.:]\s*\([^)]*\)/g;
@@ -99,62 +135,94 @@ function stripRepeatedPrefix(text: string): { rest: string; prefix: string } | n
 }
 
 /**
- * `null` si el texto no arranca con un prefijo supranacional; si arranca, el texto sin él. Sin dos puntos solo
- * es prefijo si lo que sigue arranca como título: "Mundial de Clubes" no lo es.
+ * `null` si el texto no arranca con un prefijo supranacional; si arranca, el texto sin él, marcando como regional al
+ * de un bloque (Unión Europea, Mercosur). Sin dos puntos solo es prefijo si lo que sigue arranca como título:
+ * "Mundial de Clubes" no lo es.
  */
-function stripSupranationalPrefix(text: string): string | null {
+function stripSupranationalPrefix(text: string): { rest: string; isRegional: boolean } | null {
   const match = text.match(SUPRANATIONAL_PREFIX);
-  if (!match) return null;
+  if (!match?.[1]) return null;
 
   const rest = text.slice(match[0].length).trim();
   if (!match[2] && !TITLE_START.test(rest)) return null;
 
-  return rest;
+  return { rest, isRegional: REGIONAL_BLOCKS.includes(match[1]) };
 }
 
 /**
- * Va después de los supranacionales: "Unión Europea Unión Europea: …" tiene la misma forma que un país pero
- * es internacional. Con bandera ajena la entrada se descarta más arriba, sin limpiar el prefijo.
+ * Va después de los supranacionales, que pueden venir repetidos igual que un país. Con bandera ajena la entrada se
+ * descarta más arriba, sin limpiar el prefijo.
  */
 function stripCountryPrefix(text: string): {
   rest: string;
   isArgentina: boolean;
   hadCountry: boolean;
+  isRegional: boolean;
 } {
   const supranational = stripSupranationalPrefix(text);
-  if (supranational !== null) return { rest: supranational, isArgentina: false, hadCountry: false };
+  if (supranational) return { ...supranational, isArgentina: false, hadCountry: false };
 
+  const base = { isArgentina: false, hadCountry: false, isRegional: false };
   const flagMatch = text.match(COUNTRY_FLAG);
 
   if (flagMatch) {
     const isArgentina = flagMatch[0].trim() === ARGENTINA_FLAG;
     const withoutFlag = text.slice(flagMatch[0].length).trim();
+    const rest = isArgentina ? (stripRepeatedPrefix(withoutFlag)?.rest ?? withoutFlag) : withoutFlag;
 
-    if (!isArgentina) return { rest: withoutFlag, isArgentina: false, hadCountry: true };
-
-    return { rest: stripRepeatedPrefix(withoutFlag)?.rest ?? withoutFlag, isArgentina: true, hadCountry: true };
+    return { ...base, rest, isArgentina, hadCountry: true };
   }
 
   const stripped = stripRepeatedPrefix(text);
-  if (!stripped) return { rest: text, isArgentina: false, hadCountry: false };
+  if (!stripped) return { ...base, rest: text };
 
-  return { rest: stripped.rest, isArgentina: /\bArgentina\b/.test(stripped.prefix), hadCountry: true };
+  return { ...base, rest: stripped.rest, isArgentina: /\bArgentina\b/.test(stripped.prefix), hadCountry: true };
 }
 
-/** Quita hasta dos sub-prefijos regionales para que "Santa Fe: Día X" no caiga en el filtro religioso. */
-function stripSubregions(text: string): string {
+/**
+ * Quita hasta dos sub-prefijos de instituciones argentinas ("Armada Argentina: …"). `null` si alguno es una
+ * provincia, CABA o el bloque "Por provincias": esas efemérides son locales.
+ */
+function stripArgentineSubprefixes(text: string): string | null {
   let rest = text;
   for (let i = 0; i < 2; i++) {
     const match = rest.match(SUBREGION_PREFIX);
     if (!match?.[1] || TITLE_START.test(match[1])) break;
+    if (PROVINCIAL_PREFIX.test(match[1])) return null;
     rest = rest.slice(match[0].length).trim();
   }
   return rest;
 }
 
 /**
- * `null` cuando la entrada se descarta (país ajeno, religiosa o vacía). Un paréntesis inicial ya quitado deja
- * sus dos puntos: "(ciertas regiones): Día del Mediterráneo".
+ * Un "Día…" sin país que igual no es mundial: enumera países, es un "Día Nacional…" de otro país que el feed no rotula
+ * (casi siempre de Estados Unidos), o es de una región (por el título o por el bloque que lo rotula) y no se declara
+ * mundial ni internacional. Los países enumerados se reconocen por ", en:" o por un nombre repetido después de dos
+ * puntos o pegado a "en" ("en Chad Chad"); sin ese ancla, un nombre de persona ("José José") pasaba por país.
+ */
+function isLimitedScope(title: string, isRegional: boolean): boolean {
+  if (LISTED_COUNTRY.test(title) || UNLABELED_NATIONAL_DAY.test(title)) return true;
+
+  return (isRegional || REGION.test(title)) && !WORLDWIDE_WORD.test(title);
+}
+
+/**
+ * Lista blanca sobre el título ya limpio: los "Día…" más "Año Nuevo", "Navidad" y, solo si es argentina, la
+ * Revolución de Mayo. Un prefijo que no se reconoció queda al principio del título y por eso lo descarta.
+ */
+function isAllowedHoliday({ title, isArgentina }: ParsedHoliday, isRegional: boolean): boolean {
+  if (WORLDWIDE_EXCEPTION.test(title)) return true;
+  if (isArgentina) return DAY_TITLE.test(title) || ARGENTINE_EXCEPTION.test(title);
+
+  return DAY_TITLE.test(title) && !isLimitedScope(title, isRegional);
+}
+
+/**
+ * Lee el texto como una sola efeméride. `null` cuando se descarta (país ajeno, provincial, vacía o fuera de la lista
+ * blanca). Un paréntesis inicial ya quitado deja sus dos puntos: "(ciertas regiones): Día del Mediterráneo". Algunas
+ * efemérides argentinas llegan sin país, porque en el wikitexto una imagen separa el encabezado de su lista: se
+ * reconocen una por una en `UNLABELED_ARGENTINE_DAYS`, sin mirar tildes ni mayúsculas, ya que las reglas de alcance
+ * las tomarían por ajenas.
  */
 export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
   const flattened = rawText.replace(/\s+/g, ' ').trim();
@@ -168,23 +236,56 @@ export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
     return null;
   }
 
-  const normalized = flattened.replace(RELATED_HEADER, '');
+  const normalized = flattened.replace(RELATED_HEADER, '').replace(/^[:\s]+/, '');
   if (!normalized) return null;
 
-  const { rest, isArgentina, hadCountry } = stripCountryPrefix(normalized);
+  const { rest, isArgentina, hadCountry, isRegional } = stripCountryPrefix(normalized);
   if (hadCountry && !isArgentina) return null;
 
-  const withoutSubregion = isArgentina ? stripSubregions(rest) : rest;
-  if (!withoutSubregion || RELIGIOUS.test(withoutSubregion)) return null;
+  const withoutSubprefix = isArgentina ? stripArgentineSubprefixes(rest) : rest;
+  if (!withoutSubprefix) return null;
 
-  const cleaned = withoutSubregion.replace(TRAILING_NOTE, '').trim();
+  const cleaned = withoutSubprefix.replace(TRAILING_NOTE, '').trim();
   const split = cleaned.match(TITLE_SPLIT);
   const title = (split?.[1] ?? cleaned)
     .replace(/[.:]$/, '')
     .replace(/\([^)]*\)/g, '')
     .replace(/^[:\s]+/, '')
     .trim();
-  if (!title) return null;
+  const holiday = { title, isArgentina: isArgentina || UNLABELED_ARGENTINE_DAYS.has(toComparableTitle(title)) };
 
-  return { title, isArgentina };
+  return isAllowedHoliday(holiday, isRegional) ? holiday : null;
+}
+
+/**
+ * Efemérides de una entrada del feed. Algunas traen varias, una por línea y anidadas como la lista del wikitexto:
+ * cada "Día…" se evalúa junto con las líneas de arriba que no son un "Día…", que son los encabezados que lo alcanzan.
+ * Uno sin encabezado que cuelga de un "Día…" descartado se descarta también, porque suele ser de otro país; como el
+ * feed no marca la profundidad, así cae también uno válido que venga después sin depender de aquel. Con menos de dos
+ * "Día…" la entrada se lee entera: lo que sigue al título puede ser la lista de países que lo limita.
+ */
+export function parseHolidayEntries(rawText: string): ParsedHoliday[] {
+  const headers: string[] = [];
+  const days: { line: string; headers: string[] }[] = [];
+
+  for (const line of rawText.split('\n').map(part => part.trim())) {
+    if (DAY_LINE.test(line)) days.push({ line, headers: [...headers] });
+    else if (line) headers.push(line);
+  }
+
+  if (days.length < 2) {
+    const holiday = parseHolidayEntry(rawText);
+    return holiday ? [holiday] : [];
+  }
+
+  const holidays: ParsedHoliday[] = [];
+  let hasDiscardedParent = false;
+
+  for (const day of days) {
+    const holiday = parseHolidayEntry([...day.headers, day.line].join('\n'));
+    if (holiday && (day.headers.length > 0 || !hasDiscardedParent)) holidays.push(holiday);
+    hasDiscardedParent ||= !holiday;
+  }
+
+  return holidays;
 }
