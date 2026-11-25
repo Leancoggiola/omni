@@ -41,13 +41,23 @@ const PROVINCIAL_PREFIX = new RegExp(
   'i'
 );
 
+/** Título sin tildes ni mayúsculas, para compararlo sin depender de cómo lo escriba el feed. */
+function toComparableTitle(title: string): string {
+  return title
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
+}
+
 const DAY_TITLE = /^días?\s/i;
 const DAY_LINE = /^d[ií]as?\s/i;
-const UNLABELED_ARGENTINE_DAYS = new Set([
-  'Día Nacional del Perro',
-  'Día Nacional de la Medicina Social',
-  'Día de las Heroínas y Mártires de la Independencia de América',
-]);
+const UNLABELED_ARGENTINE_DAYS = new Set(
+  [
+    'Día Nacional del Perro',
+    'Día Nacional de la Medicina Social',
+    'Día de las Heroínas y Mártires de la Independencia de América',
+  ].map(toComparableTitle)
+);
 const WORLDWIDE_EXCEPTION = /^(año nuevo|navidad)$/i;
 const ARGENTINE_EXCEPTION = /^(conmemoración (por|de) )?(la )?revolución de mayo$/i;
 
@@ -211,7 +221,8 @@ function isAllowedHoliday({ title, isArgentina }: ParsedHoliday, isRegional: boo
  * Lee el texto como una sola efeméride. `null` cuando se descarta (país ajeno, provincial, vacía o fuera de la lista
  * blanca). Un paréntesis inicial ya quitado deja sus dos puntos: "(ciertas regiones): Día del Mediterráneo". Algunas
  * efemérides argentinas llegan sin país, porque en el wikitexto una imagen separa el encabezado de su lista: se
- * reconocen una por una en `UNLABELED_ARGENTINE_DAYS`, ya que las reglas de alcance las tomarían por ajenas.
+ * reconocen una por una en `UNLABELED_ARGENTINE_DAYS`, sin mirar tildes ni mayúsculas, ya que las reglas de alcance
+ * las tomarían por ajenas.
  */
 export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
   const flattened = rawText.replace(/\s+/g, ' ').trim();
@@ -241,7 +252,7 @@ export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
     .replace(/\([^)]*\)/g, '')
     .replace(/^[:\s]+/, '')
     .trim();
-  const holiday = { title, isArgentina: isArgentina || UNLABELED_ARGENTINE_DAYS.has(title) };
+  const holiday = { title, isArgentina: isArgentina || UNLABELED_ARGENTINE_DAYS.has(toComparableTitle(title)) };
 
   return isAllowedHoliday(holiday, isRegional) ? holiday : null;
 }
@@ -249,8 +260,9 @@ export function parseHolidayEntry(rawText: string): ParsedHoliday | null {
 /**
  * Efemérides de una entrada del feed. Algunas traen varias, una por línea y anidadas como la lista del wikitexto:
  * cada "Día…" se evalúa junto con las líneas de arriba que no son un "Día…", que son los encabezados que lo alcanzan.
- * Uno sin encabezado que cuelga de un "Día…" descartado se descarta también, porque suele ser de otro país. Con menos
- * de dos "Día…" la entrada se lee entera: lo que sigue al título puede ser la lista de países que lo limita.
+ * Uno sin encabezado que cuelga de un "Día…" descartado se descarta también, porque suele ser de otro país; como el
+ * feed no marca la profundidad, así cae también uno válido que venga después sin depender de aquel. Con menos de dos
+ * "Día…" la entrada se lee entera: lo que sigue al título puede ser la lista de países que lo limita.
  */
 export function parseHolidayEntries(rawText: string): ParsedHoliday[] {
   const headers: string[] = [];
