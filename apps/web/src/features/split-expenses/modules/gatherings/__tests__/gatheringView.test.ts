@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  baseSharePerPerson,
   describeBalanceSummary,
+  describeExpenseSharers,
   describeMyBalance,
   describeSettlement,
+  describeSplitCaption,
+  expenseSharers,
   formatSignedBalance,
   groupExpensesByDay,
   participantLabel,
@@ -154,5 +158,58 @@ describe('describeSettlement', () => {
         participants
       )
     ).toEqual({ from: 'Vos', to: 'Ana' });
+  });
+});
+
+describe('baseSharePerPerson', () => {
+  it('trunca al centavo sin mencionar el que sobra', () => {
+    expect(baseSharePerPerson(100, 3)).toBe(33.33);
+    expect(baseSharePerPerson(27000, 3)).toBe(9000);
+  });
+
+  it('sin monto o sin personas es 0', () => {
+    expect(baseSharePerPerson(0, 3)).toBe(0);
+    expect(baseSharePerPerson(Number.NaN, 3)).toBe(0);
+    expect(baseSharePerPerson(10, 0)).toBe(0);
+  });
+});
+
+describe('describeSplitCaption', () => {
+  it('con monto muestra la parte de cada uno', () => {
+    expect(describeSplitCaption(27000, 3, 4)).toEqual({
+      text: 'Se divide entre 3 de 4 · $9.000,00 c/u',
+      invalid: false,
+    });
+  });
+
+  it('sin monto no muestra "c/u"', () => {
+    expect(describeSplitCaption(Number.NaN, 4, 4)).toEqual({ text: 'Se divide entre 4 de 4', invalid: false });
+  });
+
+  it('sin nadie elegido es un error', () => {
+    expect(describeSplitCaption(100, 0, 4)).toEqual({ text: 'Elegí al menos una persona', invalid: true });
+  });
+});
+
+describe('expenseSharers y describeExpenseSharers', () => {
+  const participants = [participant('p0', 'Mateo', true), participant('p1', 'Ana'), participant('p2', 'Beto')];
+
+  it('un gasto entre todos (sharedWith vacío) no tiene línea', () => {
+    expect(expenseSharers({ sharedWith: [] }, participants)).toEqual([]);
+    expect(describeExpenseSharers({ amount: 90, sharedWith: [] }, participants)).toBeNull();
+  });
+
+  it('nombra a los elegidos en el orden de la juntada, con "vos" en minúscula', () => {
+    expect(describeExpenseSharers({ amount: 27, sharedWith: ['p2', 'p0', 'p1'] }, participants)).toBe(
+      'Entre vos, Ana y Beto · $9,00 c/u'
+    );
+    expect(describeExpenseSharers({ amount: 10, sharedWith: ['p1'] }, participants)).toBe('Entre Ana · $10,00 c/u');
+  });
+
+  it('ignora los ids que ya no están y, si no queda ninguno, no muestra línea, igual que computeBalances', () => {
+    expect(describeExpenseSharers({ amount: 40, sharedWith: ['p1', 'gone'] }, participants)).toBe(
+      'Entre Ana · $40,00 c/u'
+    );
+    expect(describeExpenseSharers({ amount: 30, sharedWith: ['gone'] }, participants)).toBeNull();
   });
 });

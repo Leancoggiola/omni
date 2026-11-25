@@ -32,6 +32,7 @@ export class SplitExpensesPage {
 
   readonly optionsButton = () => this.page.getByRole('button', { name: 'Opciones de la juntada' });
   readonly payerGroup = () => this.page.getByRole('radiogroup', { name: 'Quién pagó' });
+  readonly sharersGroup = () => this.page.getByRole('group', { name: 'Entre quiénes se divide' });
   readonly amountField = () => this.page.getByRole('textbox', { name: 'Monto' });
   readonly descriptionField = () => this.page.getByRole('textbox', { name: 'Descripción' });
   readonly addExpenseButton = () => this.page.getByRole('button', { name: 'Agregar gasto' });
@@ -72,6 +73,11 @@ export class SplitExpensesPage {
     }
 
     await this.createGatheringButton().click();
+  }
+
+  /** Saca de "Entre" a quienes no comparten el gasto (por defecto se divide entre todos). */
+  async excludeFromSplit(...names: string[]) {
+    for (const name of names) await this.sharersGroup().getByText(name, { exact: true }).click();
   }
 
   async addExpense(payer: string, amount: string, description?: string) {
