@@ -87,7 +87,8 @@ const WeatherSurface: FC<{ children: ReactNode }> = ({ children }) => (
  * Widget de Clima de Inicio: temperatura actual, condición con ícono, mínima y máxima del día y la ciudad cuando
  * existe, con la atribución obligatoria. Sin ubicación (permiso negado o sin posición) invita a darla y no llama a la
  * API; el error de la API ofrece reintentar y nunca se ve como vacío; un dato `stale` avisa a qué hora es. En todos
- * los estados es una card baja y autónoma: se monta tal cual en la grilla de `HomeMainCard`.
+ * los estados es una card baja y autónoma: se monta tal cual en la grilla de `HomeMainCard`. El error es la excepción
+ * a la superficie común: el `Alert` de `ErrorState` ya es bajo y trae la propia, así que va sin `WeatherSurface`.
  */
 export const WeatherCard: FC = () => {
   const { weather, state, retry, requestLocation, locationBlocked } = useCurrentWeather();
