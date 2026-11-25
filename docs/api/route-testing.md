@@ -52,7 +52,7 @@ Consecuencias a tener presentes:
 
 ## Helpers
 
-Todos en `apps/api/src/test/integration/`:
+Los de la tabla están en `apps/api/src/test/integration/`:
 
 | Helper                        | Uso                                                                                                               |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------- |
@@ -64,7 +64,7 @@ Todos en `apps/api/src/test/integration/`:
 | `withSavepoint(fn)`           | Aísla una request que provoca un error de base de datos                                                           |
 | `createFakeAvatarStorage()`   | Storage de fotos en memoria; se instala con `setAvatarStorageOverride`                                            |
 
-A supertest se le pasa siempre un servidor ya escuchando, nunca la app suelta: con una app propia (`express()`), envolverla con `await listenOnLoopback(app)` de `apps/api/src/test/`. Con la app suelta supertest puede recibir un puerto que otro proceso ya usa en `127.0.0.1`.
+A supertest se le pasa siempre un servidor ya escuchando, nunca la app suelta: con una app propia (`express()`), envolverla con `await listenOnLoopback(app)`, que está una carpeta más arriba, en `apps/api/src/test/listenOnLoopback.ts`. Con la app suelta supertest puede recibir un puerto que otro proceso ya usa en `127.0.0.1`.
 
 ---
 
