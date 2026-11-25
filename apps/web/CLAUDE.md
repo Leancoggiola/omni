@@ -49,7 +49,7 @@ Un hook por archivo en `hooks/` (`hooks/useX.ts`), nombre de función = nombre d
 
 ## Clima en Inicio
 
-`WeatherCard` (`features/home`, #58) ocupa la segunda columna de `HomeMainCard` desde `lg`. `useCurrentWeather` pide la posición con `navigator.geolocation` (`useDeviceLocation`: se redondea con `roundWeatherCoordinates` antes de salir del hook) y consulta `POST SWR_KEYS.weather.current` con las coordenadas en el body: como no es un GET, la key de SWR es `[path, latitude, longitude]` y lleva su propio fetcher (`api.post`). Sin permiso o sin geolocalización no llama a la API y la card invita a darlo (`EmptyState` con "Permitir ubicación"). Cada clima recibido se guarda en `localStorage` por usuario (`shared/api/lastWeather.ts`) y se borra al cerrar o perder la sesión (`clearSession` de `AuthProvider`); si la API falla y hay uno de hoy y de hace menos de 3 horas se muestra como `stale`, y si no, `ErrorState`. La atribución ("Datos: Open-Meteo · © OpenStreetMap", con enlaces) es obligatoria. En E2E la geolocalización se simula con `geolocation` y `permissions` de Playwright, y la API habla con el stub de Open-Meteo y Nominatim.
+`WeatherCard` (`features/home`, #58) ocupa la segunda columna de `HomeMainCard` desde `lg`. `useCurrentWeather` pide la posición con `navigator.geolocation` (`useDeviceLocation`: se redondea con `roundWeatherCoordinates` antes de salir del hook) y consulta `POST SWR_KEYS.weather.current` con las coordenadas en el body: como no es un GET, la key de SWR es `[path, latitude, longitude]` y lleva su propio fetcher (`api.post`). Sin permiso o sin geolocalización no llama a la API y la card invita a darlo (`EmptyState compact` con "Permitir ubicación", sobre la misma superficie que el clima con datos). En todos los estados la card es baja, para que no estire a las efemérides, que reparten el alto sobrante arriba de su barra de progreso. Cada clima recibido se guarda en `localStorage` por usuario (`shared/api/lastWeather.ts`) y se borra al cerrar o perder la sesión (`clearSession` de `AuthProvider`); si la API falla y hay uno de hoy y de hace menos de 3 horas se muestra como `stale`, y si no, `ErrorState`. La atribución ("Datos: Open-Meteo · © OpenStreetMap", con enlaces) es obligatoria. En E2E la geolocalización se simula con `geolocation` y `permissions` de Playwright, y la API habla con el stub de Open-Meteo y Nominatim.
 
 ## Estados de UI (Loading / Empty / Error)
 
@@ -62,6 +62,8 @@ if (error) return <ErrorState message="No se pudo cargar tu lista" onRetry={() =
 if (isLoading) return <LoadingState />;
 if (items.length === 0) return <EmptyState icon={<Icon />} title="..." action={<Button />} />;
 ```
+
+`EmptyState` va centrado en su propio `Paper` (ícono en círculo de 56 px). Con `compact` es una fila baja sin superficie, para el interior de un widget.
 
 **El `error` de SWR se renderiza siempre**, con `onRetry` (el hook expone `mutate`). Un fetch fallido nunca debe verse como estado vacío.
 
