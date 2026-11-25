@@ -2,7 +2,7 @@ import { appDateKey } from '@omni/shared/common';
 import { MAX_HOLIDAY_ITEMS } from '@omni/shared/holidays';
 import type { Holiday, TodayHolidays, WikipediaHolidaysResponse } from '@omni/shared/holidays';
 
-import { parseHolidayEntry } from './holidays.parser';
+import { parseHolidayEntries } from './holidays.parser';
 import * as wikipediaService from './wikipedia.service';
 
 const MONTH_NAMES_ES = [
@@ -51,11 +51,11 @@ function todayParts(now = new Date()): DateParts {
 /**
  * El feed es externo y no viene validado: un `holidays` que no es array cuenta como día sin efemérides.
  * Wikipedia repite la misma celebración en entradas distintas del día, así que se deduplica. El id es
- * posicional porque los títulos no son identificadores estables.
+ * posicional porque los títulos no son identificadores estables; de una entrada con varias efemérides, las que
+ * siguen a la primera suman su posición.
  */
 function mapHolidays(raw: WikipediaHolidaysResponse | null, parts: DateParts): TodayHolidays {
-  const items: Holiday[] = [];
-  const seen = new Set<string>();
+  const unique = new Map<string, Holiday>();
 
   const entries: unknown[] = Array.isArray(raw?.holidays) ? raw.holidays : [];
 
@@ -63,21 +63,16 @@ function mapHolidays(raw: WikipediaHolidaysResponse | null, parts: DateParts): T
     const text = (entry as { text?: unknown } | null)?.text;
     if (typeof text !== 'string') continue;
 
-    const parsed = parseHolidayEntry(text);
-    if (!parsed) continue;
+    for (const [position, { title, isArgentina }] of parseHolidayEntries(text).entries()) {
+      const key = title.toLowerCase();
+      if (unique.has(key)) continue;
 
-    const key = parsed.title.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    items.push({
-      id: `${parts.dateKey}-${index}`,
-      title: parsed.title,
-      isArgentina: parsed.isArgentina,
-    });
-
-    if (items.length === MAX_HOLIDAY_ITEMS) break;
+      const suffix = position === 0 ? '' : `-${position}`;
+      unique.set(key, { id: `${parts.dateKey}-${index}${suffix}`, title, isArgentina });
+    }
   }
+
+  const items = [...unique.values()].slice(0, MAX_HOLIDAY_ITEMS);
 
   return {
     date: parts.dateKey,
