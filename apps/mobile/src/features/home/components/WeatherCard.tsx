@@ -11,10 +11,10 @@ import {
 import { MapPinIcon } from 'phosphor-react-native';
 import { createElement } from 'react';
 import { Linking, Pressable } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
-import { Button, EmptyState, ErrorState, LoadingState, SectionCard, Title } from '@/shared/ui';
+import { Button, EmptyState, ErrorState, LoadingState, Paragraph, SectionCard, Title } from '@/shared/ui';
 
 import { useCurrentWeather } from '../hooks/useCurrentWeather';
 import { getWeatherIcon } from '../utils/weatherIcons';

@@ -2,9 +2,10 @@ import { MEDIA_TYPE_LABELS } from '@omni/shared/media';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { CheckIcon } from 'phosphor-react-native';
 import { memo } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
+import { Paragraph } from '@/shared/ui';
 
 import { MediaPoster } from './MediaPoster';
 

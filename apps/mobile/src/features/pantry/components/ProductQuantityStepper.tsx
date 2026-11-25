@@ -1,9 +1,9 @@
 import { PANTRY_UNIT_LABELS } from '@omni/shared/pantry';
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { MinusIcon, PlusIcon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { IconButton } from '@/shared/ui';
+import { IconButton, Paragraph } from '@/shared/ui';
 
 import type { PantryUnit } from '@omni/shared/pantry';
 

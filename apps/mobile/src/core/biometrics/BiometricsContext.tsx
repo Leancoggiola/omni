@@ -77,7 +77,7 @@ async function readCapability(): Promise<Capability | null> {
  *   `AuthGate` muestra el login (usuario recordado) y `unlock()` libera la sesión sin pedir la contraseña; esa
  *   sesión es la que ya guardó `tokenStorage`, la biometría no reemplaza la autenticación del servidor. `markUnlocked`
  *   lo libera después de un login con contraseña. Que ya se liberó se guarda fuera del provider (`startupUnlock`),
- *   porque expo-router lo vuelve a montar al redirigir a las tabs y no debe volver a bloquear hasta un arranque en frío.
+ *   porque un nuevo montaje del layout raíz no debe volver a bloquear hasta un arranque en frío.
  * - **Módulos sensibles** (`isSensitiveUnlocked`, `authenticateSensitive`): vale `SENSITIVE_UNLOCK_TTL_MS` desde el
  *   último desbloqueo y se pierde al mandar la app a background (`sensitiveEpoch` cambia para avisar a los gates
  *   montados). Cualquier desbloqueo, activación o login con contraseña lo renueva.

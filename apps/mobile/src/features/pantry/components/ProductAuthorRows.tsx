@@ -1,9 +1,9 @@
 import { ITEM_ADDED_BY_LABEL, ITEM_EDITED_BY_LABEL } from '@omni/shared/household';
 import { FONT_SIZE } from '@omni/shared/theme';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
 
 import { useItemAuthor, useItemEditor } from '@/core/household';
-import { AuthorTag } from '@/shared/ui';
+import { AuthorTag, Paragraph } from '@/shared/ui';
 
 import type { ItemAuthor } from '@omni/shared/household';
 

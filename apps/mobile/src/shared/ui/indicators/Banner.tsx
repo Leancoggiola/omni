@@ -1,10 +1,12 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
 import { useEffect } from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { themedElevation } from '@/theme/elevation';
+
+import { Paragraph } from '../Paragraph';
 
 import type { Icon } from 'phosphor-react-native';
 

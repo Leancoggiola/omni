@@ -2,9 +2,18 @@ import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import * as ImagePicker from 'expo-image-picker';
 import { CameraIcon, TrashIcon } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { Button, getErrorMessage, IconButton, notifyError, notifySuccess, SectionCard, UserAvatar } from '@/shared/ui';
+import {
+  Button,
+  getErrorMessage,
+  IconButton,
+  notifyError,
+  notifySuccess,
+  Paragraph,
+  SectionCard,
+  UserAvatar,
+} from '@/shared/ui';
 
 import { validateAvatarAsset } from '../utils/profilePhoto';
 

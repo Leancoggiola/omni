@@ -3,10 +3,10 @@ import { useEffect, useState, type ComponentProps } from 'react';
 import { Animated, Linking, Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowSquareOutIcon, ConfettiIcon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useColorSchemeControl } from '@/core/theme';
-import { ErrorState } from '@/shared/ui';
+import { ErrorState, Paragraph } from '@/shared/ui';
 import { gradientPoints } from '@/theme/gradient';
 import { HOLIDAY_CAROUSEL_DURATION_MS } from '@omni/shared/holidays';
 import { BRAND, GRADIENT_STOPS, RADIUS, SEMANTIC, SPACING } from '@omni/shared/theme';

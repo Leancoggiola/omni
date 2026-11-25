@@ -1,9 +1,9 @@
 import { GYM_WEEKDAY_LABELS } from '@omni/shared/gym';
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { DotsThreeIcon } from 'phosphor-react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { IconButton } from '@/shared/ui';
+import { IconButton, Paragraph } from '@/shared/ui';
 
 import { formatExerciseCount } from '../utils/gymFormat';
 import { ExerciseRow } from './ExerciseRow';

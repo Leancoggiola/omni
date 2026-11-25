@@ -1,9 +1,8 @@
 import { GYM_WEEKDAY_LABELS, GYM_WEEKDAYS } from '@omni/shared/gym';
 import { FONT_SIZE } from '@omni/shared/theme';
 import { useCallback, useState } from 'react';
-import { Paragraph } from 'tamagui';
 
-import { Button, FormSheet, Select } from '@/shared/ui';
+import { Button, FormSheet, Paragraph, Select } from '@/shared/ui';
 
 import { useGymSheetSubmit } from '../hooks/useGymSheetSubmit';
 import { GymErrorBanner } from './GymErrorBanner';

@@ -1,10 +1,11 @@
 import { FONT_SIZE, RADIUS, SIZE, SPACING } from '@omni/shared/theme';
 import { PlusIcon, type Icon } from 'phosphor-react-native';
-import { Paragraph, XStack } from 'tamagui';
+import { XStack } from 'tamagui';
 
 import { useColorSchemeControl, useSemanticColors } from '@/core/theme';
 import { themedElevation } from '@/theme/elevation';
 
+import { Paragraph } from '../Paragraph';
 import { useFloatingBottom } from '../Screen';
 
 export const FAB_SIZE = SIZE.fab;
