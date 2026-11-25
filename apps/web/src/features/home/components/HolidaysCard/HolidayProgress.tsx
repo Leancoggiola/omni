@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { Progress } from '@mantine/core';
 
 type HolidayProgressProps = {
-  duration?: number;
+  duration: number;
   /** Con el carrusel en pausa (hover, foco o reduced motion) la barra queda vacía. */
   running?: boolean;
 };
 
-export function HolidayProgress({ duration = 3000, running = true }: HolidayProgressProps) {
+export function HolidayProgress({ duration, running = true }: HolidayProgressProps) {
   const [value, setValue] = useState(0);
 
   useEffect(() => {

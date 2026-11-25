@@ -2,12 +2,13 @@ import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { CheckIcon } from 'phosphor-react-native';
 import { type PropsWithChildren } from 'react';
 import { useWindowDimensions } from 'react-native';
-import { Paragraph, Sheet, XStack, YStack } from 'tamagui';
+import { Sheet, XStack, YStack } from 'tamagui';
 
 import { useSemanticColors } from '@/core/theme';
 
 import { Button } from '../button/Button';
 import { DisplayTitle } from '../DisplayTitle';
+import { Paragraph } from '../Paragraph';
 import { QueuedSheet } from '../sheet/QueuedSheet';
 import { useSheetQueue } from '../sheet/useSheetQueue';
 

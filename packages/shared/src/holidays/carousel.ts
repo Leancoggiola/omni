@@ -1,6 +1,6 @@
 import type { TodayHolidays } from './types';
 
-export const HOLIDAY_CAROUSEL_DURATION_MS = 3_000;
+export const HOLIDAY_CAROUSEL_DURATION_MS = 5_000;
 
 export const HOLIDAY_STALE_DAY_RETRY_MS = 30_000;
 

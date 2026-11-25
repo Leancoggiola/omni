@@ -2,11 +2,11 @@ import { MEDIA_STATUS_LABELS, MEDIA_TYPE_LABELS } from '@omni/shared/media';
 import { FONT_SIZE, LINE_HEIGHT, RADIUS, SPACING } from '@omni/shared/theme';
 import { TrashIcon } from 'phosphor-react-native';
 import { memo } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useItemAuthor } from '@/core/household';
 import { useColorSchemeControl } from '@/core/theme';
-import { AuthorTag, Badge, IconButton, StatusPill } from '@/shared/ui';
+import { AuthorTag, Badge, IconButton, Paragraph, StatusPill } from '@/shared/ui';
 import { glassElevation } from '@/theme/elevation';
 
 import { MediaPoster } from './MediaPoster';

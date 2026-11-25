@@ -3,7 +3,7 @@ import { Redirect, useRouter } from 'expo-router';
 import { GearIcon, UserPlusIcon, UsersIcon } from 'phosphor-react-native';
 import { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
 import { useAuth } from '@/core/auth';
 import {
@@ -16,6 +16,7 @@ import {
   LoadingState,
   notifyError,
   notifySuccess,
+  Paragraph,
   Screen,
   ScreenHeader,
   SectionCard,

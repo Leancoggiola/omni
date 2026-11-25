@@ -1,7 +1,7 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { Badge } from '@/shared/ui';
+import { Badge, Paragraph } from '@/shared/ui';
 
 import { formatSetsReps, formatWeightKg } from '../utils/gymFormat';
 

@@ -3,7 +3,7 @@ import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler, ScrollView } from 'react-native';
-import { Paragraph, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
 import { ApiError } from '@/shared/api';
 import { NAV_ICONS } from '@/shared/navigation';
@@ -15,6 +15,7 @@ import {
   LoadingState,
   notifyError,
   notifySuccess,
+  Paragraph,
   Screen,
   ScreenHeader,
 } from '@/shared/ui';

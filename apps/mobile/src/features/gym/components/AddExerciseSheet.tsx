@@ -3,9 +3,9 @@ import { GYM_EXERCISE_NAME_MAX, GYM_REPS_MAX, GYM_WEEKDAY_LABELS, GYM_WEEKDAYS }
 import { FONT_SIZE, SPACING } from '@omni/shared/theme';
 import { InfoIcon } from 'phosphor-react-native';
 import { useCallback, useState } from 'react';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
 
-import { Banner, Button, FormSheet, Select, TextField } from '@/shared/ui';
+import { Banner, Button, FormSheet, Paragraph, Select, TextField } from '@/shared/ui';
 
 import { useGymCatalogSuggestions } from '../hooks/useGymCatalogSuggestions';
 import { useGymSheetSubmit } from '../hooks/useGymSheetSubmit';

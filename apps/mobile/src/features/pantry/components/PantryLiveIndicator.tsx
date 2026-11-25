@@ -1,5 +1,7 @@
 import { FONT_SIZE, RADIUS, SPACING } from '@omni/shared/theme';
-import { Paragraph, XStack, YStack } from 'tamagui';
+import { XStack, YStack } from 'tamagui';
+
+import { Paragraph } from '@/shared/ui';
 
 const DOT_SIZE = 8;
 
