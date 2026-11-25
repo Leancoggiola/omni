@@ -109,6 +109,12 @@ describe('WeatherCard', () => {
     expect(mockRequestLocation).toHaveBeenCalledTimes(1);
   });
 
+  it('los estados sin dato no repiten el título "Clima" dentro de su card', async () => {
+    state({ state: 'no-location' });
+    await render(<WeatherCard />);
+    expect(screen.queryByText('Clima')).toBeNull();
+  });
+
   it('si el sistema ya no deja preguntar ofrece abrir los ajustes', async () => {
     state({ state: 'no-location', canAskLocationAgain: false });
     await render(<WeatherCard />);
